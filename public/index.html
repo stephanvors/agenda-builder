@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SGB/SMT Strategy Meeting — Agenda Builder</title>
+    <meta name="description" content="Collaborative agenda builder for the SGB/SMT Strategy Meeting on 21 August 2026">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Login Panel -->
+    <main id="login-view" class="view-container active">
+        <div class="registration-card">
+            <h1>SGB/SMT Strategy Meeting</h1>
+            <h2>Agenda Builder</h2>
+            <p>Welcome to the collaborative agenda builder for our upcoming strategy meeting on <strong>21 August 2026</strong>. Please sign in with your name and personal PIN to continue.</p>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="login-member">Your Name</label>
+                    <select id="login-member" required>
+                        <option value="" disabled selected>Select your name...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="login-pin">Your PIN</label>
+                    <input type="password" id="login-pin" required placeholder="Enter your 4-digit PIN" maxlength="4" pattern="[0-9]{4}" inputmode="numeric" autocomplete="off">
+                    <span class="error-msg" id="login-error"></span>
+                </div>
+                <button type="submit" id="btn-login" class="btn btn-primary btn-block">Sign In</button>
+            </form>
+        </div>
+    </main>
+
+    <!-- Main Application -->
+    <main id="main-view" class="view-container">
+        <header class="app-header">
+            <div class="header-content">
+                <div class="header-title">
+                    <h1>SGB/SMT Strategy Meeting</h1>
+                    <span class="subtitle">Agenda Builder • 21 August 2026</span>
+                </div>
+                <div class="user-info">
+                    <div class="user-details">
+                        <span id="current-user-name" class="user-name"></span>
+                        <span id="current-user-role" class="user-role badge"></span>
+                    </div>
+                    <button id="btn-signout" class="btn btn-outline btn-sm">Sign Out</button>
+                </div>
+            </div>
+        </header>
+
+        <div class="stats-bar">
+            <div class="stat-item">
+                <span class="stat-value" id="stat-days">0</span>
+                <span class="stat-label">Days to go</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value" id="stat-members">0</span>
+                <span class="stat-label">Members</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value" id="stat-items">0</span>
+                <span class="stat-label">Items Proposed</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value" id="stat-votes">0</span>
+                <span class="stat-label">Total Votes</span>
+            </div>
+        </div>
+
+        <section class="content-section">
+            <div class="actions-bar">
+                <button id="btn-toggle-form" class="btn btn-primary">
+                    <span class="icon">+</span> Propose New Item
+                </button>
+                <button id="btn-export" class="btn btn-secondary">
+                    <span class="icon">📋</span> View Agenda
+                </button>
+            </div>
+
+            <div id="submit-item-container" class="collapsible-section collapsed">
+                <div class="form-card">
+                    <h3>Propose Agenda Item</h3>
+                    <form id="submit-item-form">
+                        <div class="form-group">
+                            <label for="item-title">Title</label>
+                            <input type="text" id="item-title" required minlength="5" placeholder="Brief summary of the topic">
+                            <span class="error-msg" id="title-error"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="item-category">Category</label>
+                            <select id="item-category" required>
+                                <option value="" disabled selected>Select category...</option>
+                                <option value="Fee Collection &amp; Debt Recovery">Fee Collection &amp; Debt Recovery</option>
+                                <option value="Budget &amp; Financial Management">Budget &amp; Financial Management</option>
+                                <option value="Fundraising &amp; Alternative Revenue">Fundraising &amp; Alternative Revenue</option>
+                                <option value="Infrastructure &amp; Maintenance">Infrastructure &amp; Maintenance</option>
+                                <option value="Curriculum &amp; Academic Performance">Curriculum &amp; Academic Performance</option>
+                                <option value="Human Resources &amp; Staffing">Human Resources &amp; Staffing</option>
+                                <option value="Parent &amp; Community Engagement">Parent &amp; Community Engagement</option>
+                                <option value="Governance &amp; Policy">Governance &amp; Policy</option>
+                                <option value="Learner Welfare &amp; Support">Learner Welfare &amp; Support</option>
+                                <option value="Communication &amp; Administration">Communication &amp; Administration</option>
+                                <option value="General">General</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="item-description">Description</label>
+                            <textarea id="item-description" required minlength="10" rows="4" placeholder="Why should we discuss this? What are the key points?"></textarea>
+                            <span class="error-msg" id="desc-error"></span>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" id="btn-cancel-submit" class="btn btn-outline">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Submit Proposal</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="filters-section">
+                <div class="filter-group">
+                    <select id="filter-category" class="filter-select">
+                        <option value="All">All Categories</option>
+                        <option value="Fee Collection &amp; Debt Recovery">Fee Collection &amp; Debt Recovery</option>
+                        <option value="Budget &amp; Financial Management">Budget &amp; Financial Management</option>
+                        <option value="Fundraising &amp; Alternative Revenue">Fundraising &amp; Alternative Revenue</option>
+                        <option value="Infrastructure &amp; Maintenance">Infrastructure &amp; Maintenance</option>
+                        <option value="Curriculum &amp; Academic Performance">Curriculum &amp; Academic Performance</option>
+                        <option value="Human Resources &amp; Staffing">Human Resources &amp; Staffing</option>
+                        <option value="Parent &amp; Community Engagement">Parent &amp; Community Engagement</option>
+                        <option value="Governance &amp; Policy">Governance &amp; Policy</option>
+                        <option value="Learner Welfare &amp; Support">Learner Welfare &amp; Support</option>
+                        <option value="Communication &amp; Administration">Communication &amp; Administration</option>
+                        <option value="General">General</option>
+                    </select>
+                    <select id="sort-items" class="filter-select">
+                        <option value="votes">Sort: Highest Votes</option>
+                        <option value="newest">Sort: Newest First</option>
+                        <option value="oldest">Sort: Oldest First</option>
+                    </select>
+                </div>
+                <div class="status-filters" id="status-filters">
+                    <button class="status-btn active" data-status="All">All</button>
+                    <button class="status-btn" data-status="Proposed">Proposed</button>
+                    <button class="status-btn" data-status="Seconded">Seconded</button>
+                    <button class="status-btn" data-status="Endorsed">Endorsed</button>
+                </div>
+            </div>
+
+            <div class="refresh-indicator">
+                <small>Auto-updating in <span id="refresh-countdown">15</span>s <span class="dot"></span></small>
+            </div>
+
+            <div id="agenda-items-container" class="items-grid">
+                <!-- Items will be injected here -->
+            </div>
+            <div id="empty-state" class="empty-state hidden">
+                <p>No agenda items found matching your criteria.</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Export/Print Modal -->
+    <div id="export-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Meeting Agenda Preview</h2>
+                <div class="modal-actions">
+                    <button id="btn-print" class="btn btn-primary">Print / PDF</button>
+                    <button id="btn-close-modal" class="btn btn-outline">&times; Close</button>
+                </div>
+            </div>
+            <div id="printable-agenda" class="printable-area">
+                <!-- Printable content injected here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

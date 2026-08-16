@@ -1,0 +1,172 @@
+{
+  "members": [
+    {
+      "id": "ca5d4a12-d2c7-4bd7-9366-6a254a5d2212",
+      "name": "Bennie Bekker",
+      "title": "Mr",
+      "role": "SGB Non Teaching Staff",
+      "contact": "0760201695",
+      "email": "benniebekker3@gmail.com",
+      "pin": "3491",
+      "registeredAt": "2026-08-16T18:32:58.956Z"
+    },
+    {
+      "id": "65beef02-4e46-4f89-86c8-c64b8a0d6937",
+      "name": "Sakhile Belle",
+      "title": "Ms",
+      "role": "SMT",
+      "contact": "0608059885",
+      "email": "sakhilebelle@icloud.com",
+      "pin": "8710",
+      "registeredAt": "2026-08-16T18:32:58.956Z"
+    },
+    {
+      "id": "81be2757-2624-4904-a355-9b0444bd8ff1",
+      "name": "Marcelle Botha",
+      "title": "Ms",
+      "role": "Principal",
+      "contact": "0737600933",
+      "email": "principal@lgaa.co.za",
+      "pin": "6970",
+      "registeredAt": "2026-08-16T18:32:58.956Z"
+    },
+    {
+      "id": "f7a6e5cf-e976-449d-a4a8-a10477aca9c0",
+      "name": "Tersia Cock",
+      "title": "Mrs",
+      "role": "SMT",
+      "contact": "0795123365",
+      "email": "tersiahenna@gmail.com",
+      "pin": "3531",
+      "registeredAt": "2026-08-16T18:32:58.956Z"
+    },
+    {
+      "id": "06d075a1-2b95-432d-9288-965708f903ae",
+      "name": "Hanlie Du Preez",
+      "title": "Mrs",
+      "role": "Finance Officer",
+      "contact": "0834507253",
+      "email": "admin@lgaa.co.za",
+      "pin": "8671",
+      "registeredAt": "2026-08-16T18:32:58.956Z"
+    },
+    {
+      "id": "7fd40e14-f2ab-47b3-a50b-e479a48e0602",
+      "name": "Kwezi Dyasi",
+      "title": "Mr",
+      "role": "SGB Chairperson",
+      "contact": "0722730241",
+      "email": "kdyasi@gmail.com",
+      "pin": "5836",
+      "registeredAt": "2026-08-16T18:32:58.956Z"
+    },
+    {
+      "id": "025999c3-ee04-4090-92c4-9e36da6b32d3",
+      "name": "Anthony Engelbrecht",
+      "title": "Mr",
+      "role": "SGB Educator Rep",
+      "contact": "0662590335",
+      "email": "Antengel@gmail.com",
+      "pin": "6569",
+      "registeredAt": "2026-08-16T18:32:58.956Z"
+    },
+    {
+      "id": "6b3b390c-fc6a-407f-8064-16ac66918d6a",
+      "name": "Andile Gushmani",
+      "title": "Mr",
+      "role": "SGB Treasurer",
+      "contact": "0730004307",
+      "email": "gushmania@senqu.gov.za",
+      "pin": "4498",
+      "registeredAt": "2026-08-16T18:32:58.956Z"
+    },
+    {
+      "id": "2e92b67d-59c5-4c7c-b490-f50b96d6d873",
+      "name": "Viljoen Mathee",
+      "title": "Mr",
+      "role": "SMT",
+      "contact": "0827841823",
+      "email": "fviljoenmathee@gmail.com",
+      "pin": "8395",
+      "registeredAt": "2026-08-16T18:32:58.956Z"
+    },
+    {
+      "id": "c888f264-8296-4e0b-a1d9-4772dc43361c",
+      "name": "Marquin Scharneck",
+      "title": "Mr",
+      "role": "SMT",
+      "contact": "0662025670",
+      "email": "mw.scharneck@gmail.com",
+      "pin": "4330",
+      "registeredAt": "2026-08-16T18:32:58.956Z"
+    },
+    {
+      "id": "8ae9bf32-0b10-47be-8168-79fc2f69643c",
+      "name": "Sylvia Swart",
+      "title": "Mrs",
+      "role": "Deputy Principal",
+      "contact": "0820790079",
+      "email": "deputy.principal@lgaa.co.za",
+      "pin": "1985",
+      "registeredAt": "2026-08-16T18:32:58.956Z"
+    },
+    {
+      "id": "6365f662-ff08-4775-8169-88bdb7c3f0d7",
+      "name": "Nellie Von Solms",
+      "title": "Mrs",
+      "role": "SGB Educator Rep",
+      "contact": "0848309994",
+      "email": "nellvs888@gmail.com",
+      "pin": "2727",
+      "registeredAt": "2026-08-16T18:32:58.956Z"
+    },
+    {
+      "id": "7c2333c0-5555-486f-afde-2d10af845f5c",
+      "name": "Stephen Vorster",
+      "title": "Mr",
+      "role": "Admin Clerk",
+      "contact": "0799969504",
+      "email": "stephan.vors@gmail.com",
+      "pin": "9079",
+      "registeredAt": "2026-08-16T18:32:58.956Z"
+    },
+    {
+      "id": "ec90f721-fa50-490f-b2e0-4b23cf936a4b",
+      "name": "Charlene Vorster",
+      "title": "Mrs",
+      "role": "SGB Tots Academy",
+      "contact": "0836535007",
+      "email": "charlene.vorster30@gmail.com",
+      "pin": "7791",
+      "registeredAt": "2026-08-16T18:32:58.956Z"
+    },
+    {
+      "id": "de699132-7c63-4eab-a5a0-0c8fa3e518c3",
+      "name": "Noncedo Williams",
+      "title": "Mrs",
+      "role": "SGB Parent",
+      "contact": "0782766516",
+      "email": "williamsnoncedo@gmail.com",
+      "pin": "9830",
+      "registeredAt": "2026-08-16T18:32:58.956Z"
+    }
+  ],
+  "sessions": [
+    {
+      "token": "1a91bdbb-3c60-4e41-afbd-845c09868c12",
+      "memberId": "ca5d4a12-d2c7-4bd7-9366-6a254a5d2212",
+      "createdAt": "2026-08-16T18:33:33.173Z"
+    },
+    {
+      "token": "849ddd52-384b-47b3-bcfa-ebdf6766d3d3",
+      "memberId": "7c2333c0-5555-486f-afde-2d10af845f5c",
+      "createdAt": "2026-08-16T18:37:26.623Z"
+    }
+  ],
+  "agendaItems": [],
+  "meetingInfo": {
+    "title": "SGB/SMT Strategy Meeting",
+    "date": "2026-08-21",
+    "school": "LGAA"
+  }
+}
