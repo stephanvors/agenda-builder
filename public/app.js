@@ -7,6 +7,7 @@
 const state = {
     token: null,     // session token
     member: null,    // { id, name, title, role }
+    members: [],     // all members (for tooltip)
     items: [],       // agenda items from server
     filters: {
         category: 'All',
@@ -148,9 +149,12 @@ const els = {
     btnSignout:       document.getElementById('btn-signout'),
 
     statDays:         document.getElementById('stat-days'),
+    statTicker:       document.getElementById('stat-ticker'),
     statMembers:      document.getElementById('stat-members'),
     statItems:        document.getElementById('stat-items'),
     statVotes:        document.getElementById('stat-votes'),
+    membersTooltip:   document.getElementById('members-tooltip'),
+    itemsTooltip:     document.getElementById('items-tooltip'),
 
     btnToggleForm:    document.getElementById('btn-toggle-form'),
     submitContainer:  document.getElementById('submit-item-container'),
@@ -198,7 +202,7 @@ async function init() {
     }
 
     setupEventListeners();
-    updateDays();
+    startCountdown();
 }
 
 // Load member names into the login dropdown
@@ -247,6 +251,22 @@ function setupEventListeners() {
     });
 
     els.itemsContainer.addEventListener('click', handleItemAction);
+
+    // Mobile tap-to-toggle for stat tooltips
+    document.querySelectorAll('.stat-item--hoverable').forEach(box => {
+        box.addEventListener('click', (e) => {
+            // only toggle on touch devices (pointerType === 'touch' or no hover support)
+            if (window.matchMedia('(hover: none)').matches) {
+                const isOpen = box.classList.contains('tooltip-open');
+                document.querySelectorAll('.stat-item--hoverable').forEach(b => b.classList.remove('tooltip-open'));
+                if (!isOpen) box.classList.add('tooltip-open');
+                e.stopPropagation();
+            }
+        });
+    });
+    document.addEventListener('click', () => {
+        document.querySelectorAll('.stat-item--hoverable').forEach(b => b.classList.remove('tooltip-open'));
+    });
 
     els.btnExport.addEventListener('click', showExportModal);
     els.btnCloseModal.addEventListener('click', () => els.modal.classList.remove('active'));
@@ -410,7 +430,17 @@ async function loadData() {
         ]);
         state.items = items;
         renderItems();
-        if (stats) updateStats(stats);
+        if (stats) {
+            updateStats(stats);
+            // Refresh members list for tooltip if needed
+            if (state.members.length === 0) {
+                try {
+                    state.members = await api.getMemberList();
+                } catch { /* non-critical */ }
+            }
+            populateMembersTooltip();
+            populateItemsTooltip();
+        }
     } catch (error) {
         console.error('Error loading data:', error);
     }
@@ -492,15 +522,77 @@ function updateStats(stats) {
     els.statVotes.textContent = state.items.reduce((sum, item) => sum + item.votes.length, 0);
 }
 
-function updateDays() {
-    const today = new Date();
-    const diffTime = MEETING_DATE - today;
-    if (diffTime <= 0) {
-        els.statDays.textContent = 'Today!';
-    } else {
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        els.statDays.textContent = diffDays;
+// ── Live Countdown ──
+let countdownInterval = null;
+
+function startCountdown() {
+    function tick() {
+        const now = new Date();
+        const diff = MEETING_DATE - now;
+
+        if (diff <= 0) {
+            if (els.statDays)   els.statDays.textContent = '0';
+            if (els.statTicker) els.statTicker.textContent = 'MEETING DAY!';
+            return;
+        }
+
+        const totalSecs = Math.floor(diff / 1000);
+        const days  = Math.floor(totalSecs / 86400);
+        const hours = Math.floor((totalSecs % 86400) / 3600);
+        const mins  = Math.floor((totalSecs % 3600)  / 60);
+        const secs  = totalSecs % 60;
+
+        if (els.statDays)   els.statDays.textContent = days;
+        if (els.statTicker) els.statTicker.textContent =
+            String(hours).padStart(2,'0') + ':' +
+            String(mins).padStart(2,'0')  + ':' +
+            String(secs).padStart(2,'0');
     }
+
+    tick();
+    countdownInterval = setInterval(tick, 1000);
+}
+
+// Legacy alias (called from init)
+function updateDays() { /* replaced by startCountdown */ }
+
+// ── Stat Tooltips ──
+function populateMembersTooltip() {
+    if (!els.membersTooltip) return;
+    if (!state.members.length) return;
+
+    // Sort alphabetically by surname (last word of name)
+    const sorted = [...state.members].sort((a, b) => {
+        const sA = a.name.split(' ').pop().toLowerCase();
+        const sB = b.name.split(' ').pop().toLowerCase();
+        return sA.localeCompare(sB);
+    });
+
+    els.membersTooltip.innerHTML = sorted.map(m => `
+        <div class="stat-tooltip-row">
+            <span class="stat-tooltip-name">${escapeHTML(m.name)}</span>
+            <span class="stat-tooltip-role">${escapeHTML(m.role || '')}</span>
+        </div>
+    `).join('');
+}
+
+function populateItemsTooltip() {
+    if (!els.itemsTooltip) return;
+
+    if (!state.items.length) {
+        els.itemsTooltip.innerHTML = '<div style="color:rgba(255,255,255,0.65);font-style:italic">No items yet</div>';
+        return;
+    }
+
+    // Sort by votes desc
+    const sorted = [...state.items].sort((a, b) => b.votes.length - a.votes.length);
+
+    els.itemsTooltip.innerHTML = sorted.map(item => `
+        <div class="stat-tooltip-row">
+            <span class="stat-tooltip-name">${escapeHTML(item.title)}</span>
+            <span class="stat-tooltip-role">${item.votes.length}v</span>
+        </div>
+    `).join('');
 }
 
 // ── Export Modal ──

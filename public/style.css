@@ -36,24 +36,27 @@ html, body {
 }
 
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: 'Rajdhani', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     background-color: var(--bg-color);
     color: var(--text-main);
     line-height: 1.6;
-    background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23e8e4de' fill-opacity='0.2' fill-rule='evenodd'%3E%3Cpath d='M0 40L40 0H20L0 20M40 40V20L20 40'/%3E%3C/g%3E%3C/svg%3E");
+    font-size: 1.05rem;
+    letter-spacing: 0.01em;
+    background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23D0DAFB' fill-opacity='0.25' fill-rule='evenodd'%3E%3Cpath d='M0 40L40 0H20L0 20M40 40V20L20 40'/%3E%3C/g%3E%3C/svg%3E");
     -webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3, .brand {
-    font-family: 'Playfair Display', Georgia, serif;
+    font-family: 'Orbitron', 'Segoe UI', sans-serif;
     color: var(--primary);
     word-break: break-word;
+    letter-spacing: 0.03em;
 }
 
 /* Typography Fluidity */
-h1 { font-size: clamp(1.4rem, 4vw, 2.25rem); line-height: 1.25; }
-h2 { font-size: clamp(1.2rem, 3vw, 1.75rem); }
-h3 { font-size: clamp(1.1rem, 2.5vw, 1.4rem); }
+h1 { font-size: clamp(1.1rem, 3.5vw, 1.8rem); line-height: 1.2; }
+h2 { font-size: clamp(1rem, 2.5vw, 1.5rem); }
+h3 { font-size: clamp(0.95rem, 2vw, 1.2rem); }
 
 /* Buttons */
 .btn {
@@ -281,18 +284,100 @@ textarea:focus {
 
 .stat-value {
     display: block;
-    font-size: 1.5rem;
+    font-size: 1.7rem;
     font-weight: 700;
+    font-family: 'Orbitron', sans-serif;
     color: var(--primary);
-    line-height: 1.2;
+    line-height: 1.15;
+    letter-spacing: 0.04em;
 }
 
 .stat-label {
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     color: var(--text-muted);
     text-transform: uppercase;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.07em;
     font-weight: 600;
+    font-family: 'Rajdhani', sans-serif;
+}
+
+/* Live countdown ticker */
+.stat-ticker {
+    display: block;
+    font-family: 'Orbitron', monospace;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+    margin-top: 0.2rem;
+}
+
+/* Hoverable stat boxes */
+.stat-item--hoverable {
+    position: relative;
+    cursor: default;
+}
+
+.stat-tooltip {
+    display: none;
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--primary);
+    color: var(--white);
+    border-radius: var(--radius);
+    padding: 0.6rem 0.85rem;
+    font-size: 0.78rem;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 500;
+    line-height: 1.55;
+    white-space: nowrap;
+    z-index: 100;
+    box-shadow: 0 8px 24px rgba(12,79,242,0.25);
+    min-width: 180px;
+    max-width: 280px;
+    white-space: normal;
+    text-align: left;
+    pointer-events: none;
+    letter-spacing: 0.01em;
+}
+
+.stat-tooltip::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-bottom-color: var(--primary);
+}
+
+.stat-item--hoverable:hover .stat-tooltip,
+.stat-item--hoverable.tooltip-open .stat-tooltip {
+    display: block;
+}
+
+.stat-tooltip-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.15rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.stat-tooltip-row:last-child {
+    border-bottom: none;
+}
+
+.stat-tooltip-name {
+    font-weight: 600;
+}
+
+.stat-tooltip-role {
+    color: var(--light-blue);
+    font-size: 0.74rem;
+    text-align: right;
 }
 
 /* Actions & Filters */
@@ -725,16 +810,16 @@ textarea:focus {
 .login-logo {
     display: block;
     margin: 0 auto 1rem;
-    height: 64px;
+    height: 90px;
     width: auto;
-    max-width: 220px;
+    max-width: 280px;
     object-fit: contain;
 }
 
 .header-logo {
-    height: 44px;
+    height: 56px;
     width: auto;
-    max-width: 160px;
+    max-width: 200px;
     object-fit: contain;
     flex-shrink: 0;
 }
