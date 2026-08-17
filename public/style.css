@@ -206,7 +206,7 @@ textarea:focus {
 /* Header */
 .app-header {
     background: var(--white);
-    padding: 1rem 1.15rem;
+    padding: 0.75rem 1rem;
     border-radius: var(--radius);
     box-shadow: var(--shadow-sm);
     margin-bottom: 1rem;
@@ -220,18 +220,37 @@ textarea:focus {
     gap: 0.75rem;
 }
 
+.header-title {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-wrap: nowrap;
+    min-width: 0;
+}
+
+.header-title > div {
+    min-width: 0;
+    flex: 1;
+}
+
 .header-title h1 {
-    font-size: 1.35rem;
-    margin-bottom: 0.15rem;
+    font-size: clamp(0.85rem, 3.5vw, 1.35rem);
+    margin-bottom: 0.1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .subtitle {
     color: var(--accent);
     font-weight: 600;
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    font-size: 0.72rem;
+    text-transform: none;
+    letter-spacing: 0.01em;
     display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .user-info {
@@ -818,17 +837,11 @@ textarea:focus {
 }
 
 .header-logo {
-    height: 56px;
+    height: 40px;
     width: auto;
-    max-width: 200px;
+    max-width: 140px;
     object-fit: contain;
     flex-shrink: 0;
-}
-
-.header-title {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
 }
 
 /* ── Tablet & Desktop Breakpoints ── */
@@ -846,6 +859,23 @@ textarea:focus {
         flex-direction: row;
         justify-content: space-between;
         align-items: center;
+    }
+
+    .header-logo {
+        height: 56px;
+        max-width: 200px;
+    }
+
+    .header-title h1 {
+        white-space: normal;
+        overflow: visible;
+        text-overflow: unset;
+    }
+
+    .subtitle {
+        white-space: normal;
+        overflow: visible;
+        text-overflow: unset;
     }
     
     .user-info {
