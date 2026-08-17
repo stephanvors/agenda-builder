@@ -4,7 +4,9 @@ import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import XLSX from 'xlsx';
+import pg from 'pg';
 
+const { Pool } = pg;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -36,13 +38,31 @@ function generatePin(existingPins) {
   return pin;
 }
 
+// Fixed PIN mapping so members keep consistent PINs across restarts
+const FIXED_PINS = {
+  "Bennie Bekker": "3491",
+  "Sakhile Belle": "8710",
+  "Marcelle Botha": "6970",
+  "Tersia Cock": "3531",
+  "Hanlie Du Preez": "8671",
+  "Kwezi Dyasi": "5836",
+  "Anthony Engelbrecht": "6569",
+  "Andile Gushmani": "4498",
+  "Viljoen Mathee": "8395",
+  "Marquin Scharneck": "4330",
+  "Sylvia Swart": "1985",
+  "Nellie Von Solms": "2727",
+  "Stephen Vorster": "9079",
+  "Charlene Vorster": "7791",
+  "Noncedo Williams": "9830"
+};
+
 // ── Read members from Excel ──
 function readMembersFromExcel() {
   const workbook = XLSX.readFile(EXCEL_FILE);
   const sheet = workbook.Sheets[workbook.SheetNames[0]];
   const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
-  // Find the header row (contains "Surname", "Name", etc.)
   let headerIndex = -1;
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
@@ -59,14 +79,13 @@ function readMembersFromExcel() {
   const headers = rows[headerIndex].map(h => String(h).toLowerCase().trim());
   const surnameIdx = headers.indexOf('surname');
   const nameIdx = headers.indexOf('name');
-  const genderIdx = headers.indexOf('gender');
   const titleIdx = headers.indexOf('title');
   const roleIdx = headers.indexOf('role');
   const contactIdx = headers.indexOf('contact');
   const emailIdx = headers.indexOf('e-mail');
 
   const members = [];
-  const usedPins = new Set();
+  const usedPins = new Set(Object.values(FIXED_PINS));
 
   for (let i = headerIndex + 1; i < rows.length; i++) {
     const row = rows[i];
@@ -81,14 +100,17 @@ function readMembersFromExcel() {
 
     if (!surname || !name) continue;
 
+    const fullName = `${name} ${surname}`;
+    const pin = FIXED_PINS[fullName] || generatePin(usedPins);
+
     members.push({
       id: uuidv4(),
-      name: `${name} ${surname}`,
+      name: fullName,
       title,
       role,
       contact,
       email,
-      pin: generatePin(usedPins),
+      pin,
       registeredAt: new Date().toISOString()
     });
   }
@@ -96,36 +118,67 @@ function readMembersFromExcel() {
   return members;
 }
 
-// ── Data Store ──
+// ── Dual Database Layer (PostgreSQL when DATABASE_URL is set, else JSON File) ──
+let pool = null;
+if (process.env.DATABASE_URL) {
+  pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
+  });
+  console.log('🐘 PostgreSQL connected — persistent cloud database active');
+}
+
 const storeHelper = {
   async init() {
+    if (pool) {
+      // Initialize PostgreSQL tables
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS app_store (
+          id VARCHAR(50) PRIMARY KEY,
+          data JSONB NOT NULL
+        )
+      `);
+      
+      const res = await pool.query('SELECT data FROM app_store WHERE id = $1', ['main_store']);
+      if (res.rows.length === 0) {
+        console.log('📊 Seeding initial data into PostgreSQL...');
+        const members = readMembersFromExcel();
+        const initialStore = {
+          members,
+          sessions: [],
+          agendaItems: [],
+          meetingInfo: {
+            title: 'SGB/SMT Strategy Meeting',
+            date: '2026-08-21',
+            school: 'LGAA'
+          }
+        };
+        await pool.query('INSERT INTO app_store (id, data) VALUES ($1, $2)', ['main_store', JSON.stringify(initialStore)]);
+        console.log(`✅ ${members.length} members initialized in PostgreSQL`);
+      } else {
+        console.log('✅ Persistent store loaded from PostgreSQL');
+      }
+      return;
+    }
+
+    // JSON file fallback
     try {
       await fs.access(DATA_DIR);
     } catch {
       await fs.mkdir(DATA_DIR, { recursive: true });
     }
 
-    let store;
     try {
       await fs.access(STORE_FILE);
       const data = await fs.readFile(STORE_FILE, 'utf-8');
-      store = JSON.parse(data);
-
-      // Check if members are already seeded
+      const store = JSON.parse(data);
       if (store.members && store.members.length > 0 && store.members[0].pin) {
-        console.log(`✅ ${store.members.length} authorised members loaded from existing store`);
         return;
       }
-    } catch {
-      // File doesn't exist or is corrupt — create fresh
-    }
+    } catch { /* create fresh */ }
 
-    // Seed from Excel
-    console.log('📊 Reading member data from Excel file...');
     const members = readMembersFromExcel();
-    console.log(`✅ ${members.length} authorised members imported from Excel`);
-
-    store = {
+    const store = {
       members,
       sessions: [],
       agendaItems: [],
@@ -135,16 +188,28 @@ const storeHelper = {
         school: 'LGAA'
       }
     };
-
     await fs.writeFile(STORE_FILE, JSON.stringify(store, null, 2));
   },
 
   async read() {
+    if (pool) {
+      const res = await pool.query('SELECT data FROM app_store WHERE id = $1', ['main_store']);
+      if (res.rows.length > 0) {
+        return res.rows[0].data;
+      }
+    }
     const data = await fs.readFile(STORE_FILE, 'utf-8');
     return JSON.parse(data);
   },
 
   async write(data) {
+    if (pool) {
+      await pool.query(
+        'INSERT INTO app_store (id, data) VALUES ($1, $2) ON CONFLICT (id) DO UPDATE SET data = $2',
+        ['main_store', JSON.stringify(data)]
+      );
+      return;
+    }
     await fs.writeFile(STORE_FILE, JSON.stringify(data, null, 2));
   }
 };
@@ -161,7 +226,6 @@ const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// CORS for development
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
@@ -212,14 +276,12 @@ app.post('/api/login', async (req, res) => {
       return res.status(404).json({ error: 'Member not found' });
     }
 
-    if (member.pin !== String(pin)) {
+    if (member.pin !== String(pin).trim()) {
       return res.status(401).json({ error: 'Incorrect PIN. Please try again.' });
     }
 
-    // Remove any existing sessions for this member (single session per member)
+    // Keep session active / update
     store.sessions = store.sessions.filter(s => s.memberId !== member.id);
-
-    // Create new session
     const token = uuidv4();
     store.sessions.push({
       token,
@@ -244,7 +306,7 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// Get member list (names + IDs only — no PINs, no sensitive data)
+// Member list (no PINs)
 app.get('/api/members/list', async (req, res) => {
   try {
     const store = await storeHelper.read();
@@ -261,7 +323,7 @@ app.get('/api/members/list', async (req, res) => {
   }
 });
 
-// Verify an existing session
+// Verify session
 app.get('/api/me', requireAuth, (req, res) => {
   res.json({
     id: req.member.id,
@@ -286,7 +348,7 @@ app.post('/api/logout', requireAuth, async (req, res) => {
 
 // ── Protected Endpoints ──
 
-// List all registered members (authenticated)
+// List members
 app.get('/api/members', requireAuth, async (req, res) => {
   try {
     const store = req.store;
@@ -298,24 +360,22 @@ app.get('/api/members', requireAuth, async (req, res) => {
     }));
     res.json(memberList);
   } catch (error) {
-    console.error('Error fetching members:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// Get all agenda items
+// Get items
 app.get('/api/items', requireAuth, async (req, res) => {
   try {
     const store = req.store;
     const sortedItems = [...store.agendaItems].sort((a, b) => b.votes.length - a.votes.length);
     res.json(sortedItems);
   } catch (error) {
-    console.error('Error fetching items:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// Create a new agenda item
+// Create item
 app.post('/api/items', requireAuth, async (req, res) => {
   try {
     const { title, description, category } = req.body;
@@ -334,8 +394,8 @@ app.post('/api/items', requireAuth, async (req, res) => {
 
     const newItem = {
       id: uuidv4(),
-      title,
-      description,
+      title: title.trim(),
+      description: description.trim(),
       category,
       proposedBy: {
         memberId: member.id,
@@ -361,7 +421,7 @@ app.post('/api/items', requireAuth, async (req, res) => {
   }
 });
 
-// Vote for an item
+// Vote
 app.post('/api/items/:id/vote', requireAuth, async (req, res) => {
   try {
     const member = req.member;
@@ -387,12 +447,11 @@ app.post('/api/items/:id/vote', requireAuth, async (req, res) => {
 
     res.json(item);
   } catch (error) {
-    console.error('Error voting for item:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// Remove a vote
+// Remove vote
 app.delete('/api/items/:id/vote', requireAuth, async (req, res) => {
   try {
     const member = req.member;
@@ -414,12 +473,11 @@ app.delete('/api/items/:id/vote', requireAuth, async (req, res) => {
 
     res.json(item);
   } catch (error) {
-    console.error('Error removing vote:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// Delete an item (proposer only)
+// Delete item
 app.delete('/api/items/:id', requireAuth, async (req, res) => {
   try {
     const member = req.member;
@@ -440,12 +498,11 @@ app.delete('/api/items/:id', requireAuth, async (req, res) => {
 
     res.status(204).send();
   } catch (error) {
-    console.error('Error deleting item:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// Get statistics
+// Stats
 app.get('/api/stats', requireAuth, async (req, res) => {
   try {
     const store = req.store;
@@ -473,12 +530,11 @@ app.get('/api/stats', requireAuth, async (req, res) => {
       topItems
     });
   } catch (error) {
-    console.error('Error fetching stats:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// Export agenda
+// Export
 app.get('/api/export', requireAuth, async (req, res) => {
   try {
     const store = req.store;
@@ -497,12 +553,11 @@ app.get('/api/export', requireAuth, async (req, res) => {
       agenda: groupedItems
     });
   } catch (error) {
-    console.error('Error exporting agenda:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// ── Admin Endpoint: View PINs (localhost only) ──
+// Admin PINs (local only)
 app.get('/api/admin/pins', async (req, res) => {
   const clientIP = req.ip || req.connection.remoteAddress;
   const isLocal = clientIP === '127.0.0.1' || clientIP === '::1' || clientIP === '::ffff:127.0.0.1';
@@ -522,7 +577,6 @@ app.get('/api/admin/pins', async (req, res) => {
     }));
     res.json(pinList);
   } catch (error) {
-    console.error('Error fetching PINs:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -533,8 +587,6 @@ const PORT = process.env.PORT || 3000;
 storeHelper.init().then(() => {
   app.listen(PORT, () => {
     console.log(`🚀 SGB/SMT Agenda Builder running on port ${PORT}`);
-    console.log(`🔐 Authentication enabled — only authorised members can access`);
-    console.log(`📋 View member PINs at: http://localhost:${PORT}/api/admin/pins`);
   });
 }).catch(err => {
   console.error('Failed to start server:', err);
