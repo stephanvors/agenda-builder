@@ -1,22 +1,24 @@
 :root {
-    --primary: #1B2A4A;
-    --accent: #C8962E;
-    --bg-color: #FAF8F5;
-    --text-main: #2D3748;
-    --text-muted: #718096;
-    --success: #2F7D5B;
+    --primary: #0C4FF2;
+    --primary-dark: #0840CC;
+    --accent: #DA251D;
+    --light-blue: #94B3FA;
+    --bg-color: #F0F4FF;
+    --text-main: #1A2540;
+    --text-muted: #6B7A99;
+    --success: #1E8A5E;
     --white: #FFFFFF;
-    --border-color: #E8E4DE;
-    --danger: #E53E3E;
+    --border-color: #D0DAFB;
+    --danger: #DA251D;
     
-    --status-proposed: #718096;
-    --status-seconded: #D69E2E;
-    --status-endorsed: #2F7D5B;
+    --status-proposed: #6B7A99;
+    --status-seconded: #E67E22;
+    --status-endorsed: #1E8A5E;
 
     --radius: 8px;
-    --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
-    --shadow-md: 0 4px 6px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.05);
-    --shadow-hover: 0 8px 12px rgba(0,0,0,0.06), 0 2px 4px rgba(0,0,0,0.04);
+    --shadow-sm: 0 1px 3px rgba(12,79,242,0.08);
+    --shadow-md: 0 4px 6px rgba(12,79,242,0.07), 0 1px 3px rgba(12,79,242,0.05);
+    --shadow-hover: 0 8px 16px rgba(12,79,242,0.1), 0 2px 4px rgba(12,79,242,0.06);
     
     --transition: all 0.25s ease;
 }
@@ -77,16 +79,16 @@ h3 { font-size: clamp(1.1rem, 2.5vw, 1.4rem); }
 }
 
 .btn-primary:hover, .btn-primary:active {
-    background-color: #121c33;
+    background-color: var(--primary-dark);
 }
 
 .btn-secondary {
-    background-color: var(--accent);
-    color: var(--white);
+    background-color: var(--light-blue);
+    color: var(--primary);
 }
 
 .btn-secondary:hover, .btn-secondary:active {
-    background-color: #b08123;
+    background-color: #7a9cf8;
 }
 
 .btn-outline {
@@ -154,8 +156,8 @@ input:focus,
 select:focus,
 textarea:focus {
     outline: none;
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(200, 150, 46, 0.18);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(12, 79, 242, 0.15);
 }
 
 .error-msg {
@@ -189,10 +191,10 @@ textarea:focus {
     border-radius: var(--radius);
     box-shadow: var(--shadow-md);
     text-align: center;
-    border-top: 4px solid var(--accent);
+    border-top: 4px solid var(--primary);
 }
 
-.registration-card h2 { margin-bottom: 0.75rem; color: var(--accent); }
+.registration-card h2 { margin-bottom: 0.75rem; color: var(--primary); }
 .registration-card p { margin-bottom: 1.5rem; color: var(--text-muted); font-size: 0.92rem; }
 .registration-card form { text-align: left; }
 
@@ -203,7 +205,7 @@ textarea:focus {
     border-radius: var(--radius);
     box-shadow: var(--shadow-sm);
     margin-bottom: 1rem;
-    border-top: 4px solid var(--primary);
+    border-top: 4px solid var(--accent);
     width: 100%;
 }
 
@@ -530,8 +532,8 @@ textarea:focus {
 
 .btn-vote {
     background: transparent;
-    border: 2px solid var(--accent);
-    color: var(--accent);
+    border: 2px solid var(--primary);
+    color: var(--primary);
     border-radius: 999px;
     padding: 0.4rem 0.9rem;
     font-weight: 700;
@@ -547,11 +549,11 @@ textarea:focus {
 
 .btn-vote:hover:not(:disabled),
 .btn-vote:active:not(:disabled) {
-    background: rgba(200, 150, 46, 0.12);
+    background: rgba(12, 79, 242, 0.1);
 }
 
 .btn-vote.voted {
-    background: var(--accent);
+    background: var(--primary);
     color: var(--white);
 }
 
@@ -579,7 +581,7 @@ textarea:focus {
     display: none;
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(27, 42, 74, 0.85);
+    background: rgba(12, 79, 242, 0.85);
     z-index: 1000;
     padding: 0.75rem;
     overflow-y: auto;
@@ -714,9 +716,33 @@ textarea:focus {
 }
 
 @keyframes pulse {
-    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(47, 125, 91, 0.7); }
-    70% { transform: scale(1); box-shadow: 0 0 0 5px rgba(47, 125, 91, 0); }
-    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(47, 125, 91, 0); }
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(30, 138, 94, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 5px rgba(30, 138, 94, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(30, 138, 94, 0); }
+}
+
+/* Logo */
+.login-logo {
+    display: block;
+    margin: 0 auto 1rem;
+    height: 64px;
+    width: auto;
+    max-width: 220px;
+    object-fit: contain;
+}
+
+.header-logo {
+    height: 44px;
+    width: auto;
+    max-width: 160px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.header-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
 }
 
 /* ── Tablet & Desktop Breakpoints ── */
