@@ -215,7 +215,7 @@ async function init() {
 async function loadMemberList() {
     try {
         const members = await api.getMemberList();
-        els.loginMember.innerHTML = '<option value="" disabled selected>Select your name...</option>';
+        els.loginMember.innerHTML = '<option value="" disabled selected>Choose your name...</option>';
         members.forEach(m => {
             const opt = document.createElement('option');
             opt.value = m.id;
