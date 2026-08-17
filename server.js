@@ -220,7 +220,9 @@ const storeHelper = {
         await pool.query('INSERT INTO app_store (id, data) VALUES ($1, $2)', ['main_store', JSON.stringify(initialStore)]);
         console.log(`✅ ${members.length} members initialized in PostgreSQL`);
       } else {
-        console.log('✅ Persistent store loaded from PostgreSQL');
+        console.log('✅ Persistent store loaded — syncing member details from Excel...');
+        // Always sync titles/roles/contacts from Excel so spreadsheet changes apply on redeploy
+        await syncMembersFromExcel();
       }
       return;
     }
