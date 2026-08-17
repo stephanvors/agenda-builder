@@ -16,7 +16,7 @@ const state = {
     sort: 'votes'
 };
 
-const MEETING_DATE = new Date('2026-08-21T00:00:00');
+const MEETING_DATE = new Date('2026-08-21T10:00:00');
 const POLL_INTERVAL_MS = 15000;
 
 // ── API Layer (all requests include auth token) ──
@@ -607,7 +607,8 @@ async function showExportModal() {
             <div class="print-agenda-header">
                 <h1>${escapeHTML(meetingInfo.title)}</h1>
                 <h3>School Governing Body & School Management Team</h3>
-                <p><strong>Date:</strong> 21 August 2026</p>
+                <p><strong>Date:</strong> 21 August 2026 — 10:00</p>
+                <p><strong>Venue:</strong> Staff Room</p>
                 <p><strong>Type:</strong> Strategy Meeting — Way Forward</p>
                 <p><strong>Members:</strong> ${members.map(m => `${m.title} ${m.name}`).join(', ')}</p>
                 <p><em>Agenda generated on ${new Date().toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' })}</em></p>
