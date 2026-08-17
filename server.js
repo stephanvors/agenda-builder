@@ -1,6 +1,7 @@
 import express from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs/promises';
+import fsSync from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import XLSX from 'xlsx';
@@ -116,6 +117,69 @@ function readMembersFromExcel() {
   }
 
   return members;
+}
+
+// ── Sync members from Excel into the store ──
+async function syncMembersFromExcel() {
+  try {
+    const freshMembers = readMembersFromExcel();
+    const store = await storeHelper.read();
+
+    let added = 0, updated = 0;
+
+    for (const fresh of freshMembers) {
+      const existing = store.members.find(m => m.name === fresh.name);
+      if (existing) {
+        // Update mutable fields but keep id, pin (already deterministic), registeredAt
+        existing.title   = fresh.title;
+        existing.role    = fresh.role;
+        existing.contact = fresh.contact;
+        existing.email   = fresh.email;
+        updated++;
+      } else {
+        store.members.push(fresh);
+        added++;
+      }
+    }
+
+    // Remove members no longer in the Excel (optional — comment out to keep them)
+    const freshNames = new Set(freshMembers.map(m => m.name));
+    const before = store.members.length;
+    store.members = store.members.filter(m => freshNames.has(m.name));
+    const removed = before - store.members.length;
+
+    await storeHelper.write(store);
+    console.log(`🔄 Members synced from Excel: +${added} added, ~${updated} updated, -${removed} removed. Total: ${store.members.length}`);
+    return { added, updated, removed, total: store.members.length };
+  } catch (err) {
+    console.error('❌ Failed to sync members from Excel:', err.message);
+    throw err;
+  }
+}
+
+// ── Watch UserDetails.xlsx for changes (local dev) ──
+function startExcelWatcher() {
+  if (!fsSync.existsSync(EXCEL_FILE)) {
+    console.warn(`⚠️  Excel file not found at ${EXCEL_FILE} — watcher not started`);
+    return;
+  }
+
+  let debounceTimer = null;
+  fsSync.watch(EXCEL_FILE, (eventType) => {
+    if (eventType !== 'change') return;
+    // Debounce: Excel writes the file multiple times on save
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(async () => {
+      console.log(`📂 UserDetails.xlsx changed — syncing members...`);
+      try {
+        await syncMembersFromExcel();
+      } catch (e) {
+        console.error('Watcher sync failed:', e.message);
+      }
+    }, 800);
+  });
+
+  console.log(`👁️  Watching ${EXCEL_FILE} for changes...`);
 }
 
 // ── Dual Database Layer (PostgreSQL when DATABASE_URL is set, else JSON File) ──
@@ -557,6 +621,23 @@ app.get('/api/export', requireAuth, async (req, res) => {
   }
 });
 
+// Admin: manually trigger member sync from Excel
+app.post('/api/admin/sync-members', async (req, res) => {
+  const clientIP = req.ip || req.connection.remoteAddress;
+  const isLocal = clientIP === '127.0.0.1' || clientIP === '::1' || clientIP === '::ffff:127.0.0.1';
+
+  if (!isLocal) {
+    return res.status(403).json({ error: 'This endpoint is only accessible from the server machine' });
+  }
+
+  try {
+    const result = await syncMembersFromExcel();
+    res.json({ message: 'Members synced successfully', ...result });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Admin PINs (local only)
 app.get('/api/admin/pins', async (req, res) => {
   const clientIP = req.ip || req.connection.remoteAddress;
@@ -585,6 +666,9 @@ app.get('/api/admin/pins', async (req, res) => {
 const PORT = process.env.PORT || 3000;
 
 storeHelper.init().then(() => {
+  // Start file watcher for local development
+  startExcelWatcher();
+
   app.listen(PORT, () => {
     console.log(`🚀 SGB/SMT Agenda Builder running on port ${PORT}`);
   });
