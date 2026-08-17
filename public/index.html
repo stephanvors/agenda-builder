@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20260817-3">
+    <link rel="stylesheet" href="style.css?v=20260817-4">
 </head>
 <body>
     <div id="toast-container" class="toast-container"></div>
@@ -67,19 +67,20 @@
                 <span class="stat-label">Days to go</span>
                 <span class="stat-ticker" id="stat-ticker">00:00:00</span>
             </div>
-            <div class="stat-item stat-item--hoverable" data-stat="members">
+            <div class="stat-item stat-item--clickable" id="stat-card-members" role="button" tabindex="0">
                 <span class="stat-value" id="stat-members">0</span>
                 <span class="stat-label">Members</span>
-                <div class="stat-tooltip" id="members-tooltip"></div>
+                <span class="stat-tap-hint">Tap to view</span>
             </div>
-            <div class="stat-item stat-item--hoverable" data-stat="items">
+            <div class="stat-item stat-item--clickable" id="stat-card-items" role="button" tabindex="0">
                 <span class="stat-value" id="stat-items">0</span>
                 <span class="stat-label">Items Proposed</span>
-                <div class="stat-tooltip" id="items-tooltip"></div>
+                <span class="stat-tap-hint">Tap to view</span>
             </div>
-            <div class="stat-item">
+            <div class="stat-item stat-item--clickable" id="stat-card-votes" role="button" tabindex="0">
                 <span class="stat-value" id="stat-votes">0</span>
                 <span class="stat-label">Total Votes</span>
+                <span class="stat-tap-hint">Tap to view</span>
             </div>
         </div>
 
@@ -185,12 +186,21 @@
                     <button id="btn-close-modal" class="btn btn-outline">&times; Close</button>
                 </div>
             </div>
-            <div id="printable-agenda" class="printable-area">
-                <!-- Printable content injected here -->
+    <!-- Info / Details Modal (Members, Items, Voting Breakdown) -->
+    <div id="info-modal" class="modal">
+        <div class="modal-content modal-content--sheet">
+            <div class="modal-header">
+                <h2 id="info-modal-title">Details</h2>
+                <div class="modal-actions">
+                    <button id="btn-close-info-modal" class="btn btn-outline btn-sm">&times; Close</button>
+                </div>
+            </div>
+            <div id="info-modal-body" class="info-modal-body">
+                <!-- Injected content -->
             </div>
         </div>
     </div>
 
-    <script src="app.js?v=20260817-3"></script>
+    <script src="app.js?v=20260817-4"></script>
 </body>
 </html>

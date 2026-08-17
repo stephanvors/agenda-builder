@@ -153,8 +153,14 @@ const els = {
     statMembers:      document.getElementById('stat-members'),
     statItems:        document.getElementById('stat-items'),
     statVotes:        document.getElementById('stat-votes'),
-    membersTooltip:   document.getElementById('members-tooltip'),
-    itemsTooltip:     document.getElementById('items-tooltip'),
+    statCardMembers:  document.getElementById('stat-card-members'),
+    statCardItems:    document.getElementById('stat-card-items'),
+    statCardVotes:    document.getElementById('stat-card-votes'),
+
+    infoModal:        document.getElementById('info-modal'),
+    infoModalTitle:   document.getElementById('info-modal-title'),
+    infoModalBody:    document.getElementById('info-modal-body'),
+    btnCloseInfoModal:document.getElementById('btn-close-info-modal'),
 
     btnToggleForm:    document.getElementById('btn-toggle-form'),
     submitContainer:  document.getElementById('submit-item-container'),
@@ -252,21 +258,29 @@ function setupEventListeners() {
 
     els.itemsContainer.addEventListener('click', handleItemAction);
 
-    // Mobile tap-to-toggle for stat tooltips
-    document.querySelectorAll('.stat-item--hoverable').forEach(box => {
-        box.addEventListener('click', (e) => {
-            // only toggle on touch devices (pointerType === 'touch' or no hover support)
-            if (window.matchMedia('(hover: none)').matches) {
-                const isOpen = box.classList.contains('tooltip-open');
-                document.querySelectorAll('.stat-item--hoverable').forEach(b => b.classList.remove('tooltip-open'));
-                if (!isOpen) box.classList.add('tooltip-open');
-                e.stopPropagation();
-            }
+    // Stat cards click handlers (opens clean dialogs)
+    if (els.statCardMembers) {
+        els.statCardMembers.addEventListener('click', showMembersModal);
+        els.statCardMembers.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') showMembersModal(); });
+    }
+    if (els.statCardItems) {
+        els.statCardItems.addEventListener('click', showItemsModal);
+        els.statCardItems.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') showItemsModal(); });
+    }
+    if (els.statCardVotes) {
+        els.statCardVotes.addEventListener('click', showVotesModal);
+        els.statCardVotes.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') showVotesModal(); });
+    }
+
+    // Info modal close handlers
+    if (els.btnCloseInfoModal) {
+        els.btnCloseInfoModal.addEventListener('click', closeInfoModal);
+    }
+    if (els.infoModal) {
+        els.infoModal.addEventListener('click', (e) => {
+            if (e.target === els.infoModal) closeInfoModal();
         });
-    });
-    document.addEventListener('click', () => {
-        document.querySelectorAll('.stat-item--hoverable').forEach(b => b.classList.remove('tooltip-open'));
-    });
+    }
 
     els.btnExport.addEventListener('click', showExportModal);
     els.btnCloseModal.addEventListener('click', () => els.modal.classList.remove('active'));
@@ -432,14 +446,12 @@ async function loadData() {
         renderItems();
         if (stats) {
             updateStats(stats);
-            // Refresh members list for tooltip if needed
+            // Cache members list if needed
             if (state.members.length === 0) {
                 try {
                     state.members = await api.getMemberList();
                 } catch { /* non-critical */ }
             }
-            populateMembersTooltip();
-            populateItemsTooltip();
         }
     } catch (error) {
         console.error('Error loading data:', error);
@@ -478,7 +490,7 @@ function renderItems() {
         const statusLabel = item.status.charAt(0).toUpperCase() + item.status.slice(1);
 
         return `
-            <div class="item-card">
+            <div class="item-card" id="item-${item.id}">
                 <div class="item-header">
                     <div class="item-main-info">
                         <span class="category-tag">${escapeHTML(item.category)}</span>
@@ -494,6 +506,11 @@ function renderItems() {
                     <div class="proposer-info">
                         <strong>${escapeHTML(item.proposedBy.memberName)}</strong>
                         <span>${escapeHTML(item.proposedBy.memberRole)} • ${timeAgo(item.proposedAt)}</span>
+                        ${voteCount > 0 ? `
+                            <span class="voters-preview">
+                                Supported by: <strong>${escapeHTML(voterNames)}</strong>
+                            </span>
+                        ` : ''}
                     </div>
                     <div class="item-actions">
                         ${isProposer ? `<button class="btn-delete" data-id="${item.id}">Withdraw</button>` : ''}
@@ -503,11 +520,6 @@ function renderItems() {
                                     ${isProposer ? 'disabled title="You automatically support your own proposal"' : ''}>
                                 <span class="icon">${hasVoted ? '✓' : '↑'}</span> ${voteCount} ${voteCount === 1 ? 'Vote' : 'Votes'}
                             </button>
-                            ${voteCount > 0 ? `
-                                <div class="voters-tooltip">
-                                    Supported by: ${escapeHTML(voterNames)}
-                                </div>
-                            ` : ''}
                         </div>
                     </div>
                 </div>
@@ -556,44 +568,127 @@ function startCountdown() {
 // Legacy alias (called from init)
 function updateDays() { /* replaced by startCountdown */ }
 
-// ── Stat Tooltips ──
-function populateMembersTooltip() {
-    if (!els.membersTooltip) return;
-    if (!state.members.length) return;
+// ── Info Modals (Members, Items, Voting Breakdown) ──
+function getInitials(name) {
+    if (!name) return '';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
 
-    // Sort alphabetically by surname (last word of name)
+function openInfoModal(title, contentHtml) {
+    if (!els.infoModal || !els.infoModalBody) return;
+    els.infoModalTitle.textContent = title;
+    els.infoModalBody.innerHTML = contentHtml;
+    els.infoModal.classList.add('active');
+}
+
+function closeInfoModal() {
+    if (els.infoModal) {
+        els.infoModal.classList.remove('active');
+    }
+}
+
+async function showMembersModal() {
+    if (state.members.length === 0) {
+        try {
+            state.members = await api.getMemberList();
+        } catch { /* fallback */ }
+    }
+
+    // Sort alphabetically by surname
     const sorted = [...state.members].sort((a, b) => {
         const sA = a.name.split(' ').pop().toLowerCase();
         const sB = b.name.split(' ').pop().toLowerCase();
         return sA.localeCompare(sB);
     });
 
-    els.membersTooltip.innerHTML = sorted.map(m => `
-        <div class="stat-tooltip-row">
-            <span class="stat-tooltip-name">${escapeHTML((m.title ? m.title + ' ' : '') + m.name)}</span>
-            <span class="stat-tooltip-role">${escapeHTML(m.role || '')}</span>
+    const listHtml = `
+        <div class="modal-list">
+            ${sorted.map(m => `
+                <div class="modal-member-card">
+                    <div class="modal-member-main">
+                        <div class="modal-member-avatar">${getInitials(m.name)}</div>
+                        <div class="modal-member-info">
+                            <span class="modal-member-name">${escapeHTML((m.title ? m.title + ' ' : '') + m.name)}</span>
+                            <span class="modal-member-role">${escapeHTML(m.role || 'Member')}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('')}
         </div>
-    `).join('');
+    `;
+
+    openInfoModal(`Meeting Members (${sorted.length})`, listHtml);
 }
 
-function populateItemsTooltip() {
-    if (!els.itemsTooltip) return;
-
+function showItemsModal() {
     if (!state.items.length) {
-        els.itemsTooltip.innerHTML = '<div style="color:rgba(255,255,255,0.65);font-style:italic">No items yet</div>';
+        openInfoModal('Proposed Items (0)', '<p style="text-align:center;color:var(--text-muted);padding:2rem;">No items proposed yet.</p>');
         return;
     }
 
-    // Sort by votes desc
     const sorted = [...state.items].sort((a, b) => b.votes.length - a.votes.length);
 
-    els.itemsTooltip.innerHTML = sorted.map(item => `
-        <div class="stat-tooltip-row">
-            <span class="stat-tooltip-name">${escapeHTML(item.title)}</span>
-            <span class="stat-tooltip-role">${item.votes.length}v</span>
+    const listHtml = `
+        <div class="modal-list">
+            ${sorted.map((item, idx) => `
+                <div class="modal-item-card" onclick="scrollToItem('${item.id}')">
+                    <div class="modal-item-info">
+                        <div class="modal-item-title">${idx + 1}. ${escapeHTML(item.title)}</div>
+                        <div class="modal-item-sub">${escapeHTML(item.category)} • By ${escapeHTML(item.proposedBy.memberName)}</div>
+                    </div>
+                    <div class="modal-vote-pill">
+                        ↑ ${item.votes.length}
+                    </div>
+                </div>
+            `).join('')}
         </div>
-    `).join('');
+    `;
+
+    openInfoModal(`Proposed Agenda Items (${sorted.length})`, listHtml);
 }
+
+function showVotesModal() {
+    if (!state.items.length) {
+        openInfoModal('Voting Summary (0)', '<p style="text-align:center;color:var(--text-muted);padding:2rem;">No votes recorded yet.</p>');
+        return;
+    }
+
+    const totalVotes = state.items.reduce((sum, item) => sum + item.votes.length, 0);
+    const sorted = [...state.items].filter(i => i.votes.length > 0).sort((a, b) => b.votes.length - a.votes.length);
+
+    const listHtml = `
+        <div class="modal-list">
+            ${sorted.map(item => `
+                <div class="modal-member-card" style="flex-direction:column;align-items:flex-start;gap:0.4rem;" onclick="scrollToItem('${item.id}')">
+                    <div style="display:flex;justify-content:space-between;width:100%;align-items:center;">
+                        <strong style="color:var(--primary);font-size:0.88rem;">${escapeHTML(item.title)}</strong>
+                        <span class="modal-vote-pill">↑ ${item.votes.length}</span>
+                    </div>
+                    <div style="font-size:0.75rem;color:var(--text-muted);">
+                        Voters: <strong>${escapeHTML(item.votes.map(v => v.memberName).join(', '))}</strong>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+
+    openInfoModal(`Total Votes (${totalVotes})`, listHtml);
+}
+
+// Global scroll helper for modal item cards
+window.scrollToItem = function(itemId) {
+    closeInfoModal();
+    setTimeout(() => {
+        const el = document.getElementById('item-' + itemId);
+        if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            el.style.boxShadow = '0 0 0 3px var(--primary)';
+            setTimeout(() => { el.style.boxShadow = ''; }, 2000);
+        }
+    }, 150);
+};
 
 // ── Export Modal ──
 async function showExportModal() {
