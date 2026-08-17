@@ -570,7 +570,7 @@ function populateMembersTooltip() {
 
     els.membersTooltip.innerHTML = sorted.map(m => `
         <div class="stat-tooltip-row">
-            <span class="stat-tooltip-name">${escapeHTML(m.name)}</span>
+            <span class="stat-tooltip-name">${escapeHTML((m.title ? m.title + ' ' : '') + m.name)}</span>
             <span class="stat-tooltip-role">${escapeHTML(m.role || '')}</span>
         </div>
     `).join('');
