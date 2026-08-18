@@ -158,9 +158,14 @@
       "createdAt": "2026-08-16T18:33:33.173Z"
     },
     {
-      "token": "849ddd52-384b-47b3-bcfa-ebdf6766d3d3",
+      "token": "2ecc1ae0-19e9-42ee-9c30-1610bbeabd56",
       "memberId": "7c2333c0-5555-486f-afde-2d10af845f5c",
-      "createdAt": "2026-08-16T18:37:26.623Z"
+      "createdAt": "2026-08-18T10:32:49.489Z"
+    },
+    {
+      "token": "8800a0d6-57a9-4cfe-9432-6fd40cc99b6a",
+      "memberId": "6365f662-ff08-4775-8169-88bdb7c3f0d7",
+      "createdAt": "2026-08-18T10:32:49.497Z"
     }
   ],
   "agendaItems": [],

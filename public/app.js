@@ -13,7 +13,10 @@ const state = {
         category: 'All',
         status: 'All'
     },
-    sort: 'votes'
+    sort: 'votes',
+    openComments: new Set(), // item IDs with expanded comment drawers
+    activeCommentType: {},   // { [itemId]: 'idea' | 'action' | 'question' | 'comment' }
+    commentDrafts: {}        // { [itemId]: 'draft text' }
 };
 
 const MEETING_DATE = new Date('2026-08-21T10:00:00');
@@ -118,6 +121,60 @@ const api = {
             const err = await res.json();
             throw new Error(err.error || 'Failed to delete item');
         }
+    },
+
+    async addComment(itemId, content, type = 'comment') {
+        const res = await fetch(`/api/items/${itemId}/comments`, {
+            method: 'POST',
+            headers: authHeaders(),
+            body: JSON.stringify({ content, type })
+        });
+        if (res.status === 401) { handleSessionExpired(); return null; }
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error || 'Failed to add comment');
+        }
+        return res.json();
+    },
+
+    async deleteComment(itemId, commentId) {
+        const res = await fetch(`/api/items/${itemId}/comments/${commentId}`, {
+            method: 'DELETE',
+            headers: authHeaders()
+        });
+        if (res.status === 401) { handleSessionExpired(); return null; }
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error || 'Failed to delete comment');
+        }
+        return res.json();
+    },
+
+    async resolveItem(itemId, solutionText, commentId = null) {
+        const res = await fetch(`/api/items/${itemId}/resolve`, {
+            method: 'POST',
+            headers: authHeaders(),
+            body: JSON.stringify({ solutionText, commentId })
+        });
+        if (res.status === 401) { handleSessionExpired(); return null; }
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error || 'Failed to resolve item');
+        }
+        return res.json();
+    },
+
+    async unresolveItem(itemId) {
+        const res = await fetch(`/api/items/${itemId}/resolve`, {
+            method: 'DELETE',
+            headers: authHeaders()
+        });
+        if (res.status === 401) { handleSessionExpired(); return null; }
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error || 'Failed to clear resolution');
+        }
+        return res.json();
     },
 
     async getStats() {
@@ -256,7 +313,29 @@ function setupEventListeners() {
         }
     });
 
+    // Item container events (delegation)
     els.itemsContainer.addEventListener('click', handleItemAction);
+
+    // Track drafts when typing in comment textareas
+    els.itemsContainer.addEventListener('input', (e) => {
+        if (e.target.classList.contains('comment-textarea')) {
+            const itemId = e.target.dataset.itemId;
+            if (itemId) {
+                state.commentDrafts[itemId] = e.target.value;
+            }
+        }
+    });
+
+    // Support Ctrl+Enter / Cmd+Enter to post comment
+    els.itemsContainer.addEventListener('keydown', (e) => {
+        if (e.target.classList.contains('comment-textarea') && (e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+            e.preventDefault();
+            const itemId = e.target.dataset.itemId;
+            if (itemId) {
+                submitCommentForItem(itemId);
+            }
+        }
+    });
 
     // Stat cards click handlers (opens clean dialogs)
     if (els.statCardMembers) {
@@ -397,10 +476,111 @@ async function handleItemAction(e) {
     const btn = e.target.closest('button');
     if (!btn) return;
 
-    const id = btn.dataset.id;
-    if (!id) return;
+    // Toggle comments drawer
+    if (btn.classList.contains('btn-toggle-comments')) {
+        const id = btn.dataset.id;
+        if (state.openComments.has(id)) {
+            state.openComments.delete(id);
+        } else {
+            state.openComments.add(id);
+        }
+        renderItems();
+        if (state.openComments.has(id)) {
+            const textarea = document.getElementById(`comment-input-${id}`);
+            if (textarea) textarea.focus();
+        }
+        return;
+    }
 
+    // Comment Tag selector
+    if (btn.classList.contains('composer-type-btn')) {
+        const itemId = btn.dataset.itemId;
+        const type = btn.dataset.type;
+        state.activeCommentType[itemId] = type;
+        const parent = btn.closest('.composer-type-selector');
+        if (parent) {
+            parent.querySelectorAll('.composer-type-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+        }
+        return;
+    }
+
+    // Post comment button
+    if (btn.classList.contains('btn-post-comment')) {
+        const itemId = btn.dataset.itemId;
+        if (itemId) {
+            await submitCommentForItem(itemId);
+        }
+        return;
+    }
+
+    // Delete comment button
+    if (btn.classList.contains('btn-delete-comment')) {
+        const itemId = btn.dataset.itemId;
+        const commentId = btn.dataset.commentId;
+        if (confirm('Are you sure you want to delete this comment?')) {
+            try {
+                await api.deleteComment(itemId, commentId);
+                showToast('Comment deleted');
+                await loadData();
+            } catch (error) {
+                showToast(error.message || 'Failed to delete comment', true);
+            }
+        }
+        return;
+    }
+
+    // Mark comment as accepted solution
+    if (btn.classList.contains('btn-mark-solution')) {
+        const itemId = btn.dataset.itemId;
+        const commentId = btn.dataset.commentId;
+        const commentText = btn.dataset.commentText || '';
+        if (confirm(`Accept this contribution as the agreed solution/resolution for this agenda item?\n\n"${commentText}"`)) {
+            try {
+                await api.resolveItem(itemId, commentText, commentId);
+                showToast('Topic marked as Resolved with accepted solution!');
+                await loadData();
+            } catch (error) {
+                showToast(error.message || 'Failed to resolve item', true);
+            }
+        }
+        return;
+    }
+
+    // Direct resolve item button (proposer entering a resolution summary)
+    if (btn.classList.contains('btn-resolve-direct')) {
+        const itemId = btn.dataset.id;
+        const solution = prompt('Enter the agreed resolution, decision, or action plan for this agenda item:');
+        if (solution && solution.trim()) {
+            try {
+                await api.resolveItem(itemId, solution.trim());
+                showToast('Topic marked as Resolved with agreed action plan!');
+                await loadData();
+            } catch (error) {
+                showToast(error.message || 'Failed to resolve item', true);
+            }
+        }
+        return;
+    }
+
+    // Reopen / clear resolution
+    if (btn.classList.contains('btn-res-unresolve') || btn.classList.contains('btn-unresolve')) {
+        const itemId = btn.dataset.itemId || btn.dataset.id;
+        if (confirm('Reopen this topic and clear the resolved status?')) {
+            try {
+                await api.unresolveItem(itemId);
+                showToast('Topic reopened');
+                await loadData();
+            } catch (error) {
+                showToast(error.message || 'Failed to reopen topic', true);
+            }
+        }
+        return;
+    }
+
+    // Vote button
     if (btn.classList.contains('btn-vote')) {
+        const id = btn.dataset.id;
         const hasVoted = btn.classList.contains('voted');
         try {
             if (hasVoted) {
@@ -414,7 +594,12 @@ async function handleItemAction(e) {
         } catch (error) {
             showToast(error.message || 'Failed to record vote', true);
         }
-    } else if (btn.classList.contains('btn-delete')) {
+        return;
+    }
+
+    // Delete item button
+    if (btn.classList.contains('btn-delete')) {
+        const id = btn.dataset.id;
         if (confirm('Are you sure you want to withdraw this proposed agenda item?')) {
             try {
                 await api.deleteItem(id);
@@ -423,6 +608,40 @@ async function handleItemAction(e) {
             } catch (error) {
                 showToast(error.message || 'Failed to delete item', true);
             }
+        }
+        return;
+    }
+}
+
+// Post comment helper
+async function submitCommentForItem(itemId) {
+    const textarea = document.getElementById(`comment-input-${itemId}`);
+    const content = (textarea ? textarea.value : (state.commentDrafts[itemId] || '')).trim();
+
+    if (!content) {
+        showToast('Please enter your comment or idea before posting', true);
+        if (textarea) textarea.focus();
+        return;
+    }
+
+    const type = state.activeCommentType[itemId] || 'comment';
+    const postBtn = document.querySelector(`.btn-post-comment[data-item-id="${itemId}"]`);
+    if (postBtn) {
+        postBtn.disabled = true;
+        postBtn.textContent = 'Posting...';
+    }
+
+    try {
+        await api.addComment(itemId, content, type);
+        delete state.commentDrafts[itemId];
+        state.openComments.add(itemId);
+        showToast('Comment posted!');
+        await loadData();
+    } catch (error) {
+        showToast(error.message || 'Failed to post comment', true);
+        if (postBtn) {
+            postBtn.disabled = false;
+            postBtn.textContent = 'Post';
         }
     }
 }
@@ -438,12 +657,34 @@ function showMainView() {
 // ── Data Loading ──
 async function loadData() {
     try {
+        // Save current focused textarea if any
+        let activeInputId = null;
+        let activeSelectionStart = 0;
+        let activeSelectionEnd = 0;
+        if (document.activeElement && document.activeElement.classList.contains('comment-textarea')) {
+            activeInputId = document.activeElement.id;
+            activeSelectionStart = document.activeElement.selectionStart;
+            activeSelectionEnd = document.activeElement.selectionEnd;
+        }
+
         const [items, stats] = await Promise.all([
             api.getItems(),
             api.getStats()
         ]);
         state.items = items;
         renderItems();
+
+        // Restore focus if appropriate
+        if (activeInputId) {
+            const restoredEl = document.getElementById(activeInputId);
+            if (restoredEl) {
+                restoredEl.focus();
+                try {
+                    restoredEl.setSelectionRange(activeSelectionStart, activeSelectionEnd);
+                } catch { /* ignore */ }
+            }
+        }
+
         if (stats) {
             updateStats(stats);
             // Cache members list if needed
@@ -462,8 +703,16 @@ async function loadData() {
 function renderItems() {
     let filtered = state.items.filter(item => {
         const matchCat = state.filters.category === 'All' || item.category === state.filters.category;
-        const matchStatus = state.filters.status === 'All' ||
-            item.status.toLowerCase() === state.filters.status.toLowerCase();
+        
+        let matchStatus = true;
+        if (state.filters.status !== 'All') {
+            if (state.filters.status.toLowerCase() === 'resolved') {
+                matchStatus = Boolean(item.isResolved);
+            } else {
+                matchStatus = item.status.toLowerCase() === state.filters.status.toLowerCase();
+            }
+        }
+        
         return matchCat && matchStatus;
     });
 
@@ -488,18 +737,48 @@ function renderItems() {
         const voterNames = item.votes.map(v => v.memberName).join(', ');
         const statusClass = item.status.toLowerCase();
         const statusLabel = item.status.charAt(0).toUpperCase() + item.status.slice(1);
+        const isResolved = Boolean(item.isResolved);
+        const comments = Array.isArray(item.comments) ? item.comments : [];
+        const commentCount = comments.length;
+        const isOpen = state.openComments.has(item.id);
+        const selectedType = state.activeCommentType[item.id] || 'idea';
+        const draftText = state.commentDrafts[item.id] || '';
+
+        const typeLabels = {
+            idea: '💡 Idea / Solution',
+            action: '🎯 Action Step',
+            question: '❓ Question',
+            comment: '💬 Discussion'
+        };
 
         return `
-            <div class="item-card" id="item-${item.id}">
+            <div class="item-card ${isResolved ? 'card-resolved' : ''}" id="item-${item.id}">
                 <div class="item-header">
                     <div class="item-main-info">
                         <span class="category-tag">${escapeHTML(item.category)}</span>
                         <h3 class="item-title">${escapeHTML(item.title)}</h3>
                     </div>
                     <div class="item-badges">
+                        ${isResolved ? '<span class="badge status-badge badge-resolved">Resolved</span>' : ''}
                         <span class="badge status-badge status-${statusClass}">${statusLabel}</span>
                     </div>
                 </div>
+
+                ${isResolved && item.resolution ? `
+                    <div class="item-resolution-banner">
+                        <div class="res-banner-header">
+                            <span class="res-banner-badge">✅ RESOLUTION / AGREED SOLUTION</span>
+                            ${(isProposer || (item.resolution.resolvedBy && item.resolution.resolvedBy.memberId === state.member.id)) ? `
+                                <button class="btn-res-unresolve" data-item-id="${item.id}" title="Reopen this topic / clear resolution">Reopen</button>
+                            ` : ''}
+                        </div>
+                        <div class="res-banner-body">${escapeHTML(item.resolution.solutionText)}</div>
+                        <div class="res-banner-meta">
+                            Resolved by <strong>${escapeHTML(item.resolution.resolvedBy ? item.resolution.resolvedBy.memberName : 'Member')}</strong> • ${timeAgo(item.resolution.resolvedAt)}
+                        </div>
+                    </div>
+                ` : ''}
+
                 <div class="item-desc">${escapeHTML(item.description)}</div>
 
                 <div class="item-meta">
@@ -513,13 +792,114 @@ function renderItems() {
                         ` : ''}
                     </div>
                     <div class="item-actions">
-                        ${isProposer ? `<button class="btn-delete" data-id="${item.id}">Withdraw</button>` : ''}
+                        <div class="item-actions-left">
+                            ${isProposer ? `<button class="btn-delete" data-id="${item.id}">Withdraw</button>` : ''}
+                            <button class="btn-toggle-comments ${commentCount > 0 ? 'has-comments' : ''} ${isOpen ? 'active' : ''}" data-id="${item.id}">
+                                <span class="comment-icon">💬</span>
+                                <span class="comment-count-label">${commentCount > 0 ? `${commentCount} ${commentCount === 1 ? 'Comment' : 'Comments'}` : 'Brainstorm'}</span>
+                                <span class="comment-chevron">${isOpen ? '▲' : '▼'}</span>
+                            </button>
+                        </div>
                         <div class="vote-info">
                             <button class="btn-vote ${hasVoted ? 'voted' : ''}"
                                     data-id="${item.id}"
                                     ${isProposer ? 'disabled title="You automatically support your own proposal"' : ''}>
                                 <span class="icon">${hasVoted ? '✓' : '↑'}</span> ${voteCount} ${voteCount === 1 ? 'Vote' : 'Votes'}
                             </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Comments & Brainstorming Drawer -->
+                <div class="item-comments-container ${isOpen ? 'open' : ''}" id="comments-container-${item.id}">
+                    <div class="comments-section-header">
+                        <h4>Brainstorming & Discussion <span class="comments-counter">(${commentCount})</span></h4>
+                        ${!isResolved && isProposer ? `
+                            <button class="btn-resolve-direct" data-id="${item.id}" title="Mark this issue as resolved with an agreed decision or plan">
+                                ✅ Mark as Resolved
+                            </button>
+                        ` : ''}
+                    </div>
+
+                    <!-- Comments List -->
+                    <div class="comments-list">
+                        ${commentCount === 0 ? `
+                            <div class="comments-empty-hint">
+                                <span class="empty-sparkle">💡</span>
+                                <p>No brainstorm ideas or comments yet. Share your thoughts or propose a solution below!</p>
+                            </div>
+                        ` : comments.map(c => {
+                            const isCommentAuthor = c.memberId === state.member.id;
+                            const canDelete = isCommentAuthor || isProposer;
+                            const isSol = Boolean(c.isSolution);
+                            const type = c.type || 'comment';
+                            const typeLabel = typeLabels[type] || '💬 Discussion';
+
+                            return `
+                                <div class="comment-item ${isSol ? 'is-solution' : ''}" id="comment-${c.id}">
+                                    <div class="comment-avatar">${getInitials(c.memberName)}</div>
+                                    <div class="comment-main">
+                                        <div class="comment-header-row">
+                                            <div class="comment-author-info">
+                                                <strong class="comment-author-name">${escapeHTML(c.memberName)}</strong>
+                                                <span class="comment-author-role">${escapeHTML(c.memberRole || 'Member')}</span>
+                                                <span class="comment-time">• ${timeAgo(c.createdAt)}</span>
+                                            </div>
+                                            <div class="comment-tag-wrapper">
+                                                <span class="comment-type-badge type-${type}">${typeLabel}</span>
+                                                ${isSol ? '<span class="badge-solution-pill">⭐ Accepted Solution</span>' : ''}
+                                            </div>
+                                        </div>
+                                        <div class="comment-text">${escapeHTML(c.content)}</div>
+                                        <div class="comment-footer-actions">
+                                            ${(!isResolved && (isProposer || isCommentAuthor)) ? `
+                                                <button class="btn-mark-solution" data-item-id="${item.id}" data-comment-id="${c.id}" data-comment-text="${escapeHTML(c.content)}" title="Accept this comment as the resolution">
+                                                    ⭐ Accept as Solution
+                                                </button>
+                                            ` : ''}
+                                            ${canDelete ? `
+                                                <button class="btn-delete-comment" data-item-id="${item.id}" data-comment-id="${c.id}" title="Delete comment">
+                                                    Delete
+                                                </button>
+                                            ` : ''}
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+
+                    <!-- Comment Composer -->
+                    <div class="comment-composer">
+                        <div class="composer-type-selector">
+                            <span class="composer-type-label">Tag as:</span>
+                            <button type="button" class="composer-type-btn ${selectedType === 'idea' ? 'selected' : ''}" data-item-id="${item.id}" data-type="idea">
+                                💡 Idea
+                            </button>
+                            <button type="button" class="composer-type-btn ${selectedType === 'action' ? 'selected' : ''}" data-item-id="${item.id}" data-type="action">
+                                🎯 Action
+                            </button>
+                            <button type="button" class="composer-type-btn ${selectedType === 'question' ? 'selected' : ''}" data-item-id="${item.id}" data-type="question">
+                                ❓ Question
+                            </button>
+                            <button type="button" class="composer-type-btn ${selectedType === 'comment' ? 'selected' : ''}" data-item-id="${item.id}" data-type="comment">
+                                💬 Discussion
+                            </button>
+                        </div>
+                        <div class="composer-input-row">
+                            <textarea
+                                class="comment-textarea"
+                                id="comment-input-${item.id}"
+                                data-item-id="${item.id}"
+                                rows="2"
+                                placeholder="Share an idea, ask a question, or suggest a solution..."
+                            >${escapeHTML(draftText)}</textarea>
+                            <button class="btn btn-primary btn-post-comment" data-item-id="${item.id}">
+                                Post
+                            </button>
+                        </div>
+                        <div class="composer-hints">
+                            <small>Tip: Press <strong>Ctrl + Enter</strong> to post immediately</small>
                         </div>
                     </div>
                 </div>
@@ -719,13 +1099,39 @@ async function showExportModal() {
                 html += '<div class="print-items">';
                 group.items.forEach(item => {
                     const statusLabel = item.status.charAt(0).toUpperCase() + item.status.slice(1);
+                    const comments = Array.isArray(item.comments) ? item.comments : [];
+                    const isResolved = Boolean(item.isResolved);
+
                     html += `
-                        <div class="print-item">
+                        <div class="print-item ${isResolved ? 'print-item-resolved' : ''}">
                             <h4>${itemNumber}. ${escapeHTML(item.title)}
-                                <small>(${statusLabel} — ${item.votes.length} ${item.votes.length === 1 ? 'vote' : 'votes'})</small>
+                                <small>(${isResolved ? 'Resolved • ' : ''}${statusLabel} — ${item.votes.length} ${item.votes.length === 1 ? 'vote' : 'votes'})</small>
                             </h4>
-                            <p><em>Proposed by: ${escapeHTML(item.proposedBy.memberName)} (${escapeHTML(item.proposedBy.memberRole)})</em></p>
-                            <p>${escapeHTML(item.description)}</p>
+                            <p class="print-meta"><em>Proposed by: ${escapeHTML(item.proposedBy.memberName)} (${escapeHTML(item.proposedBy.memberRole)})</em></p>
+                            <p class="print-desc">${escapeHTML(item.description)}</p>
+
+                            ${isResolved && item.resolution ? `
+                                <div class="print-resolution-box">
+                                    <strong>✅ Resolution / Agreed Plan:</strong> ${escapeHTML(item.resolution.solutionText)}
+                                    <span class="print-res-by">(Resolved by ${escapeHTML(item.resolution.resolvedBy ? item.resolution.resolvedBy.memberName : 'Member')})</span>
+                                </div>
+                            ` : ''}
+
+                            ${comments.length > 0 ? `
+                                <div class="print-comments-box">
+                                    <div class="print-comments-title">Brainstorming & Discussion (${comments.length}):</div>
+                                    <ul class="print-comments-list">
+                                        ${comments.map(c => `
+                                            <li>
+                                                <strong>${escapeHTML(c.memberName)}</strong>
+                                                <span class="print-tag">[${escapeHTML(c.type || 'comment')}]</span>:
+                                                ${escapeHTML(c.content)}
+                                                ${c.isSolution ? ' <em>(⭐ Accepted Solution)</em>' : ''}
+                                            </li>
+                                        `).join('')}
+                                    </ul>
+                                </div>
+                            ` : ''}
                         </div>
                     `;
                     itemNumber++;

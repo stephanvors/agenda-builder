@@ -443,7 +443,12 @@ app.get('/api/members', requireAuth, async (req, res) => {
 app.get('/api/items', requireAuth, async (req, res) => {
   try {
     const store = req.store;
-    const sortedItems = [...store.agendaItems].sort((a, b) => b.votes.length - a.votes.length);
+    const sortedItems = [...store.agendaItems].map(i => ({
+      ...i,
+      comments: Array.isArray(i.comments) ? i.comments : [],
+      isResolved: Boolean(i.isResolved),
+      resolution: i.resolution || null
+    })).sort((a, b) => b.votes.length - a.votes.length);
     res.json(sortedItems);
   } catch (error) {
     res.status(500).json({ error: 'Internal server error' });
@@ -483,7 +488,10 @@ app.post('/api/items', requireAuth, async (req, res) => {
         memberName: member.name,
         votedAt: now
       }],
-      status: determineStatus(1)
+      status: determineStatus(1),
+      isResolved: false,
+      resolution: null,
+      comments: []
     };
 
     store.agendaItems.push(newItem);
@@ -573,6 +581,166 @@ app.delete('/api/items/:id', requireAuth, async (req, res) => {
 
     res.status(204).send();
   } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ── Comments & Brainstorming Endpoints ──
+
+// Add comment to an item
+app.post('/api/items/:id/comments', requireAuth, async (req, res) => {
+  try {
+    const { content, type } = req.body;
+    const member = req.member;
+    const store = req.store;
+    const item = store.agendaItems.find(i => i.id === req.params.id);
+
+    if (!item) {
+      return res.status(404).json({ error: 'Agenda item not found' });
+    }
+
+    if (!content || !content.trim()) {
+      return res.status(400).json({ error: 'Comment content cannot be empty' });
+    }
+
+    const validTypes = ['comment', 'idea', 'action', 'question'];
+    const commentType = validTypes.includes(type) ? type : 'comment';
+
+    if (!Array.isArray(item.comments)) {
+      item.comments = [];
+    }
+
+    const newComment = {
+      id: uuidv4(),
+      memberId: member.id,
+      memberName: member.name,
+      memberRole: member.role,
+      content: content.trim(),
+      type: commentType,
+      isSolution: false,
+      createdAt: new Date().toISOString()
+    };
+
+    item.comments.push(newComment);
+    await storeHelper.write(store);
+
+    res.status(201).json(item);
+  } catch (error) {
+    console.error('Error adding comment:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Delete a comment
+app.delete('/api/items/:itemId/comments/:commentId', requireAuth, async (req, res) => {
+  try {
+    const member = req.member;
+    const store = req.store;
+    const item = store.agendaItems.find(i => i.id === req.params.itemId);
+
+    if (!item) {
+      return res.status(404).json({ error: 'Agenda item not found' });
+    }
+
+    if (!Array.isArray(item.comments)) {
+      item.comments = [];
+      return res.status(404).json({ error: 'Comment not found' });
+    }
+
+    const commentIndex = item.comments.findIndex(c => c.id === req.params.commentId);
+    if (commentIndex === -1) {
+      return res.status(404).json({ error: 'Comment not found' });
+    }
+
+    const comment = item.comments[commentIndex];
+    const isCommentAuthor = comment.memberId === member.id;
+    const isItemProposer = item.proposedBy.memberId === member.id;
+
+    if (!isCommentAuthor && !isItemProposer) {
+      return res.status(403).json({ error: 'You can only delete your own comments' });
+    }
+
+    // If this comment was the marked resolution, clear the resolution flag
+    if (comment.isSolution || (item.resolution && item.resolution.commentId === comment.id)) {
+      item.isResolved = false;
+      item.resolution = null;
+    }
+
+    item.comments.splice(commentIndex, 1);
+    await storeHelper.write(store);
+
+    res.json(item);
+  } catch (error) {
+    console.error('Error deleting comment:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Mark an item as resolved (with solution text and optional commentId)
+app.post('/api/items/:id/resolve', requireAuth, async (req, res) => {
+  try {
+    const { solutionText, commentId } = req.body;
+    const member = req.member;
+    const store = req.store;
+    const item = store.agendaItems.find(i => i.id === req.params.id);
+
+    if (!item) {
+      return res.status(404).json({ error: 'Agenda item not found' });
+    }
+
+    if (!solutionText || !solutionText.trim()) {
+      return res.status(400).json({ error: 'Resolution or solution text is required' });
+    }
+
+    item.isResolved = true;
+    item.resolution = {
+      solutionText: solutionText.trim(),
+      commentId: commentId || null,
+      resolvedBy: {
+        memberId: member.id,
+        memberName: member.name,
+        memberRole: member.role
+      },
+      resolvedAt: new Date().toISOString()
+    };
+
+    if (Array.isArray(item.comments)) {
+      item.comments.forEach(c => {
+        c.isSolution = (commentId && c.id === commentId);
+      });
+    }
+
+    await storeHelper.write(store);
+    res.json(item);
+  } catch (error) {
+    console.error('Error resolving item:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Reopen / clear resolution on an item
+app.delete('/api/items/:id/resolve', requireAuth, async (req, res) => {
+  try {
+    const store = req.store;
+    const item = store.agendaItems.find(i => i.id === req.params.id);
+
+    if (!item) {
+      return res.status(404).json({ error: 'Agenda item not found' });
+    }
+
+    item.isResolved = false;
+    item.resolution = null;
+
+    if (Array.isArray(item.comments)) {
+      item.comments.forEach(c => {
+        c.isSolution = false;
+      });
+    }
+
+    await storeHelper.write(store);
+    res.json(item);
+  } catch (error) {
+    console.error('Error clearing resolution:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
