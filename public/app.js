@@ -20,7 +20,7 @@ const state = {
     editingComments: {}      // { [commentId]: { content: '...', type: '...' } }
 };
 
-const MEETING_DATE = new Date('2026-08-28T10:00:00');
+const MEETING_DATE = new Date('2026-08-27T10:00:00');
 const POLL_INTERVAL_MS = 15000;
 
 // ── API Layer (all requests include auth token) ──
@@ -1204,7 +1204,7 @@ async function showExportModal() {
             <div class="print-agenda-header">
                 <h1>${escapeHTML(meetingInfo.title)}</h1>
                 <h3>School Governing Body & School Management Team</h3>
-                <p><strong>Date:</strong> 28 August 2026 — 10:00</p>
+                <p><strong>Date:</strong> 27 August 2026 — 10:00</p>
                 <p><strong>Venue:</strong> Staff Room</p>
                 <p><strong>Type:</strong> Strategy Meeting — Way Forward</p>
                 <p><strong>Members:</strong> ${members.map(m => `${m.title} ${m.name}`).join(', ')}</p>

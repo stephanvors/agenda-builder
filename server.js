@@ -151,10 +151,10 @@ async function syncMembersFromExcel() {
     // Ensure meetingInfo has the current date
     store.meetingInfo = {
       title: 'SGB/SMT Strategy Meeting',
-      date: '2026-08-28',
+      date: '2026-08-27',
       school: 'LGAA',
       ...(store.meetingInfo || {}),
-      date: '2026-08-28'
+      date: '2026-08-27'
     };
 
     await storeHelper.write(store);
@@ -222,7 +222,7 @@ const storeHelper = {
           agendaItems: [],
           meetingInfo: {
             title: 'SGB/SMT Strategy Meeting',
-            date: '2026-08-28',
+            date: '2026-08-27',
             school: 'LGAA'
           }
         };
@@ -259,7 +259,7 @@ const storeHelper = {
       agendaItems: [],
       meetingInfo: {
         title: 'SGB/SMT Strategy Meeting',
-        date: '2026-08-28',
+        date: '2026-08-27',
         school: 'LGAA'
       }
     };

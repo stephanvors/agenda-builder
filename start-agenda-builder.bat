@@ -4,7 +4,7 @@ color 1F
 echo.
 echo  ============================================
 echo   SGB/SMT Strategy Meeting - Agenda Builder
-echo   Meeting Date: 28 August 2026
+echo   Meeting Date: 27 August 2026
 echo   Authentication: PIN-based (15 members)
 echo  ============================================
 echo.
