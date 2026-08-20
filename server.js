@@ -146,7 +146,14 @@ async function syncMembersFromExcel() {
     const freshNames = new Set(freshMembers.map(m => m.name));
     const before = store.members.length;
     store.members = store.members.filter(m => freshNames.has(m.name));
-    const removed = before - store.members.length;
+    // Ensure meetingInfo has the current date
+    store.meetingInfo = {
+      title: 'SGB/SMT Strategy Meeting',
+      date: '2026-08-28',
+      school: 'LGAA',
+      ...(store.meetingInfo || {}),
+      date: '2026-08-28'
+    };
 
     await storeHelper.write(store);
     console.log(`🔄 Members synced from Excel: +${added} added, ~${updated} updated, -${removed} removed. Total: ${store.members.length}`);
@@ -213,7 +220,7 @@ const storeHelper = {
           agendaItems: [],
           meetingInfo: {
             title: 'SGB/SMT Strategy Meeting',
-            date: '2026-08-21',
+            date: '2026-08-28',
             school: 'LGAA'
           }
         };
@@ -250,7 +257,7 @@ const storeHelper = {
       agendaItems: [],
       meetingInfo: {
         title: 'SGB/SMT Strategy Meeting',
-        date: '2026-08-21',
+        date: '2026-08-28',
         school: 'LGAA'
       }
     };
