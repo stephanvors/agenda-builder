@@ -1711,10 +1711,10 @@ function renderDocuments() {
                         <span>${escapeHTML(doc.uploadedBy?.memberRole || 'Member')} • ${timeAgo(doc.uploadedAt)}</span>
                     </div>
                     <div class="doc-actions-group">
-                        <a href="/api/documents/${doc.id}/view" target="_blank" rel="noopener" class="btn-doc-action btn-doc-view" title="Preview / Open in new tab">
+                        <a href="/api/documents/${doc.id}/view?token=${encodeURIComponent(state.token || '')}" target="_blank" rel="noopener" class="btn-doc-action btn-doc-view" title="Preview / Open in new tab">
                             👁️ View
                         </a>
-                        <a href="/api/documents/${doc.id}/download" class="btn-doc-action btn-doc-download" title="Download file">
+                        <a href="/api/documents/${doc.id}/download?token=${encodeURIComponent(state.token || '')}" class="btn-doc-action btn-doc-download" title="Download file">
                             ⬇️ Download
                         </a>
                         ${canDelete ? `
