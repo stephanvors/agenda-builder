@@ -1293,21 +1293,63 @@ textarea:focus {
 }
 
 .modal-header {
-    padding: 1rem 1.25rem;
+    padding: 0.65rem 0.95rem;
     border-bottom: 1px solid var(--border-color);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 0.75rem;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
     background: #FAFAFA;
 }
 
-.modal-header h2 { font-size: 1.25rem; }
+.modal-header h2 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin: 0;
+    line-height: 1.25;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+    min-width: 0;
+}
 
 .modal-actions {
     display: flex;
-    gap: 0.5rem;
+    align-items: center;
+    gap: 0.4rem;
+    flex-shrink: 0;
+}
+
+.btn-modal-close {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #E2E8F0;
+    border: 1px solid #CBD5E1;
+    color: #475569;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    font-weight: 600;
+    line-height: 1;
+    cursor: pointer;
+    transition: var(--transition);
+    flex-shrink: 0;
+    padding: 0;
+    margin: 0;
+    min-height: unset;
+    touch-action: manipulation;
+}
+
+.btn-modal-close:hover,
+.btn-modal-close:active {
+    background: #CBD5E1;
+    color: #0F172A;
+    border-color: #94A3B8;
 }
 
 .printable-area {

@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20260820-2">
+    <link rel="stylesheet" href="style.css?v=20260820-4">
 </head>
 <body>
     <div id="toast-container" class="toast-container"></div>
@@ -181,10 +181,10 @@
     <div id="export-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Meeting Agenda Preview</h2>
+                <h2>Agenda Preview</h2>
                 <div class="modal-actions">
-                    <button id="btn-print" class="btn btn-primary">Print / PDF</button>
-                    <button id="btn-close-modal" class="btn btn-outline">&times; Close</button>
+                    <button id="btn-print" class="btn btn-primary btn-sm">Print / PDF</button>
+                    <button id="btn-close-modal" class="btn-modal-close" aria-label="Close" title="Close">&times;</button>
                 </div>
             </div>
             <div id="printable-agenda" class="printable-area">
@@ -198,9 +198,7 @@
         <div class="modal-content modal-content--sheet">
             <div class="modal-header">
                 <h2 id="info-modal-title">Details</h2>
-                <div class="modal-actions">
-                    <button id="btn-close-info-modal" class="btn btn-outline btn-sm">&times; Close</button>
-                </div>
+                <button id="btn-close-info-modal" class="btn-modal-close" aria-label="Close" title="Close">&times;</button>
             </div>
             <div id="info-modal-body" class="info-modal-body">
                 <!-- Injected content -->
@@ -208,6 +206,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=20260820-3"></script>
+    <script src="app.js?v=20260820-4"></script>
 </body>
 </html>
