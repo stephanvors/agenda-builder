@@ -169,6 +169,28 @@
     }
   ],
   "agendaItems": [],
+  "documents": [],
+  "categories": [
+    "Fee Collection & Debt Recovery",
+    "Budget & Financial Management",
+    "Fundraising & Alternative Revenue",
+    "Infrastructure & Maintenance",
+    "Curriculum & Academic Performance",
+    "Human Resources & Staffing",
+    "Parent & Community Engagement",
+    "Governance & Policy",
+    "Learner Welfare & Support",
+    "Communication & Administration",
+    "General"
+  ],
+  "documentCategories": [
+    "Meeting Documents & Policies",
+    "Presentations & Slides",
+    "Financial & Budget Reports",
+    "Curriculum & Academic",
+    "Infrastructure & Maintenance",
+    "General & Media"
+  ],
   "meetingInfo": {
     "title": "SGB/SMT Strategy Meeting",
     "date": "2026-08-27",

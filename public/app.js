@@ -10,8 +10,10 @@ const state = {
     members: [],     // all members (for tooltip)
     items: [],       // agenda items from server
     documents: [],   // shared files & documents
-    documentCategories: [],
+    categories: [],  // agenda item categories
+    documentCategories: [], // file vault categories
     activeTab: 'agenda', // 'agenda' | 'documents'
+    activeCategoryModalType: 'agenda', // 'agenda' | 'documents'
     filters: {
         category: 'All',
         status: 'All'
@@ -27,6 +29,14 @@ const state = {
     commentDrafts: {},       // { [itemId]: 'draft text' }
     editingComments: {}      // { [commentId]: { content: '...', type: '...' } }
 };
+
+// Check if current user has Admin privileges
+function isAdmin() {
+    if (!state.member) return false;
+    const name = (state.member.name || '').toLowerCase().trim();
+    const role = (state.member.role || '').toLowerCase().trim();
+    return name === 'stephen vorster' || role.includes('admin') || role.includes('principal') || role.includes('chairperson');
+}
 
 const MEETING_DATE = new Date('2026-08-27T10:00:00');
 const POLL_INTERVAL_MS = 15000;
@@ -271,6 +281,61 @@ const api = {
             throw new Error(err.error || 'Failed to delete document');
         }
         return res.json();
+    },
+
+    // ── Category API Methods (Admin) ──
+    async addAgendaCategory(name) {
+        const res = await fetch('/api/categories/agenda', {
+            method: 'POST',
+            headers: authHeaders(),
+            body: JSON.stringify({ name })
+        });
+        if (res.status === 401) { handleSessionExpired(); return null; }
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error || 'Failed to add agenda category');
+        }
+        return res.json();
+    },
+
+    async deleteAgendaCategory(name) {
+        const res = await fetch(`/api/categories/agenda/${encodeURIComponent(name)}`, {
+            method: 'DELETE',
+            headers: authHeaders()
+        });
+        if (res.status === 401) { handleSessionExpired(); return null; }
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error || 'Failed to delete agenda category');
+        }
+        return res.json();
+    },
+
+    async addDocumentCategory(name) {
+        const res = await fetch('/api/categories/documents', {
+            method: 'POST',
+            headers: authHeaders(),
+            body: JSON.stringify({ name })
+        });
+        if (res.status === 401) { handleSessionExpired(); return null; }
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error || 'Failed to add document category');
+        }
+        return res.json();
+    },
+
+    async deleteDocumentCategory(name) {
+        const res = await fetch(`/api/categories/documents/${encodeURIComponent(name)}`, {
+            method: 'DELETE',
+            headers: authHeaders()
+        });
+        if (res.status === 401) { handleSessionExpired(); return null; }
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error || 'Failed to delete document category');
+        }
+        return res.json();
     }
 };
 
@@ -317,37 +382,54 @@ const els = {
     titleError:       document.getElementById('title-error'),
     descError:        document.getElementById('desc-error'),
 
-    filterCategory:   document.getElementById('filter-category'),
-    sortItems:        document.getElementById('sort-items'),
-    statusFilters:    document.getElementById('status-filters'),
+    itemCategory:         document.getElementById('item-category'),
+    filterCategory:       document.getElementById('filter-category'),
+    btnManageAgendaCats:  document.getElementById('btn-manage-agenda-cats'),
+    btnAddAgendaCatInline:document.getElementById('btn-add-agenda-cat-inline'),
+    sortItems:            document.getElementById('sort-items'),
+    statusFilters:        document.getElementById('status-filters'),
 
     itemsContainer:   document.getElementById('agenda-items-container'),
     emptyState:       document.getElementById('empty-state'),
 
     // Documents Vault Elements
     btnToggleUpload:      document.getElementById('btn-toggle-upload'),
-    uploadDocContainer:  document.getElementById('upload-doc-container'),
-    uploadDocForm:       document.getElementById('upload-doc-form'),
-    fileDropZone:        document.getElementById('file-drop-zone'),
-    docFileInput:        document.getElementById('doc-file-input'),
-    dropZoneTitle:       document.getElementById('drop-zone-title'),
-    dropZoneHint:        document.getElementById('drop-zone-hint'),
-    docFileError:        document.getElementById('doc-file-error'),
-    docTitle:            document.getElementById('doc-title'),
-    docCategory:         document.getElementById('doc-category'),
-    docDescription:      document.getElementById('doc-description'),
+    uploadDocContainer:   document.getElementById('upload-doc-container'),
+    uploadDocForm:        document.getElementById('upload-doc-form'),
+    fileDropZone:         document.getElementById('file-drop-zone'),
+    docFileInput:         document.getElementById('doc-file-input'),
+    dropZoneTitle:        document.getElementById('drop-zone-title'),
+    dropZoneHint:         document.getElementById('drop-zone-hint'),
+    docFileError:         document.getElementById('doc-file-error'),
+    docTitle:             document.getElementById('doc-title'),
+    docCategory:          document.getElementById('doc-category'),
+    btnManageDocCats:     document.getElementById('btn-manage-doc-cats'),
+    btnAddDocCatInline:   document.getElementById('btn-add-doc-cat-inline'),
+    docDescription:       document.getElementById('doc-description'),
     uploadProgressWrapper: document.getElementById('upload-progress-wrapper'),
-    uploadProgressFill:  document.getElementById('upload-progress-fill'),
-    uploadProgressText:  document.getElementById('upload-progress-text'),
+    uploadProgressFill:   document.getElementById('upload-progress-fill'),
+    uploadProgressText:   document.getElementById('upload-progress-text'),
     uploadProgressPercent: document.getElementById('upload-progress-percent'),
-    btnCancelUpload:     document.getElementById('btn-cancel-upload'),
-    btnSubmitUpload:     document.getElementById('btn-submit-upload'),
+    btnCancelUpload:      document.getElementById('btn-cancel-upload'),
+    btnSubmitUpload:      document.getElementById('btn-submit-upload'),
 
     filterDocCategory:   document.getElementById('filter-doc-category'),
     sortDocs:            document.getElementById('sort-docs'),
     docSearchInput:      document.getElementById('doc-search-input'),
     documentsContainer:  document.getElementById('documents-container'),
     documentsEmptyState: document.getElementById('documents-empty-state'),
+
+    // Category Management Modal Elements (Admin)
+    categoryModal:        document.getElementById('category-modal'),
+    categoryModalTitle:   document.getElementById('category-modal-title'),
+    categoryModalDesc:    document.getElementById('category-modal-desc'),
+    btnCloseCategoryModal:document.getElementById('btn-close-category-modal'),
+    addCategoryForm:      document.getElementById('add-category-form'),
+    newCategoryInput:     document.getElementById('new-category-input'),
+    btnSubmitNewCategory: document.getElementById('btn-submit-new-category'),
+    categoryModalError:   document.getElementById('category-modal-error'),
+    categoryModalCount:   document.getElementById('category-modal-count'),
+    categoryChipsList:    document.getElementById('category-chips-list'),
 
     btnExport:        document.getElementById('btn-export'),
     modal:            document.getElementById('export-modal'),
@@ -563,6 +645,40 @@ function setupEventListeners() {
                         showToast(error.message || 'Failed to delete document', true);
                     }
                 }
+            }
+        });
+    }
+
+    // Category Management Listeners (Admin)
+    if (els.btnManageAgendaCats) {
+        els.btnManageAgendaCats.addEventListener('click', () => openCategoryModal('agenda'));
+    }
+    if (els.btnAddAgendaCatInline) {
+        els.btnAddAgendaCatInline.addEventListener('click', () => openCategoryModal('agenda'));
+    }
+    if (els.btnManageDocCats) {
+        els.btnManageDocCats.addEventListener('click', () => openCategoryModal('documents'));
+    }
+    if (els.btnAddDocCatInline) {
+        els.btnAddDocCatInline.addEventListener('click', () => openCategoryModal('documents'));
+    }
+    if (els.btnCloseCategoryModal) {
+        els.btnCloseCategoryModal.addEventListener('click', closeCategoryModal);
+    }
+    if (els.categoryModal) {
+        els.categoryModal.addEventListener('click', (e) => {
+            if (e.target === els.categoryModal) closeCategoryModal();
+        });
+    }
+    if (els.addCategoryForm) {
+        els.addCategoryForm.addEventListener('submit', handleAddCategory);
+    }
+    if (els.categoryChipsList) {
+        els.categoryChipsList.addEventListener('click', (e) => {
+            const delBtn = e.target.closest('.btn-delete-chip');
+            if (delBtn) {
+                const name = delBtn.dataset.categoryName;
+                handleDeleteCategory(name);
             }
         });
     }
@@ -933,6 +1049,18 @@ function showMainView() {
     els.mainView.classList.add('active');
     els.userName.textContent = `${state.member.title} ${state.member.name}`;
     els.userRole.textContent = state.member.role;
+    updateAdminVisibility();
+}
+
+function updateAdminVisibility() {
+    const adminUser = isAdmin();
+    document.querySelectorAll('.admin-only').forEach(el => {
+        if (adminUser) {
+            el.classList.remove('hidden');
+        } else {
+            el.classList.add('hidden');
+        }
+    });
 }
 
 // ── Data Loading ──
@@ -956,8 +1084,27 @@ async function loadData() {
         state.items = items;
         if (docData && Array.isArray(docData.documents)) {
             state.documents = docData.documents;
-            state.documentCategories = docData.categories || [];
+            if (Array.isArray(docData.categories) && docData.categories.length > 0) {
+                state.documentCategories = docData.categories;
+            }
         }
+        if (stats) {
+            if (Array.isArray(stats.categories) && stats.categories.length > 0) {
+                state.categories = stats.categories;
+            }
+            if (Array.isArray(stats.documentCategories) && stats.documentCategories.length > 0) {
+                state.documentCategories = stats.documentCategories;
+            }
+            updateStats(stats);
+            updateCategoryDropdowns();
+            // Cache members list if needed
+            if (state.members.length === 0) {
+                try {
+                    state.members = await api.getMemberList();
+                } catch { /* non-critical */ }
+            }
+        }
+
         renderItems();
         renderDocuments();
 
@@ -969,16 +1116,6 @@ async function loadData() {
                 try {
                     restoredEl.setSelectionRange(activeSelectionStart, activeSelectionEnd);
                 } catch { /* ignore */ }
-            }
-        }
-
-        if (stats) {
-            updateStats(stats);
-            // Cache members list if needed
-            if (state.members.length === 0) {
-                try {
-                    state.members = await api.getMemberList();
-                } catch { /* non-critical */ }
             }
         }
     } catch (error) {
@@ -1226,6 +1363,225 @@ function updateStats(stats) {
     if (els.statDocs)    els.statDocs.textContent = stats.totalDocuments ?? state.documents.length;
     if (els.tabAgendaBadge) els.tabAgendaBadge.textContent = state.items.length;
     if (els.tabDocsBadge)   els.tabDocsBadge.textContent = state.documents.length;
+}
+
+// ── Category Dropdowns & Dynamic Options ──
+function updateCategoryDropdowns() {
+    updateAdminVisibility();
+
+    // 1. Agenda item proposal category dropdown
+    if (els.itemCategory) {
+        const currentVal = els.itemCategory.value;
+        const defaultPrompt = '<option value="" disabled selected>Select category...</option>';
+        const options = (state.categories || []).map(c => `<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join('');
+        els.itemCategory.innerHTML = defaultPrompt + options;
+        if (currentVal && state.categories.includes(currentVal)) {
+            els.itemCategory.value = currentVal;
+        }
+    }
+
+    // 2. Agenda filter category dropdown
+    if (els.filterCategory) {
+        const currentVal = els.filterCategory.value || 'All';
+        const defaultPrompt = '<option value="All">All Categories</option>';
+        const options = (state.categories || []).map(c => `<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join('');
+        els.filterCategory.innerHTML = defaultPrompt + options;
+        if (currentVal && (currentVal === 'All' || state.categories.includes(currentVal))) {
+            els.filterCategory.value = currentVal;
+        } else {
+            els.filterCategory.value = 'All';
+            state.filters.category = 'All';
+        }
+    }
+
+    // 3. Document upload category dropdown
+    if (els.docCategory) {
+        const currentVal = els.docCategory.value;
+        const defaultPrompt = '<option value="" disabled selected>Select category...</option>';
+        const options = (state.documentCategories || []).map(c => `<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join('');
+        els.docCategory.innerHTML = defaultPrompt + options;
+        if (currentVal && state.documentCategories.includes(currentVal)) {
+            els.docCategory.value = currentVal;
+        }
+    }
+
+    // 4. Document filter category dropdown
+    if (els.filterDocCategory) {
+        const currentVal = els.filterDocCategory.value || 'All';
+        const defaultPrompt = '<option value="All">All Categories</option>';
+        const options = (state.documentCategories || []).map(c => `<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join('');
+        els.filterDocCategory.innerHTML = defaultPrompt + options;
+        if (currentVal && (currentVal === 'All' || state.documentCategories.includes(currentVal))) {
+            els.filterDocCategory.value = currentVal;
+        } else {
+            els.filterDocCategory.value = 'All';
+            state.docFilters.category = 'All';
+        }
+    }
+}
+
+// ── Category Management Modal Logic (Admin) ──
+function openCategoryModal(type = 'agenda') {
+    state.activeCategoryModalType = type;
+    if (!els.categoryModal) return;
+
+    if (type === 'agenda') {
+        if (els.categoryModalTitle) els.categoryModalTitle.textContent = 'Manage Agenda Categories';
+        if (els.categoryModalDesc)  els.categoryModalDesc.textContent = 'Add or remove categories for agenda item proposals.';
+    } else {
+        if (els.categoryModalTitle) els.categoryModalTitle.textContent = 'Manage File Vault Categories';
+        if (els.categoryModalDesc)  els.categoryModalDesc.textContent = 'Add or remove categories for uploaded documents and media.';
+    }
+
+    if (els.newCategoryInput) {
+        els.newCategoryInput.value = '';
+    }
+    if (els.categoryModalError) {
+        els.categoryModalError.textContent = '';
+    }
+
+    renderCategoryChips();
+    els.categoryModal.classList.add('active');
+    setTimeout(() => {
+        if (els.newCategoryInput) els.newCategoryInput.focus();
+    }, 100);
+}
+
+function closeCategoryModal() {
+    if (els.categoryModal) {
+        els.categoryModal.classList.remove('active');
+    }
+}
+
+function renderCategoryChips() {
+    if (!els.categoryChipsList) return;
+    const type = state.activeCategoryModalType;
+    const list = type === 'agenda' ? (state.categories || []) : (state.documentCategories || []);
+    
+    if (els.categoryModalCount) {
+        els.categoryModalCount.textContent = list.length;
+    }
+
+    if (list.length === 0) {
+        els.categoryChipsList.innerHTML = '<span style="color:var(--text-muted);font-size:0.85rem;">No categories defined yet.</span>';
+        return;
+    }
+
+    els.categoryChipsList.innerHTML = list.map(cat => `
+        <div class="category-chip">
+            <span class="category-chip-name">${escapeHTML(cat)}</span>
+            <button type="button" class="btn-delete-chip" data-category-name="${escapeHTML(cat)}" title="Delete category">&times;</button>
+        </div>
+    `).join('');
+}
+
+async function handleAddCategory(e) {
+    e.preventDefault();
+    if (!els.newCategoryInput) return;
+    const name = els.newCategoryInput.value.trim();
+    if (!name) {
+        if (els.categoryModalError) els.categoryModalError.textContent = 'Please enter a category name';
+        return;
+    }
+
+    const type = state.activeCategoryModalType;
+    if (els.categoryModalError) els.categoryModalError.textContent = '';
+    if (els.btnSubmitNewCategory) {
+        els.btnSubmitNewCategory.disabled = true;
+        els.btnSubmitNewCategory.textContent = 'Adding...';
+    }
+
+    try {
+        if (type === 'agenda') {
+            const res = await api.addAgendaCategory(name);
+            if (res && Array.isArray(res.categories)) {
+                state.categories = res.categories;
+            } else if (!state.categories.includes(name)) {
+                state.categories.push(name);
+            }
+            showToast(`Agenda category "${name}" added!`);
+            // Update dropdown and auto-select if proposal form is open
+            updateCategoryDropdowns();
+            if (els.itemCategory) els.itemCategory.value = name;
+        } else {
+            const res = await api.addDocumentCategory(name);
+            if (res && Array.isArray(res.documentCategories)) {
+                state.documentCategories = res.documentCategories;
+            } else if (!state.documentCategories.includes(name)) {
+                state.documentCategories.push(name);
+            }
+            showToast(`Document category "${name}" added!`);
+            // Update dropdown and auto-select if upload form is open
+            updateCategoryDropdowns();
+            if (els.docCategory) els.docCategory.value = name;
+        }
+
+        els.newCategoryInput.value = '';
+        renderCategoryChips();
+        renderItems();
+        renderDocuments();
+    } catch (error) {
+        if (els.categoryModalError) els.categoryModalError.textContent = error.message || 'Failed to add category';
+    } finally {
+        if (els.btnSubmitNewCategory) {
+            els.btnSubmitNewCategory.disabled = false;
+            els.btnSubmitNewCategory.textContent = '+ Add';
+        }
+    }
+}
+
+async function handleDeleteCategory(name) {
+    if (!name) return;
+    const type = state.activeCategoryModalType;
+    const isAgenda = type === 'agenda';
+    
+    // Check if in use
+    if (isAgenda) {
+        const inUseCount = state.items.filter(i => i.category === name).length;
+        if (inUseCount > 0) {
+            if (!confirm(`Warning: "${name}" is currently used by ${inUseCount} agenda item(s). Are you sure you want to delete this category?`)) {
+                return;
+            }
+        } else {
+            if (!confirm(`Are you sure you want to delete the category "${name}"?`)) return;
+        }
+    } else {
+        const inUseCount = (state.documents || []).filter(d => d.category === name).length;
+        if (inUseCount > 0) {
+            if (!confirm(`Warning: "${name}" is currently used by ${inUseCount} shared document(s). Are you sure you want to delete this category?`)) {
+                return;
+            }
+        } else {
+            if (!confirm(`Are you sure you want to delete the category "${name}"?`)) return;
+        }
+    }
+
+    try {
+        if (isAgenda) {
+            const res = await api.deleteAgendaCategory(name);
+            if (res && Array.isArray(res.categories)) {
+                state.categories = res.categories;
+            } else {
+                state.categories = state.categories.filter(c => c !== name);
+            }
+            showToast(`Category "${name}" deleted`);
+        } else {
+            const res = await api.deleteDocumentCategory(name);
+            if (res && Array.isArray(res.documentCategories)) {
+                state.documentCategories = res.documentCategories;
+            } else {
+                state.documentCategories = state.documentCategories.filter(c => c !== name);
+            }
+            showToast(`Document category "${name}" deleted`);
+        }
+
+        renderCategoryChips();
+        updateCategoryDropdowns();
+        renderItems();
+        renderDocuments();
+    } catch (error) {
+        showToast(error.message || 'Failed to delete category', true);
+    }
 }
 
 // ── Tab Navigation ──
@@ -1804,14 +2160,21 @@ function rearmHistory() {
 }
 
 function handleBackNavigation() {
-    // 1. Info Modal (Members, Items, Voting Breakdown)
+    // 1. Category Management Modal (Admin)
+    if (els.categoryModal && els.categoryModal.classList.contains('active')) {
+        closeCategoryModal();
+        rearmHistory();
+        return;
+    }
+
+    // 2. Info Modal (Members, Items, Voting Breakdown)
     if (els.infoModal && els.infoModal.classList.contains('active')) {
         closeInfoModal();
         rearmHistory();
         return;
     }
 
-    // 2. Export / View Agenda Modal
+    // 3. Export / View Agenda Modal
     if (els.modal && els.modal.classList.contains('active')) {
         els.modal.classList.remove('active');
         rearmHistory();

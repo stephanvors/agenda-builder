@@ -125,20 +125,12 @@
                                 <span class="error-msg" id="title-error"></span>
                             </div>
                             <div class="form-group">
-                                <label for="item-category">Category</label>
+                                <div class="form-label-row">
+                                    <label for="item-category">Category</label>
+                                    <button type="button" class="btn-link-action admin-only hidden" id="btn-add-agenda-cat-inline">+ New Category</button>
+                                </div>
                                 <select id="item-category" required>
                                     <option value="" disabled selected>Select category...</option>
-                                    <option value="Fee Collection &amp; Debt Recovery">Fee Collection &amp; Debt Recovery</option>
-                                    <option value="Budget &amp; Financial Management">Budget &amp; Financial Management</option>
-                                    <option value="Fundraising &amp; Alternative Revenue">Fundraising &amp; Alternative Revenue</option>
-                                    <option value="Infrastructure &amp; Maintenance">Infrastructure &amp; Maintenance</option>
-                                    <option value="Curriculum &amp; Academic Performance">Curriculum &amp; Academic Performance</option>
-                                    <option value="Human Resources &amp; Staffing">Human Resources &amp; Staffing</option>
-                                    <option value="Parent &amp; Community Engagement">Parent &amp; Community Engagement</option>
-                                    <option value="Governance &amp; Policy">Governance &amp; Policy</option>
-                                    <option value="Learner Welfare &amp; Support">Learner Welfare &amp; Support</option>
-                                    <option value="Communication &amp; Administration">Communication &amp; Administration</option>
-                                    <option value="General">General</option>
                                 </select>
                             </div>
                             <div class="form-group">
@@ -158,23 +150,13 @@
                     <div class="filter-group">
                         <select id="filter-category" class="filter-select">
                             <option value="All">All Categories</option>
-                            <option value="Fee Collection &amp; Debt Recovery">Fee Collection &amp; Debt Recovery</option>
-                            <option value="Budget &amp; Financial Management">Budget &amp; Financial Management</option>
-                            <option value="Fundraising &amp; Alternative Revenue">Fundraising &amp; Alternative Revenue</option>
-                            <option value="Infrastructure &amp; Maintenance">Infrastructure &amp; Maintenance</option>
-                            <option value="Curriculum &amp; Academic Performance">Curriculum &amp; Academic Performance</option>
-                            <option value="Human Resources &amp; Staffing">Human Resources &amp; Staffing</option>
-                            <option value="Parent &amp; Community Engagement">Parent &amp; Community Engagement</option>
-                            <option value="Governance &amp; Policy">Governance &amp; Policy</option>
-                            <option value="Learner Welfare &amp; Support">Learner Welfare &amp; Support</option>
-                            <option value="Communication &amp; Administration">Communication &amp; Administration</option>
-                            <option value="General">General</option>
                         </select>
                         <select id="sort-items" class="filter-select">
                             <option value="votes">Sort: Highest Votes</option>
                             <option value="newest">Sort: Newest First</option>
                             <option value="oldest">Sort: Oldest First</option>
                         </select>
+                        <button type="button" class="btn btn-outline btn-sm btn-manage-categories admin-only hidden" id="btn-manage-agenda-cats" title="Manage Agenda Categories">⚙️ Categories</button>
                     </div>
                     <div class="status-filters" id="status-filters">
                         <button class="status-btn active" data-status="All">All</button>
@@ -230,15 +212,12 @@
                                 <input type="text" id="doc-title" placeholder="Descriptive title (defaults to original filename)">
                             </div>
                             <div class="form-group">
-                                <label for="doc-category">Category <span class="required">*</span></label>
+                                <div class="form-label-row">
+                                    <label for="doc-category">Category <span class="required">*</span></label>
+                                    <button type="button" class="btn-link-action admin-only hidden" id="btn-add-doc-cat-inline">+ New Category</button>
+                                </div>
                                 <select id="doc-category" required>
                                     <option value="" disabled selected>Select category...</option>
-                                    <option value="Meeting Documents &amp; Policies">Meeting Documents &amp; Policies</option>
-                                    <option value="Presentations &amp; Slides">Presentations &amp; Slides</option>
-                                    <option value="Financial &amp; Budget Reports">Financial &amp; Budget Reports</option>
-                                    <option value="Curriculum &amp; Academic">Curriculum &amp; Academic</option>
-                                    <option value="Infrastructure &amp; Maintenance">Infrastructure &amp; Maintenance</option>
-                                    <option value="General &amp; Media">General &amp; Media</option>
                                 </select>
                             </div>
                             <div class="form-group">
@@ -268,12 +247,6 @@
                     <div class="filter-group">
                         <select id="filter-doc-category" class="filter-select">
                             <option value="All">All Categories</option>
-                            <option value="Meeting Documents &amp; Policies">Meeting Documents &amp; Policies</option>
-                            <option value="Presentations &amp; Slides">Presentations &amp; Slides</option>
-                            <option value="Financial &amp; Budget Reports">Financial &amp; Budget Reports</option>
-                            <option value="Curriculum &amp; Academic">Curriculum &amp; Academic</option>
-                            <option value="Infrastructure &amp; Maintenance">Infrastructure &amp; Maintenance</option>
-                            <option value="General &amp; Media">General &amp; Media</option>
                         </select>
                         <select id="sort-docs" class="filter-select">
                             <option value="newest">Sort: Newest First</option>
@@ -281,6 +254,7 @@
                             <option value="size">Sort: Largest Size</option>
                             <option value="title">Sort: Name (A–Z)</option>
                         </select>
+                        <button type="button" class="btn btn-outline btn-sm btn-manage-categories admin-only hidden" id="btn-manage-doc-cats" title="Manage Document Categories">⚙️ Categories</button>
                     </div>
                 </div>
 
@@ -323,6 +297,33 @@
         </div>
     </div>
 
-    <script src="app.js?v=20260820-7"></script>
+    <!-- Category Management Modal (Admin Only) -->
+    <div id="category-modal" class="modal">
+        <div class="modal-content modal-content--compact">
+            <div class="modal-header">
+                <h2 id="category-modal-title">Manage Categories</h2>
+                <button id="btn-close-category-modal" class="btn-modal-close" aria-label="Close" title="Close">&times;</button>
+            </div>
+            <div class="modal-body category-modal-body">
+                <p class="category-modal-desc" id="category-modal-desc">Add or remove categories.</p>
+                <form id="add-category-form" class="add-category-form">
+                    <div class="add-category-input-row">
+                        <input type="text" id="new-category-input" placeholder="Enter new category name..." maxlength="60" required autocomplete="off">
+                        <button type="submit" id="btn-submit-new-category" class="btn btn-primary btn-sm">+ Add</button>
+                    </div>
+                    <span class="error-msg" id="category-modal-error"></span>
+                </form>
+                
+                <div class="category-list-header">
+                    <span>Existing Categories (<span id="category-modal-count">0</span>)</span>
+                </div>
+                <div class="category-chips-list" id="category-chips-list">
+                    <!-- Category chips injected here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js?v=20260820-8"></script>
 </body>
 </html>

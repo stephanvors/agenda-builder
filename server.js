@@ -22,7 +22,7 @@ if (!fsSync.existsSync(UPLOADS_DIR)) {
   fsSync.mkdirSync(UPLOADS_DIR, { recursive: true });
 }
 
-const CATEGORIES = [
+const DEFAULT_CATEGORIES = [
   'Fee Collection & Debt Recovery',
   'Budget & Financial Management',
   'Fundraising & Alternative Revenue',
@@ -36,7 +36,7 @@ const CATEGORIES = [
   'General'
 ];
 
-const DOCUMENT_CATEGORIES = [
+const DEFAULT_DOCUMENT_CATEGORIES = [
   'Meeting Documents & Policies',
   'Presentations & Slides',
   'Financial & Budget Reports',
@@ -44,6 +44,14 @@ const DOCUMENT_CATEGORIES = [
   'Infrastructure & Maintenance',
   'General & Media'
 ];
+
+// Helper to check if a member has Admin privileges
+function isAdminMember(member) {
+  if (!member) return false;
+  const name = (member.name || '').toLowerCase().trim();
+  const role = (member.role || '').toLowerCase().trim();
+  return name === 'stephen vorster' || role.includes('admin') || role.includes('principal') || role.includes('chairperson');
+}
 
 // Video formats allowed up to 500MB
 const VIDEO_EXTENSIONS = new Set(['.mp4', '.m4v', '.mov', '.webm', '.mkv', '.avi', '.wmv', '.flv', '.3gp']);
@@ -274,6 +282,8 @@ const storeHelper = {
           sessions: [],
           agendaItems: [],
           documents: [],
+          categories: [...DEFAULT_CATEGORIES],
+          documentCategories: [...DEFAULT_DOCUMENT_CATEGORIES],
           meetingInfo: {
             title: 'SGB/SMT Strategy Meeting',
             date: '2026-08-27',
@@ -312,6 +322,8 @@ const storeHelper = {
       sessions: [],
       agendaItems: [],
       documents: [],
+      categories: [...DEFAULT_CATEGORIES],
+      documentCategories: [...DEFAULT_DOCUMENT_CATEGORIES],
       meetingInfo: {
         title: 'SGB/SMT Strategy Meeting',
         date: '2026-08-27',
@@ -335,6 +347,12 @@ const storeHelper = {
     }
     if (!Array.isArray(store.documents)) {
       store.documents = [];
+    }
+    if (!Array.isArray(store.categories) || store.categories.length === 0) {
+      store.categories = [...DEFAULT_CATEGORIES];
+    }
+    if (!Array.isArray(store.documentCategories) || store.documentCategories.length === 0) {
+      store.documentCategories = [...DEFAULT_DOCUMENT_CATEGORIES];
     }
     return store;
   },
@@ -536,11 +554,12 @@ app.post('/api/items', requireAuth, async (req, res) => {
       return res.status(400).json({ error: 'Title, description, and category are required' });
     }
 
-    if (!CATEGORIES.includes(category)) {
-      return res.status(400).json({ error: 'Invalid category' });
+    const store = req.store;
+    const availableCategories = store.categories || DEFAULT_CATEGORIES;
+    if (!availableCategories.includes(category)) {
+      return res.status(400).json({ error: `Invalid category. Must be one of: ${availableCategories.join(', ')}` });
     }
 
-    const store = req.store;
     const now = new Date().toISOString();
 
     const newItem = {
@@ -882,7 +901,7 @@ app.get('/api/documents', requireAuth, async (req, res) => {
     const sorted = [...store.documents].sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
     res.json({
       documents: sorted,
-      categories: DOCUMENT_CATEGORIES
+      categories: store.documentCategories || DEFAULT_DOCUMENT_CATEGORIES
     });
   } catch (error) {
     console.error('Error fetching documents:', error);
@@ -921,7 +940,8 @@ app.post('/api/documents/upload', requireAuth, (req, res) => {
         });
       }
 
-      const finalCategory = DOCUMENT_CATEGORIES.includes(category) ? category : 'General & Media';
+      const availableDocCategories = store.documentCategories || DEFAULT_DOCUMENT_CATEGORIES;
+      const finalCategory = availableDocCategories.includes(category) ? category : (availableDocCategories[0] || 'General & Media');
       const finalTitle = (title && title.trim()) ? title.trim() : req.file.originalname;
 
       const newDoc = {
@@ -1038,7 +1058,7 @@ app.delete('/api/documents/:id', requireAuth, async (req, res) => {
 
     const doc = store.documents[index];
     const isUploader = doc.uploadedBy.memberId === member.id;
-    const isPrivileged = (member.role || '').includes('Principal') || (member.role || '').includes('Chairperson') || (member.role || '').includes('Admin');
+    const isPrivileged = isAdminMember(member);
 
     if (!isUploader && !isPrivileged) {
       return res.status(403).json({ error: 'You can only delete documents you uploaded' });
@@ -1059,6 +1079,153 @@ app.delete('/api/documents/:id', requireAuth, async (req, res) => {
     res.json({ message: 'Document deleted successfully', id: doc.id });
   } catch (error) {
     console.error('Error deleting document:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ── Category Management Endpoints (Admin Only) ──
+
+// Get all categories
+app.get('/api/categories', requireAuth, (req, res) => {
+  const store = req.store;
+  res.json({
+    categories: store.categories || DEFAULT_CATEGORIES,
+    documentCategories: store.documentCategories || DEFAULT_DOCUMENT_CATEGORIES
+  });
+});
+
+// Add an Agenda Category (Admin only)
+app.post('/api/categories/agenda', requireAuth, async (req, res) => {
+  try {
+    if (!isAdminMember(req.member)) {
+      return res.status(403).json({ error: 'Only administrators can add agenda categories' });
+    }
+
+    const { name } = req.body;
+    if (!name || !name.trim()) {
+      return res.status(400).json({ error: 'Category name cannot be empty' });
+    }
+
+    const trimmed = name.trim();
+    const store = req.store;
+    if (!Array.isArray(store.categories)) {
+      store.categories = [...DEFAULT_CATEGORIES];
+    }
+
+    const exists = store.categories.some(c => c.toLowerCase() === trimmed.toLowerCase());
+    if (exists) {
+      return res.status(400).json({ error: 'An agenda category with this name already exists' });
+    }
+
+    store.categories.push(trimmed);
+    await storeHelper.write(store);
+
+    res.status(201).json({
+      message: 'Agenda category added successfully',
+      category: trimmed,
+      categories: store.categories
+    });
+  } catch (error) {
+    console.error('Error adding agenda category:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Delete an Agenda Category (Admin only)
+app.delete('/api/categories/agenda/:name', requireAuth, async (req, res) => {
+  try {
+    if (!isAdminMember(req.member)) {
+      return res.status(403).json({ error: 'Only administrators can delete agenda categories' });
+    }
+
+    const name = decodeURIComponent(req.params.name).trim();
+    const store = req.store;
+    if (!Array.isArray(store.categories)) {
+      store.categories = [...DEFAULT_CATEGORIES];
+    }
+
+    const index = store.categories.findIndex(c => c.toLowerCase() === name.toLowerCase());
+    if (index === -1) {
+      return res.status(404).json({ error: 'Category not found' });
+    }
+
+    store.categories.splice(index, 1);
+    await storeHelper.write(store);
+
+    res.json({
+      message: 'Category deleted successfully',
+      categories: store.categories
+    });
+  } catch (error) {
+    console.error('Error deleting agenda category:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Add a Document Category (Admin only)
+app.post('/api/categories/documents', requireAuth, async (req, res) => {
+  try {
+    if (!isAdminMember(req.member)) {
+      return res.status(403).json({ error: 'Only administrators can add document categories' });
+    }
+
+    const { name } = req.body;
+    if (!name || !name.trim()) {
+      return res.status(400).json({ error: 'Category name cannot be empty' });
+    }
+
+    const trimmed = name.trim();
+    const store = req.store;
+    if (!Array.isArray(store.documentCategories)) {
+      store.documentCategories = [...DEFAULT_DOCUMENT_CATEGORIES];
+    }
+
+    const exists = store.documentCategories.some(c => c.toLowerCase() === trimmed.toLowerCase());
+    if (exists) {
+      return res.status(400).json({ error: 'A document category with this name already exists' });
+    }
+
+    store.documentCategories.push(trimmed);
+    await storeHelper.write(store);
+
+    res.status(201).json({
+      message: 'Document category added successfully',
+      category: trimmed,
+      documentCategories: store.documentCategories
+    });
+  } catch (error) {
+    console.error('Error adding document category:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Delete a Document Category (Admin only)
+app.delete('/api/categories/documents/:name', requireAuth, async (req, res) => {
+  try {
+    if (!isAdminMember(req.member)) {
+      return res.status(403).json({ error: 'Only administrators can delete document categories' });
+    }
+
+    const name = decodeURIComponent(req.params.name).trim();
+    const store = req.store;
+    if (!Array.isArray(store.documentCategories)) {
+      store.documentCategories = [...DEFAULT_DOCUMENT_CATEGORIES];
+    }
+
+    const index = store.documentCategories.findIndex(c => c.toLowerCase() === name.toLowerCase());
+    if (index === -1) {
+      return res.status(404).json({ error: 'Document category not found' });
+    }
+
+    store.documentCategories.splice(index, 1);
+    await storeHelper.write(store);
+
+    res.json({
+      message: 'Document category deleted successfully',
+      documentCategories: store.documentCategories
+    });
+  } catch (error) {
+    console.error('Error deleting document category:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -1087,8 +1254,8 @@ app.get('/api/stats', requireAuth, async (req, res) => {
       totalMembers: store.members.length,
       totalItems: store.agendaItems.length,
       totalDocuments: Array.isArray(store.documents) ? store.documents.length : 0,
-      categories: CATEGORIES,
-      documentCategories: DOCUMENT_CATEGORIES,
+      categories: store.categories || DEFAULT_CATEGORIES,
+      documentCategories: store.documentCategories || DEFAULT_DOCUMENT_CATEGORIES,
       itemsByCategory,
       itemsByStatus,
       topItems
@@ -1102,8 +1269,9 @@ app.get('/api/stats', requireAuth, async (req, res) => {
 app.get('/api/export', requireAuth, async (req, res) => {
   try {
     const store = req.store;
+    const categoriesList = store.categories || DEFAULT_CATEGORIES;
 
-    const groupedItems = CATEGORIES.map(category => {
+    const groupedItems = categoriesList.map(category => {
       const items = store.agendaItems
         .filter(item => item.category === category)
         .sort((a, b) => b.votes.length - a.votes.length);
