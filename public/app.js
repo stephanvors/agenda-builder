@@ -16,7 +16,8 @@ const state = {
     sort: 'votes',
     openComments: new Set(), // item IDs with expanded comment drawers
     activeCommentType: {},   // { [itemId]: 'idea' | 'action' | 'question' | 'comment' }
-    commentDrafts: {}        // { [itemId]: 'draft text' }
+    commentDrafts: {},       // { [itemId]: 'draft text' }
+    editingComments: {}      // { [commentId]: { content: '...', type: '...' } }
 };
 
 const MEETING_DATE = new Date('2026-08-28T10:00:00');
@@ -146,6 +147,20 @@ const api = {
         if (!res.ok) {
             const err = await res.json();
             throw new Error(err.error || 'Failed to delete comment');
+        }
+        return res.json();
+    },
+
+    async updateComment(itemId, commentId, { content, type }) {
+        const res = await fetch(`/api/items/${itemId}/comments/${commentId}`, {
+            method: 'PATCH',
+            headers: authHeaders(),
+            body: JSON.stringify({ content, type })
+        });
+        if (res.status === 401) { handleSessionExpired(); return null; }
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error || 'Failed to update comment');
         }
         return res.json();
     },
@@ -317,9 +332,14 @@ function setupEventListeners() {
     // Item container events (delegation)
     els.itemsContainer.addEventListener('click', handleItemAction);
 
-    // Track drafts when typing in comment textareas
+    // Track drafts when typing in comment textareas (both new comments and edits)
     els.itemsContainer.addEventListener('input', (e) => {
-        if (e.target.classList.contains('comment-textarea')) {
+        if (e.target.classList.contains('comment-edit-textarea')) {
+            const commentId = e.target.dataset.commentId;
+            if (commentId && state.editingComments[commentId]) {
+                state.editingComments[commentId].content = e.target.value;
+            }
+        } else if (e.target.classList.contains('comment-textarea')) {
             const itemId = e.target.dataset.itemId;
             if (itemId) {
                 state.commentDrafts[itemId] = e.target.value;
@@ -327,9 +347,21 @@ function setupEventListeners() {
         }
     });
 
-    // Support Ctrl+Enter / Cmd+Enter to post comment
+    // Support Ctrl+Enter / Cmd+Enter to post or save comment, and Escape to cancel edit
     els.itemsContainer.addEventListener('keydown', (e) => {
-        if (e.target.classList.contains('comment-textarea') && (e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        if (e.target.classList.contains('comment-edit-textarea')) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                const commentId = e.target.dataset.commentId;
+                const saveBtn = els.itemsContainer.querySelector(`.btn-save-edit-comment[data-comment-id="${commentId}"]`);
+                if (saveBtn) saveBtn.click();
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                const commentId = e.target.dataset.commentId;
+                delete state.editingComments[commentId];
+                renderItems();
+            }
+        } else if (e.target.classList.contains('comment-textarea') && (e.ctrlKey || e.metaKey) && e.key === 'Enter') {
             e.preventDefault();
             const itemId = e.target.dataset.itemId;
             if (itemId) {
@@ -493,8 +525,19 @@ async function handleItemAction(e) {
         return;
     }
 
-    // Comment Tag selector
+    // Comment Tag selector (for composer or inline edit)
     if (btn.classList.contains('composer-type-btn')) {
+        const editCommentId = btn.dataset.editCommentId;
+        if (editCommentId && state.editingComments[editCommentId]) {
+            state.editingComments[editCommentId].type = btn.dataset.type;
+            const input = document.getElementById(`comment-edit-input-${editCommentId}`);
+            if (input) state.editingComments[editCommentId].content = input.value;
+            renderItems();
+            const newInput = document.getElementById(`comment-edit-input-${editCommentId}`);
+            if (newInput) newInput.focus();
+            return;
+        }
+
         const itemId = btn.dataset.itemId;
         const type = btn.dataset.type;
         state.activeCommentType[itemId] = type;
@@ -502,6 +545,60 @@ async function handleItemAction(e) {
         if (parent) {
             parent.querySelectorAll('.composer-type-btn').forEach(b => b.classList.remove('selected'));
             btn.classList.add('selected');
+        }
+        return;
+    }
+
+    // Start editing comment
+    if (btn.classList.contains('btn-edit-comment')) {
+        const itemId = btn.dataset.itemId;
+        const commentId = btn.dataset.commentId;
+        const item = state.items.find(i => i.id === itemId);
+        if (!item) return;
+        const comment = (item.comments || []).find(c => c.id === commentId);
+        if (!comment) return;
+
+        state.editingComments[commentId] = {
+            content: comment.content,
+            type: comment.type || 'comment'
+        };
+        renderItems();
+        const input = document.getElementById(`comment-edit-input-${commentId}`);
+        if (input) {
+            input.focus();
+            input.setSelectionRange(input.value.length, input.value.length);
+        }
+        return;
+    }
+
+    // Cancel editing comment
+    if (btn.classList.contains('btn-cancel-edit-comment')) {
+        const commentId = btn.dataset.commentId;
+        delete state.editingComments[commentId];
+        renderItems();
+        return;
+    }
+
+    // Save edited comment
+    if (btn.classList.contains('btn-save-edit-comment')) {
+        const itemId = btn.dataset.itemId;
+        const commentId = btn.dataset.commentId;
+        const input = document.getElementById(`comment-edit-input-${commentId}`);
+        const content = input ? input.value.trim() : (state.editingComments[commentId]?.content || '').trim();
+        const type = state.editingComments[commentId]?.type || 'comment';
+
+        if (!content) {
+            showToast('Comment content cannot be empty', true);
+            return;
+        }
+
+        try {
+            await api.updateComment(itemId, commentId, { content, type });
+            delete state.editingComments[commentId];
+            showToast('Comment updated!');
+            await loadData();
+        } catch (error) {
+            showToast(error.message || 'Failed to update comment', true);
         }
         return;
     }
@@ -830,10 +927,12 @@ function renderItems() {
                                 <p>No brainstorm ideas or comments yet. Share your thoughts or propose a solution below!</p>
                             </div>
                         ` : comments.map(c => {
+                            const isEditing = Boolean(state.editingComments[c.id]);
+                            const editState = state.editingComments[c.id] || { content: c.content, type: c.type || 'comment' };
                             const isCommentAuthor = c.memberId === state.member.id;
                             const canDelete = isCommentAuthor || isProposer;
                             const isSol = Boolean(c.isSolution);
-                            const type = c.type || 'comment';
+                            const type = isEditing ? editState.type : (c.type || 'comment');
                             const typeLabel = typeLabels[type] || '💬 Discussion';
 
                             return `
@@ -844,26 +943,48 @@ function renderItems() {
                                             <div class="comment-author-info">
                                                 <strong class="comment-author-name">${escapeHTML(c.memberName)}</strong>
                                                 <span class="comment-author-role">${escapeHTML(c.memberRole || 'Member')}</span>
-                                                <span class="comment-time">• ${timeAgo(c.createdAt)}</span>
+                                                <span class="comment-time">• ${timeAgo(c.createdAt)}${c.editedAt ? ' <em class="comment-edited-hint">(edited)</em>' : ''}</span>
                                             </div>
                                             <div class="comment-tag-wrapper">
                                                 <span class="comment-type-badge type-${type}">${typeLabel}</span>
                                                 ${isSol ? '<span class="badge-solution-pill">⭐ Accepted Solution</span>' : ''}
                                             </div>
                                         </div>
-                                        <div class="comment-text">${escapeHTML(c.content)}</div>
-                                        <div class="comment-footer-actions">
-                                            ${(!isResolved && (isProposer || isCommentAuthor)) ? `
-                                                <button class="btn-mark-solution" data-item-id="${item.id}" data-comment-id="${c.id}" data-comment-text="${escapeHTML(c.content)}" title="Accept this comment as the resolution">
-                                                    ⭐ Accept as Solution
-                                                </button>
-                                            ` : ''}
-                                            ${canDelete ? `
-                                                <button class="btn-delete-comment" data-item-id="${item.id}" data-comment-id="${c.id}" title="Delete comment">
-                                                    Delete
-                                                </button>
-                                            ` : ''}
-                                        </div>
+                                        ${isEditing ? `
+                                            <div class="comment-edit-box">
+                                                <div class="composer-type-selector composer-type-selector--edit">
+                                                    <span class="composer-type-label">Tag:</span>
+                                                    <button type="button" class="composer-type-btn ${editState.type === 'idea' ? 'selected' : ''}" data-edit-comment-id="${c.id}" data-type="idea">💡 Idea</button>
+                                                    <button type="button" class="composer-type-btn ${editState.type === 'action' ? 'selected' : ''}" data-edit-comment-id="${c.id}" data-type="action">🎯 Action</button>
+                                                    <button type="button" class="composer-type-btn ${editState.type === 'question' ? 'selected' : ''}" data-edit-comment-id="${c.id}" data-type="question">❓ Question</button>
+                                                    <button type="button" class="composer-type-btn ${editState.type === 'comment' ? 'selected' : ''}" data-edit-comment-id="${c.id}" data-type="comment">💬 Discussion</button>
+                                                </div>
+                                                <textarea class="comment-textarea comment-edit-textarea" id="comment-edit-input-${c.id}" data-comment-id="${c.id}" rows="2">${escapeHTML(editState.content)}</textarea>
+                                                <div class="comment-edit-actions">
+                                                    <button type="button" class="btn btn-outline btn-sm btn-cancel-edit-comment" data-comment-id="${c.id}">Cancel</button>
+                                                    <button type="button" class="btn btn-primary btn-sm btn-save-edit-comment" data-item-id="${item.id}" data-comment-id="${c.id}">Save Changes</button>
+                                                </div>
+                                            </div>
+                                        ` : `
+                                            <div class="comment-text">${escapeHTML(c.content)}</div>
+                                            <div class="comment-footer-actions">
+                                                ${(!isResolved && (isProposer || isCommentAuthor)) ? `
+                                                    <button class="btn-mark-solution" data-item-id="${item.id}" data-comment-id="${c.id}" data-comment-text="${escapeHTML(c.content)}" title="Accept this comment as the resolution">
+                                                        ⭐ Accept as Solution
+                                                    </button>
+                                                ` : ''}
+                                                ${isCommentAuthor ? `
+                                                    <button class="btn-edit-comment" data-item-id="${item.id}" data-comment-id="${c.id}" title="Edit your comment">
+                                                        ✏️ Edit
+                                                    </button>
+                                                ` : ''}
+                                                ${canDelete ? `
+                                                    <button class="btn-delete-comment" data-item-id="${item.id}" data-comment-id="${c.id}" title="Delete comment">
+                                                        Delete
+                                                    </button>
+                                                ` : ''}
+                                            </div>
+                                        `}
                                     </div>
                                 </div>
                             `;

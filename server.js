@@ -640,6 +640,59 @@ app.post('/api/items/:id/comments', requireAuth, async (req, res) => {
   }
 });
 
+// Edit a comment (only author can edit)
+app.patch('/api/items/:itemId/comments/:commentId', requireAuth, async (req, res) => {
+  try {
+    const { content, type } = req.body;
+    const member = req.member;
+    const store = req.store;
+    const item = store.agendaItems.find(i => i.id === req.params.itemId);
+
+    if (!item) {
+      return res.status(404).json({ error: 'Agenda item not found' });
+    }
+
+    if (!Array.isArray(item.comments)) {
+      item.comments = [];
+      return res.status(404).json({ error: 'Comment not found' });
+    }
+
+    const comment = item.comments.find(c => c.id === req.params.commentId);
+    if (!comment) {
+      return res.status(404).json({ error: 'Comment not found' });
+    }
+
+    // Only the comment's author can edit their own comment
+    if (comment.memberId !== member.id) {
+      return res.status(403).json({ error: 'You can only edit your own comments' });
+    }
+
+    if (!content || !content.trim()) {
+      return res.status(400).json({ error: 'Comment content cannot be empty' });
+    }
+
+    const validTypes = ['comment', 'idea', 'action', 'question'];
+    if (type && validTypes.includes(type)) {
+      comment.type = type;
+    }
+
+    comment.content = content.trim();
+    comment.editedAt = new Date().toISOString();
+
+    // If this comment is the marked resolution, update resolution text too
+    if (item.resolution && item.resolution.commentId === comment.id) {
+      item.resolution.text = comment.content;
+    }
+
+    await storeHelper.write(store);
+
+    res.json(item);
+  } catch (error) {
+    console.error('Error updating comment:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Delete a comment
 app.delete('/api/items/:itemId/comments/:commentId', requireAuth, async (req, res) => {
   try {

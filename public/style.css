@@ -1157,6 +1157,26 @@ textarea:focus {
     color: var(--white);
 }
 
+.btn-edit-comment {
+    background: transparent;
+    border: none;
+    color: var(--primary);
+    font-size: 0.72rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0.15rem 0.35rem;
+    opacity: 0.85;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+}
+
+.btn-edit-comment:hover {
+    opacity: 1;
+    text-decoration: underline;
+}
+
 .btn-delete-comment {
     background: transparent;
     border: none;
@@ -1172,6 +1192,25 @@ textarea:focus {
 .btn-delete-comment:hover {
     opacity: 1;
     text-decoration: underline;
+}
+
+.comment-edit-box {
+    margin-top: 0.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.comment-edit-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.4rem;
+}
+
+.comment-edited-hint {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    font-style: italic;
 }
 
 /* Comment Composer */
