@@ -6,6 +6,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import XLSX from 'xlsx';
 import pg from 'pg';
+import multer from 'multer';
 
 const { Pool } = pg;
 const __filename = fileURLToPath(import.meta.url);
@@ -14,6 +15,12 @@ const __dirname = path.dirname(__filename);
 const DATA_DIR = path.join(__dirname, 'data');
 const STORE_FILE = path.join(DATA_DIR, 'store.json');
 const EXCEL_FILE = path.join(__dirname, 'users', 'UserDetails.xlsx');
+const UPLOADS_DIR = path.join(__dirname, 'uploads');
+
+// Ensure uploads directory exists
+if (!fsSync.existsSync(UPLOADS_DIR)) {
+  fsSync.mkdirSync(UPLOADS_DIR, { recursive: true });
+}
 
 const CATEGORIES = [
   'Fee Collection & Debt Recovery',
@@ -28,6 +35,52 @@ const CATEGORIES = [
   'Communication & Administration',
   'General'
 ];
+
+const DOCUMENT_CATEGORIES = [
+  'Meeting Documents & Policies',
+  'Presentations & Slides',
+  'Financial & Budget Reports',
+  'Curriculum & Academic',
+  'Infrastructure & Maintenance',
+  'General & Media'
+];
+
+// Video formats allowed up to 500MB
+const VIDEO_EXTENSIONS = new Set(['.mp4', '.m4v', '.mov', '.webm', '.mkv', '.avi', '.wmv', '.flv', '.3gp']);
+
+function isVideoFile(mimetype, filename) {
+  if (mimetype && mimetype.startsWith('video/')) return true;
+  const ext = path.extname(filename || '').toLowerCase();
+  return VIDEO_EXTENSIONS.has(ext);
+}
+
+// Multer disk storage configuration
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, UPLOADS_DIR);
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname) || '';
+    const safeName = path.basename(file.originalname, ext).replace(/[^a-zA-Z0-9_\-\.]/g, '_').substring(0, 50);
+    const uniqueName = `${Date.now()}-${uuidv4().substring(0, 8)}-${safeName}${ext}`;
+    cb(null, uniqueName);
+  }
+});
+
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: 500 * 1024 * 1024 // 500 MB hard limit (fine-grained 100MB check in handler)
+  },
+  fileFilter: (req, file, cb) => {
+    const blockedExts = ['.exe', '.bat', '.cmd', '.sh', '.msi', '.vbs', '.js', '.mjs', '.ps1'];
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (blockedExts.includes(ext)) {
+      return cb(new Error('Executable file types are blocked for security'));
+    }
+    cb(null, true);
+  }
+});
 
 // ── PIN Generation ──
 function generatePin(existingPins) {
@@ -220,6 +273,7 @@ const storeHelper = {
           members,
           sessions: [],
           agendaItems: [],
+          documents: [],
           meetingInfo: {
             title: 'SGB/SMT Strategy Meeting',
             date: '2026-08-27',
@@ -257,6 +311,7 @@ const storeHelper = {
       members,
       sessions: [],
       agendaItems: [],
+      documents: [],
       meetingInfo: {
         title: 'SGB/SMT Strategy Meeting',
         date: '2026-08-27',
@@ -267,14 +322,21 @@ const storeHelper = {
   },
 
   async read() {
+    let store = null;
     if (pool) {
       const res = await pool.query('SELECT data FROM app_store WHERE id = $1', ['main_store']);
       if (res.rows.length > 0) {
-        return res.rows[0].data;
+        store = res.rows[0].data;
       }
     }
-    const data = await fs.readFile(STORE_FILE, 'utf-8');
-    return JSON.parse(data);
+    if (!store) {
+      const data = await fs.readFile(STORE_FILE, 'utf-8');
+      store = JSON.parse(data);
+    }
+    if (!Array.isArray(store.documents)) {
+      store.documents = [];
+    }
+    return store;
   },
 
   async write(data) {
@@ -807,6 +869,200 @@ app.delete('/api/items/:id/resolve', requireAuth, async (req, res) => {
   }
 });
 
+// ── Shared Documents & Files Endpoints ──
+
+// List all documents
+app.get('/api/documents', requireAuth, async (req, res) => {
+  try {
+    const store = req.store;
+    if (!Array.isArray(store.documents)) {
+      store.documents = [];
+    }
+    // Return newest first
+    const sorted = [...store.documents].sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
+    res.json({
+      documents: sorted,
+      categories: DOCUMENT_CATEGORIES
+    });
+  } catch (error) {
+    console.error('Error fetching documents:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Upload a document (100MB general / 500MB video)
+app.post('/api/documents/upload', requireAuth, (req, res) => {
+  upload.single('file')(req, res, async (err) => {
+    if (err instanceof multer.MulterError) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({ error: 'File exceeds maximum upload limit (500 MB for video / 100 MB for documents)' });
+      }
+      return res.status(400).json({ error: err.message });
+    } else if (err) {
+      return res.status(400).json({ error: err.message });
+    }
+
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'Please choose a file to upload' });
+      }
+
+      const { title, category, description } = req.body;
+      const member = req.member;
+      const store = req.store;
+
+      const isVideo = isVideoFile(req.file.mimetype, req.file.originalname);
+      const maxAllowedBytes = isVideo ? 500 * 1024 * 1024 : 100 * 1024 * 1024;
+
+      if (req.file.size > maxAllowedBytes) {
+        try { await fs.unlink(req.file.path); } catch { /* ignore */ }
+        return res.status(400).json({
+          error: `File exceeds maximum allowed size of ${isVideo ? '500MB' : '100MB'} for this file type`
+        });
+      }
+
+      const finalCategory = DOCUMENT_CATEGORIES.includes(category) ? category : 'General & Media';
+      const finalTitle = (title && title.trim()) ? title.trim() : req.file.originalname;
+
+      const newDoc = {
+        id: uuidv4(),
+        title: finalTitle,
+        description: (description || '').trim(),
+        category: finalCategory,
+        originalName: req.file.originalname,
+        storedName: req.file.filename,
+        size: req.file.size,
+        mimeType: req.file.mimetype,
+        extension: path.extname(req.file.originalname).toLowerCase().replace(/^\./, ''),
+        isVideo,
+        uploadedBy: {
+          memberId: member.id,
+          memberName: member.name,
+          memberRole: member.role
+        },
+        uploadedAt: new Date().toISOString()
+      };
+
+      if (!Array.isArray(store.documents)) {
+        store.documents = [];
+      }
+
+      store.documents.push(newDoc);
+      await storeHelper.write(store);
+
+      res.status(201).json(newDoc);
+    } catch (error) {
+      console.error('Error saving uploaded document:', error);
+      if (req.file && req.file.path) {
+        try { await fs.unlink(req.file.path); } catch { /* ignore */ }
+      }
+      res.status(500).json({ error: 'Failed to save document' });
+    }
+  });
+});
+
+// Download a document
+app.get('/api/documents/:id/download', requireAuth, async (req, res) => {
+  try {
+    const store = req.store;
+    if (!Array.isArray(store.documents)) return res.status(404).json({ error: 'Document not found' });
+
+    const doc = store.documents.find(d => d.id === req.params.id);
+    if (!doc) return res.status(404).json({ error: 'Document not found' });
+
+    const filePath = path.join(UPLOADS_DIR, doc.storedName);
+    if (!fsSync.existsSync(filePath)) {
+      return res.status(404).json({ error: 'File not found on server' });
+    }
+
+    res.download(filePath, doc.originalName);
+  } catch (error) {
+    console.error('Error downloading file:', error);
+    res.status(500).json({ error: 'Failed to download file' });
+  }
+});
+
+// Inline view / stream a document (supports HTTP Range for video)
+app.get('/api/documents/:id/view', requireAuth, async (req, res) => {
+  try {
+    const store = req.store;
+    if (!Array.isArray(store.documents)) return res.status(404).json({ error: 'Document not found' });
+
+    const doc = store.documents.find(d => d.id === req.params.id);
+    if (!doc) return res.status(404).json({ error: 'Document not found' });
+
+    const filePath = path.join(UPLOADS_DIR, doc.storedName);
+    if (!fsSync.existsSync(filePath)) {
+      return res.status(404).json({ error: 'File not found on server' });
+    }
+
+    const stat = fsSync.statSync(filePath);
+    const fileSize = stat.size;
+    const range = req.headers.range;
+
+    if (range && doc.isVideo) {
+      const parts = range.replace(/bytes=/, "").split("-");
+      const start = parseInt(parts[0], 10);
+      const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+      const chunksize = (end - start) + 1;
+      const file = fsSync.createReadStream(filePath, { start, end });
+      const head = {
+        'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+        'Accept-Ranges': 'bytes',
+        'Content-Length': chunksize,
+        'Content-Type': doc.mimeType || 'video/mp4',
+      };
+      res.writeHead(206, head);
+      file.pipe(res);
+    } else {
+      res.setHeader('Content-Type', doc.mimeType || 'application/octet-stream');
+      res.setHeader('Content-Length', fileSize);
+      res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(doc.originalName)}"`);
+      fsSync.createReadStream(filePath).pipe(res);
+    }
+  } catch (error) {
+    console.error('Error streaming/viewing file:', error);
+    res.status(500).json({ error: 'Failed to stream/view file' });
+  }
+});
+
+// Delete a document
+app.delete('/api/documents/:id', requireAuth, async (req, res) => {
+  try {
+    const member = req.member;
+    const store = req.store;
+    if (!Array.isArray(store.documents)) return res.status(404).json({ error: 'Document not found' });
+
+    const index = store.documents.findIndex(d => d.id === req.params.id);
+    if (index === -1) return res.status(404).json({ error: 'Document not found' });
+
+    const doc = store.documents[index];
+    const isUploader = doc.uploadedBy.memberId === member.id;
+    const isPrivileged = (member.role || '').includes('Principal') || (member.role || '').includes('Chairperson') || (member.role || '').includes('Admin');
+
+    if (!isUploader && !isPrivileged) {
+      return res.status(403).json({ error: 'You can only delete documents you uploaded' });
+    }
+
+    const filePath = path.join(UPLOADS_DIR, doc.storedName);
+    try {
+      if (fsSync.existsSync(filePath)) {
+        await fs.unlink(filePath);
+      }
+    } catch (e) {
+      console.warn('Could not delete file from disk:', e.message);
+    }
+
+    store.documents.splice(index, 1);
+    await storeHelper.write(store);
+
+    res.json({ message: 'Document deleted successfully', id: doc.id });
+  } catch (error) {
+    console.error('Error deleting document:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Stats
 app.get('/api/stats', requireAuth, async (req, res) => {
   try {
@@ -830,6 +1086,9 @@ app.get('/api/stats', requireAuth, async (req, res) => {
     res.json({
       totalMembers: store.members.length,
       totalItems: store.agendaItems.length,
+      totalDocuments: Array.isArray(store.documents) ? store.documents.length : 0,
+      categories: CATEGORIES,
+      documentCategories: DOCUMENT_CATEGORIES,
       itemsByCategory,
       itemsByStatus,
       topItems

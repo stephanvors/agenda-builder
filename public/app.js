@@ -9,9 +9,17 @@ const state = {
     member: null,    // { id, name, title, role }
     members: [],     // all members (for tooltip)
     items: [],       // agenda items from server
+    documents: [],   // shared files & documents
+    documentCategories: [],
+    activeTab: 'agenda', // 'agenda' | 'documents'
     filters: {
         category: 'All',
         status: 'All'
+    },
+    docFilters: {
+        category: 'All',
+        sort: 'newest',
+        search: ''
     },
     sort: 'votes',
     openComments: new Set(), // item IDs with expanded comment drawers
@@ -204,6 +212,65 @@ const api = {
         if (res.status === 401) { handleSessionExpired(); return null; }
         if (!res.ok) throw new Error('Failed to export agenda');
         return res.json();
+    },
+
+    async getDocuments() {
+        const res = await fetch('/api/documents', { headers: authHeaders() });
+        if (res.status === 401) { handleSessionExpired(); return { documents: [], categories: [] }; }
+        if (!res.ok) throw new Error('Failed to load shared documents');
+        return res.json();
+    },
+
+    uploadDocument(formData, onProgress) {
+        return new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/api/documents/upload');
+            if (state.token) {
+                xhr.setRequestHeader('Authorization', `Bearer ${state.token}`);
+            }
+
+            if (xhr.upload && onProgress) {
+                xhr.upload.onprogress = (e) => {
+                    if (e.lengthComputable) {
+                        const percent = Math.round((e.loaded / e.total) * 100);
+                        onProgress(percent);
+                    }
+                };
+            }
+
+            xhr.onload = () => {
+                if (xhr.status === 401) {
+                    handleSessionExpired();
+                    return reject(new Error('Session expired'));
+                }
+                try {
+                    const data = JSON.parse(xhr.responseText);
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        resolve(data);
+                    } else {
+                        reject(new Error(data.error || 'Upload failed'));
+                    }
+                } catch {
+                    reject(new Error('Upload failed'));
+                }
+            };
+
+            xhr.onerror = () => reject(new Error('Network error during file upload'));
+            xhr.send(formData);
+        });
+    },
+
+    async deleteDocument(docId) {
+        const res = await fetch(`/api/documents/${docId}`, {
+            method: 'DELETE',
+            headers: authHeaders()
+        });
+        if (res.status === 401) { handleSessionExpired(); return null; }
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error || 'Failed to delete document');
+        }
+        return res.json();
     }
 };
 
@@ -225,9 +292,18 @@ const els = {
     statMembers:      document.getElementById('stat-members'),
     statItems:        document.getElementById('stat-items'),
     statVotes:        document.getElementById('stat-votes'),
+    statDocs:         document.getElementById('stat-docs'),
     statCardMembers:  document.getElementById('stat-card-members'),
     statCardItems:    document.getElementById('stat-card-items'),
     statCardVotes:    document.getElementById('stat-card-votes'),
+    statCardDocs:     document.getElementById('stat-card-docs'),
+
+    tabBtnAgenda:     document.getElementById('tab-btn-agenda'),
+    tabBtnDocuments:  document.getElementById('tab-btn-documents'),
+    tabAgendaBadge:   document.getElementById('tab-agenda-badge'),
+    tabDocsBadge:     document.getElementById('tab-docs-badge'),
+    tabViewAgenda:    document.getElementById('tab-view-agenda'),
+    tabViewDocuments: document.getElementById('tab-view-documents'),
 
     infoModal:        document.getElementById('info-modal'),
     infoModalTitle:   document.getElementById('info-modal-title'),
@@ -247,6 +323,31 @@ const els = {
 
     itemsContainer:   document.getElementById('agenda-items-container'),
     emptyState:       document.getElementById('empty-state'),
+
+    // Documents Vault Elements
+    btnToggleUpload:      document.getElementById('btn-toggle-upload'),
+    uploadDocContainer:  document.getElementById('upload-doc-container'),
+    uploadDocForm:       document.getElementById('upload-doc-form'),
+    fileDropZone:        document.getElementById('file-drop-zone'),
+    docFileInput:        document.getElementById('doc-file-input'),
+    dropZoneTitle:       document.getElementById('drop-zone-title'),
+    dropZoneHint:        document.getElementById('drop-zone-hint'),
+    docFileError:        document.getElementById('doc-file-error'),
+    docTitle:            document.getElementById('doc-title'),
+    docCategory:         document.getElementById('doc-category'),
+    docDescription:      document.getElementById('doc-description'),
+    uploadProgressWrapper: document.getElementById('upload-progress-wrapper'),
+    uploadProgressFill:  document.getElementById('upload-progress-fill'),
+    uploadProgressText:  document.getElementById('upload-progress-text'),
+    uploadProgressPercent: document.getElementById('upload-progress-percent'),
+    btnCancelUpload:     document.getElementById('btn-cancel-upload'),
+    btnSubmitUpload:     document.getElementById('btn-submit-upload'),
+
+    filterDocCategory:   document.getElementById('filter-doc-category'),
+    sortDocs:            document.getElementById('sort-docs'),
+    docSearchInput:      document.getElementById('doc-search-input'),
+    documentsContainer:  document.getElementById('documents-container'),
+    documentsEmptyState: document.getElementById('documents-empty-state'),
 
     btnExport:        document.getElementById('btn-export'),
     modal:            document.getElementById('export-modal'),
@@ -370,18 +471,100 @@ function setupEventListeners() {
         }
     });
 
-    // Stat cards click handlers (opens clean dialogs)
+    // Main View Tabs navigation
+    if (els.tabBtnAgenda) {
+        els.tabBtnAgenda.addEventListener('click', () => switchTab('agenda'));
+    }
+    if (els.tabBtnDocuments) {
+        els.tabBtnDocuments.addEventListener('click', () => switchTab('documents'));
+    }
+
+    // Stat cards click handlers (opens clean dialogs or switches tab)
     if (els.statCardMembers) {
         els.statCardMembers.addEventListener('click', showMembersModal);
         els.statCardMembers.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') showMembersModal(); });
     }
     if (els.statCardItems) {
-        els.statCardItems.addEventListener('click', showItemsModal);
-        els.statCardItems.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') showItemsModal(); });
+        els.statCardItems.addEventListener('click', () => {
+            switchTab('agenda');
+            showItemsModal();
+        });
+        els.statCardItems.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { switchTab('agenda'); showItemsModal(); } });
     }
     if (els.statCardVotes) {
         els.statCardVotes.addEventListener('click', showVotesModal);
         els.statCardVotes.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') showVotesModal(); });
+    }
+    if (els.statCardDocs) {
+        els.statCardDocs.addEventListener('click', () => switchTab('documents'));
+        els.statCardDocs.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') switchTab('documents'); });
+    }
+
+    // Document Upload and Vault Listeners
+    if (els.btnToggleUpload) els.btnToggleUpload.addEventListener('click', toggleUploadForm);
+    if (els.btnCancelUpload) els.btnCancelUpload.addEventListener('click', toggleUploadForm);
+    if (els.uploadDocForm) els.uploadDocForm.addEventListener('submit', handleSubmitUpload);
+
+    if (els.fileDropZone && els.docFileInput) {
+        els.fileDropZone.addEventListener('click', () => els.docFileInput.click());
+        els.docFileInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files.length > 0) {
+                handleSelectedFile(e.target.files[0]);
+            }
+        });
+
+        els.fileDropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            els.fileDropZone.classList.add('drag-over');
+        });
+        els.fileDropZone.addEventListener('dragleave', () => {
+            els.fileDropZone.classList.remove('drag-over');
+        });
+        els.fileDropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            els.fileDropZone.classList.remove('drag-over');
+            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                els.docFileInput.files = e.dataTransfer.files;
+                handleSelectedFile(e.dataTransfer.files[0]);
+            }
+        });
+    }
+
+    if (els.filterDocCategory) {
+        els.filterDocCategory.addEventListener('change', (e) => {
+            state.docFilters.category = e.target.value;
+            renderDocuments();
+        });
+    }
+    if (els.sortDocs) {
+        els.sortDocs.addEventListener('change', (e) => {
+            state.docFilters.sort = e.target.value;
+            renderDocuments();
+        });
+    }
+    if (els.docSearchInput) {
+        els.docSearchInput.addEventListener('input', (e) => {
+            state.docFilters.search = e.target.value.trim();
+            renderDocuments();
+        });
+    }
+
+    if (els.documentsContainer) {
+        els.documentsContainer.addEventListener('click', async (e) => {
+            const delBtn = e.target.closest('.btn-doc-delete');
+            if (delBtn) {
+                const docId = delBtn.dataset.docId;
+                if (confirm('Are you sure you want to delete this shared file?')) {
+                    try {
+                        await api.deleteDocument(docId);
+                        showToast('Document deleted');
+                        await loadData();
+                    } catch (error) {
+                        showToast(error.message || 'Failed to delete document', true);
+                    }
+                }
+            }
+        });
     }
 
     // Info modal close handlers
@@ -765,12 +948,18 @@ async function loadData() {
             activeSelectionEnd = document.activeElement.selectionEnd;
         }
 
-        const [items, stats] = await Promise.all([
+        const [items, stats, docData] = await Promise.all([
             api.getItems(),
-            api.getStats()
+            api.getStats(),
+            api.getDocuments()
         ]);
         state.items = items;
+        if (docData && Array.isArray(docData.documents)) {
+            state.documents = docData.documents;
+            state.documentCategories = docData.categories || [];
+        }
         renderItems();
+        renderDocuments();
 
         // Restore focus if appropriate
         if (activeInputId) {
@@ -1031,9 +1220,267 @@ function renderItems() {
 }
 
 function updateStats(stats) {
-    els.statItems.textContent = stats.totalItems ?? 0;
-    els.statMembers.textContent = stats.totalMembers ?? 0;
-    els.statVotes.textContent = state.items.reduce((sum, item) => sum + item.votes.length, 0);
+    if (els.statItems)   els.statItems.textContent = stats.totalItems ?? state.items.length;
+    if (els.statMembers) els.statMembers.textContent = stats.totalMembers ?? state.members.length;
+    if (els.statVotes)   els.statVotes.textContent = state.items.reduce((sum, item) => sum + item.votes.length, 0);
+    if (els.statDocs)    els.statDocs.textContent = stats.totalDocuments ?? state.documents.length;
+    if (els.tabAgendaBadge) els.tabAgendaBadge.textContent = state.items.length;
+    if (els.tabDocsBadge)   els.tabDocsBadge.textContent = state.documents.length;
+}
+
+// ── Tab Navigation ──
+function switchTab(tabName) {
+    state.activeTab = tabName;
+    if (tabName === 'agenda') {
+        if (els.tabBtnAgenda)    els.tabBtnAgenda.classList.add('active');
+        if (els.tabBtnDocuments) els.tabBtnDocuments.classList.remove('active');
+        if (els.tabViewAgenda)    els.tabViewAgenda.classList.add('active');
+        if (els.tabViewDocuments) els.tabViewDocuments.classList.remove('active');
+    } else {
+        if (els.tabBtnAgenda)    els.tabBtnAgenda.classList.remove('active');
+        if (els.tabBtnDocuments) els.tabBtnDocuments.classList.add('active');
+        if (els.tabViewAgenda)    els.tabViewAgenda.classList.remove('active');
+        if (els.tabViewDocuments) els.tabViewDocuments.classList.add('active');
+        renderDocuments();
+    }
+}
+
+// ── Document Vault Rendering & Helpers ──
+function formatBytes(bytes, decimals = 1) {
+    if (!bytes || bytes === 0) return '0 B';
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+}
+
+function getFileTypeInfo(doc) {
+    const ext = (doc.extension || '').toLowerCase();
+    const mime = (doc.mimeType || '').toLowerCase();
+
+    if (doc.isVideo || mime.startsWith('video/') || ['mp4', 'mov', 'webm', 'mkv', 'avi', 'wmv', 'flv', '3gp'].includes(ext)) {
+        return { icon: '🎬', className: 'type-video', label: 'Video' };
+    }
+    if (['xlsx', 'xls', 'csv', 'ods'].includes(ext) || mime.includes('spreadsheet') || mime.includes('excel')) {
+        return { icon: '📊', className: 'type-excel', label: 'Spreadsheet' };
+    }
+    if (['docx', 'doc', 'odt', 'rtf'].includes(ext) || mime.includes('word') || mime.includes('document')) {
+        return { icon: '📑', className: 'type-word', label: 'Document' };
+    }
+    if (['pptx', 'ppt', 'odp', 'key'].includes(ext) || mime.includes('presentation') || mime.includes('powerpoint')) {
+        return { icon: '📽️', className: 'type-ppt', label: 'Presentation' };
+    }
+    if (ext === 'pdf' || mime.includes('pdf')) {
+        return { icon: '📄', className: 'type-pdf', label: 'PDF Document' };
+    }
+    if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp'].includes(ext) || mime.startsWith('image/')) {
+        return { icon: '🖼️', className: 'type-image', label: 'Image' };
+    }
+    return { icon: '📁', className: 'type-file', label: 'File' };
+}
+
+function renderDocuments() {
+    if (!els.documentsContainer) return;
+
+    // Filter documents
+    let filtered = (state.documents || []).filter(doc => {
+        const matchCat = state.docFilters.category === 'All' || doc.category === state.docFilters.category;
+        
+        let matchSearch = true;
+        if (state.docFilters.search) {
+            const q = state.docFilters.search.toLowerCase();
+            const titleMatch = (doc.title || '').toLowerCase().includes(q);
+            const authorMatch = (doc.uploadedBy?.memberName || '').toLowerCase().includes(q);
+            const descMatch = (doc.description || '').toLowerCase().includes(q);
+            const fileMatch = (doc.originalName || '').toLowerCase().includes(q);
+            matchSearch = titleMatch || authorMatch || descMatch || fileMatch;
+        }
+
+        return matchCat && matchSearch;
+    });
+
+    // Sort documents
+    filtered.sort((a, b) => {
+        if (state.docFilters.sort === 'newest') return new Date(b.uploadedAt) - new Date(a.uploadedAt);
+        if (state.docFilters.sort === 'oldest') return new Date(a.uploadedAt) - new Date(b.uploadedAt);
+        if (state.docFilters.sort === 'size') return (b.size || 0) - (a.size || 0);
+        if (state.docFilters.sort === 'title') return (a.title || '').localeCompare(b.title || '');
+        return 0;
+    });
+
+    // Update badges
+    if (els.tabAgendaBadge) els.tabAgendaBadge.textContent = state.items.length;
+    if (els.tabDocsBadge)   els.tabDocsBadge.textContent = state.documents.length;
+    if (els.statDocs)       els.statDocs.textContent = state.documents.length;
+
+    if (filtered.length === 0) {
+        els.documentsContainer.innerHTML = '';
+        if (els.documentsEmptyState) els.documentsEmptyState.classList.remove('hidden');
+        return;
+    }
+
+    if (els.documentsEmptyState) els.documentsEmptyState.classList.add('hidden');
+
+    els.documentsContainer.innerHTML = filtered.map(doc => {
+        const typeInfo = getFileTypeInfo(doc);
+        const isUploader = doc.uploadedBy?.memberId === state.member?.id;
+        const isPrivileged = (state.member?.role || '').includes('Principal') || (state.member?.role || '').includes('Chairperson') || (state.member?.role || '').includes('Admin');
+        const canDelete = isUploader || isPrivileged;
+
+        return `
+            <div class="doc-card" id="doc-${doc.id}">
+                <div class="doc-card-top">
+                    <div class="doc-icon-badge ${typeInfo.className}">
+                        ${typeInfo.icon}
+                    </div>
+                    <div class="doc-main-info">
+                        <div class="doc-header-row">
+                            <span class="doc-category-badge">${escapeHTML(doc.category)}</span>
+                            <span class="doc-size-badge">${formatBytes(doc.size)}</span>
+                        </div>
+                        <h3 class="doc-title">${escapeHTML(doc.title)}</h3>
+                        <div class="doc-filename">
+                            <span>📄</span> ${escapeHTML(doc.originalName)}
+                        </div>
+                        ${doc.description ? `
+                            <div class="doc-description">${escapeHTML(doc.description)}</div>
+                        ` : ''}
+                    </div>
+                </div>
+
+                <div class="doc-card-bottom">
+                    <div class="doc-uploader">
+                        <span class="doc-uploader-name">${escapeHTML(doc.uploadedBy?.memberName || 'Member')}</span>
+                        <span>${escapeHTML(doc.uploadedBy?.memberRole || 'Member')} • ${timeAgo(doc.uploadedAt)}</span>
+                    </div>
+                    <div class="doc-actions-group">
+                        <a href="/api/documents/${doc.id}/view" target="_blank" rel="noopener" class="btn-doc-action btn-doc-view" title="Preview / Open in new tab">
+                            👁️ View
+                        </a>
+                        <a href="/api/documents/${doc.id}/download" class="btn-doc-action btn-doc-download" title="Download file">
+                            ⬇️ Download
+                        </a>
+                        ${canDelete ? `
+                            <button type="button" class="btn-doc-action btn-doc-delete" data-doc-id="${doc.id}" title="Delete document">
+                                🗑️
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// ── Upload Form Logic ──
+function toggleUploadForm() {
+    if (!els.uploadDocContainer) return;
+    const isCollapsed = els.uploadDocContainer.classList.contains('collapsed');
+    if (isCollapsed) {
+        els.uploadDocContainer.classList.remove('collapsed');
+        if (els.docTitle) els.docTitle.focus();
+    } else {
+        els.uploadDocContainer.classList.add('collapsed');
+        resetUploadForm();
+    }
+}
+
+function resetUploadForm() {
+    if (els.uploadDocForm) els.uploadDocForm.reset();
+    if (els.dropZoneTitle) els.dropZoneTitle.textContent = 'Click to browse or drag & drop file here';
+    if (els.dropZoneHint)  els.dropZoneHint.textContent = 'PDF, Word, Excel, PowerPoint, Images (100MB) or Videos (500MB)';
+    if (els.docFileError)  els.docFileError.textContent = '';
+    if (els.uploadProgressWrapper) els.uploadProgressWrapper.classList.add('hidden');
+    if (els.uploadProgressFill)    els.uploadProgressFill.style.width = '0%';
+    if (els.btnSubmitUpload) {
+        els.btnSubmitUpload.disabled = false;
+        els.btnSubmitUpload.textContent = 'Start Upload';
+    }
+}
+
+function handleSelectedFile(file) {
+    if (!file) return false;
+
+    const isVideo = file.type.startsWith('video/') || /\.(mp4|mov|webm|mkv|avi|wmv)$/i.test(file.name);
+    const maxBytes = isVideo ? 500 * 1024 * 1024 : 100 * 1024 * 1024;
+    const limitLabel = isVideo ? '500 MB' : '100 MB';
+
+    if (file.size > maxBytes) {
+        if (els.docFileError) {
+            els.docFileError.textContent = `Selected file is too large (${formatBytes(file.size)}). Max allowed is ${limitLabel}.`;
+        }
+        showToast(`File exceeds ${limitLabel} size limit!`, true);
+        return false;
+    }
+
+    if (els.docFileError) els.docFileError.textContent = '';
+    if (els.dropZoneTitle) els.dropZoneTitle.textContent = file.name;
+    if (els.dropZoneHint)  els.dropZoneHint.textContent = `${formatBytes(file.size)} • Ready to upload`;
+
+    // Auto-populate Title if empty
+    if (els.docTitle && !els.docTitle.value.trim()) {
+        const baseName = file.name.replace(/\.[^/.]+$/, "").replace(/[_\-\.]+/g, " ");
+        els.docTitle.value = baseName;
+    }
+    return true;
+}
+
+async function handleSubmitUpload(e) {
+    e.preventDefault();
+    if (!els.docFileInput.files || els.docFileInput.files.length === 0) {
+        if (els.docFileError) els.docFileError.textContent = 'Please choose a file to upload';
+        return;
+    }
+
+    const file = els.docFileInput.files[0];
+    const isVideo = file.type.startsWith('video/') || /\.(mp4|mov|webm|mkv|avi|wmv)$/i.test(file.name);
+    const maxBytes = isVideo ? 500 * 1024 * 1024 : 100 * 1024 * 1024;
+    if (file.size > maxBytes) {
+        showToast(`File exceeds size limit (${isVideo ? '500MB' : '100MB'})`, true);
+        return;
+    }
+
+    const title = (els.docTitle.value || '').trim() || file.name;
+    const category = els.docCategory.value;
+    const description = (els.docDescription.value || '').trim();
+
+    if (!category) {
+        showToast('Please select a category for this document', true);
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('title', title);
+    formData.append('category', category);
+    formData.append('description', description);
+
+    if (els.uploadProgressWrapper) els.uploadProgressWrapper.classList.remove('hidden');
+    if (els.btnSubmitUpload) {
+        els.btnSubmitUpload.disabled = true;
+        els.btnSubmitUpload.textContent = 'Uploading...';
+    }
+
+    try {
+        await api.uploadDocument(formData, (percent) => {
+            if (els.uploadProgressFill) els.uploadProgressFill.style.width = `${percent}%`;
+            if (els.uploadProgressPercent) els.uploadProgressPercent.textContent = `${percent}%`;
+            if (els.uploadProgressText) {
+                els.uploadProgressText.textContent = percent === 100 ? 'Processing file...' : `Uploading (${percent}%)...`;
+            }
+        });
+
+        showToast('File uploaded and shared successfully!');
+        toggleUploadForm();
+        await loadData();
+    } catch (error) {
+        showToast(error.message || 'Upload failed', true);
+        if (els.btnSubmitUpload) {
+            els.btnSubmitUpload.disabled = false;
+            els.btnSubmitUpload.textContent = 'Start Upload';
+        }
+    }
 }
 
 // ── Live Countdown ──
@@ -1380,7 +1827,15 @@ function handleBackNavigation() {
         return;
     }
 
-    // 4. Any expanded comment / brainstorm drawers
+    // 4. Upload Document Form (if expanded)
+    if (els.uploadDocContainer && !els.uploadDocContainer.classList.contains('collapsed')) {
+        els.uploadDocContainer.classList.add('collapsed');
+        resetUploadForm();
+        rearmHistory();
+        return;
+    }
+
+    // 5. Any expanded comment / brainstorm drawers
     if (state.openComments && state.openComments.size > 0) {
         state.openComments.clear();
         renderItems();
@@ -1388,7 +1843,14 @@ function handleBackNavigation() {
         return;
     }
 
-    // 5. Base Screen (Main View or Login View) -> Double back to exit
+    // 6. In Documents Vault View -> Switch back to Agenda view
+    if (state.activeTab === 'documents') {
+        switchTab('agenda');
+        rearmHistory();
+        return;
+    }
+
+    // 7. Base Screen (Main View or Login View) -> Double back to exit
     const now = Date.now();
     if (now - lastBackPressTime < 2000) {
         // Double press within 2s -> Allow exit

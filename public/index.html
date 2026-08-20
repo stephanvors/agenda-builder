@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20260820-6">
+    <link rel="stylesheet" href="style.css?v=20260820-7">
 </head>
 <body>
     <div id="toast-container" class="toast-container"></div>
@@ -82,97 +82,214 @@
                 <span class="stat-label">Total Votes</span>
                 <span class="stat-tap-hint">Tap to view</span>
             </div>
+            <div class="stat-item stat-item--clickable" id="stat-card-docs" role="button" tabindex="0">
+                <span class="stat-value" id="stat-docs">0</span>
+                <span class="stat-label">Shared Files</span>
+                <span class="stat-tap-hint">Tap to view</span>
+            </div>
         </div>
 
+        <!-- Navigation Tabs -->
+        <nav class="main-tabs-nav" aria-label="Main Views">
+            <button type="button" class="tab-nav-btn active" id="tab-btn-agenda" data-tab="agenda">
+                <span class="tab-nav-icon">📋</span>
+                <span class="tab-nav-text">Agenda &amp; Discussion</span>
+                <span class="tab-nav-badge" id="tab-agenda-badge">0</span>
+            </button>
+            <button type="button" class="tab-nav-btn" id="tab-btn-documents" data-tab="documents">
+                <span class="tab-nav-icon">📁</span>
+                <span class="tab-nav-text">Shared Files &amp; Vault</span>
+                <span class="tab-nav-badge" id="tab-docs-badge">0</span>
+            </button>
+        </nav>
+
         <section class="content-section">
-            <div class="actions-bar">
-                <button id="btn-toggle-form" class="btn btn-primary">
-                    <span class="icon">+</span> Propose New Item
-                </button>
-                <button id="btn-export" class="btn btn-secondary">
-                    <span class="icon">📋</span> View Agenda
-                </button>
-            </div>
+            <!-- TAB 1: AGENDA ITEMS -->
+            <div id="tab-view-agenda" class="tab-view active">
+                <div class="actions-bar">
+                    <button id="btn-toggle-form" class="btn btn-primary">
+                        <span class="icon">+</span> Propose New Item
+                    </button>
+                    <button id="btn-export" class="btn btn-secondary">
+                        <span class="icon">📋</span> View Agenda
+                    </button>
+                </div>
 
-            <div id="submit-item-container" class="collapsible-section collapsed">
-                <div class="form-card">
-                    <h3>Propose Agenda Item</h3>
-                    <form id="submit-item-form">
-                        <div class="form-group">
-                            <label for="item-title">Title</label>
-                            <input type="text" id="item-title" required minlength="5" placeholder="Brief summary of the topic">
-                            <span class="error-msg" id="title-error"></span>
-                        </div>
-                        <div class="form-group">
-                            <label for="item-category">Category</label>
-                            <select id="item-category" required>
-                                <option value="" disabled selected>Select category...</option>
-                                <option value="Fee Collection &amp; Debt Recovery">Fee Collection &amp; Debt Recovery</option>
-                                <option value="Budget &amp; Financial Management">Budget &amp; Financial Management</option>
-                                <option value="Fundraising &amp; Alternative Revenue">Fundraising &amp; Alternative Revenue</option>
-                                <option value="Infrastructure &amp; Maintenance">Infrastructure &amp; Maintenance</option>
-                                <option value="Curriculum &amp; Academic Performance">Curriculum &amp; Academic Performance</option>
-                                <option value="Human Resources &amp; Staffing">Human Resources &amp; Staffing</option>
-                                <option value="Parent &amp; Community Engagement">Parent &amp; Community Engagement</option>
-                                <option value="Governance &amp; Policy">Governance &amp; Policy</option>
-                                <option value="Learner Welfare &amp; Support">Learner Welfare &amp; Support</option>
-                                <option value="Communication &amp; Administration">Communication &amp; Administration</option>
-                                <option value="General">General</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="item-description">Description</label>
-                            <textarea id="item-description" required minlength="10" rows="4" placeholder="Why should we discuss this? What are the key points?"></textarea>
-                            <span class="error-msg" id="desc-error"></span>
-                        </div>
-                        <div class="form-actions">
-                            <button type="button" id="btn-cancel-submit" class="btn btn-outline">Cancel</button>
-                            <button type="submit" class="btn btn-primary">Submit Proposal</button>
-                        </div>
-                    </form>
+                <div id="submit-item-container" class="collapsible-section collapsed">
+                    <div class="form-card">
+                        <h3>Propose Agenda Item</h3>
+                        <form id="submit-item-form">
+                            <div class="form-group">
+                                <label for="item-title">Title</label>
+                                <input type="text" id="item-title" required minlength="5" placeholder="Brief summary of the topic">
+                                <span class="error-msg" id="title-error"></span>
+                            </div>
+                            <div class="form-group">
+                                <label for="item-category">Category</label>
+                                <select id="item-category" required>
+                                    <option value="" disabled selected>Select category...</option>
+                                    <option value="Fee Collection &amp; Debt Recovery">Fee Collection &amp; Debt Recovery</option>
+                                    <option value="Budget &amp; Financial Management">Budget &amp; Financial Management</option>
+                                    <option value="Fundraising &amp; Alternative Revenue">Fundraising &amp; Alternative Revenue</option>
+                                    <option value="Infrastructure &amp; Maintenance">Infrastructure &amp; Maintenance</option>
+                                    <option value="Curriculum &amp; Academic Performance">Curriculum &amp; Academic Performance</option>
+                                    <option value="Human Resources &amp; Staffing">Human Resources &amp; Staffing</option>
+                                    <option value="Parent &amp; Community Engagement">Parent &amp; Community Engagement</option>
+                                    <option value="Governance &amp; Policy">Governance &amp; Policy</option>
+                                    <option value="Learner Welfare &amp; Support">Learner Welfare &amp; Support</option>
+                                    <option value="Communication &amp; Administration">Communication &amp; Administration</option>
+                                    <option value="General">General</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="item-description">Description</label>
+                                <textarea id="item-description" required minlength="10" rows="4" placeholder="Why should we discuss this? What are the key points?"></textarea>
+                                <span class="error-msg" id="desc-error"></span>
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" id="btn-cancel-submit" class="btn btn-outline">Cancel</button>
+                                <button type="submit" class="btn btn-primary">Submit Proposal</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="filters-section">
+                    <div class="filter-group">
+                        <select id="filter-category" class="filter-select">
+                            <option value="All">All Categories</option>
+                            <option value="Fee Collection &amp; Debt Recovery">Fee Collection &amp; Debt Recovery</option>
+                            <option value="Budget &amp; Financial Management">Budget &amp; Financial Management</option>
+                            <option value="Fundraising &amp; Alternative Revenue">Fundraising &amp; Alternative Revenue</option>
+                            <option value="Infrastructure &amp; Maintenance">Infrastructure &amp; Maintenance</option>
+                            <option value="Curriculum &amp; Academic Performance">Curriculum &amp; Academic Performance</option>
+                            <option value="Human Resources &amp; Staffing">Human Resources &amp; Staffing</option>
+                            <option value="Parent &amp; Community Engagement">Parent &amp; Community Engagement</option>
+                            <option value="Governance &amp; Policy">Governance &amp; Policy</option>
+                            <option value="Learner Welfare &amp; Support">Learner Welfare &amp; Support</option>
+                            <option value="Communication &amp; Administration">Communication &amp; Administration</option>
+                            <option value="General">General</option>
+                        </select>
+                        <select id="sort-items" class="filter-select">
+                            <option value="votes">Sort: Highest Votes</option>
+                            <option value="newest">Sort: Newest First</option>
+                            <option value="oldest">Sort: Oldest First</option>
+                        </select>
+                    </div>
+                    <div class="status-filters" id="status-filters">
+                        <button class="status-btn active" data-status="All">All</button>
+                        <button class="status-btn" data-status="Proposed">Proposed</button>
+                        <button class="status-btn" data-status="Seconded">Seconded</button>
+                        <button class="status-btn" data-status="Endorsed">Endorsed</button>
+                        <button class="status-btn" data-status="Resolved">Resolved</button>
+                    </div>
+                </div>
+
+                <div class="refresh-indicator">
+                    <small>Auto-updating in <span id="refresh-countdown">15</span>s <span class="dot"></span></small>
+                </div>
+
+                <div id="agenda-items-container" class="items-grid">
+                    <!-- Items will be injected here -->
+                </div>
+                <div id="empty-state" class="empty-state hidden">
+                    <p>No agenda items found matching your criteria.</p>
                 </div>
             </div>
 
-            <div class="filters-section">
-                <div class="filter-group">
-                    <select id="filter-category" class="filter-select">
-                        <option value="All">All Categories</option>
-                        <option value="Fee Collection &amp; Debt Recovery">Fee Collection &amp; Debt Recovery</option>
-                        <option value="Budget &amp; Financial Management">Budget &amp; Financial Management</option>
-                        <option value="Fundraising &amp; Alternative Revenue">Fundraising &amp; Alternative Revenue</option>
-                        <option value="Infrastructure &amp; Maintenance">Infrastructure &amp; Maintenance</option>
-                        <option value="Curriculum &amp; Academic Performance">Curriculum &amp; Academic Performance</option>
-                        <option value="Human Resources &amp; Staffing">Human Resources &amp; Staffing</option>
-                        <option value="Parent &amp; Community Engagement">Parent &amp; Community Engagement</option>
-                        <option value="Governance &amp; Policy">Governance &amp; Policy</option>
-                        <option value="Learner Welfare &amp; Support">Learner Welfare &amp; Support</option>
-                        <option value="Communication &amp; Administration">Communication &amp; Administration</option>
-                        <option value="General">General</option>
-                    </select>
-                    <select id="sort-items" class="filter-select">
-                        <option value="votes">Sort: Highest Votes</option>
-                        <option value="newest">Sort: Newest First</option>
-                        <option value="oldest">Sort: Oldest First</option>
-                    </select>
+            <!-- TAB 2: SHARED FILES & DOCUMENTS VAULT -->
+            <div id="tab-view-documents" class="tab-view">
+                <div class="actions-bar">
+                    <button id="btn-toggle-upload" class="btn btn-primary">
+                        <span class="icon">⬆️</span> Upload File / Document
+                    </button>
+                    <div class="search-input-wrapper">
+                        <input type="search" id="doc-search-input" class="search-input" placeholder="🔍 Search files or authors...">
+                    </div>
                 </div>
-                <div class="status-filters" id="status-filters">
-                    <button class="status-btn active" data-status="All">All</button>
-                    <button class="status-btn" data-status="Proposed">Proposed</button>
-                    <button class="status-btn" data-status="Seconded">Seconded</button>
-                    <button class="status-btn" data-status="Endorsed">Endorsed</button>
-                    <button class="status-btn" data-status="Resolved">Resolved</button>
+
+                <div id="upload-doc-container" class="collapsible-section collapsed">
+                    <div class="form-card">
+                        <h3>Upload File / Supporting Document</h3>
+                        <p class="form-subtext">Share meeting documents, presentations, financial sheets, images, or videos. (Max 100MB per file / 500MB per video)</p>
+                        <form id="upload-doc-form">
+                            <div class="form-group">
+                                <label>Select File <span class="required">*</span></label>
+                                <div class="file-drop-zone" id="file-drop-zone" role="button" tabindex="0">
+                                    <input type="file" id="doc-file-input" required class="file-input-hidden">
+                                    <div class="drop-zone-content" id="drop-zone-content">
+                                        <span class="drop-icon">📁</span>
+                                        <strong class="drop-title" id="drop-zone-title">Click to browse or drag &amp; drop file here</strong>
+                                        <span class="drop-hint" id="drop-zone-hint">PDF, Word, Excel, PowerPoint, Images (100MB) or Videos (500MB)</span>
+                                    </div>
+                                </div>
+                                <span class="error-msg" id="doc-file-error"></span>
+                            </div>
+                            <div class="form-group">
+                                <label for="doc-title">Document Title</label>
+                                <input type="text" id="doc-title" placeholder="Descriptive title (defaults to original filename)">
+                            </div>
+                            <div class="form-group">
+                                <label for="doc-category">Category <span class="required">*</span></label>
+                                <select id="doc-category" required>
+                                    <option value="" disabled selected>Select category...</option>
+                                    <option value="Meeting Documents &amp; Policies">Meeting Documents &amp; Policies</option>
+                                    <option value="Presentations &amp; Slides">Presentations &amp; Slides</option>
+                                    <option value="Financial &amp; Budget Reports">Financial &amp; Budget Reports</option>
+                                    <option value="Curriculum &amp; Academic">Curriculum &amp; Academic</option>
+                                    <option value="Infrastructure &amp; Maintenance">Infrastructure &amp; Maintenance</option>
+                                    <option value="General &amp; Media">General &amp; Media</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="doc-description">Notes / Brief Description (Optional)</label>
+                                <textarea id="doc-description" rows="2" placeholder="What is this document about?"></textarea>
+                            </div>
+                            
+                            <div class="upload-progress-wrapper hidden" id="upload-progress-wrapper">
+                                <div class="progress-bar-track">
+                                    <div class="progress-bar-fill" id="upload-progress-fill" style="width: 0%"></div>
+                                </div>
+                                <div class="progress-status-row">
+                                    <span id="upload-progress-text">Uploading...</span>
+                                    <span id="upload-progress-percent">0%</span>
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="button" id="btn-cancel-upload" class="btn btn-outline">Cancel</button>
+                                <button type="submit" id="btn-submit-upload" class="btn btn-primary">Start Upload</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-            </div>
 
-            <div class="refresh-indicator">
-                <small>Auto-updating in <span id="refresh-countdown">15</span>s <span class="dot"></span></small>
-            </div>
+                <div class="filters-section">
+                    <div class="filter-group">
+                        <select id="filter-doc-category" class="filter-select">
+                            <option value="All">All Categories</option>
+                            <option value="Meeting Documents &amp; Policies">Meeting Documents &amp; Policies</option>
+                            <option value="Presentations &amp; Slides">Presentations &amp; Slides</option>
+                            <option value="Financial &amp; Budget Reports">Financial &amp; Budget Reports</option>
+                            <option value="Curriculum &amp; Academic">Curriculum &amp; Academic</option>
+                            <option value="Infrastructure &amp; Maintenance">Infrastructure &amp; Maintenance</option>
+                            <option value="General &amp; Media">General &amp; Media</option>
+                        </select>
+                        <select id="sort-docs" class="filter-select">
+                            <option value="newest">Sort: Newest First</option>
+                            <option value="oldest">Sort: Oldest First</option>
+                            <option value="size">Sort: Largest Size</option>
+                            <option value="title">Sort: Name (A–Z)</option>
+                        </select>
+                    </div>
+                </div>
 
-            <div id="agenda-items-container" class="items-grid">
-                <!-- Items will be injected here -->
-            </div>
-            <div id="empty-state" class="empty-state hidden">
-                <p>No agenda items found matching your criteria.</p>
+                <div id="documents-container" class="documents-grid">
+                    <!-- Documents injected here -->
+                </div>
+                <div id="documents-empty-state" class="empty-state hidden">
+                    <p>No documents uploaded yet. Click <strong>Upload File / Document</strong> above to share supporting files!</p>
+                </div>
             </div>
         </section>
     </main>
@@ -206,6 +323,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=20260820-6"></script>
+    <script src="app.js?v=20260820-7"></script>
 </body>
 </html>
