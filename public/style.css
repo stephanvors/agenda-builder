@@ -76,6 +76,7 @@ h3 { font-size: clamp(0.95rem, 2vw, 1.2rem); }
     text-align: center;
     max-width: 100%;
     touch-action: manipulation;
+    white-space: nowrap;
 }
 
 .btn-primary {
@@ -712,6 +713,8 @@ textarea:focus {
     display: flex;
     flex-direction: column;
     font-size: 0.82rem;
+    min-width: 0;
+    flex: 1 1 auto;
 }
 
 .proposer-info strong {
@@ -724,13 +727,16 @@ textarea:focus {
     justify-content: space-between;
     width: 100%;
     gap: 0.5rem;
+    flex-wrap: wrap;
+    flex-shrink: 0;
 }
 
 .item-actions-left {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    flex-shrink: 0;
 }
 
 .voters-preview {
@@ -761,6 +767,8 @@ textarea:focus {
     gap: 0.35rem;
     min-height: 38px;
     touch-action: manipulation;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .btn-toggle-comments:hover,
@@ -780,9 +788,19 @@ textarea:focus {
     border-color: #B4C7FB;
 }
 
+.comment-count-label {
+    white-space: nowrap;
+}
+
 .comment-chevron {
     font-size: 0.65rem;
     opacity: 0.8;
+}
+
+.vote-info {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
 }
 
 .btn-vote {
@@ -800,6 +818,8 @@ textarea:focus {
     gap: 0.4rem;
     min-height: 40px;
     touch-action: manipulation;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .btn-vote:hover:not(:disabled),
@@ -825,6 +845,8 @@ textarea:focus {
     font-size: 0.85rem;
     font-weight: 600;
     padding: 0.4rem;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .btn-delete:hover, .btn-delete:active {
@@ -1548,11 +1570,15 @@ textarea:focus {
     .item-meta {
         flex-direction: row;
         justify-content: space-between;
-        align-items: flex-end;
+        align-items: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
     }
     
     .item-actions {
         width: auto;
+        flex-shrink: 0;
+        margin-left: auto;
     }
     
     .toast-container {
