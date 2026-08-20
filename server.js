@@ -270,7 +270,14 @@ const storeHelper = {
         CREATE TABLE IF NOT EXISTS app_store (
           id VARCHAR(50) PRIMARY KEY,
           data JSONB NOT NULL
-        )
+        );
+        CREATE TABLE IF NOT EXISTS app_files (
+          id VARCHAR(100) PRIMARY KEY,
+          filename TEXT,
+          mimetype TEXT,
+          file_data BYTEA,
+          created_at TIMESTAMPTZ DEFAULT NOW()
+        );
       `);
       
       const res = await pool.query('SELECT data FROM app_store WHERE id = $1', ['main_store']);
@@ -973,6 +980,19 @@ app.post('/api/documents/upload', requireAuth, (req, res) => {
         store.documents = [];
       }
 
+      // Persist binary file data in PostgreSQL
+      if (pool) {
+        try {
+          const fileBuffer = await fs.readFile(req.file.path);
+          await pool.query(
+            'INSERT INTO app_files (id, filename, mimetype, file_data) VALUES ($1, $2, $3, $4) ON CONFLICT (id) DO UPDATE SET filename = $2, mimetype = $3, file_data = $4',
+            [newDoc.id, req.file.originalname, req.file.mimetype, fileBuffer]
+          );
+        } catch (dbErr) {
+          console.error('Failed to store file binary in PostgreSQL:', dbErr.message);
+        }
+      }
+
       store.documents.push(newDoc);
       await storeHelper.write(store);
 
@@ -996,12 +1016,38 @@ app.get('/api/documents/:id/download', requireAuth, async (req, res) => {
     const doc = store.documents.find(d => d.id === req.params.id);
     if (!doc) return res.status(404).json({ error: 'Document not found' });
 
-    const filePath = path.join(UPLOADS_DIR, doc.storedName);
-    if (!fsSync.existsSync(filePath)) {
-      return res.status(404).json({ error: 'File not found on server' });
+    let fileBuffer = null;
+    let mimeType = doc.mimeType || 'application/octet-stream';
+
+    // 1. Try PostgreSQL database storage
+    if (pool) {
+      try {
+        const dbRes = await pool.query('SELECT file_data, mimetype FROM app_files WHERE id = $1', [doc.id]);
+        if (dbRes.rows.length > 0 && dbRes.rows[0].file_data) {
+          fileBuffer = dbRes.rows[0].file_data;
+          if (dbRes.rows[0].mimetype) mimeType = dbRes.rows[0].mimetype;
+        }
+      } catch (e) {
+        console.error('Error reading file from DB:', e.message);
+      }
     }
 
-    res.download(filePath, doc.originalName);
+    // 2. Try disk storage fallback
+    if (!fileBuffer) {
+      const filePath = path.join(UPLOADS_DIR, doc.storedName);
+      if (fsSync.existsSync(filePath)) {
+        fileBuffer = await fs.readFile(filePath);
+      }
+    }
+
+    if (!fileBuffer) {
+      return res.status(404).json({ error: 'File not found on server. Please re-upload this document.' });
+    }
+
+    res.setHeader('Content-Type', mimeType);
+    res.setHeader('Content-Length', fileBuffer.length);
+    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(doc.originalName)}"`);
+    res.end(fileBuffer);
   } catch (error) {
     console.error('Error downloading file:', error);
     res.status(500).json({ error: 'Failed to download file' });
@@ -1017,13 +1063,35 @@ app.get('/api/documents/:id/view', requireAuth, async (req, res) => {
     const doc = store.documents.find(d => d.id === req.params.id);
     if (!doc) return res.status(404).json({ error: 'Document not found' });
 
-    const filePath = path.join(UPLOADS_DIR, doc.storedName);
-    if (!fsSync.existsSync(filePath)) {
-      return res.status(404).json({ error: 'File not found on server' });
+    let fileBuffer = null;
+    let mimeType = doc.mimeType || 'application/octet-stream';
+
+    // 1. Try PostgreSQL database storage
+    if (pool) {
+      try {
+        const dbRes = await pool.query('SELECT file_data, mimetype FROM app_files WHERE id = $1', [doc.id]);
+        if (dbRes.rows.length > 0 && dbRes.rows[0].file_data) {
+          fileBuffer = dbRes.rows[0].file_data;
+          if (dbRes.rows[0].mimetype) mimeType = dbRes.rows[0].mimetype;
+        }
+      } catch (e) {
+        console.error('Error reading file from DB:', e.message);
+      }
     }
 
-    const stat = fsSync.statSync(filePath);
-    const fileSize = stat.size;
+    // 2. Try disk storage fallback
+    if (!fileBuffer) {
+      const filePath = path.join(UPLOADS_DIR, doc.storedName);
+      if (fsSync.existsSync(filePath)) {
+        fileBuffer = await fs.readFile(filePath);
+      }
+    }
+
+    if (!fileBuffer) {
+      return res.status(404).json({ error: 'File not found on server. Please re-upload this document.' });
+    }
+
+    const fileSize = fileBuffer.length;
     const range = req.headers.range;
 
     if (range && doc.isVideo) {
@@ -1031,20 +1099,19 @@ app.get('/api/documents/:id/view', requireAuth, async (req, res) => {
       const start = parseInt(parts[0], 10);
       const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
       const chunksize = (end - start) + 1;
-      const file = fsSync.createReadStream(filePath, { start, end });
-      const head = {
+      const chunk = fileBuffer.subarray(start, end + 1);
+      res.writeHead(206, {
         'Content-Range': `bytes ${start}-${end}/${fileSize}`,
         'Accept-Ranges': 'bytes',
         'Content-Length': chunksize,
-        'Content-Type': doc.mimeType || 'video/mp4',
-      };
-      res.writeHead(206, head);
-      file.pipe(res);
+        'Content-Type': mimeType || 'video/mp4',
+      });
+      res.end(chunk);
     } else {
-      res.setHeader('Content-Type', doc.mimeType || 'application/octet-stream');
+      res.setHeader('Content-Type', mimeType);
       res.setHeader('Content-Length', fileSize);
       res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(doc.originalName)}"`);
-      fsSync.createReadStream(filePath).pipe(res);
+      res.end(fileBuffer);
     }
   } catch (error) {
     console.error('Error streaming/viewing file:', error);
@@ -1070,6 +1137,16 @@ app.delete('/api/documents/:id', requireAuth, async (req, res) => {
       return res.status(403).json({ error: 'You can only delete documents you uploaded' });
     }
 
+    // Delete from PostgreSQL
+    if (pool) {
+      try {
+        await pool.query('DELETE FROM app_files WHERE id = $1', [doc.id]);
+      } catch (e) {
+        console.error('Error deleting file from DB:', e.message);
+      }
+    }
+
+    // Delete from disk
     const filePath = path.join(UPLOADS_DIR, doc.storedName);
     try {
       if (fsSync.existsSync(filePath)) {

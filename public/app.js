@@ -442,29 +442,34 @@ const els = {
 
 // ── Initialisation ──
 async function init() {
+    setupEventListeners();
+    initHistoryNavigation();
+    startCountdown();
+
     const savedToken = localStorage.getItem('agenda_token');
 
     if (savedToken) {
         state.token = savedToken;
-        const member = await api.verifySession();
-        if (member) {
-            state.member = member;
-            showMainView();
-            await loadData();
-            startPolling();
-        } else {
-            // Session expired — clear and show login
-            localStorage.removeItem('agenda_token');
-            state.token = null;
+        try {
+            const member = await api.verifySession();
+            if (member) {
+                state.member = member;
+                showMainView();
+                await loadData();
+                startPolling();
+            } else {
+                // Session expired — clear and show login
+                localStorage.removeItem('agenda_token');
+                state.token = null;
+                await loadMemberList();
+            }
+        } catch (err) {
+            console.error('Session verify failed:', err);
             await loadMemberList();
         }
     } else {
         await loadMemberList();
     }
-
-    setupEventListeners();
-    initHistoryNavigation();
-    startCountdown();
 }
 
 // Load member names into the login dropdown
@@ -553,13 +558,15 @@ function setupEventListeners() {
         }
     });
 
-    // Main View Tabs navigation
-    if (els.tabBtnAgenda) {
-        els.tabBtnAgenda.addEventListener('click', () => switchTab('agenda'));
-    }
-    if (els.tabBtnDocuments) {
-        els.tabBtnDocuments.addEventListener('click', () => switchTab('documents'));
-    }
+    // Main View Tabs navigation (with direct event delegation for 100% responsiveness)
+    document.addEventListener('click', (e) => {
+        const tabBtn = e.target.closest('.tab-nav-btn');
+        if (tabBtn) {
+            e.preventDefault();
+            const tab = tabBtn.dataset.tab;
+            if (tab) switchTab(tab);
+        }
+    });
 
     // Stat cards click handlers (opens clean dialogs or switches tab)
     if (els.statCardMembers) {
@@ -1587,16 +1594,25 @@ async function handleDeleteCategory(name) {
 // ── Tab Navigation ──
 function switchTab(tabName) {
     state.activeTab = tabName;
+    
+    // Update all tab buttons
+    document.querySelectorAll('.tab-nav-btn').forEach(btn => {
+        if (btn.dataset.tab === tabName) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+
+    const agendaView = document.getElementById('tab-view-agenda');
+    const docsView = document.getElementById('tab-view-documents');
+
     if (tabName === 'agenda') {
-        if (els.tabBtnAgenda)    els.tabBtnAgenda.classList.add('active');
-        if (els.tabBtnDocuments) els.tabBtnDocuments.classList.remove('active');
-        if (els.tabViewAgenda)    els.tabViewAgenda.classList.add('active');
-        if (els.tabViewDocuments) els.tabViewDocuments.classList.remove('active');
+        if (agendaView) agendaView.classList.add('active');
+        if (docsView) docsView.classList.remove('active');
     } else {
-        if (els.tabBtnAgenda)    els.tabBtnAgenda.classList.remove('active');
-        if (els.tabBtnDocuments) els.tabBtnDocuments.classList.add('active');
-        if (els.tabViewAgenda)    els.tabViewAgenda.classList.remove('active');
-        if (els.tabViewDocuments) els.tabViewDocuments.classList.add('active');
+        if (agendaView) agendaView.classList.remove('active');
+        if (docsView) docsView.classList.add('active');
         renderDocuments();
     }
 }
