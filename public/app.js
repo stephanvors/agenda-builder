@@ -265,6 +265,7 @@ async function init() {
     }
 
     setupEventListeners();
+    initHistoryNavigation();
     startCountdown();
 }
 
@@ -1210,6 +1211,72 @@ function startPolling() {
 function stopPolling() {
     if (pollTimer) clearInterval(pollTimer);
     if (countdownTimer) clearInterval(countdownTimer);
+}
+
+// ── Mobile & Browser Back-Button Management ──
+let lastBackPressTime = 0;
+
+function initHistoryNavigation() {
+    try {
+        history.replaceState({ app: 'agenda-base' }, '');
+        history.pushState({ app: 'agenda-active' }, '');
+    } catch (e) {
+        // history API may throw in some restricted environments
+    }
+
+    window.addEventListener('popstate', () => {
+        handleBackNavigation();
+    });
+}
+
+function rearmHistory() {
+    try {
+        history.pushState({ app: 'agenda-active' }, '');
+    } catch (e) { /* ignore */ }
+}
+
+function handleBackNavigation() {
+    // 1. Info Modal (Members, Items, Voting Breakdown)
+    if (els.infoModal && els.infoModal.classList.contains('active')) {
+        closeInfoModal();
+        rearmHistory();
+        return;
+    }
+
+    // 2. Export / View Agenda Modal
+    if (els.modal && els.modal.classList.contains('active')) {
+        els.modal.classList.remove('active');
+        rearmHistory();
+        return;
+    }
+
+    // 3. Propose Item Form (if expanded)
+    if (els.submitContainer && !els.submitContainer.classList.contains('collapsed')) {
+        els.submitContainer.classList.add('collapsed');
+        if (els.titleError) els.titleError.textContent = '';
+        if (els.descError) els.descError.textContent = '';
+        rearmHistory();
+        return;
+    }
+
+    // 4. Any expanded comment / brainstorm drawers
+    if (state.openComments && state.openComments.size > 0) {
+        state.openComments.clear();
+        renderItems();
+        rearmHistory();
+        return;
+    }
+
+    // 5. Base Screen (Main View or Login View) -> Double back to exit
+    const now = Date.now();
+    if (now - lastBackPressTime < 2000) {
+        // Double press within 2s -> Allow exit
+        history.back();
+    } else {
+        lastBackPressTime = now;
+        showToast('Press back again to exit');
+        rearmHistory();
+    }
 }
 
 // ── Start ──
