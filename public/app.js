@@ -28,6 +28,7 @@ const state = {
     sort: 'votes',
     theme: 'light',          // 'light' | 'dark'
     openComments: new Set(), // item IDs with expanded comment drawers
+    openDocs: new Set(),     // doc IDs with expanded description drawers (starts collapsed by default)
     activeCommentType: {},   // { [itemId]: 'idea' | 'action' | 'question' | 'comment' }
     commentDrafts: {},       // { [itemId]: 'draft text' }
     editingComments: {}      // { [commentId]: { content: '...', type: '...' } }
@@ -41,7 +42,7 @@ function isAdmin() {
     return name === 'stephen vorster' || role.includes('admin') || role.includes('principal') || role.includes('chairperson');
 }
 
-const APP_VERSION = '20260821-39';
+const APP_VERSION = '20260821-40';
 const MEETING_DATE = new Date('2026-08-27T10:00:00');
 const POLL_INTERVAL_MS = 15000;
 
@@ -923,6 +924,19 @@ function setupEventListeners() {
 
     if (els.documentsContainer) {
         els.documentsContainer.addEventListener('click', async (e) => {
+            const toggleDescBtn = e.target.closest('.btn-toggle-doc-desc');
+            if (toggleDescBtn) {
+                const docId = toggleDescBtn.dataset.docId;
+                if (!state.openDocs) state.openDocs = new Set();
+                if (state.openDocs.has(docId)) {
+                    state.openDocs.delete(docId);
+                } else {
+                    state.openDocs.add(docId);
+                }
+                renderDocuments();
+                return;
+            }
+
             const editBtn = e.target.closest('.btn-doc-edit');
             if (editBtn) {
                 const docId = editBtn.dataset.docId;
@@ -2767,6 +2781,9 @@ function renderDocuments() {
         const docTags = Array.isArray(doc.tags) ? doc.tags : (doc.category ? doc.category.split(/\s*>\s*/).map(p => p.trim()).filter(Boolean) : []);
         const uploaderName = (doc.uploadedBy?.memberName || '').trim();
 
+        const hasDescription = Boolean(doc.description && doc.description.trim());
+        const isDocOpen = state.openDocs ? state.openDocs.has(doc.id) : false;
+
         return `
             <div class="doc-card ${!isAvailable ? 'doc-card-unavailable' : ''}" id="doc-${doc.id}">
                 <div class="doc-card-top">
@@ -2789,8 +2806,16 @@ function renderDocuments() {
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.55;flex-shrink:0;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
                             <span class="doc-filename-text">${escapeHTML(doc.originalName)}</span>
                         </div>
-                        ${doc.description ? `
-                            <div class="doc-description">${sanitizeRichHtml(doc.description)}</div>
+                        ${hasDescription ? `
+                            <div class="doc-expand-row">
+                                <button type="button" class="btn-toggle-doc-desc ${isDocOpen ? 'active' : ''}" data-doc-id="${doc.id}" title="${isDocOpen ? 'Hide notes & summary' : 'View notes & summary'}">
+                                    <span class="toggle-doc-icon">${isDocOpen ? '▲' : '▼'}</span>
+                                    <span class="toggle-doc-label">${isDocOpen ? 'Hide Notes & Summary' : 'View Notes & Summary'}</span>
+                                </button>
+                            </div>
+                            <div class="doc-description-wrapper ${isDocOpen ? 'open' : ''}" id="doc-desc-${doc.id}">
+                                <div class="doc-description">${sanitizeRichHtml(doc.description)}</div>
+                            </div>
                         ` : ''}
                     </div>
                 </div>
