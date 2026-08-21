@@ -41,7 +41,7 @@ function isAdmin() {
     return name === 'stephen vorster' || role.includes('admin') || role.includes('principal') || role.includes('chairperson');
 }
 
-const APP_VERSION = '20260821-37';
+const APP_VERSION = '20260821-38';
 const MEETING_DATE = new Date('2026-08-27T10:00:00');
 const POLL_INTERVAL_MS = 15000;
 
@@ -1366,15 +1366,24 @@ async function handleItemAction(e) {
         const item = state.items.find(i => i.id === id);
         if (!item || !state.member) return;
 
-        const hasVoted = item.votes.some(v => v.memberId === state.member.id);
+        const currentMemberId = state.member.id;
+        const currentMemberName = (state.member.name || '').toLowerCase().trim();
+
+        const hasVoted = (item.votes || []).some(v => 
+            v.memberId === currentMemberId || 
+            (v.memberName && v.memberName.toLowerCase().trim() === currentMemberName)
+        );
         
         // Optimistic UI update
-        btn.disabled = true;
         if (hasVoted) {
-            item.votes = item.votes.filter(v => v.memberId !== state.member.id);
+            item.votes = (item.votes || []).filter(v => 
+                v.memberId !== currentMemberId && 
+                !(v.memberName && v.memberName.toLowerCase().trim() === currentMemberName)
+            );
             item.status = determineStatus(item.votes.length);
             showToast('Vote withdrawn');
         } else {
+            if (!Array.isArray(item.votes)) item.votes = [];
             item.votes.push({
                 memberId: state.member.id,
                 memberName: state.member.name,
@@ -1384,15 +1393,26 @@ async function handleItemAction(e) {
             showToast('Vote cast!');
         }
         renderItems();
+        updateStats();
 
         try {
+            let updatedItem;
             if (hasVoted) {
-                await api.unvote(id);
+                updatedItem = await api.unvote(id);
             } else {
-                await api.vote(id);
+                updatedItem = await api.vote(id);
+            }
+            if (updatedItem && updatedItem.id) {
+                const idx = state.items.findIndex(i => i.id === id);
+                if (idx !== -1) {
+                    state.items[idx] = { ...state.items[idx], ...updatedItem };
+                    renderItems();
+                    updateStats();
+                }
             }
             await loadData();
         } catch (error) {
+            console.error('Vote failed:', error);
             showToast(error.message || 'Failed to record vote', true);
             await loadData();
         }
@@ -1792,11 +1812,11 @@ function renderItems() {
     }).join('');
 }
 
-function updateStats(stats) {
-    if (els.statItems)   els.statItems.textContent = stats.totalItems ?? state.items.length;
-    if (els.statMembers) els.statMembers.textContent = stats.totalMembers ?? state.members.length;
-    if (els.statVotes)   els.statVotes.textContent = state.items.reduce((sum, item) => sum + item.votes.length, 0);
-    if (els.statDocs)    els.statDocs.textContent = stats.totalDocuments ?? state.documents.length;
+function updateStats(stats = null) {
+    if (els.statItems)   els.statItems.textContent = stats?.totalItems ?? state.items.length;
+    if (els.statMembers) els.statMembers.textContent = stats?.totalMembers ?? (state.members.length || 15);
+    if (els.statVotes)   els.statVotes.textContent = state.items.reduce((sum, item) => sum + (Array.isArray(item.votes) ? item.votes.length : 0), 0);
+    if (els.statDocs)    els.statDocs.textContent = stats?.totalDocuments ?? state.documents.length;
     if (els.tabAgendaBadge) els.tabAgendaBadge.textContent = state.items.length;
     if (els.tabDocsBadge)   els.tabDocsBadge.textContent = state.documents.length;
 }

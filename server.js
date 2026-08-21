@@ -542,7 +542,7 @@ async function requireAuth(req, res, next) {
 
 // ── Public Endpoints ──
 
-const APP_VERSION = '20260821-37';
+const APP_VERSION = '20260821-38';
 
 app.get('/api/version', (req, res) => {
   res.json({ version: APP_VERSION });
@@ -594,17 +594,17 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// Member list (no PINs)
+// Member list (no PINs, for dropdown)
 app.get('/api/members/list', async (req, res) => {
   try {
     const store = await storeHelper.read();
-    const memberList = store.members.map(m => ({
+    const list = store.members.map(m => ({
       id: m.id,
       name: m.name,
       title: m.title,
       role: m.role
     }));
-    res.json(memberList);
+    res.json(list);
   } catch (error) {
     console.error('Error fetching member list:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -636,17 +636,19 @@ app.post('/api/logout', requireAuth, async (req, res) => {
 
 // ── Protected Endpoints ──
 
-// List members
+// Get all members (authenticated)
 app.get('/api/members', requireAuth, async (req, res) => {
   try {
     const store = req.store;
-    const memberList = store.members.map(m => ({
+    const list = store.members.map(m => ({
       id: m.id,
       name: m.name,
       title: m.title,
-      role: m.role
+      role: m.role,
+      contact: m.contact,
+      email: m.email
     }));
-    res.json(memberList);
+    res.json(list);
   } catch (error) {
     res.status(500).json({ error: 'Internal server error' });
   }
@@ -658,10 +660,11 @@ app.get('/api/items', requireAuth, async (req, res) => {
     const store = req.store;
     const sortedItems = [...store.agendaItems].map(i => ({
       ...i,
+      votes: Array.isArray(i.votes) ? i.votes : [],
       comments: Array.isArray(i.comments) ? i.comments : [],
       isResolved: Boolean(i.isResolved),
       resolution: i.resolution || null
-    })).sort((a, b) => b.votes.length - a.votes.length);
+    })).sort((a, b) => (b.votes ? b.votes.length : 0) - (a.votes ? a.votes.length : 0));
     res.json(sortedItems);
   } catch (error) {
     res.status(500).json({ error: 'Internal server error' });
@@ -729,7 +732,12 @@ app.post('/api/items/:id/vote', requireAuth, async (req, res) => {
       return res.status(404).json({ error: 'Agenda item not found' });
     }
 
-    if (item.votes.some(v => v.memberId === member.id)) {
+    if (!Array.isArray(item.votes)) {
+      item.votes = [];
+    }
+
+    const memberName = (member.name || '').toLowerCase().trim();
+    if (item.votes.some(v => v.memberId === member.id || (v.memberName && v.memberName.toLowerCase().trim() === memberName))) {
       return res.status(409).json({ error: 'You have already voted for this item' });
     }
 
@@ -759,7 +767,12 @@ app.delete('/api/items/:id/vote', requireAuth, async (req, res) => {
       return res.status(404).json({ error: 'Agenda item not found' });
     }
 
-    const voteIndex = item.votes.findIndex(v => v.memberId === member.id);
+    if (!Array.isArray(item.votes)) {
+      item.votes = [];
+    }
+
+    const memberName = (member.name || '').toLowerCase().trim();
+    const voteIndex = item.votes.findIndex(v => v.memberId === member.id || (v.memberName && v.memberName.toLowerCase().trim() === memberName));
     if (voteIndex === -1) {
       return res.status(404).json({ error: 'You have not voted for this item' });
     }
