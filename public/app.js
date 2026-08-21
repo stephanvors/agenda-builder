@@ -39,7 +39,7 @@ function isAdmin() {
     return name === 'stephen vorster' || role.includes('admin') || role.includes('principal') || role.includes('chairperson');
 }
 
-const APP_VERSION = '20260821-24';
+const APP_VERSION = '20260821-25';
 const MEETING_DATE = new Date('2026-08-27T10:00:00');
 const POLL_INTERVAL_MS = 15000;
 
@@ -737,13 +737,38 @@ function setupEventListeners() {
 
     if (els.documentsContainer) {
         els.documentsContainer.addEventListener('click', async (e) => {
-            const delBtn = e.target.closest('.btn-doc-delete');
+            const delBtn = e.target.closest('.btn-doc-delete, .btn-doc-reupload-prompt');
             if (delBtn) {
                 const docId = delBtn.dataset.docId;
-                if (confirm('Are you sure you want to delete this shared file?')) {
+                const isReupload = delBtn.dataset.action === 'reupload' || delBtn.classList.contains('btn-doc-reupload-prompt');
+                const doc = (state.documents || []).find(d => d.id === docId);
+
+                const confirmMsg = isReupload
+                    ? `Remove placeholder for "${doc ? doc.title : 'this file'}" and open the upload form to re-upload it?`
+                    : 'Are you sure you want to delete this shared file?';
+
+                if (confirm(confirmMsg)) {
                     try {
                         await api.deleteDocument(docId);
-                        showToast('Document deleted');
+                        showToast(isReupload ? 'Placeholder removed! Ready to upload.' : 'Document deleted');
+                        
+                        if (isReupload && doc) {
+                            // Pre-fill upload form with doc title, description, and tags
+                            if (els.docTitle) els.docTitle.value = doc.title || '';
+                            if (els.docDescription) els.docDescription.value = doc.description || '';
+                            const docTags = Array.isArray(doc.tags) ? doc.tags : (doc.category ? doc.category.split(/\s*>\s*/).map(p => p.trim()).filter(Boolean) : []);
+                            state.selectedUploadTags = [...docTags];
+                            renderDocTagPicker();
+
+                            // Expand upload form
+                            if (els.uploadDocContainer && els.uploadDocContainer.classList.contains('collapsed')) {
+                                els.uploadDocContainer.classList.remove('collapsed');
+                            }
+                            if (els.fileDropZone) {
+                                els.fileDropZone.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            }
+                        }
+
                         await loadData();
                     } catch (error) {
                         showToast(error.message || 'Failed to delete document', true);
@@ -2391,7 +2416,7 @@ function renderDocuments() {
                             </button>
                         `}
                         ${canDelete ? `
-                            <button type="button" class="btn-doc-action ${!isAvailable ? 'btn-doc-reupload-prompt' : 'btn-doc-delete'}" data-doc-id="${doc.id}" title="${!isAvailable ? 'Remove missing placeholder to re-upload' : 'Delete document'}">
+                            <button type="button" class="btn-doc-action btn-doc-delete ${!isAvailable ? 'btn-doc-reupload-prompt' : ''}" data-doc-id="${doc.id}" data-action="${!isAvailable ? 'reupload' : 'delete'}" title="${!isAvailable ? 'Remove missing placeholder to re-upload' : 'Delete document'}">
                                 ${!isAvailable ? '🗑️ Remove & Re-upload' : '🗑️'}
                             </button>
                         ` : ''}
