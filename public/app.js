@@ -41,9 +41,15 @@ function isAdmin() {
     return name === 'stephen vorster' || role.includes('admin') || role.includes('principal') || role.includes('chairperson');
 }
 
-const APP_VERSION = '20260821-35';
+const APP_VERSION = '20260821-36';
 const MEETING_DATE = new Date('2026-08-27T10:00:00');
 const POLL_INTERVAL_MS = 15000;
+
+function determineStatus(voteCount) {
+    if (voteCount >= 5) return 'endorsed';
+    if (voteCount >= 2) return 'seconded';
+    return 'proposed';
+}
 
 // ── API Layer (all requests include auth token) ──
 function authHeaders() {
@@ -1346,18 +1352,38 @@ async function handleItemAction(e) {
     // Vote button
     if (btn.classList.contains('btn-vote')) {
         const id = btn.dataset.id;
-        const hasVoted = btn.classList.contains('voted');
+        const item = state.items.find(i => i.id === id);
+        if (!item || !state.member) return;
+
+        const hasVoted = item.votes.some(v => v.memberId === state.member.id);
+        
+        // Optimistic UI update
+        btn.disabled = true;
+        if (hasVoted) {
+            item.votes = item.votes.filter(v => v.memberId !== state.member.id);
+            item.status = determineStatus(item.votes.length);
+            showToast('Vote withdrawn');
+        } else {
+            item.votes.push({
+                memberId: state.member.id,
+                memberName: state.member.name,
+                votedAt: new Date().toISOString()
+            });
+            item.status = determineStatus(item.votes.length);
+            showToast('Vote cast!');
+        }
+        renderItems();
+
         try {
             if (hasVoted) {
                 await api.unvote(id);
-                showToast('Vote withdrawn');
             } else {
                 await api.vote(id);
-                showToast('Vote cast!');
             }
             await loadData();
         } catch (error) {
             showToast(error.message || 'Failed to record vote', true);
+            await loadData();
         }
         return;
     }
@@ -1604,7 +1630,7 @@ function renderItems() {
                         <div class="vote-info">
                             <button class="btn-vote ${hasVoted ? 'voted' : ''}"
                                     data-id="${item.id}"
-                                    ${isProposer ? 'disabled title="You automatically support your own proposal"' : ''}>
+                                    title="${hasVoted ? 'Click to withdraw your support vote' : 'Click to second / support this proposal'}">
                                 <span class="icon">${hasVoted ? '✓' : '↑'}</span> ${voteCount} ${voteCount === 1 ? 'Vote' : 'Votes'}
                             </button>
                         </div>
@@ -3718,35 +3744,38 @@ async function checkAppVersion() {
         if (res.ok) {
             const data = await res.json();
             if (data.version && data.version !== APP_VERSION) {
-                console.log(`New version detected (${data.version}). Refreshing app...`);
-                window.location.reload(true);
+                console.log(`Server version ${data.version} available. Loading fresh data silently.`);
+                if (state.token) await loadData();
             }
         }
     } catch { /* ignore */ }
 }
 
-// Check version and reload data when phone wakes up or tab gains focus
+// Reload data when phone wakes up or tab gains focus
 document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
-        checkAppVersion();
         if (state.token) loadData();
     }
 });
 window.addEventListener('focus', () => {
-    checkAppVersion();
     if (state.token) loadData();
 });
 
 function startPolling() {
     let secondsLeft = 15;
+    if (countdownTimer) clearInterval(countdownTimer);
+    if (pollTimer) clearInterval(pollTimer);
+
     countdownTimer = setInterval(() => {
         secondsLeft--;
         if (els.refreshCountdown) els.refreshCountdown.textContent = Math.max(0, secondsLeft);
         if (secondsLeft <= 0) secondsLeft = 15;
     }, 1000);
+
     pollTimer = setInterval(async () => {
-        await checkAppVersion();
-        await loadData();
+        if (state.token) {
+            await loadData();
+        }
     }, POLL_INTERVAL_MS);
 }
 
