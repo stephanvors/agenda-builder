@@ -183,13 +183,21 @@
     "Communication & Administration",
     "General"
   ],
-  "documentCategories": [
-    "Meeting Documents & Policies",
-    "Presentations & Slides",
-    "Finances > Financial & Budget Reports",
-    "Curriculum & Academic",
-    "Infrastructure & Maintenance",
-    "General & Media"
+  "documentTags": [
+    "Meeting Documents",
+    "Policies",
+    "Presentations",
+    "Finances",
+    "Financial & Budget Reports",
+    "Curriculum",
+    "Infrastructure",
+    "General",
+    "Media",
+    "Reports",
+    "Term 1",
+    "Term 2",
+    "Term 3",
+    "Term 4"
   ],
   "meetingInfo": {
     "title": "SGB/SMT Strategy Meeting",

@@ -2597,6 +2597,159 @@ textarea:focus {
     color: var(--white);
 }
 
+/* ── File Vault Tags System ── */
+.doc-tag-picker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: #FAFAFA;
+    min-height: 48px;
+    margin-bottom: 0.4rem;
+}
+
+.doc-tag-chip-label {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    background: #EFF6FF;
+    border: 1px solid #BFDBFE;
+    border-radius: 999px;
+    padding: 0.25rem 0.65rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #1D4ED8;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    user-select: none;
+}
+
+.doc-tag-chip-label:hover {
+    background: #DBEAFE;
+}
+
+.doc-tag-chip-label.selected {
+    background: #1D4ED8;
+    color: #FFFFFF;
+    border-color: #1D4ED8;
+}
+
+.doc-tag-new-input {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px dashed var(--border-color);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    outline: none;
+    background: transparent;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+}
+
+.doc-tag-new-input:focus {
+    border-color: var(--primary);
+    border-style: solid;
+}
+
+.doc-tag-filter-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    align-items: center;
+    padding: 0.3rem 0;
+    flex: 1;
+    min-width: 0;
+}
+
+.tag-filter-chip {
+    background: #F1F5F9;
+    border: 1px solid #CBD5E1;
+    border-radius: 999px;
+    padding: 0.25rem 0.7rem;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+
+.tag-filter-chip:hover {
+    background: #E2E8F0;
+    color: #0F172A;
+}
+
+.tag-filter-chip.active {
+    background: #1D4ED8;
+    border-color: #1D4ED8;
+    color: #FFFFFF;
+}
+
+.doc-filter-group {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+.doc-filter-controls {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.doc-tag-pill {
+    display: inline-block;
+    background: #EFF6FF;
+    border: 1px solid #BFDBFE;
+    border-radius: 999px;
+    padding: 0.1rem 0.5rem;
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: #1D4ED8;
+    white-space: nowrap;
+}
+
+.doc-tags-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-bottom: 0.25rem;
+}
+
+.doc-tag-manager-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    max-height: 320px;
+    overflow-y: auto;
+    padding: 0.25rem 0;
+}
+
+.doc-tag-manager-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.4rem 0.75rem;
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    gap: 0.5rem;
+}
+
+.doc-tag-manager-name {
+    font-size: 0.86rem;
+    color: #1E293B;
+    flex: 1;
+}
+
+.doc-tag-manager-count {
+    font-size: 0.75rem;
+    color: #64748B;
+}
+
 /* Print Styles */
 @media print {
     body * { visibility: hidden; }

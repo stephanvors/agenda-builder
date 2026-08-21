@@ -11,7 +11,8 @@ const state = {
     items: [],       // agenda items from server
     documents: [],   // shared files & documents
     categories: [],  // agenda item categories
-    documentCategories: [], // file vault categories
+    documentTags: [], // file vault tags (flat array)
+    selectedUploadTags: [], // tags selected for current upload
     activeTab: 'agenda', // 'agenda' | 'documents'
     activeCategoryModalType: 'agenda', // 'agenda' | 'documents'
     filters: {
@@ -19,7 +20,7 @@ const state = {
         status: 'All'
     },
     docFilters: {
-        category: 'All',
+        tags: [],        // active tag filters (multi-select OR)
         sort: 'newest',
         search: ''
     },
@@ -38,7 +39,7 @@ function isAdmin() {
     return name === 'stephen vorster' || role.includes('admin') || role.includes('principal') || role.includes('chairperson');
 }
 
-const APP_VERSION = '20260821-23';
+const APP_VERSION = '20260821-24';
 const MEETING_DATE = new Date('2026-08-27T10:00:00');
 const POLL_INTERVAL_MS = 15000;
 
@@ -238,7 +239,7 @@ const api = {
 
     async getDocuments() {
         const res = await fetch('/api/documents', { headers: authHeaders() });
-        if (res.status === 401) { handleSessionExpired(); return { documents: [], categories: [] }; }
+        if (res.status === 401) { handleSessionExpired(); return { documents: [], tags: [] }; }
         if (!res.ok) throw new Error('Failed to load shared documents');
         return res.json();
     },
@@ -323,16 +324,16 @@ const api = {
         return res.json();
     },
 
-    async addDocumentCategory(name, parent = null) {
+    async addDocumentCategory(name) {
         const res = await fetch('/api/categories/documents', {
             method: 'POST',
             headers: authHeaders(),
-            body: JSON.stringify({ name, parent })
+            body: JSON.stringify({ name })
         });
         if (res.status === 401) { handleSessionExpired(); return null; }
         if (!res.ok) {
             const err = await res.json();
-            throw new Error(err.error || 'Failed to add document category');
+            throw new Error(err.error || 'Failed to add document tag');
         }
         return res.json();
     },
@@ -345,7 +346,7 @@ const api = {
         if (res.status === 401) { handleSessionExpired(); return null; }
         if (!res.ok) {
             const err = await res.json();
-            throw new Error(err.error || 'Failed to delete document category');
+            throw new Error(err.error || 'Failed to delete document tag');
         }
         return res.json();
     },
@@ -428,9 +429,10 @@ const els = {
     dropZoneHint:         document.getElementById('drop-zone-hint'),
     docFileError:         document.getElementById('doc-file-error'),
     docTitle:             document.getElementById('doc-title'),
-    docCategory:          document.getElementById('doc-category'),
-    btnManageDocCats:     document.getElementById('btn-manage-doc-cats'),
-    btnAddDocCatInline:   document.getElementById('btn-add-doc-cat-inline'),
+    docTagPicker:         document.getElementById('doc-tag-picker'),
+    docTagNewInput:       document.getElementById('doc-tag-new-input'),
+    docTagsError:         document.getElementById('doc-tags-error'),
+    btnManageDocTags:     document.getElementById('btn-manage-doc-tags'),
     docDescription:       document.getElementById('doc-description'),
     uploadProgressWrapper: document.getElementById('upload-progress-wrapper'),
     uploadProgressFill:   document.getElementById('upload-progress-fill'),
@@ -439,11 +441,12 @@ const els = {
     btnCancelUpload:      document.getElementById('btn-cancel-upload'),
     btnSubmitUpload:      document.getElementById('btn-submit-upload'),
 
-    filterDocCategory:   document.getElementById('filter-doc-category'),
-    sortDocs:            document.getElementById('sort-docs'),
-    docSearchInput:      document.getElementById('doc-search-input'),
-    documentsContainer:  document.getElementById('documents-container'),
-    documentsEmptyState: document.getElementById('documents-empty-state'),
+    docTagFilterStrip:    document.getElementById('doc-tag-filter-strip'),
+    sortDocs:             document.getElementById('sort-docs'),
+    btnManageDocTagsModal:document.getElementById('btn-manage-doc-tags-modal'),
+    docSearchInput:       document.getElementById('doc-search-input'),
+    documentsContainer:   document.getElementById('documents-container'),
+    documentsEmptyState:  document.getElementById('documents-empty-state'),
 
     // Category Management Modal Elements (Admin)
     categoryModal:        document.getElementById('category-modal'),
@@ -659,12 +662,66 @@ function setupEventListeners() {
         });
     }
 
-    if (els.filterDocCategory) {
-        els.filterDocCategory.addEventListener('change', (e) => {
-            state.docFilters.category = e.target.value;
+    if (els.docTagPicker) {
+        els.docTagPicker.addEventListener('click', (e) => {
+            const lbl = e.target.closest('.doc-tag-chip-label');
+            if (!lbl) return;
+            const tag = lbl.dataset.tag;
+            if (!tag) return;
+            const idx = state.selectedUploadTags.indexOf(tag);
+            if (idx === -1) {
+                state.selectedUploadTags.push(tag);
+            } else {
+                state.selectedUploadTags.splice(idx, 1);
+            }
+            lbl.classList.toggle('selected', state.selectedUploadTags.includes(tag));
+            if (els.docTagsError && state.selectedUploadTags.length > 0) {
+                els.docTagsError.textContent = '';
+            }
+        });
+    }
+
+    if (els.docTagNewInput) {
+        els.docTagNewInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const raw = (els.docTagNewInput.value || '').trim();
+                if (!raw) return;
+                if (!state.documentTags.some(t => t.toLowerCase() === raw.toLowerCase())) {
+                    state.documentTags.push(raw);
+                }
+                const matchTag = state.documentTags.find(t => t.toLowerCase() === raw.toLowerCase()) || raw;
+                if (!state.selectedUploadTags.includes(matchTag)) {
+                    state.selectedUploadTags.push(matchTag);
+                }
+                els.docTagNewInput.value = '';
+                if (els.docTagsError) els.docTagsError.textContent = '';
+                renderDocTagPicker();
+                renderDocTagFilterStrip();
+            }
+        });
+    }
+
+    if (els.docTagFilterStrip) {
+        els.docTagFilterStrip.addEventListener('click', (e) => {
+            const chip = e.target.closest('.tag-filter-chip');
+            if (!chip) return;
+            const tag = chip.dataset.tag;
+            if (!tag || tag === '__ALL__') {
+                state.docFilters.tags = [];
+            } else {
+                const idx = state.docFilters.tags.indexOf(tag);
+                if (idx === -1) {
+                    state.docFilters.tags.push(tag);
+                } else {
+                    state.docFilters.tags.splice(idx, 1);
+                }
+            }
+            renderDocTagFilterStrip();
             renderDocuments();
         });
     }
+
     if (els.sortDocs) {
         els.sortDocs.addEventListener('change', (e) => {
             state.docFilters.sort = e.target.value;
@@ -696,18 +753,18 @@ function setupEventListeners() {
         });
     }
 
-    // Category Management Listeners (Admin)
+    // Category & Tag Management Listeners (Admin)
     if (els.btnManageAgendaCats) {
         els.btnManageAgendaCats.addEventListener('click', () => openCategoryModal('agenda'));
     }
     if (els.btnAddAgendaCatInline) {
         els.btnAddAgendaCatInline.addEventListener('click', () => openCategoryModal('agenda'));
     }
-    if (els.btnManageDocCats) {
-        els.btnManageDocCats.addEventListener('click', () => openCategoryModal('documents'));
+    if (els.btnManageDocTags) {
+        els.btnManageDocTags.addEventListener('click', () => openCategoryModal('documents'));
     }
-    if (els.btnAddDocCatInline) {
-        els.btnAddDocCatInline.addEventListener('click', () => openCategoryModal('documents'));
+    if (els.btnManageDocTagsModal) {
+        els.btnManageDocTagsModal.addEventListener('click', () => openCategoryModal('documents'));
     }
     if (els.btnCloseCategoryModal) {
         els.btnCloseCategoryModal.addEventListener('click', closeCategoryModal);
@@ -1152,16 +1209,16 @@ async function loadData() {
         state.items = items;
         if (docData && Array.isArray(docData.documents)) {
             state.documents = docData.documents;
-            if (Array.isArray(docData.categories) && docData.categories.length > 0) {
-                state.documentCategories = docData.categories;
+            if (Array.isArray(docData.tags) && docData.tags.length > 0) {
+                state.documentTags = docData.tags;
             }
         }
         if (stats) {
             if (Array.isArray(stats.categories) && stats.categories.length > 0) {
                 state.categories = stats.categories;
             }
-            if (Array.isArray(stats.documentCategories) && stats.documentCategories.length > 0) {
-                state.documentCategories = stats.documentCategories;
+            if (Array.isArray(stats.documentTags) && stats.documentTags.length > 0) {
+                state.documentTags = stats.documentTags;
             }
             updateStats(stats);
             updateCategoryDropdowns();
@@ -1575,10 +1632,69 @@ function updateCategoryDropdowns() {
     renderCategorySelectOptions(state.categories || [], els.itemCategory, 'Select category...');
     // 2. Agenda filter category dropdown
     renderCategoryFilterOptions(state.categories || [], els.filterCategory, 'All Categories');
-    // 3. Document upload category dropdown
-    renderCategorySelectOptions(state.documentCategories || [], els.docCategory, 'Select category...');
-    // 4. Document filter category dropdown
-    renderCategoryFilterOptions(state.documentCategories || [], els.filterDocCategory, 'All Categories');
+    // 3. Document upload tag picker & filter strip
+    renderDocTagPicker();
+    renderDocTagFilterStrip();
+}
+
+// ── File Vault Tag Rendering Helpers ──
+function renderDocTagPicker() {
+    if (!els.docTagPicker) return;
+    const tags = state.documentTags || [];
+    if (tags.length === 0) {
+        els.docTagPicker.innerHTML = '<span style="color:var(--text-muted);font-size:0.82rem;padding:0.25rem 0.5rem;">No tags available yet. Type a tag below and press Enter.</span>';
+        return;
+    }
+    els.docTagPicker.innerHTML = tags.map(tag => {
+        const isSelected = (state.selectedUploadTags || []).includes(tag);
+        return `<label class="doc-tag-chip-label ${isSelected ? 'selected' : ''}" data-tag="${escapeHTML(tag)}">
+            ${escapeHTML(tag)}
+        </label>`;
+    }).join('');
+}
+
+function renderDocTagFilterStrip() {
+    if (!els.docTagFilterStrip) return;
+    const allActive = !state.docFilters.tags || state.docFilters.tags.length === 0;
+    let html = `<button type="button" class="tag-filter-chip ${allActive ? 'active' : ''}" data-tag="__ALL__">All Files (${(state.documents || []).length})</button>`;
+    
+    (state.documentTags || []).forEach(tag => {
+        const isActive = Array.isArray(state.docFilters.tags) && state.docFilters.tags.includes(tag);
+        const count = (state.documents || []).filter(d => {
+            const dTags = Array.isArray(d.tags) ? d.tags : (d.category ? [d.category] : []);
+            return dTags.includes(tag);
+        }).length;
+        if (count === 0 && !isActive) return;
+        html += `<button type="button" class="tag-filter-chip ${isActive ? 'active' : ''}" data-tag="${escapeHTML(tag)}">${escapeHTML(tag)} <span style="opacity:0.65;font-size:0.7rem;margin-left:0.2rem;">${count}</span></button>`;
+    });
+    els.docTagFilterStrip.innerHTML = html;
+}
+
+function renderDocTagManager() {
+    if (!els.categoryTreeContainer) return;
+    const tags = state.documentTags || [];
+    if (els.categoryModalCount) els.categoryModalCount.textContent = tags.length;
+    if (tags.length === 0) {
+        els.categoryTreeContainer.innerHTML = '<span style="color:var(--text-muted);font-size:0.85rem;padding:1rem;text-align:center;display:block;">No tags defined yet. Use the input above to add tags.</span>';
+        return;
+    }
+    els.categoryTreeContainer.innerHTML = `
+        <div class="doc-tag-manager-list">
+            ${tags.map(tag => {
+                const count = (state.documents || []).filter(d => {
+                    const dTags = Array.isArray(d.tags) ? d.tags : (d.category ? [d.category] : []);
+                    return dTags.includes(tag);
+                }).length;
+                return `
+                    <div class="doc-tag-manager-row">
+                        <span class="doc-tag-pill">${escapeHTML(tag)}</span>
+                        <span class="doc-tag-manager-count">${count > 0 ? count + ' file' + (count > 1 ? 's' : '') : 'unused'}</span>
+                        <button type="button" class="btn-cat-delete" data-path="${escapeHTML(tag)}" title="Delete tag">🗑️</button>
+                    </div>
+                `;
+            }).join('')}
+        </div>
+    `;
 }
 
 // ── Category Management Modal Logic (Admin) ──
@@ -1586,12 +1702,26 @@ function openCategoryModal(type = 'agenda') {
     state.activeCategoryModalType = type;
     if (!els.categoryModal) return;
 
+    const catBuilderCard = els.addCategoryForm ? els.addCategoryForm.querySelector('.cat-builder-card') : null;
+    const catDropRootZoneEl = document.getElementById('cat-drop-root-zone');
+
     if (type === 'agenda') {
         if (els.categoryModalTitle) els.categoryModalTitle.textContent = 'Manage Agenda Categories';
         if (els.categoryModalDesc)  els.categoryModalDesc.textContent = 'Create and organize up to 3 levels of nested categories for agenda items.';
+        if (els.btnSubmitNewCategory) els.btnSubmitNewCategory.textContent = '+ Add Category';
+        if (els.newCategoryInput) els.newCategoryInput.placeholder = 'Enter main category name (e.g. Governance & Legal)...';
+        if (catBuilderCard) catBuilderCard.classList.remove('hidden');
+        if (catDropRootZoneEl) catDropRootZoneEl.classList.add('hidden');
+        updateCategoryBuilderSelectors();
+        renderCategoryTree();
     } else {
-        if (els.categoryModalTitle) els.categoryModalTitle.textContent = 'Manage File Vault Categories';
-        if (els.categoryModalDesc)  els.categoryModalDesc.textContent = 'Create and organize up to 3 levels of nested categories for uploaded documents and media.';
+        if (els.categoryModalTitle) els.categoryModalTitle.textContent = 'Manage File Vault Tags';
+        if (els.categoryModalDesc)  els.categoryModalDesc.textContent = 'Add or remove tags for files in the vault. Files can have multiple tags.';
+        if (els.btnSubmitNewCategory) els.btnSubmitNewCategory.textContent = '+ Add Tag';
+        if (els.newCategoryInput) els.newCategoryInput.placeholder = 'Enter tag name (e.g. Term 2, Financial Reports, Minutes)...';
+        if (catBuilderCard) catBuilderCard.classList.add('hidden');
+        if (catDropRootZoneEl) catDropRootZoneEl.classList.add('hidden');
+        renderDocTagManager();
     }
 
     if (els.newCategoryInput) {
@@ -1601,8 +1731,6 @@ function openCategoryModal(type = 'agenda') {
         els.categoryModalError.textContent = '';
     }
 
-    updateCategoryBuilderSelectors();
-    renderCategoryTree();
     els.categoryModal.classList.add('active');
     setTimeout(() => {
         if (els.newCategoryInput) els.newCategoryInput.focus();
@@ -1616,8 +1744,7 @@ function closeCategoryModal() {
 }
 
 function updateCategoryBuilderSelectors(preselectL1 = null, preselectL2 = null) {
-    const type = state.activeCategoryModalType;
-    const list = type === 'agenda' ? (state.categories || []) : (state.documentCategories || []);
+    const list = state.categories || [];
     const { tree } = parseCategoryHierarchy(list);
 
     if (els.catParentL1) {
@@ -1639,8 +1766,7 @@ function updateCategoryBuilderSelectors(preselectL1 = null, preselectL2 = null) 
 function updateL2Selector(preselectL2 = null) {
     if (!els.catParentL1 || !els.catParentL2 || !els.catParentL2Group) return;
     const selectedL1 = els.catParentL1.value;
-    const type = state.activeCategoryModalType;
-    const list = type === 'agenda' ? (state.categories || []) : (state.documentCategories || []);
+    const list = state.categories || [];
     const { map } = parseCategoryHierarchy(list);
 
     if (selectedL1 === '__NEW__') {
@@ -1693,9 +1819,7 @@ let draggedCatEl = null;
 
 function renderCategoryTree() {
     if (!els.categoryTreeContainer) return;
-    const type = state.activeCategoryModalType;
-    const isAgenda = type === 'agenda';
-    const list = isAgenda ? (state.categories || []) : (state.documentCategories || []);
+    const list = state.categories || [];
     const { tree } = parseCategoryHierarchy(list);
 
     if (els.categoryModalCount) {
@@ -1710,9 +1834,7 @@ function renderCategoryTree() {
     let html = '';
 
     tree.forEach(l1 => {
-        const l1Count = isAgenda 
-            ? state.items.filter(i => i.category === l1.path || i.category?.startsWith(l1.path + ' > ')).length
-            : (state.documents || []).filter(d => d.category === l1.path || d.category?.startsWith(l1.path + ' > ')).length;
+        const l1Count = state.items.filter(i => i.category === l1.path || i.category?.startsWith(l1.path + ' > ')).length;
 
         html += `
             <div class="cat-tree-node level-1" draggable="true" data-path="${escapeHTML(l1.path)}" data-level="1">
@@ -1830,13 +1952,9 @@ function setupCategoryDragAndDrop() {
             const leafName = srcParts[srcParts.length - 1];
 
             try {
-                const res = await api.moveCategory(type, currentDragged, null);
-                if (res) {
-                    if (type === 'agenda') {
-                        state.categories = res.categories;
-                    } else {
-                        state.documentCategories = res.categories;
-                    }
+                const res = await api.moveCategory('agenda', currentDragged, null);
+                if (res && Array.isArray(res.categories)) {
+                    state.categories = res.categories;
                     showToast(`Moved "${leafName}" to Top Level (Level 1)!`);
                     updateCategoryBuilderSelectors();
                     renderCategoryTree();
@@ -1893,18 +2011,13 @@ function setupCategoryDragAndDrop() {
             return;
         }
 
-        const type = state.activeCategoryModalType;
         const srcParts = currentDragged.split(/\s*>\s*/);
         const leafName = srcParts[srcParts.length - 1];
 
         try {
-            const res = await api.moveCategory(type, currentDragged, targetParent);
-            if (res) {
-                if (type === 'agenda') {
-                    state.categories = res.categories;
-                } else {
-                    state.documentCategories = res.categories;
-                }
+            const res = await api.moveCategory('agenda', currentDragged, targetParent);
+            if (res && Array.isArray(res.categories)) {
+                state.categories = res.categories;
                 showToast(`Moved "${leafName}" under "${targetParent}"!`);
                 updateCategoryBuilderSelectors();
                 renderCategoryTree();
@@ -1937,9 +2050,7 @@ function cleanDragStyles() {
 
 async function promptMoveCategory(sourcePath) {
     if (!sourcePath) return;
-    const type = state.activeCategoryModalType;
-    const isAgenda = type === 'agenda';
-    const list = isAgenda ? (state.categories || []) : (state.documentCategories || []);
+    const list = state.categories || [];
     const { tree } = parseCategoryHierarchy(list);
 
     const srcParts = sourcePath.split(/\s*>\s*/);
@@ -1979,13 +2090,9 @@ async function promptMoveCategory(sourcePath) {
     const targetParent = selectedOpt.value === '__ROOT__' ? null : selectedOpt.value;
 
     try {
-        const res = await api.moveCategory(type, sourcePath, targetParent);
-        if (res) {
-            if (isAgenda) {
-                state.categories = res.categories;
-            } else {
-                state.documentCategories = res.categories;
-            }
+        const res = await api.moveCategory('agenda', sourcePath, targetParent);
+        if (res && Array.isArray(res.categories)) {
+            state.categories = res.categories;
             showToast(`Moved "${leafName}" under ${targetParent ? `"${targetParent}"` : 'Top Level'}!`);
             updateCategoryBuilderSelectors();
             renderCategoryTree();
@@ -2002,21 +2109,25 @@ async function handleAddCategory(e) {
     if (!els.newCategoryInput) return;
     const rawName = els.newCategoryInput.value.trim();
     if (!rawName) {
-        if (els.categoryModalError) els.categoryModalError.textContent = 'Please enter a category name';
+        if (els.categoryModalError) els.categoryModalError.textContent = 'Please enter a name';
         return;
     }
+
+    const type = state.activeCategoryModalType;
+    const isAgenda = type === 'agenda';
 
     const selectedL1 = els.catParentL1 ? els.catParentL1.value : '__NEW__';
     const selectedL2 = els.catParentL2 ? els.catParentL2.value : '__NEW__';
 
     let parentPath = null;
-    if (selectedL2 !== '__NEW__' && selectedL2) {
-        parentPath = selectedL2;
-    } else if (selectedL1 !== '__NEW__' && selectedL1) {
-        parentPath = selectedL1;
+    if (isAgenda) {
+        if (selectedL2 !== '__NEW__' && selectedL2) {
+            parentPath = selectedL2;
+        } else if (selectedL1 !== '__NEW__' && selectedL1) {
+            parentPath = selectedL1;
+        }
     }
 
-    const type = state.activeCategoryModalType;
     if (els.categoryModalError) els.categoryModalError.textContent = '';
     if (els.btnSubmitNewCategory) {
         els.btnSubmitNewCategory.disabled = true;
@@ -2024,7 +2135,7 @@ async function handleAddCategory(e) {
     }
 
     try {
-        if (type === 'agenda') {
+        if (isAgenda) {
             const res = await api.addAgendaCategory(rawName, parentPath);
             if (res && Array.isArray(res.categories)) {
                 state.categories = res.categories;
@@ -2032,27 +2143,30 @@ async function handleAddCategory(e) {
             showToast(`Agenda category added!`);
             updateCategoryDropdowns();
             if (els.itemCategory && res && res.category) els.itemCategory.value = res.category;
+            els.newCategoryInput.value = '';
+            updateCategoryBuilderSelectors(selectedL1, selectedL2);
+            renderCategoryTree();
+            renderItems();
         } else {
-            const res = await api.addDocumentCategory(rawName, parentPath);
-            if (res && Array.isArray(res.documentCategories)) {
-                state.documentCategories = res.documentCategories;
+            const res = await api.addDocumentCategory(rawName);
+            if (res && Array.isArray(res.documentTags)) {
+                state.documentTags = res.documentTags;
+            } else if (!state.documentTags.includes(rawName)) {
+                state.documentTags.push(rawName);
             }
-            showToast(`Document category added!`);
-            updateCategoryDropdowns();
-            if (els.docCategory && res && res.category) els.docCategory.value = res.category;
+            showToast(`Document tag "${rawName}" added!`);
+            els.newCategoryInput.value = '';
+            renderDocTagManager();
+            renderDocTagPicker();
+            renderDocTagFilterStrip();
+            renderDocuments();
         }
-
-        els.newCategoryInput.value = '';
-        updateCategoryBuilderSelectors(selectedL1, selectedL2);
-        renderCategoryTree();
-        renderItems();
-        renderDocuments();
     } catch (error) {
         if (els.categoryModalError) els.categoryModalError.textContent = error.message || 'Failed to add category';
     } finally {
         if (els.btnSubmitNewCategory) {
             els.btnSubmitNewCategory.disabled = false;
-            els.btnSubmitNewCategory.textContent = '+ Add';
+            els.btnSubmitNewCategory.textContent = isAgenda ? '+ Add Category' : '+ Add Tag';
         }
     }
 }
@@ -2073,13 +2187,16 @@ async function handleDeleteCategory(name) {
             if (!confirm(`Are you sure you want to delete "${name}"? Any subcategories under it will also be deleted.`)) return;
         }
     } else {
-        const inUseCount = (state.documents || []).filter(d => d.category === name || d.category?.startsWith(name + ' > ')).length;
+        const inUseCount = (state.documents || []).filter(d => {
+            const dTags = Array.isArray(d.tags) ? d.tags : (d.category ? [d.category] : []);
+            return dTags.includes(name);
+        }).length;
         if (inUseCount > 0) {
-            if (!confirm(`Warning: "${name}" (and its subcategories) is currently used by ${inUseCount} shared document(s). Deleting will remove it and any sub-branches. Proceed?`)) {
+            if (!confirm(`Warning: Tag "${name}" is currently used by ${inUseCount} file(s). Deleting will remove this tag from the list. Proceed?`)) {
                 return;
             }
         } else {
-            if (!confirm(`Are you sure you want to delete "${name}"? Any subcategories under it will also be deleted.`)) return;
+            if (!confirm(`Are you sure you want to delete tag "${name}"?`)) return;
         }
     }
 
@@ -2092,21 +2209,25 @@ async function handleDeleteCategory(name) {
                 state.categories = state.categories.filter(c => c !== name && !c.startsWith(name + ' > '));
             }
             showToast(`Agenda category "${name}" removed`);
+            updateCategoryBuilderSelectors();
+            renderCategoryTree();
+            updateCategoryDropdowns();
+            renderItems();
         } else {
             const res = await api.deleteDocumentCategory(name);
-            if (res && Array.isArray(res.documentCategories)) {
-                state.documentCategories = res.documentCategories;
+            if (res && Array.isArray(res.documentTags)) {
+                state.documentTags = res.documentTags;
             } else {
-                state.documentCategories = state.documentCategories.filter(c => c !== name && !c.startsWith(name + ' > '));
+                state.documentTags = state.documentTags.filter(t => t.toLowerCase() !== name.toLowerCase());
             }
-            showToast(`Document category "${name}" removed`);
+            state.selectedUploadTags = state.selectedUploadTags.filter(t => t.toLowerCase() !== name.toLowerCase());
+            state.docFilters.tags = state.docFilters.tags.filter(t => t.toLowerCase() !== name.toLowerCase());
+            showToast(`Tag "${name}" removed`);
+            renderDocTagManager();
+            renderDocTagPicker();
+            renderDocTagFilterStrip();
+            renderDocuments();
         }
-
-        updateCategoryBuilderSelectors();
-        renderCategoryTree();
-        updateCategoryDropdowns();
-        renderItems();
-        renderDocuments();
     } catch (error) {
         showToast(error.message || 'Failed to delete category', true);
     }
@@ -2179,9 +2300,9 @@ function renderDocuments() {
 
     // Filter documents
     let filtered = (state.documents || []).filter(doc => {
-        const matchCat = state.docFilters.category === 'All' || 
-                         doc.category === state.docFilters.category || 
-                         (doc.category && doc.category.startsWith(state.docFilters.category + ' > '));
+        const docTags = Array.isArray(doc.tags) ? doc.tags : (doc.category ? doc.category.split(/\s*>\s*/).map(p => p.trim()).filter(Boolean) : []);
+        const matchTags = !state.docFilters.tags || state.docFilters.tags.length === 0 || 
+                          docTags.some(t => state.docFilters.tags.includes(t));
         
         let matchSearch = true;
         if (state.docFilters.search) {
@@ -2190,10 +2311,11 @@ function renderDocuments() {
             const authorMatch = (doc.uploadedBy?.memberName || '').toLowerCase().includes(q);
             const descMatch = (doc.description || '').toLowerCase().includes(q);
             const fileMatch = (doc.originalName || '').toLowerCase().includes(q);
-            matchSearch = titleMatch || authorMatch || descMatch || fileMatch;
+            const tagMatch = docTags.some(t => t.toLowerCase().includes(q));
+            matchSearch = titleMatch || authorMatch || descMatch || fileMatch || tagMatch;
         }
 
-        return matchCat && matchSearch;
+        return matchTags && matchSearch;
     });
 
     // Sort documents
@@ -2224,6 +2346,7 @@ function renderDocuments() {
         const isUploader = doc.uploadedBy?.memberId === state.member?.id;
         const isPrivileged = isAdmin();
         const canDelete = isUploader || isPrivileged || !isAvailable;
+        const docTags = Array.isArray(doc.tags) ? doc.tags : (doc.category ? doc.category.split(/\s*>\s*/).map(p => p.trim()).filter(Boolean) : []);
 
         return `
             <div class="doc-card ${!isAvailable ? 'doc-card-unavailable' : ''}" id="doc-${doc.id}">
@@ -2233,7 +2356,7 @@ function renderDocuments() {
                             ${typeInfo.icon}
                         </div>
                         <div class="doc-meta-badges">
-                            ${renderCategoryBadge(doc.category, 'doc-category-badge')}
+                            ${docTags.length > 0 ? `<div class="doc-tags-row">${docTags.map(t => `<span class="doc-tag-pill">${escapeHTML(t)}</span>`).join('')}</div>` : ''}
                             ${!isAvailable ? '<span class="doc-warning-badge" title="This file was uploaded prior to database persistence and needs to be re-uploaded">⚠️ Re-upload Needed</span>' : ''}
                             <span class="doc-size-badge">${formatBytes(doc.size)}</span>
                         </div>
@@ -2297,6 +2420,9 @@ function resetUploadForm() {
     if (els.dropZoneTitle) els.dropZoneTitle.textContent = 'Click to browse or drag & drop file here';
     if (els.dropZoneHint)  els.dropZoneHint.textContent = 'PDF, Word, Excel, PowerPoint, Images (100MB) or Videos (500MB)';
     if (els.docFileError)  els.docFileError.textContent = '';
+    if (els.docTagsError)  els.docTagsError.textContent = '';
+    state.selectedUploadTags = [];
+    renderDocTagPicker();
     if (els.uploadProgressWrapper) els.uploadProgressWrapper.classList.add('hidden');
     if (els.uploadProgressFill)    els.uploadProgressFill.style.width = '0%';
     if (els.btnSubmitUpload) {
@@ -2347,19 +2473,19 @@ async function handleSubmitUpload(e) {
         return;
     }
 
-    const title = (els.docTitle.value || '').trim() || file.name;
-    const category = els.docCategory.value;
-    const description = (els.docDescription.value || '').trim();
-
-    if (!category) {
-        showToast('Please select a category for this document', true);
+    if (!state.selectedUploadTags || state.selectedUploadTags.length === 0) {
+        if (els.docTagsError) els.docTagsError.textContent = 'Please select or add at least one tag';
+        showToast('Please select or add at least one tag for this file', true);
         return;
     }
+
+    const title = (els.docTitle.value || '').trim() || file.name;
+    const description = (els.docDescription.value || '').trim();
 
     const formData = new FormData();
     formData.append('file', file);
     formData.append('title', title);
-    formData.append('category', category);
+    formData.append('tags', JSON.stringify(state.selectedUploadTags));
     formData.append('description', description);
 
     if (els.uploadProgressWrapper) els.uploadProgressWrapper.classList.remove('hidden');

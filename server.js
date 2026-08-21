@@ -36,13 +36,11 @@ const DEFAULT_CATEGORIES = [
   'General'
 ];
 
-const DEFAULT_DOCUMENT_CATEGORIES = [
-  'Meeting Documents & Policies',
-  'Presentations & Slides',
-  'Finances > Financial & Budget Reports',
-  'Curriculum & Academic',
-  'Infrastructure & Maintenance',
-  'General & Media'
+const DEFAULT_DOCUMENT_TAGS = [
+  'Meeting Documents', 'Policies', 'Presentations',
+  'Finances', 'Financial & Budget Reports',
+  'Curriculum', 'Infrastructure', 'General', 'Media',
+  'Reports', 'Term 1', 'Term 2', 'Term 3', 'Term 4'
 ];
 
 // Helper to check if a member has Admin privileges
@@ -308,29 +306,24 @@ function migrateFinanceCategories(store) {
     });
   }
 
-  // Migrate Document categories
-  if (Array.isArray(store.documentCategories)) {
-    const updatedDocs = [];
+  // Migrate Document categories -> tags
+  if (Array.isArray(store.documentCategories) && !store.documentTags) {
+    // Flatten each hierarchical category entry by splitting on ' > ', deduplicate
+    const tagSet = new Set();
     store.documentCategories.forEach(cat => {
-      const lower = (cat || '').toLowerCase().trim();
-      const mapped = docMap[lower] || cat;
-      if (mapped !== cat) changed = true;
-      if (!updatedDocs.includes(mapped)) {
-        updatedDocs.push(mapped);
-      }
+      cat.split(/\s*>\s*/).map(p => p.trim()).filter(Boolean).forEach(p => tagSet.add(p));
     });
-    if (changed || updatedDocs.length !== store.documentCategories.length) {
-      store.documentCategories = updatedDocs;
-      changed = true;
-    }
+    store.documentTags = [...tagSet];
+    delete store.documentCategories;
+    changed = true;
   }
 
-  // Migrate Documents
+  // Migrate Documents: doc.category -> doc.tags
   if (Array.isArray(store.documents)) {
     store.documents.forEach(doc => {
-      const lower = (doc.category || '').toLowerCase().trim();
-      if (docMap[lower] && doc.category !== docMap[lower]) {
-        doc.category = docMap[lower];
+      if (doc.category && !doc.tags) {
+        doc.tags = doc.category.split(/\s*>\s*/).map(p => p.trim()).filter(Boolean);
+        delete doc.category;
         changed = true;
       }
     });
@@ -367,7 +360,7 @@ const storeHelper = {
           agendaItems: [],
           documents: [],
           categories: [...DEFAULT_CATEGORIES],
-          documentCategories: [...DEFAULT_DOCUMENT_CATEGORIES],
+          documentTags: [...DEFAULT_DOCUMENT_TAGS],
           meetingInfo: {
             title: 'SGB/SMT Strategy Meeting',
             date: '2026-08-27',
@@ -411,7 +404,7 @@ const storeHelper = {
       agendaItems: [],
       documents: [],
       categories: [...DEFAULT_CATEGORIES],
-      documentCategories: [...DEFAULT_DOCUMENT_CATEGORIES],
+      documentTags: [...DEFAULT_DOCUMENT_TAGS],
       meetingInfo: {
         title: 'SGB/SMT Strategy Meeting',
         date: '2026-08-27',
@@ -440,9 +433,16 @@ const storeHelper = {
     if (!Array.isArray(store.categories) || store.categories.length === 0) {
       store.categories = [...DEFAULT_CATEGORIES];
     }
-    if (!Array.isArray(store.documentCategories) || store.documentCategories.length === 0) {
-      store.documentCategories = [...DEFAULT_DOCUMENT_CATEGORIES];
+    if (!Array.isArray(store.documentTags) || store.documentTags.length === 0) {
+      store.documentTags = [...DEFAULT_DOCUMENT_TAGS];
     }
+
+    // Ensure every document has a tags array (backward compat for docs with old category field)
+    store.documents.forEach(d => {
+      if (!Array.isArray(d.tags)) {
+        d.tags = d.category ? d.category.split(/\s*>\s*/).map(p => p.trim()).filter(Boolean) : [];
+      }
+    });
 
     if (migrateFinanceCategories(store)) {
       await this.write(store);
@@ -524,7 +524,7 @@ async function requireAuth(req, res, next) {
 
 // ── Public Endpoints ──
 
-const APP_VERSION = '20260821-23';
+const APP_VERSION = '20260821-24';
 
 app.get('/api/version', (req, res) => {
   res.json({ version: APP_VERSION });
@@ -1181,7 +1181,7 @@ app.get('/api/documents', requireAuth, async (req, res) => {
     const sorted = [...docsWithStatus].sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
     res.json({
       documents: sorted,
-      categories: store.documentCategories || DEFAULT_DOCUMENT_CATEGORIES
+      tags: store.documentTags || DEFAULT_DOCUMENT_TAGS
     });
   } catch (error) {
     console.error('Error fetching documents:', error);
@@ -1206,7 +1206,7 @@ app.post('/api/documents/upload', requireAuth, (req, res) => {
         return res.status(400).json({ error: 'Please choose a file to upload' });
       }
 
-      const { title, category, description } = req.body;
+      const { title, tags: tagsRaw, description } = req.body;
       const member = req.member;
       const store = req.store;
 
@@ -1220,15 +1220,17 @@ app.post('/api/documents/upload', requireAuth, (req, res) => {
         });
       }
 
-      const availableDocCategories = store.documentCategories || DEFAULT_DOCUMENT_CATEGORIES;
-      const finalCategory = (category && category.trim()) ? category.trim() : (availableDocCategories[0] || 'General & Media');
+      let parsedTags = [];
+      try { parsedTags = JSON.parse(tagsRaw || '[]'); } catch { parsedTags = []; }
+      parsedTags = parsedTags.filter(t => t && t.trim());
+
       const finalTitle = (title && title.trim()) ? title.trim() : req.file.originalname;
 
       const newDoc = {
         id: uuidv4(),
         title: finalTitle,
         description: (description || '').trim(),
-        category: finalCategory,
+        tags: parsedTags,
         originalName: req.file.originalname,
         storedName: req.file.filename,
         size: req.file.size,
@@ -1444,7 +1446,7 @@ app.get('/api/categories', requireAuth, (req, res) => {
   const store = req.store;
   res.json({
     categories: store.categories || DEFAULT_CATEGORIES,
-    documentCategories: store.documentCategories || DEFAULT_DOCUMENT_CATEGORIES
+    documentTags: store.documentTags || DEFAULT_DOCUMENT_TAGS
   });
 });
 
@@ -1527,81 +1529,58 @@ app.delete('/api/categories/agenda/:name', requireAuth, async (req, res) => {
   }
 });
 
-// Add a Document Category (Admin only) - supports 3-level nesting
+// Add a Document Tag (Admin only) - flat tag, no hierarchy
 app.post('/api/categories/documents', requireAuth, async (req, res) => {
   try {
     if (!isAdminMember(req.member)) {
-      return res.status(403).json({ error: 'Only administrators can add document categories' });
+      return res.status(403).json({ error: 'Only administrators can add document tags' });
     }
 
-    const { name, parent } = req.body;
-    let fullPath;
-    try {
-      fullPath = normalizeCategoryPath(name, parent);
-    } catch (err) {
-      return res.status(400).json({ error: err.message });
-    }
-
-    if (!fullPath) {
-      return res.status(400).json({ error: 'Category name cannot be empty' });
-    }
-
+    const { name } = req.body;
+    if (!name || !name.trim()) return res.status(400).json({ error: 'Tag name is required' });
+    const tagName = name.trim();
     const store = req.store;
-    if (!Array.isArray(store.documentCategories)) {
-      store.documentCategories = [...DEFAULT_DOCUMENT_CATEGORIES];
+    if (!Array.isArray(store.documentTags)) store.documentTags = [...DEFAULT_DOCUMENT_TAGS];
+    if (store.documentTags.some(t => t.toLowerCase() === tagName.toLowerCase())) {
+      return res.status(400).json({ error: 'This tag already exists' });
     }
-
-    const exists = store.documentCategories.some(c => c.toLowerCase() === fullPath.toLowerCase());
-    if (exists) {
-      return res.status(400).json({ error: 'A document category with this name already exists' });
-    }
-
-    store.documentCategories.push(fullPath);
+    store.documentTags.push(tagName);
     await storeHelper.write(store);
-
-    res.status(201).json({
-      message: 'Document category added successfully',
-      category: fullPath,
-      documentCategories: store.documentCategories
-    });
+    res.status(201).json({ message: 'Tag added', tag: tagName, documentTags: store.documentTags });
   } catch (error) {
-    console.error('Error adding document category:', error);
+    console.error('Error adding document tag:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// Delete a Document Category (Admin only) - cascades to children
+// Delete a Document Tag (Admin only)
 app.delete('/api/categories/documents/:name', requireAuth, async (req, res) => {
   try {
     if (!isAdminMember(req.member)) {
-      return res.status(403).json({ error: 'Only administrators can delete document categories' });
+      return res.status(403).json({ error: 'Only administrators can delete document tags' });
     }
 
-    const name = decodeURIComponent(req.params.name).trim();
+    const tagName = decodeURIComponent(req.params.name).trim();
     const store = req.store;
-    if (!Array.isArray(store.documentCategories)) {
-      store.documentCategories = [...DEFAULT_DOCUMENT_CATEGORIES];
+    if (!Array.isArray(store.documentTags)) {
+      store.documentTags = [...DEFAULT_DOCUMENT_TAGS];
     }
 
-    const lower = name.toLowerCase();
-    const beforeCount = store.documentCategories.length;
-    store.documentCategories = store.documentCategories.filter(c => {
-      const cLower = c.toLowerCase();
-      return cLower !== lower && !cLower.startsWith(lower + ' > ');
-    });
+    const beforeCount = store.documentTags.length;
+    store.documentTags = store.documentTags.filter(t => t.toLowerCase() !== tagName.toLowerCase());
 
-    if (store.documentCategories.length === beforeCount) {
-      return res.status(404).json({ error: 'Document category not found' });
+    if (store.documentTags.length === beforeCount) {
+      return res.status(404).json({ error: 'Tag not found' });
     }
 
     await storeHelper.write(store);
 
     res.json({
-      message: 'Document category deleted successfully',
-      documentCategories: store.documentCategories
+      message: 'Tag deleted successfully',
+      documentTags: store.documentTags
     });
   } catch (error) {
-    console.error('Error deleting document category:', error);
+    console.error('Error deleting document tag:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -1614,13 +1593,15 @@ app.post('/api/categories/move', requireAuth, async (req, res) => {
     }
 
     const { type, sourcePath, targetParentPath } = req.body;
+    if (type !== 'agenda') {
+      return res.status(400).json({ error: 'Move is only supported for agenda categories' });
+    }
     if (!sourcePath || typeof sourcePath !== 'string') {
       return res.status(400).json({ error: 'Source category path is required' });
     }
 
     const store = req.store;
-    const isAgenda = type === 'agenda';
-    const catList = isAgenda ? (store.categories || []) : (store.documentCategories || []);
+    const catList = store.categories || [];
 
     const src = sourcePath.trim();
     const tgt = targetParentPath ? targetParentPath.trim() : null;
@@ -1666,7 +1647,7 @@ app.post('/api/categories/move', requireAuth, async (req, res) => {
       }
     }
 
-    // Build replacement map for category list and items/documents
+    // Build replacement map for category list and items
     const replacementMap = new Map();
     replacementMap.set(srcLower, newBasePath);
 
@@ -1696,26 +1677,14 @@ app.post('/api/categories/move', requireAuth, async (req, res) => {
       updatedCatList.push(newBasePath);
     }
 
-    if (isAgenda) {
-      store.categories = updatedCatList;
-      if (Array.isArray(store.agendaItems)) {
-        store.agendaItems.forEach(item => {
-          const itemCatLower = (item.category || '').toLowerCase();
-          if (replacementMap.has(itemCatLower)) {
-            item.category = replacementMap.get(itemCatLower);
-          }
-        });
-      }
-    } else {
-      store.documentCategories = updatedCatList;
-      if (Array.isArray(store.documents)) {
-        store.documents.forEach(doc => {
-          const docCatLower = (doc.category || '').toLowerCase();
-          if (replacementMap.has(docCatLower)) {
-            doc.category = replacementMap.get(docCatLower);
-          }
-        });
-      }
+    store.categories = updatedCatList;
+    if (Array.isArray(store.agendaItems)) {
+      store.agendaItems.forEach(item => {
+        const itemCatLower = (item.category || '').toLowerCase();
+        if (replacementMap.has(itemCatLower)) {
+          item.category = replacementMap.get(itemCatLower);
+        }
+      });
     }
 
     await storeHelper.write(store);
@@ -1723,7 +1692,7 @@ app.post('/api/categories/move', requireAuth, async (req, res) => {
     res.json({
       message: `Category "${leafName}" moved successfully`,
       newPath: newBasePath,
-      categories: isAgenda ? store.categories : store.documentCategories
+      categories: store.categories
     });
   } catch (error) {
     console.error('Error moving category:', error);
@@ -1756,7 +1725,7 @@ app.get('/api/stats', requireAuth, async (req, res) => {
       totalItems: store.agendaItems.length,
       totalDocuments: Array.isArray(store.documents) ? store.documents.length : 0,
       categories: store.categories || DEFAULT_CATEGORIES,
-      documentCategories: store.documentCategories || DEFAULT_DOCUMENT_CATEGORIES,
+      documentTags: store.documentTags || DEFAULT_DOCUMENT_TAGS,
       itemsByCategory,
       itemsByStatus,
       topItems

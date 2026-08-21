@@ -213,12 +213,14 @@
                             </div>
                             <div class="form-group">
                                 <div class="form-label-row">
-                                    <label for="doc-category">Category <span class="required">*</span></label>
-                                    <button type="button" class="btn-link-action admin-only hidden" id="btn-add-doc-cat-inline">+ New Category</button>
+                                    <label>Tags <span class="required">*</span></label>
+                                    <button type="button" class="btn-link-action admin-only hidden" id="btn-manage-doc-tags">⚙️ Manage Tags</button>
                                 </div>
-                                <select id="doc-category" required>
-                                    <option value="" disabled selected>Select category...</option>
-                                </select>
+                                <div class="doc-tag-picker" id="doc-tag-picker">
+                                    <!-- Tag checkboxes injected by JS -->
+                                </div>
+                                <input type="text" id="doc-tag-new-input" class="doc-tag-new-input" placeholder="+ Type a new tag and press Enter to add it..." autocomplete="off" maxlength="40">
+                                <span class="error-msg" id="doc-tags-error"></span>
                             </div>
                             <div class="form-group">
                                 <label for="doc-description">Notes / Brief Description (Optional)</label>
@@ -244,17 +246,19 @@
                 </div>
 
                 <div class="filters-section">
-                    <div class="filter-group">
-                        <select id="filter-doc-category" class="filter-select">
-                            <option value="All">All Categories</option>
-                        </select>
-                        <select id="sort-docs" class="filter-select">
-                            <option value="newest">Sort: Newest First</option>
-                            <option value="oldest">Sort: Oldest First</option>
-                            <option value="size">Sort: Largest Size</option>
-                            <option value="title">Sort: Name (A–Z)</option>
-                        </select>
-                        <button type="button" class="btn btn-outline btn-sm btn-manage-categories admin-only hidden" id="btn-manage-doc-cats" title="Manage Document Categories">⚙️ Categories</button>
+                    <div class="filter-group doc-filter-group">
+                        <div class="doc-tag-filter-strip" id="doc-tag-filter-strip">
+                            <!-- Tag chips injected by JS -->
+                        </div>
+                        <div class="doc-filter-controls">
+                            <select id="sort-docs" class="filter-select">
+                                <option value="newest">Sort: Newest First</option>
+                                <option value="oldest">Sort: Oldest First</option>
+                                <option value="size">Sort: Largest Size</option>
+                                <option value="title">Sort: Name (A–Z)</option>
+                            </select>
+                            <button type="button" class="btn btn-outline btn-sm btn-manage-categories admin-only hidden" id="btn-manage-doc-tags-modal" title="Manage File Vault Tags">⚙️ Tags</button>
+                        </div>
                     </div>
                 </div>
 
@@ -351,6 +355,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=20260821-23"></script>
+    <script src="app.js?v=20260821-24"></script>
 </body>
 </html>
