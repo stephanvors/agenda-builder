@@ -312,7 +312,7 @@
                 <p class="category-modal-desc" id="category-modal-desc">Create and organize up to 3 levels of nested categories (Main Category > Subcategory > Topic).</p>
                 
                 <form id="add-category-form" class="add-category-form">
-                    <div class="cat-builder-card">
+                    <div class="cat-builder-card" id="cat-builder-card">
                         <div class="cat-level-row">
                             <div class="cat-select-group">
                                 <label for="cat-parent-l1" class="cat-level-label">Level 1 (Main Category)</label>
@@ -332,29 +332,29 @@
                         <div class="cat-target-badge" id="cat-target-badge">
                             Target: <span id="cat-target-path" class="cat-target-path">New Main Category (Level 1)</span>
                         </div>
+                    </div>
 
-                        <div class="add-category-input-row">
-                            <input type="text" id="new-category-input" placeholder="Enter category name..." maxlength="60" required autocomplete="off">
-                            <button type="submit" id="btn-submit-new-category" class="btn btn-primary btn-sm">+ Add</button>
-                        </div>
+                    <div class="add-category-input-row">
+                        <input type="text" id="new-category-input" placeholder="Enter category name..." maxlength="60" required autocomplete="off">
+                        <button type="submit" id="btn-submit-new-category" class="btn btn-primary btn-sm">+ Add</button>
                     </div>
                     <span class="error-msg" id="category-modal-error"></span>
                 </form>
                 
                 <div class="category-list-header">
-                    <span>Hierarchy Structure (<span id="category-modal-count">0</span>)</span>
-                    <span class="cat-drag-tip-text">💡 Drag & drop rows to nest</span>
+                    <span><span id="category-modal-list-title">Hierarchy Structure</span> (<span id="category-modal-count">0</span>)</span>
+                    <span class="cat-drag-tip-text" id="cat-drag-tip">💡 Drag & drop rows to nest</span>
                 </div>
                 <div class="cat-drop-root-zone hidden" id="cat-drop-root-zone" data-path="__ROOT__">
                     <span>⬆️ Drop here to move to Top Level (Level 1)</span>
                 </div>
                 <div class="category-tree-container" id="category-tree-container">
-                    <!-- 3-level tree injected here -->
+                    <!-- 3-level tree or tags injected here -->
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="app.js?v=20260821-25"></script>
+    <script src="app.js?v=20260821-26"></script>
 </body>
 </html>

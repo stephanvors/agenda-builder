@@ -39,7 +39,7 @@ function isAdmin() {
     return name === 'stephen vorster' || role.includes('admin') || role.includes('principal') || role.includes('chairperson');
 }
 
-const APP_VERSION = '20260821-25';
+const APP_VERSION = '20260821-26';
 const MEETING_DATE = new Date('2026-08-27T10:00:00');
 const POLL_INTERVAL_MS = 15000;
 
@@ -449,21 +449,24 @@ const els = {
     documentsEmptyState:  document.getElementById('documents-empty-state'),
 
     // Category Management Modal Elements (Admin)
-    categoryModal:        document.getElementById('category-modal'),
-    categoryModalTitle:   document.getElementById('category-modal-title'),
-    categoryModalDesc:    document.getElementById('category-modal-desc'),
-    btnCloseCategoryModal:document.getElementById('btn-close-category-modal'),
-    addCategoryForm:      document.getElementById('add-category-form'),
-    catParentL1:          document.getElementById('cat-parent-l1'),
-    catParentL2:          document.getElementById('cat-parent-l2'),
-    catParentL2Group:     document.getElementById('cat-parent-l2-group'),
-    catTargetPath:        document.getElementById('cat-target-path'),
-    newCategoryInput:     document.getElementById('new-category-input'),
-    btnSubmitNewCategory: document.getElementById('btn-submit-new-category'),
-    categoryModalError:   document.getElementById('category-modal-error'),
-    categoryModalCount:   document.getElementById('category-modal-count'),
-    catDropRootZone:      document.getElementById('cat-drop-root-zone'),
-    categoryTreeContainer:document.getElementById('category-tree-container'),
+    categoryModal:          document.getElementById('category-modal'),
+    categoryModalTitle:     document.getElementById('category-modal-title'),
+    categoryModalDesc:      document.getElementById('category-modal-desc'),
+    btnCloseCategoryModal:  document.getElementById('btn-close-category-modal'),
+    addCategoryForm:        document.getElementById('add-category-form'),
+    catBuilderCard:         document.getElementById('cat-builder-card'),
+    catParentL1:            document.getElementById('cat-parent-l1'),
+    catParentL2:            document.getElementById('cat-parent-l2'),
+    catParentL2Group:       document.getElementById('cat-parent-l2-group'),
+    catTargetPath:          document.getElementById('cat-target-path'),
+    newCategoryInput:       document.getElementById('new-category-input'),
+    btnSubmitNewCategory:   document.getElementById('btn-submit-new-category'),
+    categoryModalError:     document.getElementById('category-modal-error'),
+    categoryModalListTitle: document.getElementById('category-modal-list-title'),
+    categoryModalCount:     document.getElementById('category-modal-count'),
+    catDragTip:             document.getElementById('cat-drag-tip'),
+    catDropRootZone:        document.getElementById('cat-drop-root-zone'),
+    categoryTreeContainer:  document.getElementById('category-tree-container'),
 
     btnExport:        document.getElementById('btn-export'),
     modal:            document.getElementById('export-modal'),
@@ -1727,25 +1730,26 @@ function openCategoryModal(type = 'agenda') {
     state.activeCategoryModalType = type;
     if (!els.categoryModal) return;
 
-    const catBuilderCard = els.addCategoryForm ? els.addCategoryForm.querySelector('.cat-builder-card') : null;
-    const catDropRootZoneEl = document.getElementById('cat-drop-root-zone');
-
     if (type === 'agenda') {
         if (els.categoryModalTitle) els.categoryModalTitle.textContent = 'Manage Agenda Categories';
         if (els.categoryModalDesc)  els.categoryModalDesc.textContent = 'Create and organize up to 3 levels of nested categories for agenda items.';
         if (els.btnSubmitNewCategory) els.btnSubmitNewCategory.textContent = '+ Add Category';
         if (els.newCategoryInput) els.newCategoryInput.placeholder = 'Enter main category name (e.g. Governance & Legal)...';
-        if (catBuilderCard) catBuilderCard.classList.remove('hidden');
-        if (catDropRootZoneEl) catDropRootZoneEl.classList.add('hidden');
+        if (els.catBuilderCard) els.catBuilderCard.classList.remove('hidden');
+        if (els.categoryModalListTitle) els.categoryModalListTitle.textContent = 'Hierarchy Structure';
+        if (els.catDragTip) els.catDragTip.classList.remove('hidden');
+        if (els.catDropRootZone) els.catDropRootZone.classList.add('hidden');
         updateCategoryBuilderSelectors();
         renderCategoryTree();
     } else {
         if (els.categoryModalTitle) els.categoryModalTitle.textContent = 'Manage File Vault Tags';
         if (els.categoryModalDesc)  els.categoryModalDesc.textContent = 'Add or remove tags for files in the vault. Files can have multiple tags.';
         if (els.btnSubmitNewCategory) els.btnSubmitNewCategory.textContent = '+ Add Tag';
-        if (els.newCategoryInput) els.newCategoryInput.placeholder = 'Enter tag name (e.g. Term 2, Financial Reports, Minutes)...';
-        if (catBuilderCard) catBuilderCard.classList.add('hidden');
-        if (catDropRootZoneEl) catDropRootZoneEl.classList.add('hidden');
+        if (els.newCategoryInput) els.newCategoryInput.placeholder = 'Enter tag name (e.g. Policies, Term 3, Financial Reports)...';
+        if (els.catBuilderCard) els.catBuilderCard.classList.add('hidden');
+        if (els.categoryModalListTitle) els.categoryModalListTitle.textContent = 'Available Tags';
+        if (els.catDragTip) els.catDragTip.classList.add('hidden');
+        if (els.catDropRootZone) els.catDropRootZone.classList.add('hidden');
         renderDocTagManager();
     }
 
