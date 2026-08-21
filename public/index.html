@@ -11,13 +11,32 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20260821-21">
+    <link rel="stylesheet" href="style.css?v=20260821-35">
+    <script>
+        (function() {
+            try {
+                var saved = localStorage.getItem('agendabuilder_theme');
+                var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                if (saved === 'dark' || (!saved && prefersDark)) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                } else {
+                    document.documentElement.setAttribute('data-theme', 'light');
+                }
+            } catch(e) {}
+        })();
+    </script>
 </head>
 <body>
     <div id="toast-container" class="toast-container"></div>
 
     <!-- Login Panel -->
     <main id="login-view" class="view-container active">
+        <div class="theme-toggle-floating">
+            <button type="button" class="btn-theme-toggle" id="btn-theme-toggle-login" title="Toggle Light / Dark Mode" aria-label="Toggle Light / Dark Mode">
+                <span class="theme-toggle-icon">🌙</span>
+                <span class="theme-toggle-text">Dark Mode</span>
+            </button>
+        </div>
         <div class="registration-card">
             <img src="logo.svg" alt="LGAA School Logo" class="login-logo">
             <h1>SGB/SMT Strategy Meeting</h1>
@@ -52,6 +71,10 @@
                     </div>
                 </div>
                 <div class="user-info">
+                    <button type="button" class="btn-theme-toggle" id="btn-theme-toggle-app" title="Toggle Light / Dark Mode" aria-label="Toggle Light / Dark Mode">
+                        <span class="theme-toggle-icon">🌙</span>
+                        <span class="theme-toggle-text">Dark</span>
+                    </button>
                     <div class="user-details">
                         <span id="current-user-name" class="user-name"></span>
                         <span id="current-user-role" class="user-role badge"></span>
@@ -551,6 +574,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=20260821-32"></script>
+    <script src="app.js?v=20260821-35"></script>
 </body>
 </html>

@@ -1709,6 +1709,15 @@ app.delete('/api/categories/documents/:name', requireAuth, async (req, res) => {
 
     const tagName = decodeURIComponent(req.params.name).trim();
     const store = req.store;
+
+    // Disallow deleting contributor/uploader tags
+    const isContributorTag = (Array.isArray(store.members) && store.members.some(m => m.name && m.name.trim().toLowerCase() === tagName.toLowerCase()))
+      || (Array.isArray(store.documents) && store.documents.some(d => d.uploadedBy?.memberName && d.uploadedBy.memberName.trim().toLowerCase() === tagName.toLowerCase()));
+
+    if (isContributorTag) {
+      return res.status(400).json({ error: 'Contributor/uploader tags are permanent and cannot be deleted' });
+    }
+
     if (!Array.isArray(store.documentTags)) {
       store.documentTags = [...DEFAULT_DOCUMENT_TAGS];
     }

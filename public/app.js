@@ -26,6 +26,7 @@ const state = {
         search: ''
     },
     sort: 'votes',
+    theme: 'light',          // 'light' | 'dark'
     openComments: new Set(), // item IDs with expanded comment drawers
     activeCommentType: {},   // { [itemId]: 'idea' | 'action' | 'question' | 'comment' }
     commentDrafts: {},       // { [itemId]: 'draft text' }
@@ -40,7 +41,7 @@ function isAdmin() {
     return name === 'stephen vorster' || role.includes('admin') || role.includes('principal') || role.includes('chairperson');
 }
 
-const APP_VERSION = '20260821-32';
+const APP_VERSION = '20260821-35';
 const MEETING_DATE = new Date('2026-08-27T10:00:00');
 const POLL_INTERVAL_MS = 15000;
 
@@ -85,6 +86,10 @@ const api = {
         return res.json();
     },
 
+    async verifySession() {
+        return this.getMe();
+    },
+
     async logout() {
         await fetch('/api/logout', { method: 'POST', headers: authHeaders() });
     },
@@ -117,6 +122,10 @@ const api = {
         return res.json();
     },
 
+    async vote(itemId) {
+        return this.voteItem(itemId);
+    },
+
     async voteItem(itemId) {
         const res = await fetch(`/api/items/${itemId}/vote`, {
             method: 'POST',
@@ -128,6 +137,10 @@ const api = {
             throw new Error(err.error || 'Failed to vote');
         }
         return res.json();
+    },
+
+    async unvote(itemId) {
+        return this.unvoteItem(itemId);
     },
 
     async unvoteItem(itemId) {
@@ -184,6 +197,10 @@ const api = {
         return res.json();
     },
 
+    async updateComment(itemId, commentId, { content, type = 'idea' }) {
+        return this.editComment(itemId, commentId, content, type);
+    },
+
     async deleteComment(itemId, commentId) {
         const res = await fetch(`/api/items/${itemId}/comments/${commentId}`, {
             method: 'DELETE',
@@ -197,11 +214,11 @@ const api = {
         return res.json();
     },
 
-    async resolveItem(itemId, solutionText) {
+    async resolveItem(itemId, solutionText, commentId = null) {
         const res = await fetch(`/api/items/${itemId}/resolve`, {
             method: 'POST',
             headers: authHeaders(),
-            body: JSON.stringify({ solutionText })
+            body: JSON.stringify({ solutionText, commentId })
         });
         if (res.status === 401) { handleSessionExpired(); return null; }
         if (!res.ok) {
@@ -395,6 +412,8 @@ const els = {
     userName:         document.getElementById('current-user-name'),
     userRole:         document.getElementById('current-user-role'),
     btnSignout:       document.getElementById('btn-signout'),
+    btnThemeToggleApp:   document.getElementById('btn-theme-toggle-app'),
+    btnThemeToggleLogin: document.getElementById('btn-theme-toggle-login'),
 
     statDays:         document.getElementById('stat-days'),
     statTicker:       document.getElementById('stat-ticker'),
@@ -522,8 +541,79 @@ const els = {
     refreshCountdown: document.getElementById('refresh-countdown')
 };
 
+// ── Theme Management (Light / Dark Mode) ──
+function initTheme() {
+    let current = 'light';
+    try {
+        const saved = localStorage.getItem('agendabuilder_theme');
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (saved === 'dark' || (!saved && prefersDark)) {
+            current = 'dark';
+        }
+    } catch (e) {
+        current = 'light';
+    }
+    setTheme(current, false);
+
+    // Listen for OS system theme changes if user hasn't explicitly saved a preference
+    if (window.matchMedia) {
+        try {
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+                if (!localStorage.getItem('agendabuilder_theme')) {
+                    setTheme(e.matches ? 'dark' : 'light', false);
+                }
+            });
+        } catch (err) {}
+    }
+}
+
+function setTheme(theme, save = true) {
+    state.theme = theme;
+    if (theme === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+    } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+    }
+    if (save) {
+        try {
+            localStorage.setItem('agendabuilder_theme', theme);
+        } catch (e) {}
+    }
+    updateThemeToggleUI();
+}
+
+function toggleTheme() {
+    const nextTheme = state.theme === 'dark' ? 'light' : 'dark';
+    setTheme(nextTheme, true);
+    showToast(nextTheme === 'dark' ? '🌙 Dark Mode enabled' : '☀️ Light Mode enabled');
+}
+
+function updateThemeToggleUI() {
+    const isDark = state.theme === 'dark';
+    const icon = isDark ? '☀️' : '🌙';
+    const textApp = isDark ? 'Light' : 'Dark';
+    const textLogin = isDark ? 'Light Mode' : 'Dark Mode';
+
+    if (els.btnThemeToggleApp) {
+        const iconSpan = els.btnThemeToggleApp.querySelector('.theme-toggle-icon');
+        const textSpan = els.btnThemeToggleApp.querySelector('.theme-toggle-text');
+        if (iconSpan) iconSpan.textContent = icon;
+        if (textSpan) textSpan.textContent = textApp;
+        els.btnThemeToggleApp.setAttribute('title', isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode');
+    }
+
+    if (els.btnThemeToggleLogin) {
+        const iconSpan = els.btnThemeToggleLogin.querySelector('.theme-toggle-icon');
+        const textSpan = els.btnThemeToggleLogin.querySelector('.theme-toggle-text');
+        if (iconSpan) iconSpan.textContent = icon;
+        if (textSpan) textSpan.textContent = textLogin;
+        els.btnThemeToggleLogin.setAttribute('title', isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode');
+    }
+}
+
 // ── Initialisation ──
 async function init() {
+    initTheme();
     setupEventListeners();
     initHistoryNavigation();
     startCountdown();
@@ -573,6 +663,13 @@ async function loadMemberList() {
 
 // ── Event Listeners ──
 function setupEventListeners() {
+    if (els.btnThemeToggleApp) {
+        els.btnThemeToggleApp.addEventListener('click', toggleTheme);
+    }
+    if (els.btnThemeToggleLogin) {
+        els.btnThemeToggleLogin.addEventListener('click', toggleTheme);
+    }
+
     els.loginForm.addEventListener('submit', handleLogin);
     els.btnSignout.addEventListener('click', handleSignout);
 
@@ -716,13 +813,18 @@ function setupEventListeners() {
             if (!lbl) return;
             const tag = lbl.dataset.tag;
             if (!tag) return;
-            const idx = state.selectedUploadTags.indexOf(tag);
+            const memberName = (state.member?.name || '').trim();
+            if (memberName && tag.toLowerCase() === memberName.toLowerCase()) {
+                showToast('Your contributor tag is automatically assigned to your upload and cannot be removed.', true);
+                return;
+            }
+            const idx = state.selectedUploadTags.findIndex(t => t.toLowerCase() === tag.toLowerCase());
             if (idx === -1) {
                 state.selectedUploadTags.push(tag);
             } else {
                 state.selectedUploadTags.splice(idx, 1);
             }
-            lbl.classList.toggle('selected', state.selectedUploadTags.includes(tag));
+            renderDocTagPicker();
             if (els.docTagsError && state.selectedUploadTags.length > 0) {
                 els.docTagsError.textContent = '';
             }
@@ -840,6 +942,12 @@ function setupEventListeners() {
             const lbl = e.target.closest('.doc-tag-chip-label');
             if (!lbl) return;
             const tag = lbl.dataset.tag;
+            if (!tag) return;
+            const docUploaderName = (state.editingDoc?.uploadedBy?.memberName || '').trim();
+            if (docUploaderName && tag.toLowerCase() === docUploaderName.toLowerCase()) {
+                showToast('The contributor tag is permanently assigned to this document and cannot be removed.', true);
+                return;
+            }
             const idx = state.selectedEditTags.findIndex(t => t.toLowerCase() === tag.toLowerCase());
             if (idx === -1) {
                 state.selectedEditTags.push(tag);
@@ -1780,15 +1888,43 @@ function updateCategoryDropdowns() {
 }
 
 // ── File Vault Tag Rendering Helpers ──
+function isContributorTagName(tag, doc = null) {
+    if (!tag) return false;
+    const cleanTag = tag.trim().toLowerCase();
+    if (doc && doc.uploadedBy?.memberName) {
+        return cleanTag === doc.uploadedBy.memberName.trim().toLowerCase();
+    }
+    if (state.member?.name && cleanTag === state.member.name.trim().toLowerCase()) {
+        return true;
+    }
+    if (Array.isArray(state.documents) && state.documents.some(d => d.uploadedBy?.memberName && d.uploadedBy.memberName.trim().toLowerCase() === cleanTag)) {
+        return true;
+    }
+    if (Array.isArray(state.members) && state.members.some(m => m.name && m.name.trim().toLowerCase() === cleanTag)) {
+        return true;
+    }
+    return false;
+}
+
 function renderDocTagPicker() {
     if (!els.docTagPicker) return;
-    const tags = state.documentTags || [];
+    const memberName = (state.member?.name || '').trim();
+    const tags = [...(state.documentTags || [])];
+    if (memberName && !tags.some(t => t.toLowerCase() === memberName.toLowerCase())) {
+        tags.unshift(memberName);
+    }
     if (tags.length === 0) {
         els.docTagPicker.innerHTML = '<span style="color:var(--text-muted);font-size:0.82rem;padding:0.25rem 0.5rem;">No tags available yet. Type a tag below and press Enter.</span>';
         return;
     }
     els.docTagPicker.innerHTML = tags.map(tag => {
-        const isSelected = (state.selectedUploadTags || []).includes(tag);
+        const isCurrentUploader = !!(memberName && tag.toLowerCase() === memberName.toLowerCase());
+        const isSelected = isCurrentUploader || (state.selectedUploadTags || []).some(t => t.toLowerCase() === tag.toLowerCase());
+        if (isCurrentUploader) {
+            return `<label class="doc-tag-chip-label doc-tag-chip-uploader selected locked" data-tag="${escapeHTML(tag)}" title="Your contributor tag is automatically assigned to this upload and cannot be removed">
+                👤 ${escapeHTML(tag)} <span class="tag-locked-icon" title="Cannot be removed">🔒</span>
+            </label>`;
+        }
         return `<label class="doc-tag-chip-label ${isSelected ? 'selected' : ''}" data-tag="${escapeHTML(tag)}">
             ${escapeHTML(tag)}
         </label>`;
@@ -1804,10 +1940,11 @@ function renderDocTagFilterStrip() {
         const isActive = Array.isArray(state.docFilters.tags) && state.docFilters.tags.includes(tag);
         const count = (state.documents || []).filter(d => {
             const dTags = Array.isArray(d.tags) ? d.tags : (d.category ? [d.category] : []);
-            return dTags.includes(tag);
+            return dTags.some(t => t.toLowerCase() === tag.toLowerCase());
         }).length;
         if (count === 0 && !isActive) return;
-        html += `<button type="button" class="tag-filter-chip ${isActive ? 'active' : ''}" data-tag="${escapeHTML(tag)}">${escapeHTML(tag)} <span style="opacity:0.65;font-size:0.7rem;margin-left:0.2rem;">${count}</span></button>`;
+        const isContributor = isContributorTagName(tag);
+        html += `<button type="button" class="tag-filter-chip ${isContributor ? 'tag-filter-chip-uploader' : ''} ${isActive ? 'active' : ''}" data-tag="${escapeHTML(tag)}">${isContributor ? '👤 ' : ''}${escapeHTML(tag)} <span style="opacity:0.65;font-size:0.7rem;margin-left:0.2rem;">${count}</span></button>`;
     });
     els.docTagFilterStrip.innerHTML = html;
 }
@@ -1825,13 +1962,18 @@ function renderDocTagManager() {
             ${tags.map(tag => {
                 const count = (state.documents || []).filter(d => {
                     const dTags = Array.isArray(d.tags) ? d.tags : (d.category ? [d.category] : []);
-                    return dTags.includes(tag);
+                    return dTags.some(t => t.toLowerCase() === tag.toLowerCase());
                 }).length;
+                const isContributor = isContributorTagName(tag);
                 return `
-                    <div class="doc-tag-manager-row">
-                        <span class="doc-tag-pill">${escapeHTML(tag)}</span>
+                    <div class="doc-tag-manager-row ${isContributor ? 'doc-tag-manager-row-contributor' : ''}">
+                        <span class="doc-tag-pill ${isContributor ? 'doc-tag-pill-uploader' : ''}">${isContributor ? '👤 ' : ''}${escapeHTML(tag)}</span>
                         <span class="doc-tag-manager-count">${count > 0 ? count + ' file' + (count > 1 ? 's' : '') : 'unused'}</span>
-                        <button type="button" class="btn-cat-delete" data-path="${escapeHTML(tag)}" title="Delete tag">🗑️</button>
+                        ${isContributor ? `
+                            <span class="doc-tag-contributor-badge" title="Contributor tag (cannot be deleted)">🔒 Protected</span>
+                        ` : `
+                            <button type="button" class="btn-cat-delete" data-path="${escapeHTML(tag)}" title="Delete tag">🗑️</button>
+                        `}
                     </div>
                 `;
             }).join('')}
@@ -2319,6 +2461,11 @@ async function handleDeleteCategory(name) {
     const type = state.activeCategoryModalType;
     const isAgenda = type === 'agenda';
     
+    if (!isAgenda && isContributorTagName(name)) {
+        showToast(`Contributor tag "${name}" is protected and cannot be deleted.`, true);
+        return;
+    }
+
     // Check if in use
     if (isAgenda) {
         const inUseCount = state.items.filter(i => i.category === name || i.category?.startsWith(name + ' > ')).length;
@@ -2332,7 +2479,7 @@ async function handleDeleteCategory(name) {
     } else {
         const inUseCount = (state.documents || []).filter(d => {
             const dTags = Array.isArray(d.tags) ? d.tags : (d.category ? [d.category] : []);
-            return dTags.includes(name);
+            return dTags.some(t => t.toLowerCase() === name.toLowerCase());
         }).length;
         if (inUseCount > 0) {
             if (!confirm(`Warning: Tag "${name}" is currently used by ${inUseCount} file(s). Deleting will remove this tag from the list. Proceed?`)) {
@@ -2520,6 +2667,7 @@ function renderDocuments() {
         const canDelete = isUploader || isPrivileged || !isAvailable;
         const canEdit = isUploader || isPrivileged;
         const docTags = Array.isArray(doc.tags) ? doc.tags : (doc.category ? doc.category.split(/\s*>\s*/).map(p => p.trim()).filter(Boolean) : []);
+        const uploaderName = (doc.uploadedBy?.memberName || '').trim();
 
         return `
             <div class="doc-card ${!isAvailable ? 'doc-card-unavailable' : ''}" id="doc-${doc.id}">
@@ -2529,7 +2677,10 @@ function renderDocuments() {
                             ${typeInfo.icon}
                         </div>
                         <div class="doc-meta-badges">
-                            ${docTags.length > 0 ? `<div class="doc-tags-row">${docTags.map(t => `<span class="doc-tag-pill">${escapeHTML(t)}</span>`).join('')}</div>` : ''}
+                            ${docTags.length > 0 ? `<div class="doc-tags-row">${docTags.map(t => {
+                                const isContributor = (uploaderName && t.trim().toLowerCase() === uploaderName.toLowerCase()) || isContributorTagName(t, doc);
+                                return `<span class="doc-tag-pill ${isContributor ? 'doc-tag-pill-uploader' : ''}" title="${isContributor ? 'Contributor: ' + escapeHTML(t) : 'Tag: ' + escapeHTML(t)}">${isContributor ? '👤 ' : ''}${escapeHTML(t)}</span>`;
+                            }).join('')}</div>` : ''}
                             ${!isAvailable ? '<span class="doc-warning-badge" title="This file was uploaded prior to database persistence and needs to be re-uploaded">⚠️ Re-upload Needed</span>' : ''}
                             <span class="doc-size-badge">${formatBytes(doc.size)}</span>
                         </div>
@@ -2879,12 +3030,17 @@ function openEditDocModal(docId) {
     const doc = (state.documents || []).find(d => d.id === docId);
     if (!doc || !els.editDocModal) return;
 
+    state.editingDoc = doc;
     if (els.editDocId) els.editDocId.value = doc.id;
     if (els.editDocTitle) els.editDocTitle.value = doc.title || '';
     if (els.editDocCurrentFilename) els.editDocCurrentFilename.textContent = doc.originalName || 'file';
     if (els.editDocFileInput) els.editDocFileInput.value = '';
 
     const docTags = Array.isArray(doc.tags) ? [...doc.tags] : (doc.category ? doc.category.split(/\s*>\s*/).map(p => p.trim()).filter(Boolean) : []);
+    const docUploaderName = (doc.uploadedBy?.memberName || '').trim();
+    if (docUploaderName && !docTags.some(t => t.toLowerCase() === docUploaderName.toLowerCase())) {
+        docTags.unshift(docUploaderName);
+    }
     state.selectedEditTags = [...docTags];
 
     if (els.editDocDescriptionEditor) {
@@ -2904,6 +3060,7 @@ function openEditDocModal(docId) {
 }
 
 function closeEditDocModal() {
+    state.editingDoc = null;
     if (els.editDocModal) {
         els.editDocModal.classList.remove('active');
     }
@@ -2911,7 +3068,11 @@ function closeEditDocModal() {
 
 function renderEditDocTagPicker() {
     if (!els.editDocTagPicker) return;
+    const docUploaderName = (state.editingDoc?.uploadedBy?.memberName || '').trim();
     const allTags = [...(state.documentTags || [])];
+    if (docUploaderName && !allTags.some(at => at.toLowerCase() === docUploaderName.toLowerCase())) {
+        allTags.unshift(docUploaderName);
+    }
     state.selectedEditTags.forEach(t => {
         if (!allTags.some(at => at.toLowerCase() === t.toLowerCase())) {
             allTags.push(t);
@@ -2924,7 +3085,15 @@ function renderEditDocTagPicker() {
     }
 
     els.editDocTagPicker.innerHTML = allTags.map(tag => {
-        const isSelected = state.selectedEditTags.some(t => t.toLowerCase() === tag.toLowerCase());
+        const isDocUploader = !!(docUploaderName && tag.toLowerCase() === docUploaderName.toLowerCase());
+        const isSelected = isDocUploader || state.selectedEditTags.some(t => t.toLowerCase() === tag.toLowerCase());
+        if (isDocUploader) {
+            return `
+                <label class="doc-tag-chip-label doc-tag-chip-uploader selected locked" data-tag="${escapeHTML(tag)}" title="Contributor tag is permanently assigned to this document and cannot be removed">
+                    👤 ${escapeHTML(tag)} <span class="tag-locked-icon" title="Cannot be removed">🔒</span>
+                </label>
+            `;
+        }
         return `
             <label class="doc-tag-chip-label ${isSelected ? 'selected' : ''}" data-tag="${escapeHTML(tag)}">
                 ${escapeHTML(tag)}
@@ -3065,6 +3234,11 @@ async function handleSaveEditDoc(e) {
     if (!title) {
         showToast('Document title is required', true);
         return;
+    }
+
+    const docUploaderName = (state.editingDoc?.uploadedBy?.memberName || '').trim();
+    if (docUploaderName && !state.selectedEditTags.some(t => t.toLowerCase() === docUploaderName.toLowerCase())) {
+        state.selectedEditTags.unshift(docUploaderName);
     }
 
     if (!state.selectedEditTags || state.selectedEditTags.length === 0) {
