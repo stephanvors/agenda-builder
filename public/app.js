@@ -39,7 +39,7 @@ function isAdmin() {
     return name === 'stephen vorster' || role.includes('admin') || role.includes('principal') || role.includes('chairperson');
 }
 
-const APP_VERSION = '20260821-27';
+const APP_VERSION = '20260821-28';
 const MEETING_DATE = new Date('2026-08-27T10:00:00');
 const POLL_INTERVAL_MS = 15000;
 
@@ -434,6 +434,11 @@ const els = {
     docTagsError:         document.getElementById('doc-tags-error'),
     btnManageDocTags:     document.getElementById('btn-manage-doc-tags'),
     docDescription:       document.getElementById('doc-description'),
+    docDescriptionWrapper:document.getElementById('doc-description-wrapper'),
+    docEditorToolbar:     document.getElementById('doc-editor-toolbar'),
+    docDescriptionEditor: document.getElementById('doc-description-editor'),
+    editorFormatBlock:    document.getElementById('editor-format-block'),
+    editorFontSize:       document.getElementById('editor-font-size'),
     uploadProgressWrapper: document.getElementById('upload-progress-wrapper'),
     uploadProgressFill:   document.getElementById('upload-progress-fill'),
     uploadProgressText:   document.getElementById('upload-progress-text'),
@@ -759,6 +764,7 @@ function setupEventListeners() {
                             // Pre-fill upload form with doc title, description, and tags
                             if (els.docTitle) els.docTitle.value = doc.title || '';
                             if (els.docDescription) els.docDescription.value = doc.description || '';
+                            if (els.docDescriptionEditor) els.docDescriptionEditor.innerHTML = doc.description || '';
                             const docTags = Array.isArray(doc.tags) ? doc.tags : (doc.category ? doc.category.split(/\s*>\s*/).map(p => p.trim()).filter(Boolean) : []);
                             state.selectedUploadTags = [...docTags];
                             renderDocTagPicker();
@@ -852,6 +858,8 @@ function setupEventListeners() {
     els.modal.addEventListener('click', (e) => {
         if (e.target === els.modal) els.modal.classList.remove('active');
     });
+
+    setupRichTextEditor();
 }
 
 // ── Handlers ──
@@ -2345,7 +2353,8 @@ function renderDocuments() {
             const q = state.docFilters.search.toLowerCase();
             const titleMatch = (doc.title || '').toLowerCase().includes(q);
             const authorMatch = (doc.uploadedBy?.memberName || '').toLowerCase().includes(q);
-            const descMatch = (doc.description || '').toLowerCase().includes(q);
+            const descText = (doc.description || '').replace(/<[^>]*>/g, ' ').toLowerCase();
+            const descMatch = descText.includes(q);
             const fileMatch = (doc.originalName || '').toLowerCase().includes(q);
             const tagMatch = docTags.some(t => t.toLowerCase().includes(q));
             matchSearch = titleMatch || authorMatch || descMatch || fileMatch || tagMatch;
@@ -2403,7 +2412,7 @@ function renderDocuments() {
                             <span>📄</span> <span class="doc-filename-text">${escapeHTML(doc.originalName)}</span>
                         </div>
                         ${doc.description ? `
-                            <div class="doc-description">${escapeHTML(doc.description)}</div>
+                            <div class="doc-description">${sanitizeRichHtml(doc.description)}</div>
                         ` : ''}
                     </div>
                 </div>
@@ -2438,6 +2447,158 @@ function renderDocuments() {
     }).join('');
 }
 
+// ── Rich Text Sanitizer & Editor Setup ──
+function sanitizeRichHtml(dirtyHtml) {
+    if (!dirtyHtml || typeof dirtyHtml !== 'string') return '';
+
+    // If plain text with no HTML tags, escape and preserve newlines
+    if (!/<[a-z][\s\S]*>/i.test(dirtyHtml)) {
+        return escapeHTML(dirtyHtml).replace(/\n/g, '<br>');
+    }
+
+    const template = document.createElement('template');
+    template.innerHTML = dirtyHtml.trim();
+
+    const allowedTags = new Set([
+        'P', 'BR', 'B', 'STRONG', 'I', 'EM', 'U', 'S', 'STRIKE',
+        'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'UL', 'OL', 'LI',
+        'BLOCKQUOTE', 'SPAN', 'DIV', 'FONT', 'A', 'HR', 'CODE', 'PRE', 'TABLE', 'TR', 'TD', 'TH', 'TBODY', 'THEAD'
+    ]);
+    const allowedAttrs = new Set(['style', 'class', 'href', 'target', 'rel', 'size', 'color', 'align']);
+    const safeStyleProps = new Set([
+        'font-size', 'font-weight', 'font-style', 'text-decoration', 
+        'text-align', 'color', 'background-color', 'margin-left', 'margin-right'
+    ]);
+
+    function cleanNode(node) {
+        if (node.nodeType === Node.TEXT_NODE) return;
+        if (node.nodeType !== Node.ELEMENT_NODE) {
+            node.remove();
+            return;
+        }
+
+        const tag = node.tagName.toUpperCase();
+        if (!allowedTags.has(tag)) {
+            while (node.firstChild) {
+                node.parentNode.insertBefore(node.firstChild, node);
+            }
+            node.remove();
+            return;
+        }
+
+        const attrs = Array.from(node.attributes);
+        for (const attr of attrs) {
+            const attrName = attr.name.toLowerCase();
+            if (attrName.startsWith('on') || !allowedAttrs.has(attrName)) {
+                node.removeAttribute(attr.name);
+            } else if (attrName === 'href') {
+                const val = attr.value.trim().toLowerCase();
+                if (val.startsWith('javascript:') || val.startsWith('data:') || val.startsWith('vbscript:')) {
+                    node.removeAttribute(attr.name);
+                } else {
+                    node.setAttribute('target', '_blank');
+                    node.setAttribute('rel', 'noopener noreferrer');
+                }
+            } else if (attrName === 'style') {
+                const cleanedStyles = [];
+                const styleDecls = attr.value.split(';');
+                for (const decl of styleDecls) {
+                    const [prop, val] = decl.split(':').map(s => s ? s.trim() : '');
+                    if (prop && val && safeStyleProps.has(prop.toLowerCase())) {
+                        cleanedStyles.push(`${prop.toLowerCase()}: ${val}`);
+                    }
+                }
+                if (cleanedStyles.length > 0) {
+                    node.setAttribute('style', cleanedStyles.join('; '));
+                } else {
+                    node.removeAttribute('style');
+                }
+            }
+        }
+
+        Array.from(node.childNodes).forEach(cleanNode);
+    }
+
+    Array.from(template.content.childNodes).forEach(cleanNode);
+    return template.innerHTML;
+}
+
+function setupRichTextEditor() {
+    if (!els.docDescriptionEditor || !els.docEditorToolbar) return;
+
+    // Toolbar button clicks
+    els.docEditorToolbar.querySelectorAll('.toolbar-btn').forEach(btn => {
+        btn.addEventListener('mousedown', (e) => {
+            e.preventDefault(); // Prevent blur
+            const command = btn.dataset.command;
+            if (!command) return;
+            document.execCommand(command, false, null);
+            updateToolbarState();
+        });
+    });
+
+    // Heading / Block Format dropdown
+    if (els.editorFormatBlock) {
+        els.editorFormatBlock.addEventListener('change', (e) => {
+            const val = e.target.value;
+            if (val === 'p') {
+                document.execCommand('formatBlock', false, '<p>');
+            } else if (val === 'blockquote') {
+                document.execCommand('formatBlock', false, '<blockquote>');
+            } else {
+                document.execCommand('formatBlock', false, `<${val}>`);
+            }
+            els.docDescriptionEditor.focus();
+            updateToolbarState();
+        });
+    }
+
+    // Font Size dropdown
+    if (els.editorFontSize) {
+        els.editorFontSize.addEventListener('change', (e) => {
+            const val = e.target.value;
+            document.execCommand('fontSize', false, val);
+            els.docDescriptionEditor.focus();
+            updateToolbarState();
+        });
+    }
+
+    // Sync content on input
+    els.docDescriptionEditor.addEventListener('input', () => {
+        if (els.docDescription) {
+            els.docDescription.value = els.docDescriptionEditor.innerHTML;
+        }
+        updateToolbarState();
+    });
+
+    // Update active toolbar buttons on selection change
+    ['keyup', 'mouseup', 'click'].forEach(evt => {
+        els.docDescriptionEditor.addEventListener(evt, updateToolbarState);
+    });
+
+    document.addEventListener('selectionchange', () => {
+        if (document.activeElement === els.docDescriptionEditor) {
+            updateToolbarState();
+        }
+    });
+
+    function updateToolbarState() {
+        if (!els.docEditorToolbar) return;
+        const commands = ['bold', 'italic', 'underline', 'strikeThrough', 'justifyLeft', 'justifyCenter', 'justifyRight', 'justifyFull', 'insertUnorderedList', 'insertOrderedList'];
+        commands.forEach(cmd => {
+            const btn = els.docEditorToolbar.querySelector(`[data-command="${cmd}"]`);
+            if (btn) {
+                try {
+                    const isActive = document.queryCommandState(cmd);
+                    btn.classList.toggle('active', !!isActive);
+                } catch {
+                    btn.classList.remove('active');
+                }
+            }
+        });
+    }
+}
+
 // ── Upload Form Logic ──
 function toggleUploadForm() {
     if (!els.uploadDocContainer) return;
@@ -2458,6 +2619,12 @@ function resetUploadForm() {
     if (els.docFileError)  els.docFileError.textContent = '';
     if (els.docTagsError)  els.docTagsError.textContent = '';
     
+    // Reset rich text editor
+    if (els.docDescriptionEditor) els.docDescriptionEditor.innerHTML = '';
+    if (els.docDescription) els.docDescription.value = '';
+    if (els.editorFormatBlock) els.editorFormatBlock.value = 'p';
+    if (els.editorFontSize) els.editorFontSize.value = '3';
+
     // Auto-select current member's name as a default tag
     const memberName = (state.member?.name || '').trim();
     if (memberName) {
@@ -2533,7 +2700,16 @@ async function handleSubmitUpload(e) {
     }
 
     const title = (els.docTitle.value || '').trim() || file.name;
-    const description = (els.docDescription.value || '').trim();
+    
+    let description = '';
+    if (els.docDescriptionEditor) {
+        const textOnly = els.docDescriptionEditor.textContent.trim();
+        if (textOnly || els.docDescriptionEditor.querySelector('img, hr, table, br, ul, ol, blockquote, p')) {
+            description = els.docDescriptionEditor.innerHTML.trim();
+        }
+    } else if (els.docDescription) {
+        description = (els.docDescription.value || '').trim();
+    }
 
     const formData = new FormData();
     formData.append('file', file);

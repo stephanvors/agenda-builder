@@ -223,8 +223,77 @@
                                 <span class="error-msg" id="doc-tags-error"></span>
                             </div>
                             <div class="form-group">
-                                <label for="doc-description">Notes / Brief Description (Optional)</label>
-                                <textarea id="doc-description" rows="2" placeholder="What is this document about?"></textarea>
+                                <label for="doc-description-editor">Notes / Brief Description (Optional)</label>
+                                <div class="rich-editor-wrapper" id="doc-description-wrapper">
+                                    <div class="rich-editor-toolbar" id="doc-editor-toolbar" role="toolbar" aria-label="Text Formatting">
+                                        <!-- Heading / Format Block -->
+                                        <select class="editor-select" id="editor-format-block" title="Text Style">
+                                            <option value="p">Normal text</option>
+                                            <option value="h3">Heading 1</option>
+                                            <option value="h4">Heading 2</option>
+                                            <option value="blockquote">Quote block</option>
+                                        </select>
+
+                                        <!-- Font Size -->
+                                        <select class="editor-select" id="editor-font-size" title="Font Size">
+                                            <option value="2">Small</option>
+                                            <option value="3" selected>Normal</option>
+                                            <option value="4">Medium</option>
+                                            <option value="5">Large</option>
+                                            <option value="6">Extra Large</option>
+                                        </select>
+
+                                        <span class="toolbar-divider"></span>
+
+                                        <!-- Weight and Decoration -->
+                                        <button type="button" class="toolbar-btn" data-command="bold" title="Bold (Ctrl+B)"><b>B</b></button>
+                                        <button type="button" class="toolbar-btn" data-command="italic" title="Italic (Ctrl+I)"><i>I</i></button>
+                                        <button type="button" class="toolbar-btn" data-command="underline" title="Underline (Ctrl+U)"><u>U</u></button>
+                                        <button type="button" class="toolbar-btn" data-command="strikeThrough" title="Strikethrough"><s>S</s></button>
+
+                                        <span class="toolbar-divider"></span>
+
+                                        <!-- Justification / Alignment -->
+                                        <button type="button" class="toolbar-btn" data-command="justifyLeft" title="Align Left">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h18v2H3zm0 4h12v2H3zm0 4h18v2H3zm0 4h12v2H3z"/></svg>
+                                        </button>
+                                        <button type="button" class="toolbar-btn" data-command="justifyCenter" title="Align Center">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h18v2H3zm3 4h12v2H6zm-3 4h18v2H3zm3 4h12v2H6z"/></svg>
+                                        </button>
+                                        <button type="button" class="toolbar-btn" data-command="justifyRight" title="Align Right">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h18v2H3zm6 4h12v2H9zm-6 4h18v2H3zm6 4h12v2H9z"/></svg>
+                                        </button>
+                                        <button type="button" class="toolbar-btn" data-command="justifyFull" title="Justify Full">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h18v2H3zm0 4h18v2H3zm0 4h18v2H3zm0 4h18v2H3z"/></svg>
+                                        </button>
+
+                                        <span class="toolbar-divider"></span>
+
+                                        <!-- Lists & Indentation -->
+                                        <button type="button" class="toolbar-btn" data-command="insertUnorderedList" title="Bullet List (•)">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h2v2H4zm0 5h2v2H4zm0 5h2v2H4zm5-11h11v2H9zm0 5h11v2H9zm0 5h11v2H9z"/></svg>
+                                        </button>
+                                        <button type="button" class="toolbar-btn" data-command="insertOrderedList" title="Numbered List (1, 2, 3)">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h2v1H5v1h1v1H4V8h1V7H4zm0 5h2v3H4zm0 5h2v3H4zm5-10h11v2H9zm0 5h11v2H9zm0 5h11v2H9z"/></svg>
+                                        </button>
+                                        <button type="button" class="toolbar-btn" data-command="outdent" title="Decrease Indent">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M11 17h10v-2H11zm-8-5 6 6V6zm8-1h10V9H11zm0-4h10V5H11z"/></svg>
+                                        </button>
+                                        <button type="button" class="toolbar-btn" data-command="indent" title="Increase Indent">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M3 21h18v-2H3zM3 3v2h18V3zm8 14h10v-2H11zm0-4h10v-2H11zm0-4h10V7H11zM3 16l6-4-6-4z"/></svg>
+                                        </button>
+
+                                        <span class="toolbar-divider"></span>
+
+                                        <!-- Clear Formatting -->
+                                        <button type="button" class="toolbar-btn" data-command="removeFormat" title="Clear Formatting">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5v.18L8.82 8h2.4l-.72 1.68 2.1 2.1L14.21 8H20V5zm-2.47.28L2.25 6.56l6.51 6.51L6.5 19h3l1.57-3.66L17.44 21.7l1.28-1.28z"/></svg>
+                                        </button>
+                                    </div>
+
+                                    <div class="rich-editor-content" id="doc-description-editor" contenteditable="true" role="textbox" aria-multiline="true" data-placeholder="What is this document about? (Add summaries, structured notes, key points...)"></div>
+                                    <input type="hidden" id="doc-description" name="description">
+                                </div>
                             </div>
                             
                             <div class="upload-progress-wrapper hidden" id="upload-progress-wrapper">
@@ -355,6 +424,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=20260821-27"></script>
+    <script src="app.js?v=20260821-28"></script>
 </body>
 </html>
