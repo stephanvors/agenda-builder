@@ -41,7 +41,7 @@ function isAdmin() {
     return name === 'stephen vorster' || role.includes('admin') || role.includes('principal') || role.includes('chairperson');
 }
 
-const APP_VERSION = '20260821-38';
+const APP_VERSION = '20260821-39';
 const MEETING_DATE = new Date('2026-08-27T10:00:00');
 const POLL_INTERVAL_MS = 15000;
 
@@ -51,15 +51,34 @@ function determineStatus(voteCount) {
     return 'proposed';
 }
 
-function formatShortName(fullName) {
+function formatShortName(fullName, title = '') {
     if (!fullName || typeof fullName !== 'string') return '';
-    const clean = fullName.trim();
+    let clean = fullName.trim();
+    
+    // Check if the input already contains a title prefix
+    const titleMatch = clean.match(/^(Mr|Mrs|Ms|Miss|Dr|Prof|Adv|Rev)\.?\s+/i);
+    let extractedTitle = title ? title.trim() : '';
+    if (titleMatch) {
+        if (!extractedTitle) extractedTitle = titleMatch[1];
+        clean = clean.substring(titleMatch[0].length).trim();
+    }
+
+    // If it's already in "Surname I." or "Surname I" format
+    if (/^[A-Za-z\s'-]+\s+[A-Z]\.?$/.test(clean)) {
+        return extractedTitle ? `${extractedTitle} ${clean}` : clean;
+    }
+
     const parts = clean.split(/\s+/);
-    if (parts.length === 1) return parts[0];
+    if (parts.length === 1) {
+        return extractedTitle ? `${extractedTitle} ${parts[0]}` : parts[0];
+    }
+
     const first = parts[0];
     const surname = parts.slice(1).join(' ');
     const initial = first.charAt(0).toUpperCase();
-    return `${surname} ${initial}.`;
+    const formatted = `${surname} ${initial}.`;
+
+    return extractedTitle ? `${extractedTitle} ${formatted}` : formatted;
 }
 
 // ── API Layer (all requests include auth token) ──
@@ -669,7 +688,7 @@ async function loadMemberList() {
         members.forEach(m => {
             const opt = document.createElement('option');
             opt.value = m.id;
-            opt.textContent = `${m.title} ${m.name} — ${m.role}`;
+            opt.textContent = `${formatShortName(m.name, m.title)} — ${m.role}`;
             els.loginMember.appendChild(opt);
         });
     } catch (error) {
@@ -1472,7 +1491,7 @@ async function submitCommentForItem(itemId) {
 function showMainView() {
     els.loginView.classList.remove('active');
     els.mainView.classList.add('active');
-    els.userName.textContent = `${state.member.title} ${state.member.name}`;
+    els.userName.textContent = formatShortName(state.member.name, state.member.title);
     els.userRole.textContent = state.member.role;
     updateAdminVisibility();
 }
@@ -1631,12 +1650,12 @@ function renderItems() {
                         ${statusClass === 'seconded' ? `
                             <div class="seconder-badge-group">
                                 <span class="badge status-badge status-seconded">SECONDED BY</span>
-                                <span class="seconder-name">${escapeHTML(seconderName || 'Member')}</span>
+                                <span class="seconder-name">${escapeHTML(formatShortName(seconderName) || 'Member')}</span>
                             </div>
                         ` : (statusClass === 'endorsed' ? `
                             <div class="seconder-badge-group">
                                 <span class="badge status-badge status-endorsed">Endorsed</span>
-                                ${seconderName ? `<span class="seconder-name">Seconded by ${escapeHTML(seconderName)}</span>` : ''}
+                                ${seconderName ? `<span class="seconder-name">Seconded by ${escapeHTML(formatShortName(seconderName))}</span>` : ''}
                             </div>
                         ` : `
                             <span class="badge status-badge status-${statusClass}">${statusLabel}</span>
@@ -1654,7 +1673,7 @@ function renderItems() {
                         </div>
                         <div class="res-banner-body">${escapeHTML(item.resolution.solutionText)}</div>
                         <div class="res-banner-meta">
-                            Resolved by <strong>${escapeHTML(item.resolution.resolvedBy ? item.resolution.resolvedBy.memberName : 'Member')}</strong> • ${timeAgo(item.resolution.resolvedAt)}
+                            Resolved by <strong>${escapeHTML(formatShortName(item.resolution.resolvedBy ? item.resolution.resolvedBy.memberName : 'Member'))}</strong> • ${timeAgo(item.resolution.resolvedAt)}
                         </div>
                     </div>
                 ` : ''}
@@ -1663,7 +1682,7 @@ function renderItems() {
 
                 <div class="item-meta">
                     <div class="proposer-info">
-                        <strong>${escapeHTML(item.proposedBy.memberName)}</strong>
+                        <strong>${escapeHTML(formatShortName(item.proposedBy.memberName))}</strong>
                         <span>${escapeHTML(item.proposedBy.memberRole)} • ${timeAgo(item.proposedAt)}</span>
                         ${otherVotes.length > 0 ? `
                             <span class="voters-preview">
@@ -1723,7 +1742,7 @@ function renderItems() {
                                     <div class="comment-main">
                                         <div class="comment-header-row">
                                             <div class="comment-author-info">
-                                                <strong class="comment-author-name">${escapeHTML(c.memberName)}</strong>
+                                                <strong class="comment-author-name">${escapeHTML(formatShortName(c.memberName))}</strong>
                                                 <span class="comment-author-role">${escapeHTML(c.memberRole || 'Member')}</span>
                                                 <span class="comment-time">• ${timeAgo(c.createdAt)}${c.editedAt ? ' <em class="comment-edited-hint">(edited)</em>' : ''}</span>
                                             </div>
@@ -2758,7 +2777,7 @@ function renderDocuments() {
                         <div class="doc-meta-badges">
                             ${docTags.length > 0 ? `<div class="doc-tags-row">${docTags.map(t => {
                                 const isContributor = (uploaderName && t.trim().toLowerCase() === uploaderName.toLowerCase()) || isContributorTagName(t, doc);
-                                return `<span class="doc-tag-pill ${isContributor ? 'doc-tag-pill-uploader' : ''}" title="${isContributor ? 'Contributor: ' + escapeHTML(t) : 'Tag: ' + escapeHTML(t)}">${isContributor ? '👤 ' : ''}${escapeHTML(t)}</span>`;
+                                return `<span class="doc-tag-pill ${isContributor ? 'doc-tag-pill-uploader' : ''}" title="${isContributor ? 'Contributor: ' + escapeHTML(formatShortName(t)) : 'Tag: ' + escapeHTML(t)}">${isContributor ? '👤 ' : ''}${escapeHTML(isContributor ? formatShortName(t) : t)}</span>`;
                             }).join('')}</div>` : ''}
                             ${!isAvailable ? '<span class="doc-warning-badge" title="This file was uploaded prior to database persistence and needs to be re-uploaded">⚠️ Re-upload Needed</span>' : ''}
                             <span class="doc-size-badge">${formatBytes(doc.size)}</span>
@@ -2778,7 +2797,7 @@ function renderDocuments() {
 
                 <div class="doc-card-bottom">
                     <div class="doc-uploader">
-                        <span class="doc-uploader-name">${escapeHTML(doc.uploadedBy?.memberName || 'Member')}</span>
+                        <span class="doc-uploader-name">${escapeHTML(formatShortName(doc.uploadedBy?.memberName) || 'Member')}</span>
                         <span>${escapeHTML(doc.uploadedBy?.memberRole || 'Member')} • ${timeAgo(doc.uploadedAt)}</span>
                     </div>
                     <div class="doc-actions-group">
@@ -3586,7 +3605,7 @@ async function showMembersModal() {
                     <div class="modal-member-main">
                         <div class="modal-member-avatar">${getInitials(m.name)}</div>
                         <div class="modal-member-info">
-                            <span class="modal-member-name">${escapeHTML((m.title ? m.title + ' ' : '') + m.name)}</span>
+                            <span class="modal-member-name">${escapeHTML(formatShortName(m.name, m.title))}</span>
                             <span class="modal-member-role">${escapeHTML(m.role || 'Member')}</span>
                         </div>
                     </div>
@@ -3612,7 +3631,7 @@ function showItemsModal() {
                 <div class="modal-item-card" onclick="scrollToItem('${item.id}')">
                     <div class="modal-item-info">
                         <div class="modal-item-title">${idx + 1}. ${escapeHTML(item.title)}</div>
-                        <div class="modal-item-sub">${escapeHTML(item.category)} • By ${escapeHTML(item.proposedBy.memberName)}</div>
+                        <div class="modal-item-sub">${escapeHTML(item.category)} • By ${escapeHTML(formatShortName(item.proposedBy.memberName))}</div>
                     </div>
                     <div class="modal-vote-pill">
                         ↑ ${item.votes.length}
@@ -3643,7 +3662,7 @@ function showVotesModal() {
                         <span class="modal-vote-pill">↑ ${item.votes.length}</span>
                     </div>
                     <div style="font-size:0.75rem;color:var(--text-muted);">
-                        Voters: <strong>${escapeHTML(item.votes.map(v => v.memberName).join(', '))}</strong>
+                        Voters: <strong>${escapeHTML(item.votes.map(v => formatShortName(v.memberName)).join(', '))}</strong>
                     </div>
                 </div>
             `).join('')}
@@ -3681,7 +3700,7 @@ async function showExportModal() {
                 <p><strong>Date:</strong> 27 August 2026 — 10:00</p>
                 <p><strong>Venue:</strong> Staff Room</p>
                 <p><strong>Type:</strong> Strategy Meeting — Way Forward</p>
-                <p><strong>Members:</strong> ${members.map(m => `${m.title} ${m.name}`).join(', ')}</p>
+                <p><strong>Members:</strong> ${members.map(m => formatShortName(m.name, m.title)).join(', ')}</p>
                 <p><em>Agenda generated on ${new Date().toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' })}</em></p>
             </div>
         `;
@@ -3703,13 +3722,13 @@ async function showExportModal() {
                             <h4>${itemNumber}. ${escapeHTML(item.title)}
                                 <small>(${isResolved ? 'Resolved • ' : ''}${statusLabel} — ${item.votes.length} ${item.votes.length === 1 ? 'vote' : 'votes'})</small>
                             </h4>
-                            <p class="print-meta"><em>Proposed by: ${escapeHTML(item.proposedBy.memberName)} (${escapeHTML(item.proposedBy.memberRole)})</em></p>
+                            <p class="print-meta"><em>Proposed by: ${escapeHTML(formatShortName(item.proposedBy.memberName))} (${escapeHTML(item.proposedBy.memberRole)})</em></p>
                             <p class="print-desc">${escapeHTML(item.description)}</p>
 
                             ${isResolved && item.resolution ? `
                                 <div class="print-resolution-box">
                                     <strong>✅ Resolution / Agreed Plan:</strong> ${escapeHTML(item.resolution.solutionText)}
-                                    <span class="print-res-by">(Resolved by ${escapeHTML(item.resolution.resolvedBy ? item.resolution.resolvedBy.memberName : 'Member')})</span>
+                                    <span class="print-res-by">(Resolved by ${escapeHTML(formatShortName(item.resolution.resolvedBy ? item.resolution.resolvedBy.memberName : 'Member'))})</span>
                                 </div>
                             ` : ''}
 
@@ -3719,7 +3738,7 @@ async function showExportModal() {
                                     <ul class="print-comments-list">
                                         ${comments.map(c => `
                                             <li>
-                                                <strong>${escapeHTML(c.memberName)}</strong>
+                                                <strong>${escapeHTML(formatShortName(c.memberName))}</strong>
                                                 <span class="print-tag">[${escapeHTML(c.type || 'comment')}]</span>:
                                                 ${escapeHTML(c.content)}
                                                 ${c.isSolution ? ' <em>(⭐ Accepted Solution)</em>' : ''}
