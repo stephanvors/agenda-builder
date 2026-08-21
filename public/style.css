@@ -333,6 +333,12 @@ textarea:focus {
     width: 100%;
 }
 
+@media (max-width: 767px) {
+    .stats-bar .stat-item:last-child {
+        grid-column: 1 / -1;
+    }
+}
+
 .stat-item {
     background: var(--white);
     padding: 0.9rem 0.5rem;
@@ -1617,6 +1623,7 @@ textarea:focus {
         width: auto;
         justify-content: flex-end;
     }
+}
     
 /* ── Main Navigation Tabs (Segmented Control) ── */
 .main-tabs-nav {
@@ -1631,19 +1638,26 @@ textarea:focus {
     box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
     user-select: none;
     -webkit-user-select: none;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .tab-nav-btn {
-    appearance: none;
     -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background: transparent;
+    border: none;
+    outline: none;
+    box-shadow: none;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    padding: 0.75rem 0.6rem;
+    padding: 0.75rem 0.5rem;
     min-height: 48px;
-    background: transparent;
-    border: none;
+    min-width: 0;
+    width: 100%;
     border-radius: 10px;
     font-family: inherit;
     font-size: 0.95rem;
@@ -1655,7 +1669,7 @@ textarea:focus {
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
     position: relative;
-    outline: none;
+    box-sizing: border-box;
 }
 
 .tab-nav-btn:hover {
@@ -1673,12 +1687,14 @@ textarea:focus {
     font-size: 1.2rem;
     line-height: 1;
     display: inline-block;
+    flex-shrink: 0;
 }
 
 .tab-nav-text {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    min-width: 0;
 }
 
 .tab-nav-badge {
@@ -1694,6 +1710,7 @@ textarea:focus {
     font-weight: 800;
     border-radius: 999px;
     transition: all 0.2s ease;
+    flex-shrink: 0;
 }
 
 .tab-nav-btn.active .tab-nav-badge {
@@ -1706,24 +1723,25 @@ textarea:focus {
         margin: 0.75rem 0 1.25rem;
         padding: 0.25rem;
         gap: 0.25rem;
+        border-radius: 12px;
     }
 
     .tab-nav-btn {
-        padding: 0.65rem 0.3rem;
-        font-size: 0.85rem;
-        gap: 0.3rem;
+        padding: 0.65rem 0.25rem;
+        font-size: 0.82rem;
+        gap: 0.25rem;
         min-height: 44px;
     }
 
     .tab-nav-icon {
-        font-size: 1.05rem;
+        font-size: 1rem;
     }
 
     .tab-nav-badge {
-        min-width: 1.2rem;
-        height: 1.2rem;
-        font-size: 0.7rem;
-        padding: 0 0.25rem;
+        min-width: 1.15rem;
+        height: 1.15rem;
+        font-size: 0.68rem;
+        padding: 0 0.2rem;
     }
 }
 

@@ -559,7 +559,16 @@ function setupEventListeners() {
         }
     });
 
-    // Main View Tabs navigation (with direct event delegation for 100% responsiveness)
+    // Main View Tabs navigation (direct listeners + event delegation for maximum reliability)
+    if (els.tabBtnAgenda) {
+        els.tabBtnAgenda.addEventListener('click', (e) => { e.preventDefault(); switchTab('agenda'); });
+        els.tabBtnAgenda.addEventListener('touchend', (e) => { e.preventDefault(); switchTab('agenda'); }, { passive: false });
+    }
+    if (els.tabBtnDocuments) {
+        els.tabBtnDocuments.addEventListener('click', (e) => { e.preventDefault(); switchTab('documents'); });
+        els.tabBtnDocuments.addEventListener('touchend', (e) => { e.preventDefault(); switchTab('documents'); }, { passive: false });
+    }
+
     document.addEventListener('click', (e) => {
         const tabBtn = e.target.closest('.tab-nav-btn');
         if (tabBtn) {
@@ -1617,6 +1626,7 @@ function switchTab(tabName) {
         renderDocuments();
     }
 }
+window.switchTab = switchTab;
 
 // ── Document Vault Rendering & Helpers ──
 function formatBytes(bytes, decimals = 1) {

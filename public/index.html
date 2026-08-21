@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20260821-12">
+    <link rel="stylesheet" href="style.css?v=20260821-20">
 </head>
 <body>
     <div id="toast-container" class="toast-container"></div>
@@ -91,12 +91,12 @@
 
         <!-- Navigation Tabs -->
         <nav class="main-tabs-nav" aria-label="Main Views">
-            <button type="button" class="tab-nav-btn active" id="tab-btn-agenda" data-tab="agenda">
+            <button type="button" class="tab-nav-btn active" id="tab-btn-agenda" data-tab="agenda" onclick="switchTab('agenda')">
                 <span class="tab-nav-icon">📋</span>
                 <span class="tab-nav-text">Agenda &amp; Discussion</span>
                 <span class="tab-nav-badge" id="tab-agenda-badge">0</span>
             </button>
-            <button type="button" class="tab-nav-btn" id="tab-btn-documents" data-tab="documents">
+            <button type="button" class="tab-nav-btn" id="tab-btn-documents" data-tab="documents" onclick="switchTab('documents')">
                 <span class="tab-nav-icon">📁</span>
                 <span class="tab-nav-text">Shared Files &amp; Vault</span>
                 <span class="tab-nav-badge" id="tab-docs-badge">0</span>
@@ -324,6 +324,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=20260821-12"></script>
+    <script src="app.js?v=20260821-20"></script>
 </body>
 </html>
