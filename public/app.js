@@ -38,7 +38,7 @@ function isAdmin() {
     return name === 'stephen vorster' || role.includes('admin') || role.includes('principal') || role.includes('chairperson');
 }
 
-const APP_VERSION = '20260821-22';
+const APP_VERSION = '20260821-23';
 const MEETING_DATE = new Date('2026-08-27T10:00:00');
 const POLL_INTERVAL_MS = 15000;
 
@@ -348,6 +348,20 @@ const api = {
             throw new Error(err.error || 'Failed to delete document category');
         }
         return res.json();
+    },
+
+    async moveCategory(type, sourcePath, targetParentPath = null) {
+        const res = await fetch('/api/categories/move', {
+            method: 'POST',
+            headers: authHeaders(),
+            body: JSON.stringify({ type, sourcePath, targetParentPath })
+        });
+        if (res.status === 401) { handleSessionExpired(); return null; }
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error || 'Failed to move category');
+        }
+        return res.json();
     }
 };
 
@@ -445,6 +459,7 @@ const els = {
     btnSubmitNewCategory: document.getElementById('btn-submit-new-category'),
     categoryModalError:   document.getElementById('category-modal-error'),
     categoryModalCount:   document.getElementById('category-modal-count'),
+    catDropRootZone:      document.getElementById('cat-drop-root-zone'),
     categoryTreeContainer:document.getElementById('category-tree-container'),
 
     btnExport:        document.getElementById('btn-export'),
@@ -721,12 +736,19 @@ function setupEventListeners() {
                 if (els.newCategoryInput) els.newCategoryInput.focus();
                 return;
             }
+            const moveBtn = e.target.closest('.btn-cat-move');
+            if (moveBtn) {
+                const path = moveBtn.dataset.path;
+                promptMoveCategory(path);
+                return;
+            }
             const delBtn = e.target.closest('.btn-cat-delete');
             if (delBtn) {
                 const path = delBtn.dataset.path;
                 handleDeleteCategory(path);
             }
         });
+        setupCategoryDragAndDrop();
     }
 
     // Info modal close handlers
@@ -1666,6 +1688,9 @@ function updateTargetPreview() {
     }
 }
 
+let draggedCatPath = null;
+let draggedCatEl = null;
+
 function renderCategoryTree() {
     if (!els.categoryTreeContainer) return;
     const type = state.activeCategoryModalType;
@@ -1690,8 +1715,9 @@ function renderCategoryTree() {
             : (state.documents || []).filter(d => d.category === l1.path || d.category?.startsWith(l1.path + ' > ')).length;
 
         html += `
-            <div class="cat-tree-node level-1" data-path="${escapeHTML(l1.path)}">
+            <div class="cat-tree-node level-1" draggable="true" data-path="${escapeHTML(l1.path)}" data-level="1">
                 <div class="cat-tree-info">
+                    <span class="cat-drag-handle" title="Drag to nest this category under another">⠿</span>
                     <span class="cat-tree-icon">📁</span>
                     <span class="cat-tree-title">${escapeHTML(l1.name)}</span>
                     <span class="cat-tree-level-tag tag-l1">Level 1</span>
@@ -1699,6 +1725,7 @@ function renderCategoryTree() {
                 </div>
                 <div class="cat-tree-actions">
                     <button type="button" class="btn-cat-add-sub" data-l1="${escapeHTML(l1.path)}" data-l2="__NEW__" title="Add Subcategory (Level 2) under this">+ Sub (L2)</button>
+                    <button type="button" class="btn-cat-move" data-path="${escapeHTML(l1.path)}" title="Move / Nest under another category">⇄ Move</button>
                     <button type="button" class="btn-cat-delete" data-path="${escapeHTML(l1.path)}" title="Delete category & subcategories">🗑️</button>
                 </div>
             </div>
@@ -1710,8 +1737,9 @@ function renderCategoryTree() {
                 : (state.documents || []).filter(d => d.category === l2.path || d.category?.startsWith(l2.path + ' > ')).length;
 
             html += `
-                <div class="cat-tree-node level-2" data-path="${escapeHTML(l2.path)}">
+                <div class="cat-tree-node level-2" draggable="true" data-path="${escapeHTML(l2.path)}" data-level="2">
                     <div class="cat-tree-info">
+                        <span class="cat-drag-handle" title="Drag to nest under another category or drag to top to un-nest">⠿</span>
                         <span class="cat-tree-icon">📂</span>
                         <span class="cat-tree-title">${escapeHTML(l2.name)}</span>
                         <span class="cat-tree-level-tag tag-l2">Level 2</span>
@@ -1719,6 +1747,7 @@ function renderCategoryTree() {
                     </div>
                     <div class="cat-tree-actions">
                         <button type="button" class="btn-cat-add-sub" data-l1="${escapeHTML(l1.path)}" data-l2="${escapeHTML(l2.path)}" title="Add Topic (Level 3) under this">+ Sub (L3)</button>
+                        <button type="button" class="btn-cat-move" data-path="${escapeHTML(l2.path)}" title="Move / Nest under another category">⇄ Move</button>
                         <button type="button" class="btn-cat-delete" data-path="${escapeHTML(l2.path)}" title="Delete subcategory">🗑️</button>
                     </div>
                 </div>
@@ -1730,14 +1759,16 @@ function renderCategoryTree() {
                     : (state.documents || []).filter(d => d.category === l3.path).length;
 
                 html += `
-                    <div class="cat-tree-node level-3" data-path="${escapeHTML(l3.path)}">
+                    <div class="cat-tree-node level-3" draggable="true" data-path="${escapeHTML(l3.path)}" data-level="3">
                         <div class="cat-tree-info">
+                            <span class="cat-drag-handle" title="Drag to move under another category">⠿</span>
                             <span class="cat-tree-icon">📄</span>
                             <span class="cat-tree-title">${escapeHTML(l3.name)}</span>
                             <span class="cat-tree-level-tag tag-l3">Level 3</span>
                             ${l3Count > 0 ? `<span class="doc-size-badge">${l3Count}</span>` : ''}
                         </div>
                         <div class="cat-tree-actions">
+                            <button type="button" class="btn-cat-move" data-path="${escapeHTML(l3.path)}" title="Move / Nest under another category">⇄ Move</button>
                             <button type="button" class="btn-cat-delete" data-path="${escapeHTML(l3.path)}" title="Delete topic">🗑️</button>
                         </div>
                     </div>
@@ -1747,6 +1778,223 @@ function renderCategoryTree() {
     });
 
     els.categoryTreeContainer.innerHTML = html;
+}
+
+let isDragEventsInitialized = false;
+
+function setupCategoryDragAndDrop() {
+    if (!els.categoryTreeContainer || isDragEventsInitialized) return;
+    isDragEventsInitialized = true;
+
+    els.categoryTreeContainer.addEventListener('dragstart', (e) => {
+        const node = e.target.closest('.cat-tree-node');
+        if (!node) return;
+
+        draggedCatPath = node.dataset.path;
+        draggedCatEl = node;
+
+        node.classList.add('is-dragging');
+        if (e.dataTransfer) {
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', draggedCatPath);
+        }
+
+        // Show root drop zone if the dragged category has a parent
+        if (els.catDropRootZone && draggedCatPath && draggedCatPath.includes(' > ')) {
+            els.catDropRootZone.classList.remove('hidden');
+        }
+    });
+
+    // Root drop zone dragover & drop
+    if (els.catDropRootZone) {
+        els.catDropRootZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            els.catDropRootZone.classList.add('drag-target-hover');
+            if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+        });
+
+        els.catDropRootZone.addEventListener('dragleave', (e) => {
+            if (!els.catDropRootZone.contains(e.relatedTarget)) {
+                els.catDropRootZone.classList.remove('drag-target-hover');
+            }
+        });
+
+        els.catDropRootZone.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            const currentDragged = draggedCatPath;
+            cleanDragStyles();
+            if (!currentDragged) return;
+
+            const type = state.activeCategoryModalType;
+            const srcParts = currentDragged.split(/\s*>\s*/);
+            const leafName = srcParts[srcParts.length - 1];
+
+            try {
+                const res = await api.moveCategory(type, currentDragged, null);
+                if (res) {
+                    if (type === 'agenda') {
+                        state.categories = res.categories;
+                    } else {
+                        state.documentCategories = res.categories;
+                    }
+                    showToast(`Moved "${leafName}" to Top Level (Level 1)!`);
+                    updateCategoryBuilderSelectors();
+                    renderCategoryTree();
+                    updateCategoryDropdowns();
+                    await loadData();
+                }
+            } catch (error) {
+                showToast(error.message || 'Failed to move category', true);
+            }
+        });
+    }
+
+    els.categoryTreeContainer.addEventListener('dragover', (e) => {
+        const targetNode = e.target.closest('.cat-tree-node');
+        if (!targetNode || !draggedCatPath) return;
+
+        const targetPath = targetNode.dataset.path;
+        const targetLevel = parseInt(targetNode.dataset.level, 10);
+
+        // Cannot drop on self or own child branch
+        if (targetPath === draggedCatPath || targetPath.startsWith(draggedCatPath + ' > ')) {
+            if (e.dataTransfer) e.dataTransfer.dropEffect = 'none';
+            return;
+        }
+
+        // Cannot drop onto Level 3 (since max depth is 3)
+        if (targetLevel >= 3) {
+            if (e.dataTransfer) e.dataTransfer.dropEffect = 'none';
+            return;
+        }
+
+        e.preventDefault();
+        if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+        targetNode.classList.add('drag-target-hover');
+    });
+
+    els.categoryTreeContainer.addEventListener('dragleave', (e) => {
+        const targetNode = e.target.closest('.cat-tree-node');
+        if (targetNode && !targetNode.contains(e.relatedTarget)) {
+            targetNode.classList.remove('drag-target-hover');
+        }
+    });
+
+    els.categoryTreeContainer.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        const currentDragged = draggedCatPath;
+        const targetNode = e.target.closest('.cat-tree-node');
+        cleanDragStyles();
+
+        if (!currentDragged || !targetNode) return;
+
+        const targetParent = targetNode.dataset.path;
+        if (!targetParent || targetParent === currentDragged || targetParent.startsWith(currentDragged + ' > ')) {
+            return;
+        }
+
+        const type = state.activeCategoryModalType;
+        const srcParts = currentDragged.split(/\s*>\s*/);
+        const leafName = srcParts[srcParts.length - 1];
+
+        try {
+            const res = await api.moveCategory(type, currentDragged, targetParent);
+            if (res) {
+                if (type === 'agenda') {
+                    state.categories = res.categories;
+                } else {
+                    state.documentCategories = res.categories;
+                }
+                showToast(`Moved "${leafName}" under "${targetParent}"!`);
+                updateCategoryBuilderSelectors();
+                renderCategoryTree();
+                updateCategoryDropdowns();
+                await loadData();
+            }
+        } catch (error) {
+            showToast(error.message || 'Failed to move category', true);
+        }
+    });
+
+    els.categoryTreeContainer.addEventListener('dragend', () => {
+        cleanDragStyles();
+    });
+}
+
+function cleanDragStyles() {
+    draggedCatPath = null;
+    draggedCatEl = null;
+    if (els.catDropRootZone) {
+        els.catDropRootZone.classList.add('hidden');
+        els.catDropRootZone.classList.remove('drag-target-hover');
+    }
+    if (els.categoryTreeContainer) {
+        els.categoryTreeContainer.querySelectorAll('.cat-tree-node').forEach(n => {
+            n.classList.remove('is-dragging', 'drag-target-hover');
+        });
+    }
+}
+
+async function promptMoveCategory(sourcePath) {
+    if (!sourcePath) return;
+    const type = state.activeCategoryModalType;
+    const isAgenda = type === 'agenda';
+    const list = isAgenda ? (state.categories || []) : (state.documentCategories || []);
+    const { tree } = parseCategoryHierarchy(list);
+
+    const srcParts = sourcePath.split(/\s*>\s*/);
+    const leafName = srcParts[srcParts.length - 1];
+    const srcLower = sourcePath.toLowerCase();
+
+    // Collect valid targets (exclude self and descendants)
+    const options = [
+        { label: '⬆️ [Top Level / Main Category (Level 1)]', value: '__ROOT__' }
+    ];
+
+    tree.forEach(l1 => {
+        if (l1.path.toLowerCase() !== srcLower && !l1.path.toLowerCase().startsWith(srcLower + ' > ')) {
+            options.push({ label: `📁 ${l1.name} (Level 1 Parent)`, value: l1.path });
+            l1.children.forEach(l2 => {
+                if (l2.path.toLowerCase() !== srcLower && !l2.path.toLowerCase().startsWith(srcLower + ' > ')) {
+                    options.push({ label: `  ↳ 📂 ${l1.name} > ${l2.name} (Level 2 Parent)`, value: l2.path });
+                }
+            });
+        }
+    });
+
+    const promptMsg = `Move / Nest "${leafName}" under:\n\n` + 
+        options.map((opt, idx) => `${idx + 1}. ${opt.label}`).join('\n') +
+        `\n\nEnter number (1-${options.length}):`;
+
+    const choice = prompt(promptMsg, '1');
+    if (!choice) return;
+
+    const num = parseInt(choice.trim(), 10);
+    if (isNaN(num) || num < 1 || num > options.length) {
+        alert('Invalid selection.');
+        return;
+    }
+
+    const selectedOpt = options[num - 1];
+    const targetParent = selectedOpt.value === '__ROOT__' ? null : selectedOpt.value;
+
+    try {
+        const res = await api.moveCategory(type, sourcePath, targetParent);
+        if (res) {
+            if (isAgenda) {
+                state.categories = res.categories;
+            } else {
+                state.documentCategories = res.categories;
+            }
+            showToast(`Moved "${leafName}" under ${targetParent ? `"${targetParent}"` : 'Top Level'}!`);
+            updateCategoryBuilderSelectors();
+            renderCategoryTree();
+            updateCategoryDropdowns();
+            await loadData();
+        }
+    } catch (error) {
+        showToast(error.message || 'Failed to move category', true);
+    }
 }
 
 async function handleAddCategory(e) {

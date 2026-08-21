@@ -23,9 +23,9 @@ if (!fsSync.existsSync(UPLOADS_DIR)) {
 }
 
 const DEFAULT_CATEGORIES = [
-  'Fee Collection & Debt Recovery',
-  'Budget & Financial Management',
-  'Fundraising & Alternative Revenue',
+  'Finances > Fee Collection & Debt Recovery',
+  'Finances > Budget & Financial Management',
+  'Finances > Fundraising & Alternative Revenue',
   'Infrastructure & Maintenance',
   'Curriculum & Academic Performance',
   'Human Resources & Staffing',
@@ -39,7 +39,7 @@ const DEFAULT_CATEGORIES = [
 const DEFAULT_DOCUMENT_CATEGORIES = [
   'Meeting Documents & Policies',
   'Presentations & Slides',
-  'Financial & Budget Reports',
+  'Finances > Financial & Budget Reports',
   'Curriculum & Academic',
   'Infrastructure & Maintenance',
   'General & Media'
@@ -262,6 +262,83 @@ if (process.env.DATABASE_URL) {
   console.log('🐘 PostgreSQL connected — persistent cloud database active');
 }
 
+function migrateFinanceCategories(store) {
+  if (!store) return false;
+  let changed = false;
+
+  const agendaMap = {
+    'fee collection & debt recovery': 'Finances > Fee Collection & Debt Recovery',
+    'budget & financial management': 'Finances > Budget & Financial Management',
+    'fundraising & alternative revenue': 'Finances > Fundraising & Alternative Revenue',
+    'finance': 'Finances',
+    'finances': 'Finances'
+  };
+
+  const docMap = {
+    'financial & budget reports': 'Finances > Financial & Budget Reports',
+    'finance': 'Finances',
+    'finances': 'Finances'
+  };
+
+  // Migrate Agenda categories
+  if (Array.isArray(store.categories)) {
+    const updated = [];
+    store.categories.forEach(cat => {
+      const lower = (cat || '').toLowerCase().trim();
+      const mapped = agendaMap[lower] || cat;
+      if (mapped !== cat) changed = true;
+      if (!updated.includes(mapped)) {
+        updated.push(mapped);
+      }
+    });
+    if (changed || updated.length !== store.categories.length) {
+      store.categories = updated;
+      changed = true;
+    }
+  }
+
+  // Migrate Agenda items
+  if (Array.isArray(store.agendaItems)) {
+    store.agendaItems.forEach(item => {
+      const lower = (item.category || '').toLowerCase().trim();
+      if (agendaMap[lower] && item.category !== agendaMap[lower]) {
+        item.category = agendaMap[lower];
+        changed = true;
+      }
+    });
+  }
+
+  // Migrate Document categories
+  if (Array.isArray(store.documentCategories)) {
+    const updatedDocs = [];
+    store.documentCategories.forEach(cat => {
+      const lower = (cat || '').toLowerCase().trim();
+      const mapped = docMap[lower] || cat;
+      if (mapped !== cat) changed = true;
+      if (!updatedDocs.includes(mapped)) {
+        updatedDocs.push(mapped);
+      }
+    });
+    if (changed || updatedDocs.length !== store.documentCategories.length) {
+      store.documentCategories = updatedDocs;
+      changed = true;
+    }
+  }
+
+  // Migrate Documents
+  if (Array.isArray(store.documents)) {
+    store.documents.forEach(doc => {
+      const lower = (doc.category || '').toLowerCase().trim();
+      if (docMap[lower] && doc.category !== docMap[lower]) {
+        doc.category = docMap[lower];
+        changed = true;
+      }
+    });
+  }
+
+  return changed;
+}
+
 const storeHelper = {
   async init() {
     if (pool) {
@@ -297,6 +374,7 @@ const storeHelper = {
             school: 'LGAA'
           }
         };
+        migrateFinanceCategories(initialStore);
         await pool.query('INSERT INTO app_store (id, data) VALUES ($1, $2)', ['main_store', JSON.stringify(initialStore)]);
         console.log(`✅ ${members.length} members initialized in PostgreSQL`);
       } else {
@@ -319,6 +397,9 @@ const storeHelper = {
       const data = await fs.readFile(STORE_FILE, 'utf-8');
       const store = JSON.parse(data);
       if (store.members && store.members.length > 0 && store.members[0].pin) {
+        if (migrateFinanceCategories(store)) {
+          await fs.writeFile(STORE_FILE, JSON.stringify(store, null, 2));
+        }
         return;
       }
     } catch { /* create fresh */ }
@@ -337,6 +418,7 @@ const storeHelper = {
         school: 'LGAA'
       }
     };
+    migrateFinanceCategories(store);
     await fs.writeFile(STORE_FILE, JSON.stringify(store, null, 2));
   },
 
@@ -361,6 +443,11 @@ const storeHelper = {
     if (!Array.isArray(store.documentCategories) || store.documentCategories.length === 0) {
       store.documentCategories = [...DEFAULT_DOCUMENT_CATEGORIES];
     }
+
+    if (migrateFinanceCategories(store)) {
+      await this.write(store);
+    }
+
     return store;
   },
 
@@ -437,7 +524,7 @@ async function requireAuth(req, res, next) {
 
 // ── Public Endpoints ──
 
-const APP_VERSION = '20260821-22';
+const APP_VERSION = '20260821-23';
 
 app.get('/api/version', (req, res) => {
   res.json({ version: APP_VERSION });
@@ -1516,6 +1603,131 @@ app.delete('/api/categories/documents/:name', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Error deleting document category:', error);
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Move / Drag-and-Drop a category to nest or re-parent (Admin only)
+app.post('/api/categories/move', requireAuth, async (req, res) => {
+  try {
+    if (!isAdminMember(req.member)) {
+      return res.status(403).json({ error: 'Only administrators can move or nest categories' });
+    }
+
+    const { type, sourcePath, targetParentPath } = req.body;
+    if (!sourcePath || typeof sourcePath !== 'string') {
+      return res.status(400).json({ error: 'Source category path is required' });
+    }
+
+    const store = req.store;
+    const isAgenda = type === 'agenda';
+    const catList = isAgenda ? (store.categories || []) : (store.documentCategories || []);
+
+    const src = sourcePath.trim();
+    const tgt = targetParentPath ? targetParentPath.trim() : null;
+
+    const srcLower = src.toLowerCase();
+    const exists = catList.some(c => c.toLowerCase() === srcLower || c.toLowerCase().startsWith(srcLower + ' > '));
+    if (!exists) {
+      return res.status(404).json({ error: 'Source category not found' });
+    }
+
+    const srcParts = src.split(/\s*>\s*|\s*\/\s*/).map(p => p.trim()).filter(Boolean);
+    const leafName = srcParts[srcParts.length - 1];
+
+    let newBasePath = '';
+    if (!tgt) {
+      // Move to top-level (Level 1)
+      newBasePath = leafName;
+    } else {
+      const tgtLower = tgt.toLowerCase();
+      if (tgtLower === srcLower || tgtLower.startsWith(srcLower + ' > ')) {
+        return res.status(400).json({ error: 'Cannot nest a category inside itself or its own subcategory' });
+      }
+
+      const tgtParts = tgt.split(/\s*>\s*|\s*\/\s*/).map(p => p.trim()).filter(Boolean);
+      if (tgtParts.length >= 3) {
+        return res.status(400).json({ error: 'Cannot nest further: Maximum 3 levels of category nesting reached' });
+      }
+
+      newBasePath = `${tgt} > ${leafName}`;
+    }
+
+    // Check if source has child subcategories and ensure they won't exceed 3 levels
+    const childBranches = catList.filter(c => c.toLowerCase().startsWith(srcLower + ' > '));
+    const newBasePartsCount = newBasePath.split(/\s*>\s*/).length;
+
+    for (const child of childBranches) {
+      const childSubPath = child.substring(src.length).replace(/^\s*>\s*/, '');
+      const childSubPartsCount = childSubPath.split(/\s*>\s*/).length;
+      if (newBasePartsCount + childSubPartsCount > 3) {
+        return res.status(400).json({
+          error: `Cannot move "${leafName}": Its subcategory "${childSubPath}" would exceed the 3-level limit`
+        });
+      }
+    }
+
+    // Build replacement map for category list and items/documents
+    const replacementMap = new Map();
+    replacementMap.set(srcLower, newBasePath);
+
+    childBranches.forEach(child => {
+      const childSubPath = child.substring(src.length).replace(/^\s*>\s*/, '');
+      const childNewPath = `${newBasePath} > ${childSubPath}`;
+      replacementMap.set(child.toLowerCase(), childNewPath);
+    });
+
+    // Update categories list
+    const updatedCatList = [];
+    catList.forEach(c => {
+      const cLower = c.toLowerCase();
+      if (replacementMap.has(cLower)) {
+        const repl = replacementMap.get(cLower);
+        if (!updatedCatList.includes(repl)) {
+          updatedCatList.push(repl);
+        }
+      } else {
+        if (!updatedCatList.includes(c)) {
+          updatedCatList.push(c);
+        }
+      }
+    });
+
+    if (!updatedCatList.includes(newBasePath)) {
+      updatedCatList.push(newBasePath);
+    }
+
+    if (isAgenda) {
+      store.categories = updatedCatList;
+      if (Array.isArray(store.agendaItems)) {
+        store.agendaItems.forEach(item => {
+          const itemCatLower = (item.category || '').toLowerCase();
+          if (replacementMap.has(itemCatLower)) {
+            item.category = replacementMap.get(itemCatLower);
+          }
+        });
+      }
+    } else {
+      store.documentCategories = updatedCatList;
+      if (Array.isArray(store.documents)) {
+        store.documents.forEach(doc => {
+          const docCatLower = (doc.category || '').toLowerCase();
+          if (replacementMap.has(docCatLower)) {
+            doc.category = replacementMap.get(docCatLower);
+          }
+        });
+      }
+    }
+
+    await storeHelper.write(store);
+
+    res.json({
+      message: `Category "${leafName}" moved successfully`,
+      newPath: newBasePath,
+      categories: isAgenda ? store.categories : store.documentCategories
+    });
+  } catch (error) {
+    console.error('Error moving category:', error);
+    res.status(500).json({ error: error.message || 'Failed to move category' });
   }
 });
 

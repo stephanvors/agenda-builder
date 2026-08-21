@@ -2333,6 +2333,38 @@ textarea:focus {
     align-items: center;
 }
 
+.cat-drag-tip-text {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--primary);
+    background: #EFF6FF;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    border: 1px solid #DBEAFE;
+    text-transform: none;
+    letter-spacing: normal;
+}
+
+.cat-drop-root-zone {
+    border: 2px dashed #CBD5E1;
+    border-radius: 8px;
+    padding: 0.6rem;
+    text-align: center;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #64748B;
+    background: #F8FAFC;
+    margin-bottom: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.cat-drop-root-zone.drag-target-hover {
+    border-color: #10B981;
+    background: #ECFDF5;
+    color: #047857;
+    transform: scale(1.01);
+}
+
 /* Category Hierarchy Tree View */
 .category-tree-container {
     display: flex;
@@ -2350,13 +2382,27 @@ textarea:focus {
     gap: 0.5rem;
     padding: 0.45rem 0.75rem;
     border-radius: 8px;
-    transition: background 0.15s ease;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
     border: 1px solid transparent;
+    user-select: none;
 }
 
 .cat-tree-node:hover {
     background: #F1F5F9;
     border-color: #E2E8F0;
+}
+
+.cat-tree-node.is-dragging {
+    opacity: 0.35;
+    border: 1px dashed #3B82F6 !important;
+    background: #EFF6FF !important;
+}
+
+.cat-tree-node.drag-target-hover {
+    background: #EEF2FF !important;
+    border: 2px dashed #2563EB !important;
+    box-shadow: 0 0 12px rgba(37, 99, 235, 0.25);
+    transform: scale(1.01);
 }
 
 .cat-tree-node.level-1 {
@@ -2375,6 +2421,24 @@ textarea:focus {
     margin-left: 2.5rem;
     background: #FFFFFF;
     border-left: 2px solid #10B981;
+}
+
+.cat-drag-handle {
+    cursor: grab;
+    color: #94A3B8;
+    font-size: 1.1rem;
+    line-height: 1;
+    padding: 0 0.2rem;
+    user-select: none;
+    transition: color 0.15s ease;
+}
+
+.cat-drag-handle:hover {
+    color: #334155;
+}
+
+.cat-drag-handle:active {
+    cursor: grabbing;
 }
 
 .cat-tree-info {
@@ -2435,6 +2499,24 @@ textarea:focus {
 .btn-cat-add-sub:hover {
     background: var(--primary);
     color: var(--white);
+}
+
+.btn-cat-move {
+    background: #F8FAFC;
+    color: #475569;
+    border: 1px solid #CBD5E1;
+    font-size: 0.74rem;
+    font-weight: 600;
+    padding: 0.2rem 0.45rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+
+.btn-cat-move:hover {
+    background: #E2E8F0;
+    color: #0F172A;
 }
 
 .btn-cat-delete {
