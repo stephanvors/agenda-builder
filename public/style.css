@@ -691,12 +691,43 @@ textarea:focus {
 }
 
 .item-badges {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.35rem;
     flex-shrink: 0;
+    text-align: right;
+}
+
+.seconder-badge-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.18rem;
+    text-align: right;
 }
 
 .status-badge {
     color: var(--white);
     white-space: nowrap;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.65rem;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    line-height: 1.3;
+}
+
+.seconder-name {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-main);
+    white-space: nowrap;
+    text-align: right;
+    letter-spacing: 0.01em;
 }
 
 .status-proposed { background-color: var(--status-proposed); }
@@ -3394,6 +3425,10 @@ textarea:focus {
 
 [data-theme="dark"] .proposer-info strong {
     color: #F1F5F9;
+}
+
+[data-theme="dark"] .seconder-name {
+    color: #E2E8F0;
 }
 
 [data-theme="dark"] .voters-preview strong {

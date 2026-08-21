@@ -41,7 +41,7 @@ function isAdmin() {
     return name === 'stephen vorster' || role.includes('admin') || role.includes('principal') || role.includes('chairperson');
 }
 
-const APP_VERSION = '20260821-36';
+const APP_VERSION = '20260821-37';
 const MEETING_DATE = new Date('2026-08-27T10:00:00');
 const POLL_INTERVAL_MS = 15000;
 
@@ -49,6 +49,17 @@ function determineStatus(voteCount) {
     if (voteCount >= 5) return 'endorsed';
     if (voteCount >= 2) return 'seconded';
     return 'proposed';
+}
+
+function formatShortName(fullName) {
+    if (!fullName || typeof fullName !== 'string') return '';
+    const clean = fullName.trim();
+    const parts = clean.split(/\s+/);
+    if (parts.length === 1) return parts[0];
+    const first = parts[0];
+    const surname = parts.slice(1).join(' ');
+    const initial = first.charAt(0).toUpperCase();
+    return `${surname} ${initial}.`;
 }
 
 // ── API Layer (all requests include auth token) ──
@@ -1561,7 +1572,6 @@ function renderItems() {
         const isProposer = item.proposedBy.memberId === state.member.id;
         const hasVoted = item.votes.some(v => v.memberId === state.member.id);
         const voteCount = item.votes.length;
-        const voterNames = item.votes.map(v => v.memberName).join(', ');
         const statusClass = item.status.toLowerCase();
         const statusLabel = item.status.charAt(0).toUpperCase() + item.status.slice(1);
         const isResolved = Boolean(item.isResolved);
@@ -1570,6 +1580,17 @@ function renderItems() {
         const isOpen = state.openComments.has(item.id);
         const selectedType = state.activeCommentType[item.id] || 'idea';
         const draftText = state.commentDrafts[item.id] || '';
+
+        // Voting breakdown:
+        // 1. Proposer: item.proposedBy
+        // 2. Seconder: First voter who is NOT the proposer
+        const nonProposerVotes = (item.votes || []).filter(v => v.memberId !== item.proposedBy.memberId);
+        const seconderVote = nonProposerVotes[0] || null;
+        const seconderName = seconderVote ? seconderVote.memberName : null;
+
+        // 3. Other supporters: Subsequent votes excluding proposer and seconder
+        const otherVotes = nonProposerVotes.slice(1);
+        const otherVoterNames = otherVotes.map(v => formatShortName(v.memberName)).join(', ');
 
         const typeLabels = {
             idea: '💡 Idea / Solution',
@@ -1587,7 +1608,19 @@ function renderItems() {
                     </div>
                     <div class="item-badges">
                         ${isResolved ? '<span class="badge status-badge badge-resolved">Resolved</span>' : ''}
-                        <span class="badge status-badge status-${statusClass}">${statusLabel}</span>
+                        ${statusClass === 'seconded' ? `
+                            <div class="seconder-badge-group">
+                                <span class="badge status-badge status-seconded">SECONDED BY</span>
+                                <span class="seconder-name">${escapeHTML(seconderName || 'Member')}</span>
+                            </div>
+                        ` : (statusClass === 'endorsed' ? `
+                            <div class="seconder-badge-group">
+                                <span class="badge status-badge status-endorsed">Endorsed</span>
+                                ${seconderName ? `<span class="seconder-name">Seconded by ${escapeHTML(seconderName)}</span>` : ''}
+                            </div>
+                        ` : `
+                            <span class="badge status-badge status-${statusClass}">${statusLabel}</span>
+                        `)}
                     </div>
                 </div>
 
@@ -1612,9 +1645,9 @@ function renderItems() {
                     <div class="proposer-info">
                         <strong>${escapeHTML(item.proposedBy.memberName)}</strong>
                         <span>${escapeHTML(item.proposedBy.memberRole)} • ${timeAgo(item.proposedAt)}</span>
-                        ${voteCount > 0 ? `
+                        ${otherVotes.length > 0 ? `
                             <span class="voters-preview">
-                                Supported by: <strong>${escapeHTML(voterNames)}</strong>
+                                Supported by: <strong>${escapeHTML(otherVoterNames)}</strong>
                             </span>
                         ` : ''}
                     </div>
