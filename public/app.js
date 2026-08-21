@@ -39,7 +39,7 @@ function isAdmin() {
     return name === 'stephen vorster' || role.includes('admin') || role.includes('principal') || role.includes('chairperson');
 }
 
-const APP_VERSION = '20260821-28';
+const APP_VERSION = '20260821-29';
 const MEETING_DATE = new Date('2026-08-27T10:00:00');
 const POLL_INTERVAL_MS = 15000;
 
@@ -2448,6 +2448,76 @@ function renderDocuments() {
 }
 
 // ── Rich Text Sanitizer & Editor Setup ──
+function cleanPastedHtml(rawHtml) {
+    if (!rawHtml || typeof rawHtml !== 'string') return '';
+
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(rawHtml, 'text/html');
+
+    // Remove unwanted script, style, meta, xml tags from Word / Google Docs
+    doc.querySelectorAll('script, style, meta, link, xml, noscript').forEach(el => el.remove());
+
+    const safeStyleProps = new Set([
+        'font-size', 'font-weight', 'font-style', 'text-decoration', 
+        'text-align', 'color', 'margin-left', 'margin-right'
+    ]);
+
+    function processNode(node) {
+        if (node.nodeType === Node.TEXT_NODE) return;
+        if (node.nodeType !== Node.ELEMENT_NODE) {
+            node.remove();
+            return;
+        }
+
+        // Remove any background attributes
+        node.removeAttribute('bgcolor');
+        node.removeAttribute('background');
+
+        // Strip background-related styles
+        if (node.hasAttribute('style')) {
+            const style = node.getAttribute('style');
+            const cleanedStyles = [];
+            style.split(';').forEach(decl => {
+                const parts = decl.split(':');
+                if (parts.length >= 2) {
+                    const prop = parts[0].trim().toLowerCase();
+                    const val = parts.slice(1).join(':').trim();
+                    if (prop.startsWith('background') || prop.startsWith('box-shadow') || prop === 'border') {
+                        return; // Discard background and border boxes
+                    }
+                    if (safeStyleProps.has(prop)) {
+                        cleanedStyles.push(`${prop}: ${val}`);
+                    }
+                }
+            });
+
+            if (cleanedStyles.length > 0) {
+                node.setAttribute('style', cleanedStyles.join('; '));
+            } else {
+                node.removeAttribute('style');
+            }
+        }
+
+        // Unwrap spans with no attributes
+        const tag = node.tagName.toUpperCase();
+        if (tag === 'SPAN' && node.attributes.length === 0) {
+            const parent = node.parentNode;
+            if (parent) {
+                while (node.firstChild) {
+                    parent.insertBefore(node.firstChild, node);
+                }
+                parent.removeChild(node);
+                return;
+            }
+        }
+
+        Array.from(node.childNodes).forEach(processNode);
+    }
+
+    Array.from(doc.body.childNodes).forEach(processNode);
+    return doc.body.innerHTML;
+}
+
 function sanitizeRichHtml(dirtyHtml) {
     if (!dirtyHtml || typeof dirtyHtml !== 'string') return '';
 
@@ -2467,7 +2537,7 @@ function sanitizeRichHtml(dirtyHtml) {
     const allowedAttrs = new Set(['style', 'class', 'href', 'target', 'rel', 'size', 'color', 'align']);
     const safeStyleProps = new Set([
         'font-size', 'font-weight', 'font-style', 'text-decoration', 
-        'text-align', 'color', 'background-color', 'margin-left', 'margin-right'
+        'text-align', 'color', 'margin-left', 'margin-right'
     ]);
 
     function cleanNode(node) {
@@ -2486,6 +2556,9 @@ function sanitizeRichHtml(dirtyHtml) {
             return;
         }
 
+        node.removeAttribute('bgcolor');
+        node.removeAttribute('background');
+
         const attrs = Array.from(node.attributes);
         for (const attr of attrs) {
             const attrName = attr.name.toLowerCase();
@@ -2503,9 +2576,16 @@ function sanitizeRichHtml(dirtyHtml) {
                 const cleanedStyles = [];
                 const styleDecls = attr.value.split(';');
                 for (const decl of styleDecls) {
-                    const [prop, val] = decl.split(':').map(s => s ? s.trim() : '');
-                    if (prop && val && safeStyleProps.has(prop.toLowerCase())) {
-                        cleanedStyles.push(`${prop.toLowerCase()}: ${val}`);
+                    const parts = decl.split(':');
+                    if (parts.length >= 2) {
+                        const prop = parts[0].trim().toLowerCase();
+                        const val = parts.slice(1).join(':').trim();
+                        if (prop.startsWith('background') || prop.startsWith('box-shadow') || prop === 'border') {
+                            continue; // Discard background styles
+                        }
+                        if (safeStyleProps.has(prop)) {
+                            cleanedStyles.push(`${prop}: ${val}`);
+                        }
                     }
                 }
                 if (cleanedStyles.length > 0) {
@@ -2565,6 +2645,29 @@ function setupRichTextEditor() {
 
     // Sync content on input
     els.docDescriptionEditor.addEventListener('input', () => {
+        if (els.docDescription) {
+            els.docDescription.value = els.docDescriptionEditor.innerHTML;
+        }
+        updateToolbarState();
+    });
+
+    // Intercept paste to strip any background styling, highlights, or background colors
+    els.docDescriptionEditor.addEventListener('paste', (e) => {
+        e.preventDefault();
+        const clipboard = e.clipboardData || window.clipboardData;
+        if (!clipboard) return;
+
+        const html = clipboard.getData('text/html');
+        const text = clipboard.getData('text/plain');
+
+        if (html) {
+            const cleaned = cleanPastedHtml(html);
+            document.execCommand('insertHTML', false, cleaned);
+        } else if (text) {
+            const formattedText = escapeHTML(text).replace(/\r\n|\r|\n/g, '<br>');
+            document.execCommand('insertHTML', false, formattedText);
+        }
+
         if (els.docDescription) {
             els.docDescription.value = els.docDescriptionEditor.innerHTML;
         }

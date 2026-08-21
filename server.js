@@ -542,7 +542,7 @@ async function requireAuth(req, res, next) {
 
 // ── Public Endpoints ──
 
-const APP_VERSION = '20260821-28';
+const APP_VERSION = '20260821-29';
 
 app.get('/api/version', (req, res) => {
   res.json({ version: APP_VERSION });
