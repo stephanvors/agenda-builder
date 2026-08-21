@@ -38,6 +38,7 @@ function isAdmin() {
     return name === 'stephen vorster' || role.includes('admin') || role.includes('principal') || role.includes('chairperson');
 }
 
+const APP_VERSION = '20260821-12';
 const MEETING_DATE = new Date('2026-08-27T10:00:00');
 const POLL_INTERVAL_MS = 15000;
 
@@ -2136,7 +2137,30 @@ function showToast(message, isError = false) {
 
 // ── Polling ──
 let pollTimer = null;
-let countdownTimer = null;
+async function checkAppVersion() {
+    try {
+        const res = await fetch(`/api/version?_t=${Date.now()}`);
+        if (res.ok) {
+            const data = await res.json();
+            if (data.version && data.version !== APP_VERSION) {
+                console.log(`New version detected (${data.version}). Refreshing app...`);
+                window.location.reload(true);
+            }
+        }
+    } catch { /* ignore */ }
+}
+
+// Check version and reload data when phone wakes up or tab gains focus
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+        checkAppVersion();
+        if (state.token) loadData();
+    }
+});
+window.addEventListener('focus', () => {
+    checkAppVersion();
+    if (state.token) loadData();
+});
 
 function startPolling() {
     let secondsLeft = 15;
@@ -2145,7 +2169,10 @@ function startPolling() {
         if (els.refreshCountdown) els.refreshCountdown.textContent = Math.max(0, secondsLeft);
         if (secondsLeft <= 0) secondsLeft = 15;
     }, 1000);
-    pollTimer = setInterval(async () => { await loadData(); }, POLL_INTERVAL_MS);
+    pollTimer = setInterval(async () => {
+        await checkAppVersion();
+        await loadData();
+    }, POLL_INTERVAL_MS);
 }
 
 function stopPolling() {

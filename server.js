@@ -437,6 +437,12 @@ async function requireAuth(req, res, next) {
 
 // ── Public Endpoints ──
 
+const APP_VERSION = '20260821-12';
+
+app.get('/api/version', (req, res) => {
+  res.json({ version: APP_VERSION });
+});
+
 // Login with name + PIN
 app.post('/api/login', async (req, res) => {
   try {
