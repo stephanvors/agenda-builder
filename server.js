@@ -437,7 +437,7 @@ async function requireAuth(req, res, next) {
 
 // ── Public Endpoints ──
 
-const APP_VERSION = '20260821-12';
+const APP_VERSION = '20260821-22';
 
 app.get('/api/version', (req, res) => {
   res.json({ version: APP_VERSION });
@@ -907,6 +907,159 @@ app.delete('/api/items/:id/resolve', requireAuth, async (req, res) => {
   }
 });
 
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]);
+}
+
+function normalizeCategoryPath(name, parent) {
+  let full = (parent ? `${parent.trim()} > ` : '') + (name ? name.trim() : '');
+  const segments = full
+    .split(/\s*>\s*|\s*\/\s*/)
+    .map(s => s.trim())
+    .filter(Boolean);
+  
+  if (segments.length === 0) return '';
+  if (segments.length > 3) {
+    throw new Error('Categories support a maximum of 3 levels of nesting (Main Category > Subcategory > Topic)');
+  }
+  return segments.join(' > ');
+}
+
+function sendDocumentErrorResponse(res, req, doc, message) {
+  const acceptsHtml = req.headers.accept && req.headers.accept.includes('text/html');
+  if (acceptsHtml) {
+    const docTitle = doc ? (doc.title || doc.originalName || 'Document') : 'Document';
+    const docName = doc ? (doc.originalName || '') : '';
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    return res.status(404).send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document Not Found - LGAA Agenda</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #0B132B;
+      color: #F8FAFC;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .error-card {
+      background: #1C2541;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 18px;
+      padding: 36px 28px;
+      max-width: 500px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 24px 48px rgba(0,0,0,0.5);
+    }
+    .error-icon {
+      font-size: 54px;
+      margin-bottom: 16px;
+      line-height: 1;
+    }
+    h1 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: #FFFFFF;
+    }
+    p {
+      font-size: 14px;
+      color: #94A3B8;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    .highlight-box {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 24px;
+      text-align: left;
+      font-size: 13px;
+      color: #FECACA;
+    }
+    .highlight-title {
+      font-weight: 700;
+      color: #FFFFFF;
+      font-size: 14px;
+      margin-bottom: 4px;
+      word-break: break-word;
+    }
+    .highlight-desc {
+      color: #FCA5A5;
+      font-size: 12.5px;
+      line-height: 1.5;
+    }
+    .btn-group {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 22px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #3B82F6, #1D4ED8);
+      color: #FFFFFF;
+    }
+    .btn-primary:hover {
+      opacity: 0.95;
+      transform: translateY(-1px);
+    }
+    .btn-secondary {
+      background: #334155;
+      color: #CBD5E1;
+    }
+    .btn-secondary:hover {
+      background: #475569;
+      color: #FFFFFF;
+    }
+  </style>
+</head>
+<body>
+  <div class="error-card">
+    <div class="error-icon">📁⚠️</div>
+    <h1>Document Not Available</h1>
+    <div class="highlight-box">
+      <div class="highlight-title">${escapeHtml(docTitle)}</div>
+      ${docName ? `<div style="font-size:11px;color:#94A3B8;font-family:monospace;margin-bottom:6px;">${escapeHtml(docName)}</div>` : ''}
+      <div class="highlight-desc">This physical file is not found on the server. If this file was uploaded before database persistence was active, please remove this item and re-upload the document.</div>
+    </div>
+    <p>You can return to the Document Vault to upload or manage files.</p>
+    <div class="btn-group">
+      <a href="/" class="btn btn-primary">Return to Document Vault</a>
+      <button onclick="window.close()" class="btn btn-secondary">Close Tab</button>
+    </div>
+  </div>
+</body>
+</html>`);
+  }
+  return res.status(404).json({ error: message || 'File not found on server. Please re-upload this document.' });
+}
+
 // ── Shared Documents & Files Endpoints ──
 
 // List all documents
@@ -916,8 +1069,29 @@ app.get('/api/documents', requireAuth, async (req, res) => {
     if (!Array.isArray(store.documents)) {
       store.documents = [];
     }
+
+    let existingFileIds = new Set();
+    if (pool) {
+      try {
+        const fileRows = await pool.query('SELECT id FROM app_files');
+        fileRows.rows.forEach(r => existingFileIds.add(r.id));
+      } catch (e) {
+        console.error('Error checking existing file IDs in DB:', e.message);
+      }
+    }
+
+    const docsWithStatus = store.documents.map(d => {
+      const existsOnDisk = Boolean(d.storedName && fsSync.existsSync(path.join(UPLOADS_DIR, d.storedName)));
+      const existsInDb = existingFileIds.has(d.id);
+      const isAvailable = (pool ? existsInDb : existsOnDisk) || existsInDb || existsOnDisk;
+      return {
+        ...d,
+        isAvailable
+      };
+    });
+
     // Return newest first
-    const sorted = [...store.documents].sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
+    const sorted = [...docsWithStatus].sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
     res.json({
       documents: sorted,
       categories: store.documentCategories || DEFAULT_DOCUMENT_CATEGORIES
@@ -960,7 +1134,7 @@ app.post('/api/documents/upload', requireAuth, (req, res) => {
       }
 
       const availableDocCategories = store.documentCategories || DEFAULT_DOCUMENT_CATEGORIES;
-      const finalCategory = availableDocCategories.includes(category) ? category : (availableDocCategories[0] || 'General & Media');
+      const finalCategory = (category && category.trim()) ? category.trim() : (availableDocCategories[0] || 'General & Media');
       const finalTitle = (title && title.trim()) ? title.trim() : req.file.originalname;
 
       const newDoc = {
@@ -995,14 +1169,18 @@ app.post('/api/documents/upload', requireAuth, (req, res) => {
             [newDoc.id, req.file.originalname, req.file.mimetype, fileBuffer]
           );
         } catch (dbErr) {
-          console.error('Failed to store file binary in PostgreSQL:', dbErr.message);
+          console.error('Failed to store file binary in PostgreSQL:', dbErr);
+          if (req.file && req.file.path) {
+            try { await fs.unlink(req.file.path); } catch { /* ignore */ }
+          }
+          return res.status(500).json({ error: 'Failed to persist document binary into database. ' + (dbErr.message || '') });
         }
       }
 
       store.documents.push(newDoc);
       await storeHelper.write(store);
 
-      res.status(201).json(newDoc);
+      res.status(201).json({ ...newDoc, isAvailable: true });
     } catch (error) {
       console.error('Error saving uploaded document:', error);
       if (req.file && req.file.path) {
@@ -1017,10 +1195,10 @@ app.post('/api/documents/upload', requireAuth, (req, res) => {
 app.get('/api/documents/:id/download', requireAuth, async (req, res) => {
   try {
     const store = req.store;
-    if (!Array.isArray(store.documents)) return res.status(404).json({ error: 'Document not found' });
+    if (!Array.isArray(store.documents)) return sendDocumentErrorResponse(res, req, null, 'Document not found');
 
     const doc = store.documents.find(d => d.id === req.params.id);
-    if (!doc) return res.status(404).json({ error: 'Document not found' });
+    if (!doc) return sendDocumentErrorResponse(res, req, null, 'Document not found');
 
     let fileBuffer = null;
     let mimeType = doc.mimeType || 'application/octet-stream';
@@ -1047,7 +1225,7 @@ app.get('/api/documents/:id/download', requireAuth, async (req, res) => {
     }
 
     if (!fileBuffer) {
-      return res.status(404).json({ error: 'File not found on server. Please re-upload this document.' });
+      return sendDocumentErrorResponse(res, req, doc, 'File not found on server. Please re-upload this document.');
     }
 
     res.setHeader('Content-Type', mimeType);
@@ -1064,10 +1242,10 @@ app.get('/api/documents/:id/download', requireAuth, async (req, res) => {
 app.get('/api/documents/:id/view', requireAuth, async (req, res) => {
   try {
     const store = req.store;
-    if (!Array.isArray(store.documents)) return res.status(404).json({ error: 'Document not found' });
+    if (!Array.isArray(store.documents)) return sendDocumentErrorResponse(res, req, null, 'Document not found');
 
     const doc = store.documents.find(d => d.id === req.params.id);
-    if (!doc) return res.status(404).json({ error: 'Document not found' });
+    if (!doc) return sendDocumentErrorResponse(res, req, null, 'Document not found');
 
     let fileBuffer = null;
     let mimeType = doc.mimeType || 'application/octet-stream';
@@ -1094,7 +1272,7 @@ app.get('/api/documents/:id/view', requireAuth, async (req, res) => {
     }
 
     if (!fileBuffer) {
-      return res.status(404).json({ error: 'File not found on server. Please re-upload this document.' });
+      return sendDocumentErrorResponse(res, req, doc, 'File not found on server. Please re-upload this document.');
     }
 
     const fileSize = fileBuffer.length;
@@ -1136,7 +1314,7 @@ app.delete('/api/documents/:id', requireAuth, async (req, res) => {
     if (index === -1) return res.status(404).json({ error: 'Document not found' });
 
     const doc = store.documents[index];
-    const isUploader = doc.uploadedBy.memberId === member.id;
+    const isUploader = doc.uploadedBy?.memberId === member.id;
     const isPrivileged = isAdminMember(member);
 
     if (!isUploader && !isPrivileged) {
@@ -1183,35 +1361,41 @@ app.get('/api/categories', requireAuth, (req, res) => {
   });
 });
 
-// Add an Agenda Category (Admin only)
+// Add an Agenda Category (Admin only) - supports 3-level nesting
 app.post('/api/categories/agenda', requireAuth, async (req, res) => {
   try {
     if (!isAdminMember(req.member)) {
       return res.status(403).json({ error: 'Only administrators can add agenda categories' });
     }
 
-    const { name } = req.body;
-    if (!name || !name.trim()) {
+    const { name, parent } = req.body;
+    let fullPath;
+    try {
+      fullPath = normalizeCategoryPath(name, parent);
+    } catch (err) {
+      return res.status(400).json({ error: err.message });
+    }
+
+    if (!fullPath) {
       return res.status(400).json({ error: 'Category name cannot be empty' });
     }
 
-    const trimmed = name.trim();
     const store = req.store;
     if (!Array.isArray(store.categories)) {
       store.categories = [...DEFAULT_CATEGORIES];
     }
 
-    const exists = store.categories.some(c => c.toLowerCase() === trimmed.toLowerCase());
+    const exists = store.categories.some(c => c.toLowerCase() === fullPath.toLowerCase());
     if (exists) {
       return res.status(400).json({ error: 'An agenda category with this name already exists' });
     }
 
-    store.categories.push(trimmed);
+    store.categories.push(fullPath);
     await storeHelper.write(store);
 
     res.status(201).json({
       message: 'Agenda category added successfully',
-      category: trimmed,
+      category: fullPath,
       categories: store.categories
     });
   } catch (error) {
@@ -1220,7 +1404,7 @@ app.post('/api/categories/agenda', requireAuth, async (req, res) => {
   }
 });
 
-// Delete an Agenda Category (Admin only)
+// Delete an Agenda Category (Admin only) - cascades to children
 app.delete('/api/categories/agenda/:name', requireAuth, async (req, res) => {
   try {
     if (!isAdminMember(req.member)) {
@@ -1233,12 +1417,17 @@ app.delete('/api/categories/agenda/:name', requireAuth, async (req, res) => {
       store.categories = [...DEFAULT_CATEGORIES];
     }
 
-    const index = store.categories.findIndex(c => c.toLowerCase() === name.toLowerCase());
-    if (index === -1) {
+    const lower = name.toLowerCase();
+    const beforeCount = store.categories.length;
+    store.categories = store.categories.filter(c => {
+      const cLower = c.toLowerCase();
+      return cLower !== lower && !cLower.startsWith(lower + ' > ');
+    });
+
+    if (store.categories.length === beforeCount) {
       return res.status(404).json({ error: 'Category not found' });
     }
 
-    store.categories.splice(index, 1);
     await storeHelper.write(store);
 
     res.json({
@@ -1251,35 +1440,41 @@ app.delete('/api/categories/agenda/:name', requireAuth, async (req, res) => {
   }
 });
 
-// Add a Document Category (Admin only)
+// Add a Document Category (Admin only) - supports 3-level nesting
 app.post('/api/categories/documents', requireAuth, async (req, res) => {
   try {
     if (!isAdminMember(req.member)) {
       return res.status(403).json({ error: 'Only administrators can add document categories' });
     }
 
-    const { name } = req.body;
-    if (!name || !name.trim()) {
+    const { name, parent } = req.body;
+    let fullPath;
+    try {
+      fullPath = normalizeCategoryPath(name, parent);
+    } catch (err) {
+      return res.status(400).json({ error: err.message });
+    }
+
+    if (!fullPath) {
       return res.status(400).json({ error: 'Category name cannot be empty' });
     }
 
-    const trimmed = name.trim();
     const store = req.store;
     if (!Array.isArray(store.documentCategories)) {
       store.documentCategories = [...DEFAULT_DOCUMENT_CATEGORIES];
     }
 
-    const exists = store.documentCategories.some(c => c.toLowerCase() === trimmed.toLowerCase());
+    const exists = store.documentCategories.some(c => c.toLowerCase() === fullPath.toLowerCase());
     if (exists) {
       return res.status(400).json({ error: 'A document category with this name already exists' });
     }
 
-    store.documentCategories.push(trimmed);
+    store.documentCategories.push(fullPath);
     await storeHelper.write(store);
 
     res.status(201).json({
       message: 'Document category added successfully',
-      category: trimmed,
+      category: fullPath,
       documentCategories: store.documentCategories
     });
   } catch (error) {
@@ -1288,7 +1483,7 @@ app.post('/api/categories/documents', requireAuth, async (req, res) => {
   }
 });
 
-// Delete a Document Category (Admin only)
+// Delete a Document Category (Admin only) - cascades to children
 app.delete('/api/categories/documents/:name', requireAuth, async (req, res) => {
   try {
     if (!isAdminMember(req.member)) {
@@ -1301,12 +1496,17 @@ app.delete('/api/categories/documents/:name', requireAuth, async (req, res) => {
       store.documentCategories = [...DEFAULT_DOCUMENT_CATEGORIES];
     }
 
-    const index = store.documentCategories.findIndex(c => c.toLowerCase() === name.toLowerCase());
-    if (index === -1) {
+    const lower = name.toLowerCase();
+    const beforeCount = store.documentCategories.length;
+    store.documentCategories = store.documentCategories.filter(c => {
+      const cLower = c.toLowerCase();
+      return cLower !== lower && !cLower.startsWith(lower + ' > ');
+    });
+
+    if (store.documentCategories.length === beforeCount) {
       return res.status(404).json({ error: 'Document category not found' });
     }
 
-    store.documentCategories.splice(index, 1);
     await storeHelper.write(store);
 
     res.json({

@@ -299,31 +299,54 @@
 
     <!-- Category Management Modal (Admin Only) -->
     <div id="category-modal" class="modal">
-        <div class="modal-content modal-content--compact">
+        <div class="modal-content modal-content--compact category-modal-dialog">
             <div class="modal-header">
                 <h2 id="category-modal-title">Manage Categories</h2>
                 <button id="btn-close-category-modal" class="btn-modal-close" aria-label="Close" title="Close">&times;</button>
             </div>
             <div class="modal-body category-modal-body">
-                <p class="category-modal-desc" id="category-modal-desc">Add or remove categories.</p>
+                <p class="category-modal-desc" id="category-modal-desc">Create and organize up to 3 levels of nested categories (Main Category > Subcategory > Topic).</p>
+                
                 <form id="add-category-form" class="add-category-form">
-                    <div class="add-category-input-row">
-                        <input type="text" id="new-category-input" placeholder="Enter new category name..." maxlength="60" required autocomplete="off">
-                        <button type="submit" id="btn-submit-new-category" class="btn btn-primary btn-sm">+ Add</button>
+                    <div class="cat-builder-card">
+                        <div class="cat-level-row">
+                            <div class="cat-select-group">
+                                <label for="cat-parent-l1" class="cat-level-label">Level 1 (Main Category)</label>
+                                <select id="cat-parent-l1" class="cat-select-box">
+                                    <option value="__NEW__">+ New Main Category (Level 1)</option>
+                                </select>
+                            </div>
+
+                            <div class="cat-select-group hidden" id="cat-parent-l2-group">
+                                <label for="cat-parent-l2" class="cat-level-label">Level 2 (Subcategory)</label>
+                                <select id="cat-parent-l2" class="cat-select-box">
+                                    <option value="__NEW__">+ New Subcategory (Level 2)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="cat-target-badge" id="cat-target-badge">
+                            Target: <span id="cat-target-path" class="cat-target-path">New Main Category (Level 1)</span>
+                        </div>
+
+                        <div class="add-category-input-row">
+                            <input type="text" id="new-category-input" placeholder="Enter category name..." maxlength="60" required autocomplete="off">
+                            <button type="submit" id="btn-submit-new-category" class="btn btn-primary btn-sm">+ Add</button>
+                        </div>
                     </div>
                     <span class="error-msg" id="category-modal-error"></span>
                 </form>
                 
                 <div class="category-list-header">
-                    <span>Existing Categories (<span id="category-modal-count">0</span>)</span>
+                    <span>Hierarchy Structure (<span id="category-modal-count">0</span>)</span>
                 </div>
-                <div class="category-chips-list" id="category-chips-list">
-                    <!-- Category chips injected here -->
+                <div class="category-tree-container" id="category-tree-container">
+                    <!-- 3-level tree injected here -->
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="app.js?v=20260821-21"></script>
+    <script src="app.js?v=20260821-22"></script>
 </body>
 </html>

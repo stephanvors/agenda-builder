@@ -38,7 +38,7 @@ function isAdmin() {
     return name === 'stephen vorster' || role.includes('admin') || role.includes('principal') || role.includes('chairperson');
 }
 
-const APP_VERSION = '20260821-12';
+const APP_VERSION = '20260821-22';
 const MEETING_DATE = new Date('2026-08-27T10:00:00');
 const POLL_INTERVAL_MS = 15000;
 
@@ -58,6 +58,12 @@ const api = {
         return res.json();
     },
 
+    async getMeetingInfo() {
+        const res = await fetch('/api/meeting-info');
+        if (!res.ok) throw new Error('Failed to load meeting info');
+        return res.json();
+    },
+
     async login(memberId, pin) {
         const res = await fetch('/api/login', {
             method: 'POST',
@@ -71,17 +77,21 @@ const api = {
         return res.json();
     },
 
-    async verifySession() {
+    async getMe() {
         const res = await fetch('/api/me', { headers: authHeaders() });
-        if (!res.ok) return null;
+        if (!res.ok) throw new Error('Session invalid');
         return res.json();
     },
 
     async logout() {
-        await fetch('/api/logout', {
-            method: 'POST',
-            headers: authHeaders()
-        });
+        await fetch('/api/logout', { method: 'POST', headers: authHeaders() });
+    },
+
+    async getMembers() {
+        const res = await fetch('/api/members', { headers: authHeaders() });
+        if (res.status === 401) { handleSessionExpired(); return []; }
+        if (!res.ok) throw new Error('Failed to load members');
+        return res.json();
     },
 
     async getItems() {
@@ -100,12 +110,12 @@ const api = {
         if (res.status === 401) { handleSessionExpired(); return null; }
         if (!res.ok) {
             const err = await res.json();
-            throw new Error(err.error || 'Failed to create item');
+            throw new Error(err.error || 'Failed to submit proposal');
         }
         return res.json();
     },
 
-    async vote(itemId) {
+    async voteItem(itemId) {
         const res = await fetch(`/api/items/${itemId}/vote`, {
             method: 'POST',
             headers: authHeaders()
@@ -113,12 +123,12 @@ const api = {
         if (res.status === 401) { handleSessionExpired(); return null; }
         if (!res.ok) {
             const err = await res.json();
-            throw new Error(err.error || 'Failed to cast vote');
+            throw new Error(err.error || 'Failed to vote');
         }
         return res.json();
     },
 
-    async unvote(itemId) {
+    async unvoteItem(itemId) {
         const res = await fetch(`/api/items/${itemId}/vote`, {
             method: 'DELETE',
             headers: authHeaders()
@@ -136,14 +146,15 @@ const api = {
             method: 'DELETE',
             headers: authHeaders()
         });
-        if (res.status === 401) { handleSessionExpired(); return; }
-        if (res.status !== 204 && !res.ok) {
+        if (res.status === 401) { handleSessionExpired(); return null; }
+        if (!res.ok) {
             const err = await res.json();
             throw new Error(err.error || 'Failed to delete item');
         }
+        return res.json();
     },
 
-    async addComment(itemId, content, type = 'comment') {
+    async addComment(itemId, content, type = 'idea') {
         const res = await fetch(`/api/items/${itemId}/comments`, {
             method: 'POST',
             headers: authHeaders(),
@@ -153,6 +164,20 @@ const api = {
         if (!res.ok) {
             const err = await res.json();
             throw new Error(err.error || 'Failed to add comment');
+        }
+        return res.json();
+    },
+
+    async editComment(itemId, commentId, content, type = 'idea') {
+        const res = await fetch(`/api/items/${itemId}/comments/${commentId}`, {
+            method: 'PATCH',
+            headers: authHeaders(),
+            body: JSON.stringify({ content, type })
+        });
+        if (res.status === 401) { handleSessionExpired(); return null; }
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error || 'Failed to update comment');
         }
         return res.json();
     },
@@ -170,30 +195,16 @@ const api = {
         return res.json();
     },
 
-    async updateComment(itemId, commentId, { content, type }) {
-        const res = await fetch(`/api/items/${itemId}/comments/${commentId}`, {
-            method: 'PATCH',
-            headers: authHeaders(),
-            body: JSON.stringify({ content, type })
-        });
-        if (res.status === 401) { handleSessionExpired(); return null; }
-        if (!res.ok) {
-            const err = await res.json();
-            throw new Error(err.error || 'Failed to update comment');
-        }
-        return res.json();
-    },
-
-    async resolveItem(itemId, solutionText, commentId = null) {
+    async resolveItem(itemId, solutionText) {
         const res = await fetch(`/api/items/${itemId}/resolve`, {
             method: 'POST',
             headers: authHeaders(),
-            body: JSON.stringify({ solutionText, commentId })
+            body: JSON.stringify({ solutionText })
         });
         if (res.status === 401) { handleSessionExpired(); return null; }
         if (!res.ok) {
             const err = await res.json();
-            throw new Error(err.error || 'Failed to resolve item');
+            throw new Error(err.error || 'Failed to record resolution');
         }
         return res.json();
     },
@@ -285,11 +296,11 @@ const api = {
     },
 
     // ── Category API Methods (Admin) ──
-    async addAgendaCategory(name) {
+    async addAgendaCategory(name, parent = null) {
         const res = await fetch('/api/categories/agenda', {
             method: 'POST',
             headers: authHeaders(),
-            body: JSON.stringify({ name })
+            body: JSON.stringify({ name, parent })
         });
         if (res.status === 401) { handleSessionExpired(); return null; }
         if (!res.ok) {
@@ -312,11 +323,11 @@ const api = {
         return res.json();
     },
 
-    async addDocumentCategory(name) {
+    async addDocumentCategory(name, parent = null) {
         const res = await fetch('/api/categories/documents', {
             method: 'POST',
             headers: authHeaders(),
-            body: JSON.stringify({ name })
+            body: JSON.stringify({ name, parent })
         });
         if (res.status === 401) { handleSessionExpired(); return null; }
         if (!res.ok) {
@@ -426,11 +437,15 @@ const els = {
     categoryModalDesc:    document.getElementById('category-modal-desc'),
     btnCloseCategoryModal:document.getElementById('btn-close-category-modal'),
     addCategoryForm:      document.getElementById('add-category-form'),
+    catParentL1:          document.getElementById('cat-parent-l1'),
+    catParentL2:          document.getElementById('cat-parent-l2'),
+    catParentL2Group:     document.getElementById('cat-parent-l2-group'),
+    catTargetPath:        document.getElementById('cat-target-path'),
     newCategoryInput:     document.getElementById('new-category-input'),
     btnSubmitNewCategory: document.getElementById('btn-submit-new-category'),
     categoryModalError:   document.getElementById('category-modal-error'),
     categoryModalCount:   document.getElementById('category-modal-count'),
-    categoryChipsList:    document.getElementById('category-chips-list'),
+    categoryTreeContainer:document.getElementById('category-tree-container'),
 
     btnExport:        document.getElementById('btn-export'),
     modal:            document.getElementById('export-modal'),
@@ -690,12 +705,26 @@ function setupEventListeners() {
     if (els.addCategoryForm) {
         els.addCategoryForm.addEventListener('submit', handleAddCategory);
     }
-    if (els.categoryChipsList) {
-        els.categoryChipsList.addEventListener('click', (e) => {
-            const delBtn = e.target.closest('.btn-delete-chip');
+    if (els.catParentL1) {
+        els.catParentL1.addEventListener('change', () => updateL2Selector());
+    }
+    if (els.catParentL2) {
+        els.catParentL2.addEventListener('change', () => updateTargetPreview());
+    }
+    if (els.categoryTreeContainer) {
+        els.categoryTreeContainer.addEventListener('click', (e) => {
+            const addSubBtn = e.target.closest('.btn-cat-add-sub');
+            if (addSubBtn) {
+                const l1 = addSubBtn.dataset.l1;
+                const l2 = addSubBtn.dataset.l2;
+                updateCategoryBuilderSelectors(l1, l2);
+                if (els.newCategoryInput) els.newCategoryInput.focus();
+                return;
+            }
+            const delBtn = e.target.closest('.btn-cat-delete');
             if (delBtn) {
-                const name = delBtn.dataset.categoryName;
-                handleDeleteCategory(name);
+                const path = delBtn.dataset.path;
+                handleDeleteCategory(path);
             }
         });
     }
@@ -1143,7 +1172,9 @@ async function loadData() {
 // ── Rendering ──
 function renderItems() {
     let filtered = state.items.filter(item => {
-        const matchCat = state.filters.category === 'All' || item.category === state.filters.category;
+        const matchCat = state.filters.category === 'All' || 
+                         item.category === state.filters.category || 
+                         (item.category && item.category.startsWith(state.filters.category + ' > '));
         
         let matchStatus = true;
         if (state.filters.status !== 'All') {
@@ -1196,7 +1227,7 @@ function renderItems() {
             <div class="item-card ${isResolved ? 'card-resolved' : ''}" id="item-${item.id}">
                 <div class="item-header">
                     <div class="item-main-info">
-                        <span class="category-tag">${escapeHTML(item.category)}</span>
+                        ${renderCategoryBadge(item.category, 'category-tag')}
                         <h3 class="item-title">${escapeHTML(item.title)}</h3>
                     </div>
                     <div class="item-badges">
@@ -1382,59 +1413,150 @@ function updateStats(stats) {
     if (els.tabDocsBadge)   els.tabDocsBadge.textContent = state.documents.length;
 }
 
+// ── 3-Level Category Hierarchy System ──
+function parseCategoryHierarchy(categories = []) {
+    const tree = [];
+    const map = new Map(); // path -> node
+
+    categories.forEach(raw => {
+        if (!raw || !raw.trim()) return;
+        const parts = raw.split(/\s*>\s*|\s*\/\s*/).map(p => p.trim()).filter(Boolean);
+        if (parts.length === 0) return;
+
+        // Level 1
+        const l1Name = parts[0];
+        const l1Path = l1Name;
+        let l1Node = map.get(l1Path);
+        if (!l1Node) {
+            l1Node = { name: l1Name, path: l1Path, level: 1, children: [], hasExactItem: false };
+            map.set(l1Path, l1Node);
+            tree.push(l1Node);
+        }
+        if (parts.length === 1) l1Node.hasExactItem = true;
+
+        // Level 2
+        if (parts.length >= 2) {
+            const l2Name = parts[1];
+            const l2Path = `${l1Name} > ${l2Name}`;
+            let l2Node = map.get(l2Path);
+            if (!l2Node) {
+                l2Node = { name: l2Name, path: l2Path, level: 2, children: [], hasExactItem: false, parent: l1Node };
+                map.set(l2Path, l2Node);
+                l1Node.children.push(l2Node);
+            }
+            if (parts.length === 2) l2Node.hasExactItem = true;
+
+            // Level 3
+            if (parts.length >= 3) {
+                const l3Name = parts[2];
+                const l3Path = `${l1Name} > ${l2Name} > ${l3Name}`;
+                let l3Node = map.get(l3Path);
+                if (!l3Node) {
+                    l3Node = { name: l3Name, path: l3Path, level: 3, children: [], hasExactItem: true, parent: l2Node };
+                    map.set(l3Path, l3Node);
+                    l2Node.children.push(l3Node);
+                }
+            }
+        }
+    });
+
+    return { tree, map };
+}
+
+function renderCategoryBadge(categoryStr, customClass = '') {
+    if (!categoryStr) return '';
+    const parts = categoryStr.split(/\s*>\s*|\s*\/\s*/).map(p => p.trim()).filter(Boolean);
+    if (parts.length <= 1) {
+        return `<span class="${customClass}">${escapeHTML(categoryStr)}</span>`;
+    }
+    const crumbs = parts.map((p, idx) => {
+        const isLast = idx === parts.length - 1;
+        return `<span class="cat-crumb ${isLast ? 'cat-crumb-last' : 'cat-crumb-parent'}">${escapeHTML(p)}</span>`;
+    }).join('<span class="cat-crumb-sep">›</span>');
+    
+    return `<span class="${customClass} cat-badge-nested" title="${escapeHTML(categoryStr)}">${crumbs}</span>`;
+}
+
+function renderCategorySelectOptions(categories, selectEl, promptText = 'Select category...') {
+    if (!selectEl) return;
+    const { tree } = parseCategoryHierarchy(categories);
+    const currentVal = selectEl.value;
+
+    let html = `<option value="" disabled selected>${promptText}</option>`;
+
+    tree.forEach(l1 => {
+        if (l1.children.length === 0) {
+            html += `<option value="${escapeHTML(l1.path)}">📁 ${escapeHTML(l1.name)}</option>`;
+        } else {
+            html += `<optgroup label="📁 ${escapeHTML(l1.name)}">`;
+            html += `<option value="${escapeHTML(l1.path)}">📁 ${escapeHTML(l1.name)} (General / Main)</option>`;
+            l1.children.forEach(l2 => {
+                if (l2.children.length === 0) {
+                    html += `<option value="${escapeHTML(l2.path)}">&nbsp;&nbsp;↳ 📂 ${escapeHTML(l2.name)}</option>`;
+                } else {
+                    html += `<option value="${escapeHTML(l2.path)}">&nbsp;&nbsp;↳ 📂 ${escapeHTML(l2.name)} (Overview)</option>`;
+                    l2.children.forEach(l3 => {
+                        html += `<option value="${escapeHTML(l3.path)}">&nbsp;&nbsp;&nbsp;&nbsp;↳ 📄 ${escapeHTML(l3.name)}</option>`;
+                    });
+                }
+            });
+            html += `</optgroup>`;
+        }
+    });
+
+    selectEl.innerHTML = html;
+    if (currentVal && categories.includes(currentVal)) {
+        selectEl.value = currentVal;
+    }
+}
+
+function renderCategoryFilterOptions(categories, selectEl, allPrompt = 'All Categories') {
+    if (!selectEl) return;
+    const { tree } = parseCategoryHierarchy(categories);
+    const currentVal = selectEl.value || 'All';
+
+    let html = `<option value="All">${allPrompt}</option>`;
+
+    tree.forEach(l1 => {
+        if (l1.children.length === 0) {
+            html += `<option value="${escapeHTML(l1.path)}">📁 ${escapeHTML(l1.name)}</option>`;
+        } else {
+            html += `<optgroup label="📁 ${escapeHTML(l1.name)}">`;
+            html += `<option value="${escapeHTML(l1.path)}">📁 All "${escapeHTML(l1.name)}"</option>`;
+            l1.children.forEach(l2 => {
+                if (l2.children.length === 0) {
+                    html += `<option value="${escapeHTML(l2.path)}">&nbsp;&nbsp;↳ 📂 ${escapeHTML(l2.name)}</option>`;
+                } else {
+                    html += `<option value="${escapeHTML(l2.path)}">&nbsp;&nbsp;↳ 📂 All "${escapeHTML(l2.name)}"</option>`;
+                    l2.children.forEach(l3 => {
+                        html += `<option value="${escapeHTML(l3.path)}">&nbsp;&nbsp;&nbsp;&nbsp;↳ 📄 ${escapeHTML(l3.name)}</option>`;
+                    });
+                }
+            });
+            html += `</optgroup>`;
+        }
+    });
+
+    selectEl.innerHTML = html;
+    if (currentVal && (currentVal === 'All' || categories.includes(currentVal))) {
+        selectEl.value = currentVal;
+    } else {
+        selectEl.value = 'All';
+    }
+}
+
 // ── Category Dropdowns & Dynamic Options ──
 function updateCategoryDropdowns() {
     updateAdminVisibility();
 
     // 1. Agenda item proposal category dropdown
-    if (els.itemCategory) {
-        const currentVal = els.itemCategory.value;
-        const defaultPrompt = '<option value="" disabled selected>Select category...</option>';
-        const options = (state.categories || []).map(c => `<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join('');
-        els.itemCategory.innerHTML = defaultPrompt + options;
-        if (currentVal && state.categories.includes(currentVal)) {
-            els.itemCategory.value = currentVal;
-        }
-    }
-
+    renderCategorySelectOptions(state.categories || [], els.itemCategory, 'Select category...');
     // 2. Agenda filter category dropdown
-    if (els.filterCategory) {
-        const currentVal = els.filterCategory.value || 'All';
-        const defaultPrompt = '<option value="All">All Categories</option>';
-        const options = (state.categories || []).map(c => `<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join('');
-        els.filterCategory.innerHTML = defaultPrompt + options;
-        if (currentVal && (currentVal === 'All' || state.categories.includes(currentVal))) {
-            els.filterCategory.value = currentVal;
-        } else {
-            els.filterCategory.value = 'All';
-            state.filters.category = 'All';
-        }
-    }
-
+    renderCategoryFilterOptions(state.categories || [], els.filterCategory, 'All Categories');
     // 3. Document upload category dropdown
-    if (els.docCategory) {
-        const currentVal = els.docCategory.value;
-        const defaultPrompt = '<option value="" disabled selected>Select category...</option>';
-        const options = (state.documentCategories || []).map(c => `<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join('');
-        els.docCategory.innerHTML = defaultPrompt + options;
-        if (currentVal && state.documentCategories.includes(currentVal)) {
-            els.docCategory.value = currentVal;
-        }
-    }
-
+    renderCategorySelectOptions(state.documentCategories || [], els.docCategory, 'Select category...');
     // 4. Document filter category dropdown
-    if (els.filterDocCategory) {
-        const currentVal = els.filterDocCategory.value || 'All';
-        const defaultPrompt = '<option value="All">All Categories</option>';
-        const options = (state.documentCategories || []).map(c => `<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join('');
-        els.filterDocCategory.innerHTML = defaultPrompt + options;
-        if (currentVal && (currentVal === 'All' || state.documentCategories.includes(currentVal))) {
-            els.filterDocCategory.value = currentVal;
-        } else {
-            els.filterDocCategory.value = 'All';
-            state.docFilters.category = 'All';
-        }
-    }
+    renderCategoryFilterOptions(state.documentCategories || [], els.filterDocCategory, 'All Categories');
 }
 
 // ── Category Management Modal Logic (Admin) ──
@@ -1444,10 +1566,10 @@ function openCategoryModal(type = 'agenda') {
 
     if (type === 'agenda') {
         if (els.categoryModalTitle) els.categoryModalTitle.textContent = 'Manage Agenda Categories';
-        if (els.categoryModalDesc)  els.categoryModalDesc.textContent = 'Add or remove categories for agenda item proposals.';
+        if (els.categoryModalDesc)  els.categoryModalDesc.textContent = 'Create and organize up to 3 levels of nested categories for agenda items.';
     } else {
         if (els.categoryModalTitle) els.categoryModalTitle.textContent = 'Manage File Vault Categories';
-        if (els.categoryModalDesc)  els.categoryModalDesc.textContent = 'Add or remove categories for uploaded documents and media.';
+        if (els.categoryModalDesc)  els.categoryModalDesc.textContent = 'Create and organize up to 3 levels of nested categories for uploaded documents and media.';
     }
 
     if (els.newCategoryInput) {
@@ -1457,7 +1579,8 @@ function openCategoryModal(type = 'agenda') {
         els.categoryModalError.textContent = '';
     }
 
-    renderCategoryChips();
+    updateCategoryBuilderSelectors();
+    renderCategoryTree();
     els.categoryModal.classList.add('active');
     setTimeout(() => {
         if (els.newCategoryInput) els.newCategoryInput.focus();
@@ -1470,35 +1593,179 @@ function closeCategoryModal() {
     }
 }
 
-function renderCategoryChips() {
-    if (!els.categoryChipsList) return;
+function updateCategoryBuilderSelectors(preselectL1 = null, preselectL2 = null) {
     const type = state.activeCategoryModalType;
     const list = type === 'agenda' ? (state.categories || []) : (state.documentCategories || []);
-    
+    const { tree } = parseCategoryHierarchy(list);
+
+    if (els.catParentL1) {
+        let l1Html = `<option value="__NEW__">+ New Main Category (Level 1)</option>`;
+        tree.forEach(node => {
+            l1Html += `<option value="${escapeHTML(node.path)}">📁 ${escapeHTML(node.name)}</option>`;
+        });
+        els.catParentL1.innerHTML = l1Html;
+        if (preselectL1 && tree.some(n => n.path === preselectL1)) {
+            els.catParentL1.value = preselectL1;
+        } else {
+            els.catParentL1.value = '__NEW__';
+        }
+    }
+
+    updateL2Selector(preselectL2);
+}
+
+function updateL2Selector(preselectL2 = null) {
+    if (!els.catParentL1 || !els.catParentL2 || !els.catParentL2Group) return;
+    const selectedL1 = els.catParentL1.value;
+    const type = state.activeCategoryModalType;
+    const list = type === 'agenda' ? (state.categories || []) : (state.documentCategories || []);
+    const { map } = parseCategoryHierarchy(list);
+
+    if (selectedL1 === '__NEW__') {
+        els.catParentL2Group.classList.add('hidden');
+        els.catParentL2.innerHTML = `<option value="__NEW__">+ New Subcategory (Level 2)</option>`;
+        els.catParentL2.value = '__NEW__';
+        updateTargetPreview();
+        return;
+    }
+
+    const l1Node = map.get(selectedL1);
+    els.catParentL2Group.classList.remove('hidden');
+
+    let l2Html = `<option value="__NEW__">+ New Subcategory under [${escapeHTML(l1Node ? l1Node.name : selectedL1)}] (Level 2)</option>`;
+    if (l1Node && l1Node.children) {
+        l1Node.children.forEach(child => {
+            l2Html += `<option value="${escapeHTML(child.path)}">📂 ${escapeHTML(child.name)}</option>`;
+        });
+    }
+    els.catParentL2.innerHTML = l2Html;
+
+    if (preselectL2 && l1Node && l1Node.children.some(c => c.path === preselectL2)) {
+        els.catParentL2.value = preselectL2;
+    } else {
+        els.catParentL2.value = '__NEW__';
+    }
+
+    updateTargetPreview();
+}
+
+function updateTargetPreview() {
+    if (!els.catParentL1 || !els.catTargetPath || !els.newCategoryInput) return;
+    const selectedL1 = els.catParentL1.value;
+    const selectedL2 = els.catParentL2 ? els.catParentL2.value : '__NEW__';
+
+    if (selectedL1 === '__NEW__') {
+        els.catTargetPath.textContent = 'New Main Category (Level 1)';
+        els.newCategoryInput.placeholder = 'Enter main category name (e.g. Governance & Legal)...';
+    } else if (selectedL2 === '__NEW__') {
+        els.catTargetPath.textContent = `${selectedL1} › [New Subcategory (Level 2)]`;
+        els.newCategoryInput.placeholder = `Enter subcategory name under "${selectedL1}"...`;
+    } else {
+        els.catTargetPath.textContent = `${selectedL2} › [New Topic (Level 3)]`;
+        els.newCategoryInput.placeholder = `Enter topic name under "${selectedL2}"...`;
+    }
+}
+
+function renderCategoryTree() {
+    if (!els.categoryTreeContainer) return;
+    const type = state.activeCategoryModalType;
+    const isAgenda = type === 'agenda';
+    const list = isAgenda ? (state.categories || []) : (state.documentCategories || []);
+    const { tree } = parseCategoryHierarchy(list);
+
     if (els.categoryModalCount) {
         els.categoryModalCount.textContent = list.length;
     }
 
-    if (list.length === 0) {
-        els.categoryChipsList.innerHTML = '<span style="color:var(--text-muted);font-size:0.85rem;">No categories defined yet.</span>';
+    if (tree.length === 0) {
+        els.categoryTreeContainer.innerHTML = '<span style="color:var(--text-muted);font-size:0.85rem;padding:1rem;text-align:center;display:block;">No categories defined yet. Use the form above to create your first category.</span>';
         return;
     }
 
-    els.categoryChipsList.innerHTML = list.map(cat => `
-        <div class="category-chip">
-            <span class="category-chip-name">${escapeHTML(cat)}</span>
-            <button type="button" class="btn-delete-chip" data-category-name="${escapeHTML(cat)}" title="Delete category">&times;</button>
-        </div>
-    `).join('');
+    let html = '';
+
+    tree.forEach(l1 => {
+        const l1Count = isAgenda 
+            ? state.items.filter(i => i.category === l1.path || i.category?.startsWith(l1.path + ' > ')).length
+            : (state.documents || []).filter(d => d.category === l1.path || d.category?.startsWith(l1.path + ' > ')).length;
+
+        html += `
+            <div class="cat-tree-node level-1" data-path="${escapeHTML(l1.path)}">
+                <div class="cat-tree-info">
+                    <span class="cat-tree-icon">📁</span>
+                    <span class="cat-tree-title">${escapeHTML(l1.name)}</span>
+                    <span class="cat-tree-level-tag tag-l1">Level 1</span>
+                    ${l1Count > 0 ? `<span class="doc-size-badge">${l1Count} ${isAgenda ? 'items' : 'files'}</span>` : ''}
+                </div>
+                <div class="cat-tree-actions">
+                    <button type="button" class="btn-cat-add-sub" data-l1="${escapeHTML(l1.path)}" data-l2="__NEW__" title="Add Subcategory (Level 2) under this">+ Sub (L2)</button>
+                    <button type="button" class="btn-cat-delete" data-path="${escapeHTML(l1.path)}" title="Delete category & subcategories">🗑️</button>
+                </div>
+            </div>
+        `;
+
+        l1.children.forEach(l2 => {
+            const l2Count = isAgenda
+                ? state.items.filter(i => i.category === l2.path || i.category?.startsWith(l2.path + ' > ')).length
+                : (state.documents || []).filter(d => d.category === l2.path || d.category?.startsWith(l2.path + ' > ')).length;
+
+            html += `
+                <div class="cat-tree-node level-2" data-path="${escapeHTML(l2.path)}">
+                    <div class="cat-tree-info">
+                        <span class="cat-tree-icon">📂</span>
+                        <span class="cat-tree-title">${escapeHTML(l2.name)}</span>
+                        <span class="cat-tree-level-tag tag-l2">Level 2</span>
+                        ${l2Count > 0 ? `<span class="doc-size-badge">${l2Count}</span>` : ''}
+                    </div>
+                    <div class="cat-tree-actions">
+                        <button type="button" class="btn-cat-add-sub" data-l1="${escapeHTML(l1.path)}" data-l2="${escapeHTML(l2.path)}" title="Add Topic (Level 3) under this">+ Sub (L3)</button>
+                        <button type="button" class="btn-cat-delete" data-path="${escapeHTML(l2.path)}" title="Delete subcategory">🗑️</button>
+                    </div>
+                </div>
+            `;
+
+            l2.children.forEach(l3 => {
+                const l3Count = isAgenda
+                    ? state.items.filter(i => i.category === l3.path).length
+                    : (state.documents || []).filter(d => d.category === l3.path).length;
+
+                html += `
+                    <div class="cat-tree-node level-3" data-path="${escapeHTML(l3.path)}">
+                        <div class="cat-tree-info">
+                            <span class="cat-tree-icon">📄</span>
+                            <span class="cat-tree-title">${escapeHTML(l3.name)}</span>
+                            <span class="cat-tree-level-tag tag-l3">Level 3</span>
+                            ${l3Count > 0 ? `<span class="doc-size-badge">${l3Count}</span>` : ''}
+                        </div>
+                        <div class="cat-tree-actions">
+                            <button type="button" class="btn-cat-delete" data-path="${escapeHTML(l3.path)}" title="Delete topic">🗑️</button>
+                        </div>
+                    </div>
+                `;
+            });
+        });
+    });
+
+    els.categoryTreeContainer.innerHTML = html;
 }
 
 async function handleAddCategory(e) {
     e.preventDefault();
     if (!els.newCategoryInput) return;
-    const name = els.newCategoryInput.value.trim();
-    if (!name) {
+    const rawName = els.newCategoryInput.value.trim();
+    if (!rawName) {
         if (els.categoryModalError) els.categoryModalError.textContent = 'Please enter a category name';
         return;
+    }
+
+    const selectedL1 = els.catParentL1 ? els.catParentL1.value : '__NEW__';
+    const selectedL2 = els.catParentL2 ? els.catParentL2.value : '__NEW__';
+
+    let parentPath = null;
+    if (selectedL2 !== '__NEW__' && selectedL2) {
+        parentPath = selectedL2;
+    } else if (selectedL1 !== '__NEW__' && selectedL1) {
+        parentPath = selectedL1;
     }
 
     const type = state.activeCategoryModalType;
@@ -1510,31 +1777,26 @@ async function handleAddCategory(e) {
 
     try {
         if (type === 'agenda') {
-            const res = await api.addAgendaCategory(name);
+            const res = await api.addAgendaCategory(rawName, parentPath);
             if (res && Array.isArray(res.categories)) {
                 state.categories = res.categories;
-            } else if (!state.categories.includes(name)) {
-                state.categories.push(name);
             }
-            showToast(`Agenda category "${name}" added!`);
-            // Update dropdown and auto-select if proposal form is open
+            showToast(`Agenda category added!`);
             updateCategoryDropdowns();
-            if (els.itemCategory) els.itemCategory.value = name;
+            if (els.itemCategory && res && res.category) els.itemCategory.value = res.category;
         } else {
-            const res = await api.addDocumentCategory(name);
+            const res = await api.addDocumentCategory(rawName, parentPath);
             if (res && Array.isArray(res.documentCategories)) {
                 state.documentCategories = res.documentCategories;
-            } else if (!state.documentCategories.includes(name)) {
-                state.documentCategories.push(name);
             }
-            showToast(`Document category "${name}" added!`);
-            // Update dropdown and auto-select if upload form is open
+            showToast(`Document category added!`);
             updateCategoryDropdowns();
-            if (els.docCategory) els.docCategory.value = name;
+            if (els.docCategory && res && res.category) els.docCategory.value = res.category;
         }
 
         els.newCategoryInput.value = '';
-        renderCategoryChips();
+        updateCategoryBuilderSelectors(selectedL1, selectedL2);
+        renderCategoryTree();
         renderItems();
         renderDocuments();
     } catch (error) {
@@ -1554,22 +1816,22 @@ async function handleDeleteCategory(name) {
     
     // Check if in use
     if (isAgenda) {
-        const inUseCount = state.items.filter(i => i.category === name).length;
+        const inUseCount = state.items.filter(i => i.category === name || i.category?.startsWith(name + ' > ')).length;
         if (inUseCount > 0) {
-            if (!confirm(`Warning: "${name}" is currently used by ${inUseCount} agenda item(s). Are you sure you want to delete this category?`)) {
+            if (!confirm(`Warning: "${name}" (and its subcategories) is currently used by ${inUseCount} agenda item(s). Deleting will remove it and any sub-branches. Proceed?`)) {
                 return;
             }
         } else {
-            if (!confirm(`Are you sure you want to delete the category "${name}"?`)) return;
+            if (!confirm(`Are you sure you want to delete "${name}"? Any subcategories under it will also be deleted.`)) return;
         }
     } else {
-        const inUseCount = (state.documents || []).filter(d => d.category === name).length;
+        const inUseCount = (state.documents || []).filter(d => d.category === name || d.category?.startsWith(name + ' > ')).length;
         if (inUseCount > 0) {
-            if (!confirm(`Warning: "${name}" is currently used by ${inUseCount} shared document(s). Are you sure you want to delete this category?`)) {
+            if (!confirm(`Warning: "${name}" (and its subcategories) is currently used by ${inUseCount} shared document(s). Deleting will remove it and any sub-branches. Proceed?`)) {
                 return;
             }
         } else {
-            if (!confirm(`Are you sure you want to delete the category "${name}"?`)) return;
+            if (!confirm(`Are you sure you want to delete "${name}"? Any subcategories under it will also be deleted.`)) return;
         }
     }
 
@@ -1579,20 +1841,21 @@ async function handleDeleteCategory(name) {
             if (res && Array.isArray(res.categories)) {
                 state.categories = res.categories;
             } else {
-                state.categories = state.categories.filter(c => c !== name);
+                state.categories = state.categories.filter(c => c !== name && !c.startsWith(name + ' > '));
             }
-            showToast(`Category "${name}" deleted`);
+            showToast(`Agenda category "${name}" removed`);
         } else {
             const res = await api.deleteDocumentCategory(name);
             if (res && Array.isArray(res.documentCategories)) {
                 state.documentCategories = res.documentCategories;
             } else {
-                state.documentCategories = state.documentCategories.filter(c => c !== name);
+                state.documentCategories = state.documentCategories.filter(c => c !== name && !c.startsWith(name + ' > '));
             }
-            showToast(`Document category "${name}" deleted`);
+            showToast(`Document category "${name}" removed`);
         }
 
-        renderCategoryChips();
+        updateCategoryBuilderSelectors();
+        renderCategoryTree();
         updateCategoryDropdowns();
         renderItems();
         renderDocuments();
@@ -1668,7 +1931,9 @@ function renderDocuments() {
 
     // Filter documents
     let filtered = (state.documents || []).filter(doc => {
-        const matchCat = state.docFilters.category === 'All' || doc.category === state.docFilters.category;
+        const matchCat = state.docFilters.category === 'All' || 
+                         doc.category === state.docFilters.category || 
+                         (doc.category && doc.category.startsWith(state.docFilters.category + ' > '));
         
         let matchSearch = true;
         if (state.docFilters.search) {
@@ -1707,19 +1972,21 @@ function renderDocuments() {
 
     els.documentsContainer.innerHTML = filtered.map(doc => {
         const typeInfo = getFileTypeInfo(doc);
+        const isAvailable = doc.isAvailable !== false;
         const isUploader = doc.uploadedBy?.memberId === state.member?.id;
-        const isPrivileged = (state.member?.role || '').includes('Principal') || (state.member?.role || '').includes('Chairperson') || (state.member?.role || '').includes('Admin');
-        const canDelete = isUploader || isPrivileged;
+        const isPrivileged = isAdmin();
+        const canDelete = isUploader || isPrivileged || !isAvailable;
 
         return `
-            <div class="doc-card" id="doc-${doc.id}">
+            <div class="doc-card ${!isAvailable ? 'doc-card-unavailable' : ''}" id="doc-${doc.id}">
                 <div class="doc-card-top">
                     <div class="doc-card-header">
                         <div class="doc-icon-badge ${typeInfo.className}">
                             ${typeInfo.icon}
                         </div>
                         <div class="doc-meta-badges">
-                            <span class="doc-category-badge">${escapeHTML(doc.category)}</span>
+                            ${renderCategoryBadge(doc.category, 'doc-category-badge')}
+                            ${!isAvailable ? '<span class="doc-warning-badge" title="This file was uploaded prior to database persistence and needs to be re-uploaded">⚠️ Re-upload Needed</span>' : ''}
                             <span class="doc-size-badge">${formatBytes(doc.size)}</span>
                         </div>
                     </div>
@@ -1740,15 +2007,21 @@ function renderDocuments() {
                         <span>${escapeHTML(doc.uploadedBy?.memberRole || 'Member')} • ${timeAgo(doc.uploadedAt)}</span>
                     </div>
                     <div class="doc-actions-group">
-                        <a href="/api/documents/${doc.id}/view?token=${encodeURIComponent(state.token || '')}" target="_blank" rel="noopener" class="btn-doc-action btn-doc-view" title="Preview / Open in new tab">
-                            👁️ View
-                        </a>
-                        <a href="/api/documents/${doc.id}/download?token=${encodeURIComponent(state.token || '')}" class="btn-doc-action btn-doc-download" title="Download file">
-                            ⬇️ Download
-                        </a>
+                        ${isAvailable ? `
+                            <a href="/api/documents/${doc.id}/view?token=${encodeURIComponent(state.token || '')}" target="_blank" rel="noopener" class="btn-doc-action btn-doc-view" title="Preview / Open in new tab">
+                                👁️ View
+                            </a>
+                            <a href="/api/documents/${doc.id}/download?token=${encodeURIComponent(state.token || '')}" class="btn-doc-action btn-doc-download" title="Download file">
+                                ⬇️ Download
+                            </a>
+                        ` : `
+                            <button type="button" class="btn-doc-action btn-doc-unavailable" onclick="showToast('This document needs to be re-uploaded. Please delete and upload it again.', true)" title="Physical file not found on server">
+                                ⚠️ Missing File
+                            </button>
+                        `}
                         ${canDelete ? `
-                            <button type="button" class="btn-doc-action btn-doc-delete" data-doc-id="${doc.id}" title="Delete document">
-                                🗑️
+                            <button type="button" class="btn-doc-action ${!isAvailable ? 'btn-doc-reupload-prompt' : 'btn-doc-delete'}" data-doc-id="${doc.id}" title="${!isAvailable ? 'Remove missing placeholder to re-upload' : 'Delete document'}">
+                                ${!isAvailable ? '🗑️ Remove & Re-upload' : '🗑️'}
                             </button>
                         ` : ''}
                     </div>

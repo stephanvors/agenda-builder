@@ -2203,12 +2203,19 @@ textarea:focus {
 }
 
 .modal-content--compact {
-    max-width: 520px;
+    max-width: 560px;
     width: 95%;
+}
+
+.category-modal-dialog {
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
 }
 
 .category-modal-body {
     padding: 1.25rem 1.5rem 1.75rem;
+    overflow-y: auto;
 }
 
 .category-modal-desc {
@@ -2220,6 +2227,75 @@ textarea:focus {
 
 .add-category-form {
     margin-bottom: 1.25rem;
+}
+
+/* Category Builder Card */
+.cat-builder-card {
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.cat-level-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.65rem;
+}
+
+@media (min-width: 480px) {
+    .cat-level-row {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.cat-select-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.cat-level-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+}
+
+.cat-select-box {
+    width: 100%;
+    padding: 0.5rem 0.65rem;
+    border: 1px solid #CBD5E1;
+    border-radius: 8px;
+    background: var(--white);
+    font-size: 0.84rem;
+    color: var(--text-main);
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.cat-select-box:focus {
+    border-color: var(--primary);
+}
+
+.cat-target-badge {
+    font-size: 0.8rem;
+    color: #475569;
+    background: #EEF2FF;
+    border: 1px solid #C7D2FE;
+    border-radius: 6px;
+    padding: 0.35rem 0.65rem;
+    line-height: 1.3;
+}
+
+.cat-target-path {
+    font-weight: 700;
+    color: var(--primary);
 }
 
 .add-category-input-row {
@@ -2252,57 +2328,191 @@ textarea:focus {
     margin-bottom: 0.6rem;
     padding-top: 0.5rem;
     border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-.category-chips-list {
+/* Category Hierarchy Tree View */
+.category-tree-container {
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    max-height: 260px;
+    flex-direction: column;
+    gap: 0.4rem;
+    max-height: 320px;
     overflow-y: auto;
     padding: 0.25rem 0.1rem;
 }
 
-.category-chip {
-    display: inline-flex;
+.cat-tree-node {
+    display: flex;
     align-items: center;
-    gap: 0.4rem;
-    background: #F1F5F9;
-    color: #1E293B;
-    border: 1px solid #E2E8F0;
-    padding: 0.35rem 0.75rem;
-    border-radius: 999px;
-    font-size: 0.84rem;
-    font-weight: 500;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.45rem 0.75rem;
+    border-radius: 8px;
     transition: background 0.15s ease;
+    border: 1px solid transparent;
 }
 
-.category-chip:hover {
-    background: #E2E8F0;
+.cat-tree-node:hover {
+    background: #F1F5F9;
+    border-color: #E2E8F0;
 }
 
-.category-chip-name {
-    line-height: 1.2;
+.cat-tree-node.level-1 {
+    background: #F8FAFC;
+    border-color: #E2E8F0;
+    font-weight: 600;
 }
 
-.btn-delete-chip {
+.cat-tree-node.level-2 {
+    margin-left: 1.25rem;
+    background: #FAFAFA;
+    border-left: 2px solid #3B82F6;
+}
+
+.cat-tree-node.level-3 {
+    margin-left: 2.5rem;
+    background: #FFFFFF;
+    border-left: 2px solid #10B981;
+}
+
+.cat-tree-info {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-width: 0;
+    flex: 1;
+}
+
+.cat-tree-icon {
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.cat-tree-title {
+    font-size: 0.86rem;
+    color: #1E293B;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.cat-tree-level-tag {
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 0.1rem 0.35rem;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    flex-shrink: 0;
+}
+
+.tag-l1 { background: #DBEAFE; color: #1E40AF; }
+.tag-l2 { background: #FEF3C7; color: #92400E; }
+.tag-l3 { background: #D1FAE5; color: #065F46; }
+
+.cat-tree-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    flex-shrink: 0;
+}
+
+.btn-cat-add-sub {
+    background: #EEF2FF;
+    color: var(--primary);
+    border: 1px solid #C7D2FE;
+    font-size: 0.74rem;
+    font-weight: 600;
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+
+.btn-cat-add-sub:hover {
+    background: var(--primary);
+    color: var(--white);
+}
+
+.btn-cat-delete {
     background: transparent;
     border: none;
     color: #94A3B8;
     cursor: pointer;
-    font-size: 1rem;
-    line-height: 1;
-    padding: 0 0.15rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
+    font-size: 0.85rem;
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
     transition: all 0.15s ease;
 }
 
-.btn-delete-chip:hover {
+.btn-cat-delete:hover {
     color: var(--danger);
     background: rgba(239, 68, 68, 0.12);
+}
+
+/* Category Breadcrumb Badges across App */
+.cat-badge-nested {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    font-size: 0.74rem;
+    line-height: 1.3;
+}
+
+.cat-crumb-parent {
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.cat-crumb-sep {
+    color: #94A3B8;
+    font-weight: 700;
+    margin: 0 0.1rem;
+}
+
+.cat-crumb-last {
+    color: var(--primary);
+    font-weight: 700;
+}
+
+/* Document Warning & Unavailable Statuses */
+.doc-warning-badge {
+    background: #FEF2F2;
+    color: #DC2626;
+    border: 1px solid #FCA5A5;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.btn-doc-unavailable {
+    background: #F1F5F9;
+    color: #94A3B8;
+    border-color: #CBD5E1;
+    cursor: not-allowed;
+}
+
+.btn-doc-reupload-prompt {
+    background: #FEF2F2;
+    color: #DC2626;
+    border: 1px solid #FECACA;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.35rem 0.65rem;
+    border-radius: 6px;
+}
+
+.btn-doc-reupload-prompt:hover {
+    background: #DC2626;
+    color: var(--white);
 }
 
 /* Print Styles */
