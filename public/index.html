@@ -245,11 +245,19 @@
 
                                         <span class="toolbar-divider"></span>
 
-                                        <!-- Weight and Decoration -->
+                                        <!-- Weight, Decoration and Color -->
                                         <button type="button" class="toolbar-btn" data-command="bold" title="Bold (Ctrl+B)"><b>B</b></button>
                                         <button type="button" class="toolbar-btn" data-command="italic" title="Italic (Ctrl+I)"><i>I</i></button>
                                         <button type="button" class="toolbar-btn" data-command="underline" title="Underline (Ctrl+U)"><u>U</u></button>
                                         <button type="button" class="toolbar-btn" data-command="strikeThrough" title="Strikethrough"><s>S</s></button>
+                                        
+                                        <label class="toolbar-btn toolbar-color-btn" title="Font Color">
+                                            <span class="color-btn-content">
+                                                <span class="color-btn-letter">A</span>
+                                                <span class="color-btn-bar" id="doc-color-bar"></span>
+                                            </span>
+                                            <input type="color" id="doc-font-color" class="toolbar-color-input" value="#1E293B">
+                                        </label>
 
                                         <span class="toolbar-divider"></span>
 
@@ -477,6 +485,14 @@
                                 <button type="button" class="toolbar-btn" data-command="underline" title="Underline (Ctrl+U)"><u>U</u></button>
                                 <button type="button" class="toolbar-btn" data-command="strikeThrough" title="Strikethrough"><s>S</s></button>
 
+                                <label class="toolbar-btn toolbar-color-btn" title="Font Color">
+                                    <span class="color-btn-content">
+                                        <span class="color-btn-letter">A</span>
+                                        <span class="color-btn-bar" id="edit-doc-color-bar"></span>
+                                    </span>
+                                    <input type="color" id="edit-doc-font-color" class="toolbar-color-input" value="#1E293B">
+                                </label>
+
                                 <span class="toolbar-divider"></span>
 
                                 <button type="button" class="toolbar-btn" data-command="justifyLeft" title="Align Left">
@@ -535,6 +551,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=20260821-30"></script>
+    <script src="app.js?v=20260821-31"></script>
 </body>
 </html>

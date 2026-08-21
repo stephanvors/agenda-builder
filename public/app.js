@@ -40,7 +40,7 @@ function isAdmin() {
     return name === 'stephen vorster' || role.includes('admin') || role.includes('principal') || role.includes('chairperson');
 }
 
-const APP_VERSION = '20260821-30';
+const APP_VERSION = '20260821-31';
 const MEETING_DATE = new Date('2026-08-27T10:00:00');
 const POLL_INTERVAL_MS = 15000;
 
@@ -456,6 +456,8 @@ const els = {
     docDescriptionEditor: document.getElementById('doc-description-editor'),
     editorFormatBlock:    document.getElementById('editor-format-block'),
     editorFontSize:       document.getElementById('editor-font-size'),
+    docFontColor:         document.getElementById('doc-font-color'),
+    docColorBar:          document.getElementById('doc-color-bar'),
     uploadProgressWrapper: document.getElementById('upload-progress-wrapper'),
     uploadProgressFill:   document.getElementById('upload-progress-fill'),
     uploadProgressText:   document.getElementById('upload-progress-text'),
@@ -505,6 +507,8 @@ const els = {
     editDocDescriptionEditor: document.getElementById('edit-doc-description-editor'),
     editEditorFormatBlock:    document.getElementById('edit-editor-format-block'),
     editEditorFontSize:       document.getElementById('edit-editor-font-size'),
+    editDocFontColor:         document.getElementById('edit-doc-font-color'),
+    editDocColorBar:          document.getElementById('edit-doc-color-bar'),
     editDocFileInput:         document.getElementById('edit-doc-file-input'),
     editDocCurrentFilename:   document.getElementById('edit-doc-current-filename'),
     btnSaveEditDoc:           document.getElementById('btn-save-edit-doc'),
@@ -2744,6 +2748,44 @@ function setupRichTextEditor() {
         });
     }
 
+    // Selection helper for color picking
+    let savedSelection = null;
+    function saveEditorSelection() {
+        const sel = window.getSelection();
+        if (sel && sel.rangeCount > 0) {
+            savedSelection = sel.getRangeAt(0).cloneRange();
+        }
+    }
+    function restoreEditorSelection() {
+        if (savedSelection) {
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(savedSelection);
+        }
+    }
+
+    // Font Color picker
+    if (els.docFontColor) {
+        const applyColor = (color) => {
+            if (!color) return;
+            els.docDescriptionEditor.focus();
+            restoreEditorSelection();
+            document.execCommand('foreColor', false, color);
+            if (els.docColorBar) els.docColorBar.style.backgroundColor = color;
+            if (els.docDescription) els.docDescription.value = els.docDescriptionEditor.innerHTML;
+            updateToolbarState();
+        };
+
+        const colorBtn = els.docFontColor.closest('.toolbar-color-btn');
+        if (colorBtn) {
+            colorBtn.addEventListener('mousedown', () => {
+                saveEditorSelection();
+            });
+        }
+        els.docFontColor.addEventListener('input', (e) => applyColor(e.target.value));
+        els.docFontColor.addEventListener('change', (e) => applyColor(e.target.value));
+    }
+
     // Sync content on input
     els.docDescriptionEditor.addEventListener('input', () => {
         if (els.docDescription) {
@@ -2821,6 +2863,8 @@ function openEditDocModal(docId) {
     }
     if (els.editEditorFormatBlock) els.editEditorFormatBlock.value = 'p';
     if (els.editEditorFontSize) els.editEditorFontSize.value = '3';
+    if (els.editDocColorBar) els.editDocColorBar.style.backgroundColor = '#1E293B';
+    if (els.editDocFontColor) els.editDocFontColor.value = '#1E293B';
     if (els.editDocTagsError) els.editDocTagsError.textContent = '';
 
     renderEditDocTagPicker();
@@ -2898,6 +2942,43 @@ function setupEditDocRichTextEditor() {
             els.editDocDescriptionEditor.focus();
             updateEditToolbarState();
         });
+    }
+
+    // Selection helper for edit color picking
+    let savedEditSelection = null;
+    function saveEditEditorSelection() {
+        const sel = window.getSelection();
+        if (sel && sel.rangeCount > 0) {
+            savedEditSelection = sel.getRangeAt(0).cloneRange();
+        }
+    }
+    function restoreEditEditorSelection() {
+        if (savedEditSelection) {
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(savedEditSelection);
+        }
+    }
+
+    // Font Color picker in edit modal
+    if (els.editDocFontColor) {
+        const applyEditColor = (color) => {
+            if (!color) return;
+            els.editDocDescriptionEditor.focus();
+            restoreEditEditorSelection();
+            document.execCommand('foreColor', false, color);
+            if (els.editDocColorBar) els.editDocColorBar.style.backgroundColor = color;
+            updateEditToolbarState();
+        };
+
+        const editColorBtn = els.editDocFontColor.closest('.toolbar-color-btn');
+        if (editColorBtn) {
+            editColorBtn.addEventListener('mousedown', () => {
+                saveEditEditorSelection();
+            });
+        }
+        els.editDocFontColor.addEventListener('input', (e) => applyEditColor(e.target.value));
+        els.editDocFontColor.addEventListener('change', (e) => applyEditColor(e.target.value));
     }
 
     // Paste handler to strip background
@@ -3025,6 +3106,8 @@ function resetUploadForm() {
     if (els.docDescription) els.docDescription.value = '';
     if (els.editorFormatBlock) els.editorFormatBlock.value = 'p';
     if (els.editorFontSize) els.editorFontSize.value = '3';
+    if (els.docColorBar) els.docColorBar.style.backgroundColor = '#1E293B';
+    if (els.docFontColor) els.docFontColor.value = '#1E293B';
 
     // Auto-select current member's name as a default tag
     const memberName = (state.member?.name || '').trim();
