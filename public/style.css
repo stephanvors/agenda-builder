@@ -2119,6 +2119,31 @@ textarea:focus {
     background: #059669;
 }
 
+.btn-doc-edit {
+    background: #F1F5F9;
+    color: #334155;
+    border-color: #CBD5E1;
+}
+
+.btn-doc-edit:hover {
+    background: #E2E8F0;
+    color: #0F172A;
+}
+
+.edit-doc-modal-dialog {
+    max-width: 620px;
+    width: 95%;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.edit-doc-modal-body {
+    overflow-y: auto;
+    max-height: calc(90vh - 80px);
+    padding: 1.25rem;
+}
+
 .btn-doc-delete {
     background: transparent;
     color: var(--danger);

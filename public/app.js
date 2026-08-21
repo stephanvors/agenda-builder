@@ -13,6 +13,7 @@ const state = {
     categories: [],  // agenda item categories
     documentTags: [], // file vault tags (flat array)
     selectedUploadTags: [], // tags selected for current upload
+    selectedEditTags: [],   // tags selected for current edit modal
     activeTab: 'agenda', // 'agenda' | 'documents'
     activeCategoryModalType: 'agenda', // 'agenda' | 'documents'
     filters: {
@@ -39,7 +40,7 @@ function isAdmin() {
     return name === 'stephen vorster' || role.includes('admin') || role.includes('principal') || role.includes('chairperson');
 }
 
-const APP_VERSION = '20260821-29';
+const APP_VERSION = '20260821-30';
 const MEETING_DATE = new Date('2026-08-27T10:00:00');
 const POLL_INTERVAL_MS = 15000;
 
@@ -296,6 +297,22 @@ const api = {
         return res.json();
     },
 
+    async updateDocument(docId, formData) {
+        const res = await fetch(`/api/documents/${docId}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${state.token}`
+            },
+            body: formData
+        });
+        if (res.status === 401) { handleSessionExpired(); return null; }
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error || 'Failed to update document');
+        }
+        return res.json();
+    },
+
     // ── Category API Methods (Admin) ──
     async addAgendaCategory(name, parent = null) {
         const res = await fetch('/api/categories/agenda', {
@@ -472,6 +489,25 @@ const els = {
     catDragTip:             document.getElementById('cat-drag-tip'),
     catDropRootZone:        document.getElementById('cat-drop-root-zone'),
     categoryTreeContainer:  document.getElementById('category-tree-container'),
+
+    // Edit Document Modal Elements
+    editDocModal:             document.getElementById('edit-doc-modal'),
+    btnCloseEditDocModal:     document.getElementById('btn-close-edit-doc-modal'),
+    btnCancelEditDoc:         document.getElementById('btn-cancel-edit-doc'),
+    editDocForm:              document.getElementById('edit-doc-form'),
+    editDocId:                document.getElementById('edit-doc-id'),
+    editDocTitle:             document.getElementById('edit-doc-title'),
+    editDocTagPicker:         document.getElementById('edit-doc-tag-picker'),
+    editDocTagNewInput:       document.getElementById('edit-doc-tag-new-input'),
+    editDocTagsError:         document.getElementById('edit-doc-tags-error'),
+    editDocDescriptionWrapper:document.getElementById('edit-doc-description-wrapper'),
+    editDocEditorToolbar:     document.getElementById('edit-doc-editor-toolbar'),
+    editDocDescriptionEditor: document.getElementById('edit-doc-description-editor'),
+    editEditorFormatBlock:    document.getElementById('edit-editor-format-block'),
+    editEditorFontSize:       document.getElementById('edit-editor-font-size'),
+    editDocFileInput:         document.getElementById('edit-doc-file-input'),
+    editDocCurrentFilename:   document.getElementById('edit-doc-current-filename'),
+    btnSaveEditDoc:           document.getElementById('btn-save-edit-doc'),
 
     btnExport:        document.getElementById('btn-export'),
     modal:            document.getElementById('export-modal'),
@@ -745,6 +781,13 @@ function setupEventListeners() {
 
     if (els.documentsContainer) {
         els.documentsContainer.addEventListener('click', async (e) => {
+            const editBtn = e.target.closest('.btn-doc-edit');
+            if (editBtn) {
+                const docId = editBtn.dataset.docId;
+                openEditDocModal(docId);
+                return;
+            }
+
             const delBtn = e.target.closest('.btn-doc-delete, .btn-doc-reupload-prompt');
             if (delBtn) {
                 const docId = delBtn.dataset.docId;
@@ -785,6 +828,57 @@ function setupEventListeners() {
                 }
             }
         });
+    }
+
+    // Edit Document Modal Listeners
+    if (els.editDocTagPicker) {
+        els.editDocTagPicker.addEventListener('click', (e) => {
+            const lbl = e.target.closest('.doc-tag-chip-label');
+            if (!lbl) return;
+            const tag = lbl.dataset.tag;
+            const idx = state.selectedEditTags.findIndex(t => t.toLowerCase() === tag.toLowerCase());
+            if (idx === -1) {
+                state.selectedEditTags.push(tag);
+            } else {
+                state.selectedEditTags.splice(idx, 1);
+            }
+            renderEditDocTagPicker();
+            if (els.editDocTagsError) els.editDocTagsError.textContent = '';
+        });
+    }
+
+    if (els.editDocTagNewInput) {
+        els.editDocTagNewInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const tag = els.editDocTagNewInput.value.trim();
+                if (!tag) return;
+                if (!state.documentTags.some(t => t.toLowerCase() === tag.toLowerCase())) {
+                    state.documentTags.push(tag);
+                }
+                if (!state.selectedEditTags.some(t => t.toLowerCase() === tag.toLowerCase())) {
+                    state.selectedEditTags.push(tag);
+                }
+                els.editDocTagNewInput.value = '';
+                renderEditDocTagPicker();
+                if (els.editDocTagsError) els.editDocTagsError.textContent = '';
+            }
+        });
+    }
+
+    if (els.btnCloseEditDocModal) {
+        els.btnCloseEditDocModal.addEventListener('click', closeEditDocModal);
+    }
+    if (els.btnCancelEditDoc) {
+        els.btnCancelEditDoc.addEventListener('click', closeEditDocModal);
+    }
+    if (els.editDocModal) {
+        els.editDocModal.addEventListener('click', (e) => {
+            if (e.target === els.editDocModal) closeEditDocModal();
+        });
+    }
+    if (els.editDocForm) {
+        els.editDocForm.addEventListener('submit', handleSaveEditDoc);
     }
 
     // Category & Tag Management Listeners (Admin)
@@ -860,6 +954,7 @@ function setupEventListeners() {
     });
 
     setupRichTextEditor();
+    setupEditDocRichTextEditor();
 }
 
 // ── Handlers ──
@@ -2391,6 +2486,7 @@ function renderDocuments() {
         const isUploader = doc.uploadedBy?.memberId === state.member?.id;
         const isPrivileged = isAdmin();
         const canDelete = isUploader || isPrivileged || !isAvailable;
+        const canEdit = isUploader || isPrivileged;
         const docTags = Array.isArray(doc.tags) ? doc.tags : (doc.category ? doc.category.split(/\s*>\s*/).map(p => p.trim()).filter(Boolean) : []);
 
         return `
@@ -2435,6 +2531,11 @@ function renderDocuments() {
                                 ⚠️ Missing File
                             </button>
                         `}
+                        ${canEdit ? `
+                            <button type="button" class="btn-doc-action btn-doc-edit" data-doc-id="${doc.id}" title="Edit document title, tags, or notes">
+                                ✏️ Edit
+                            </button>
+                        ` : ''}
                         ${canDelete ? `
                             <button type="button" class="btn-doc-action btn-doc-delete ${!isAvailable ? 'btn-doc-reupload-prompt' : ''}" data-doc-id="${doc.id}" data-action="${!isAvailable ? 'reupload' : 'delete'}" title="${!isAvailable ? 'Remove missing placeholder to re-upload' : 'Delete document'}">
                                 ${!isAvailable ? '🗑️ Remove & Re-upload' : '🗑️'}
@@ -2699,6 +2800,203 @@ function setupRichTextEditor() {
                 }
             }
         });
+    }
+}
+
+// ── Edit Document Modal Logic ──
+function openEditDocModal(docId) {
+    const doc = (state.documents || []).find(d => d.id === docId);
+    if (!doc || !els.editDocModal) return;
+
+    if (els.editDocId) els.editDocId.value = doc.id;
+    if (els.editDocTitle) els.editDocTitle.value = doc.title || '';
+    if (els.editDocCurrentFilename) els.editDocCurrentFilename.textContent = doc.originalName || 'file';
+    if (els.editDocFileInput) els.editDocFileInput.value = '';
+
+    const docTags = Array.isArray(doc.tags) ? [...doc.tags] : (doc.category ? doc.category.split(/\s*>\s*/).map(p => p.trim()).filter(Boolean) : []);
+    state.selectedEditTags = [...docTags];
+
+    if (els.editDocDescriptionEditor) {
+        els.editDocDescriptionEditor.innerHTML = doc.description || '';
+    }
+    if (els.editEditorFormatBlock) els.editEditorFormatBlock.value = 'p';
+    if (els.editEditorFontSize) els.editEditorFontSize.value = '3';
+    if (els.editDocTagsError) els.editDocTagsError.textContent = '';
+
+    renderEditDocTagPicker();
+    els.editDocModal.classList.add('active');
+    setTimeout(() => {
+        if (els.editDocTitle) els.editDocTitle.focus();
+    }, 100);
+}
+
+function closeEditDocModal() {
+    if (els.editDocModal) {
+        els.editDocModal.classList.remove('active');
+    }
+}
+
+function renderEditDocTagPicker() {
+    if (!els.editDocTagPicker) return;
+    const allTags = [...(state.documentTags || [])];
+    state.selectedEditTags.forEach(t => {
+        if (!allTags.some(at => at.toLowerCase() === t.toLowerCase())) {
+            allTags.push(t);
+        }
+    });
+
+    if (allTags.length === 0) {
+        els.editDocTagPicker.innerHTML = '<span style="color:var(--text-muted);font-size:0.82rem;">No tags available. Type a tag below and press Enter.</span>';
+        return;
+    }
+
+    els.editDocTagPicker.innerHTML = allTags.map(tag => {
+        const isSelected = state.selectedEditTags.some(t => t.toLowerCase() === tag.toLowerCase());
+        return `
+            <label class="doc-tag-chip-label ${isSelected ? 'selected' : ''}" data-tag="${escapeHTML(tag)}">
+                ${escapeHTML(tag)}
+            </label>
+        `;
+    }).join('');
+}
+
+function setupEditDocRichTextEditor() {
+    if (!els.editDocDescriptionEditor || !els.editDocEditorToolbar) return;
+
+    // Toolbar button clicks
+    els.editDocEditorToolbar.querySelectorAll('.toolbar-btn').forEach(btn => {
+        btn.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            const command = btn.dataset.command;
+            if (!command) return;
+            document.execCommand(command, false, null);
+            updateEditToolbarState();
+        });
+    });
+
+    // Format Block dropdown
+    if (els.editEditorFormatBlock) {
+        els.editEditorFormatBlock.addEventListener('change', (e) => {
+            const val = e.target.value;
+            if (val === 'p') {
+                document.execCommand('formatBlock', false, '<p>');
+            } else if (val === 'blockquote') {
+                document.execCommand('formatBlock', false, '<blockquote>');
+            } else {
+                document.execCommand('formatBlock', false, `<${val}>`);
+            }
+            els.editDocDescriptionEditor.focus();
+            updateEditToolbarState();
+        });
+    }
+
+    // Font Size dropdown
+    if (els.editEditorFontSize) {
+        els.editEditorFontSize.addEventListener('change', (e) => {
+            const val = e.target.value;
+            document.execCommand('fontSize', false, val);
+            els.editDocDescriptionEditor.focus();
+            updateEditToolbarState();
+        });
+    }
+
+    // Paste handler to strip background
+    els.editDocDescriptionEditor.addEventListener('paste', (e) => {
+        e.preventDefault();
+        const clipboard = e.clipboardData || window.clipboardData;
+        if (!clipboard) return;
+
+        const html = clipboard.getData('text/html');
+        const text = clipboard.getData('text/plain');
+
+        if (html) {
+            const cleaned = cleanPastedHtml(html);
+            document.execCommand('insertHTML', false, cleaned);
+        } else if (text) {
+            const formattedText = escapeHTML(text).replace(/\r\n|\r|\n/g, '<br>');
+            document.execCommand('insertHTML', false, formattedText);
+        }
+        updateEditToolbarState();
+    });
+
+    ['keyup', 'mouseup', 'click'].forEach(evt => {
+        els.editDocDescriptionEditor.addEventListener(evt, updateEditToolbarState);
+    });
+
+    document.addEventListener('selectionchange', () => {
+        if (document.activeElement === els.editDocDescriptionEditor) {
+            updateEditToolbarState();
+        }
+    });
+
+    function updateEditToolbarState() {
+        if (!els.editDocEditorToolbar) return;
+        const commands = ['bold', 'italic', 'underline', 'strikeThrough', 'justifyLeft', 'justifyCenter', 'justifyRight', 'justifyFull', 'insertUnorderedList', 'insertOrderedList'];
+        commands.forEach(cmd => {
+            const btn = els.editDocEditorToolbar.querySelector(`[data-command="${cmd}"]`);
+            if (btn) {
+                try {
+                    const isActive = document.queryCommandState(cmd);
+                    btn.classList.toggle('active', !!isActive);
+                } catch {
+                    btn.classList.remove('active');
+                }
+            }
+        });
+    }
+}
+
+async function handleSaveEditDoc(e) {
+    e.preventDefault();
+    const docId = els.editDocId ? els.editDocId.value : null;
+    if (!docId) return;
+
+    const title = (els.editDocTitle ? els.editDocTitle.value : '').trim();
+    if (!title) {
+        showToast('Document title is required', true);
+        return;
+    }
+
+    if (!state.selectedEditTags || state.selectedEditTags.length === 0) {
+        if (els.editDocTagsError) els.editDocTagsError.textContent = 'Please select or add at least one tag';
+        showToast('Please select at least one tag', true);
+        return;
+    }
+
+    let description = '';
+    if (els.editDocDescriptionEditor) {
+        const textOnly = els.editDocDescriptionEditor.textContent.trim();
+        if (textOnly || els.editDocDescriptionEditor.querySelector('img, hr, table, br, ul, ol, blockquote, p')) {
+            description = els.editDocDescriptionEditor.innerHTML.trim();
+        }
+    }
+
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('tags', JSON.stringify(state.selectedEditTags));
+    formData.append('description', description);
+
+    if (els.editDocFileInput && els.editDocFileInput.files && els.editDocFileInput.files.length > 0) {
+        formData.append('file', els.editDocFileInput.files[0]);
+    }
+
+    if (els.btnSaveEditDoc) {
+        els.btnSaveEditDoc.disabled = true;
+        els.btnSaveEditDoc.textContent = 'Saving...';
+    }
+
+    try {
+        await api.updateDocument(docId, formData);
+        showToast('Document updated successfully!');
+        closeEditDocModal();
+        await loadData();
+    } catch (error) {
+        showToast(error.message || 'Failed to update document', true);
+    } finally {
+        if (els.btnSaveEditDoc) {
+            els.btnSaveEditDoc.disabled = false;
+            els.btnSaveEditDoc.textContent = 'Save Changes';
+        }
     }
 }
 

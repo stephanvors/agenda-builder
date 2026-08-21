@@ -424,6 +424,117 @@
         </div>
     </div>
 
-    <script src="app.js?v=20260821-29"></script>
+    <!-- Edit Document Modal -->
+    <div id="edit-doc-modal" class="modal">
+        <div class="modal-content modal-content--compact edit-doc-modal-dialog">
+            <div class="modal-header">
+                <h2>✏️ Edit Document</h2>
+                <button id="btn-close-edit-doc-modal" class="btn-modal-close" aria-label="Close" title="Close">&times;</button>
+            </div>
+            <div class="modal-body edit-doc-modal-body">
+                <form id="edit-doc-form" class="edit-doc-form">
+                    <input type="hidden" id="edit-doc-id">
+
+                    <div class="form-group">
+                        <label for="edit-doc-title">Document Title <span class="required">*</span></label>
+                        <input type="text" id="edit-doc-title" required autocomplete="off" maxlength="150" placeholder="Enter document title...">
+                    </div>
+
+                    <div class="form-group">
+                        <div class="form-label-row">
+                            <label>Tags <span class="required">*</span></label>
+                        </div>
+                        <div class="doc-tag-picker" id="edit-doc-tag-picker">
+                            <!-- Tag chips injected by JS -->
+                        </div>
+                        <input type="text" id="edit-doc-tag-new-input" class="doc-tag-new-input" placeholder="+ Type a new tag and press Enter to add..." autocomplete="off" maxlength="40">
+                        <span class="error-msg" id="edit-doc-tags-error"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit-doc-description-editor">Notes / Description (Optional)</label>
+                        <div class="rich-editor-wrapper" id="edit-doc-description-wrapper">
+                            <div class="rich-editor-toolbar" id="edit-doc-editor-toolbar" role="toolbar" aria-label="Text Formatting">
+                                <select class="editor-select" id="edit-editor-format-block" title="Text Style">
+                                    <option value="p">Normal text</option>
+                                    <option value="h3">Heading 1</option>
+                                    <option value="h4">Heading 2</option>
+                                    <option value="blockquote">Quote block</option>
+                                </select>
+
+                                <select class="editor-select" id="edit-editor-font-size" title="Font Size">
+                                    <option value="2">Small</option>
+                                    <option value="3" selected>Normal</option>
+                                    <option value="4">Medium</option>
+                                    <option value="5">Large</option>
+                                    <option value="6">Extra Large</option>
+                                </select>
+
+                                <span class="toolbar-divider"></span>
+
+                                <button type="button" class="toolbar-btn" data-command="bold" title="Bold (Ctrl+B)"><b>B</b></button>
+                                <button type="button" class="toolbar-btn" data-command="italic" title="Italic (Ctrl+I)"><i>I</i></button>
+                                <button type="button" class="toolbar-btn" data-command="underline" title="Underline (Ctrl+U)"><u>U</u></button>
+                                <button type="button" class="toolbar-btn" data-command="strikeThrough" title="Strikethrough"><s>S</s></button>
+
+                                <span class="toolbar-divider"></span>
+
+                                <button type="button" class="toolbar-btn" data-command="justifyLeft" title="Align Left">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h18v2H3zm0 4h12v2H3zm0 4h18v2H3zm0 4h12v2H3z"/></svg>
+                                </button>
+                                <button type="button" class="toolbar-btn" data-command="justifyCenter" title="Align Center">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h18v2H3zm3 4h12v2H6zm-3 4h18v2H3zm3 4h12v2H6z"/></svg>
+                                </button>
+                                <button type="button" class="toolbar-btn" data-command="justifyRight" title="Align Right">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h18v2H3zm6 4h12v2H9zm-6 4h18v2H3zm6 4h12v2H9z"/></svg>
+                                </button>
+                                <button type="button" class="toolbar-btn" data-command="justifyFull" title="Justify Full">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h18v2H3zm0 4h18v2H3zm0 4h18v2H3zm0 4h18v2H3z"/></svg>
+                                </button>
+
+                                <span class="toolbar-divider"></span>
+
+                                <button type="button" class="toolbar-btn" data-command="insertUnorderedList" title="Bullet List (•)">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h2v2H4zm0 5h2v2H4zm0 5h2v2H4zm5-11h11v2H9zm0 5h11v2H9z"/></svg>
+                                </button>
+                                <button type="button" class="toolbar-btn" data-command="insertOrderedList" title="Numbered List (1, 2, 3)">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h2v1H5v1h1v1H4V8h1V7H4zm0 5h2v3H4zm0 5h2v3H4zm5-10h11v2H9zm0 5h11v2H9zm0 5h11v2H9z"/></svg>
+                                </button>
+                                <button type="button" class="toolbar-btn" data-command="outdent" title="Decrease Indent">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M11 17h10v-2H11zm-8-5 6 6V6zm8-1h10V9H11zm0-4h10V5H11z"/></svg>
+                                </button>
+                                <button type="button" class="toolbar-btn" data-command="indent" title="Increase Indent">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M3 21h18v-2H3zM3 3v2h18V3zm8 14h10v-2H11zm0-4h10v-2H11zm0-4h10V7H11zM3 16l6-4-6-4z"/></svg>
+                                </button>
+
+                                <span class="toolbar-divider"></span>
+
+                                <button type="button" class="toolbar-btn" data-command="removeFormat" title="Clear Formatting">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5v.18L8.82 8h2.4l-.72 1.68 2.1 2.1L14.21 8H20V5zm-2.47.28L2.25 6.56l6.51 6.51L6.5 19h3l1.57-3.66L17.44 21.7l1.28-1.28z"/></svg>
+                                </button>
+                            </div>
+
+                            <div class="rich-editor-content" id="edit-doc-description-editor" contenteditable="true" role="textbox" aria-multiline="true" data-placeholder="What is this document about? (Add summaries, key points...)"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit-doc-file-input">Replace Physical File (Optional)</label>
+                        <input type="file" id="edit-doc-file-input" class="form-input">
+                        <small style="color: var(--text-muted); font-size: 0.76rem; display: block; margin-top: 0.25rem;">
+                            Current file: <strong id="edit-doc-current-filename"></strong> (Leave blank to keep existing file)
+                        </small>
+                    </div>
+
+                    <div class="form-actions" style="margin-top: 1.25rem; display: flex; justify-content: flex-end; gap: 0.5rem;">
+                        <button type="button" class="btn btn-outline" id="btn-cancel-edit-doc">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="btn-save-edit-doc">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js?v=20260821-30"></script>
 </body>
 </html>

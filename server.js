@@ -542,7 +542,7 @@ async function requireAuth(req, res, next) {
 
 // ── Public Endpoints ──
 
-const APP_VERSION = '20260821-29';
+const APP_VERSION = '20260821-30';
 
 app.get('/api/version', (req, res) => {
   res.json({ version: APP_VERSION });
@@ -1419,6 +1419,123 @@ app.get('/api/documents/:id/view', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Error streaming/viewing file:', error);
     res.status(500).json({ error: 'Failed to stream/view file' });
+  }
+});
+
+// Edit / Update a document
+app.put('/api/documents/:id', requireAuth, (req, res, next) => {
+  upload.single('file')(req, res, (err) => {
+    if (err instanceof multer.MulterError) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({ error: 'File exceeds maximum upload size (100MB)' });
+      }
+      return res.status(400).json({ error: `Upload error: ${err.message}` });
+    } else if (err) {
+      return res.status(400).json({ error: err.message });
+    }
+    next();
+  });
+}, async (req, res) => {
+  try {
+    const member = req.member;
+    const store = req.store;
+    if (!Array.isArray(store.documents)) return res.status(404).json({ error: 'Document not found' });
+
+    const doc = store.documents.find(d => d.id === req.params.id);
+    if (!doc) return res.status(404).json({ error: 'Document not found' });
+
+    const isUploader = doc.uploadedBy?.memberId === member.id;
+    const isPrivileged = isAdminMember(member);
+
+    if (!isUploader && !isPrivileged) {
+      return res.status(403).json({ error: 'You can only edit documents you uploaded' });
+    }
+
+    const { title, tags: tagsRaw, description } = req.body;
+
+    if (title && title.trim()) {
+      doc.title = title.trim();
+    }
+
+    if (description !== undefined) {
+      doc.description = (description || '').trim();
+    }
+
+    if (tagsRaw !== undefined) {
+      let parsedTags = [];
+      try { parsedTags = typeof tagsRaw === 'string' ? JSON.parse(tagsRaw) : tagsRaw; } catch { parsedTags = []; }
+      if (Array.isArray(parsedTags)) {
+        parsedTags = parsedTags.filter(t => t && t.trim());
+        // Ensure uploader name is always preserved as a tag
+        const uploaderName = (doc.uploadedBy?.memberName || member.name || '').trim();
+        if (uploaderName && !parsedTags.some(t => t.toLowerCase() === uploaderName.toLowerCase())) {
+          parsedTags.push(uploaderName);
+        }
+        doc.tags = parsedTags;
+
+        // Register any new tags in store.documentTags
+        if (!Array.isArray(store.documentTags)) store.documentTags = [...DEFAULT_DOCUMENT_TAGS];
+        parsedTags.forEach(t => {
+          if (!store.documentTags.some(dt => dt.toLowerCase() === t.toLowerCase())) {
+            store.documentTags.push(t);
+          }
+        });
+      }
+    }
+
+    // If a replacement file was uploaded
+    if (req.file) {
+      const isVideo = isVideoFile(req.file.mimetype, req.file.originalname);
+      const maxAllowedBytes = isVideo ? 500 * 1024 * 1024 : 100 * 1024 * 1024;
+      if (req.file.size > maxAllowedBytes) {
+        try { await fs.unlink(req.file.path); } catch { /* ignore */ }
+        return res.status(400).json({
+          error: `File exceeds maximum allowed size of ${isVideo ? '500MB' : '100MB'} for this file type`
+        });
+      }
+
+      // Delete old disk file if present
+      if (doc.storedName) {
+        const oldFilePath = path.join(UPLOADS_DIR, doc.storedName);
+        try {
+          if (fsSync.existsSync(oldFilePath)) await fs.unlink(oldFilePath);
+        } catch (e) { /* ignore */ }
+      }
+
+      doc.originalName = req.file.originalname;
+      doc.storedName = req.file.filename;
+      doc.size = req.file.size;
+      doc.mimeType = req.file.mimetype;
+      doc.extension = path.extname(req.file.originalname).toLowerCase().replace(/^\./, '');
+      doc.isVideo = isVideo;
+
+      // Update binary in PostgreSQL
+      if (pool) {
+        try {
+          const fileBuffer = await fs.readFile(req.file.path);
+          await pool.query(
+            'INSERT INTO app_files (id, filename, mimetype, file_data) VALUES ($1, $2, $3, $4) ON CONFLICT (id) DO UPDATE SET filename = $2, mimetype = $3, file_data = $4',
+            [doc.id, req.file.originalname, req.file.mimetype, fileBuffer]
+          );
+        } catch (dbErr) {
+          console.error('Error updating replaced file in PostgreSQL:', dbErr.message);
+        }
+      }
+    }
+
+    doc.updatedAt = new Date().toISOString();
+    doc.updatedBy = {
+      memberId: member.id,
+      memberName: member.name,
+      memberRole: member.role
+    };
+
+    await storeHelper.write(store);
+
+    res.json({ message: 'Document updated successfully', document: doc });
+  } catch (error) {
+    console.error('Error updating document:', error);
+    res.status(500).json({ error: error.message || 'Failed to update document' });
   }
 });
 
