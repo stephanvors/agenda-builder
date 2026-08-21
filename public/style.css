@@ -1915,23 +1915,26 @@ textarea:focus {
 }
 
 .doc-icon-badge {
-    width: 42px;
-    height: 42px;
-    border-radius: 10px;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.35rem;
+    background: transparent;
+    border: 1.5px solid #CBD5E1;
+    color: #64748B;
     flex-shrink: 0;
+    transition: all 0.15s ease;
 }
 
-.doc-icon-badge.type-excel { background: #E6F7EC; color: #107C41; border: 1px solid #C4EED0; }
-.doc-icon-badge.type-word { background: #E8F0FE; color: #185ABD; border: 1px solid #C7DCFE; }
-.doc-icon-badge.type-ppt { background: #FEF3E8; color: #C43E1C; border: 1px solid #FEDCC2; }
-.doc-icon-badge.type-pdf { background: #FEECEB; color: #D9381E; border: 1px solid #FCCDC9; }
-.doc-icon-badge.type-video { background: #E0F7FA; color: #00838F; border: 1px solid #B2EBF2; }
-.doc-icon-badge.type-image { background: #F3E8FF; color: #7E22CE; border: 1px solid #E9D5FF; }
-.doc-icon-badge.type-file { background: #F3F4F6; color: #4B5563; border: 1px solid #E5E7EB; }
+.doc-icon-badge.type-excel { background: transparent; color: #16A34A; border: 1.5px solid #86EFAC; }
+.doc-icon-badge.type-word { background: transparent; color: #2563EB; border: 1.5px solid #93C5FD; }
+.doc-icon-badge.type-ppt { background: transparent; color: #EA580C; border: 1.5px solid #FDBA74; }
+.doc-icon-badge.type-pdf { background: transparent; color: #DC2626; border: 1.5px solid #FCA5A5; }
+.doc-icon-badge.type-video { background: transparent; color: #0891B2; border: 1.5px solid #67E8F9; }
+.doc-icon-badge.type-image { background: transparent; color: #9333EA; border: 1.5px solid #D8B4FE; }
+.doc-icon-badge.type-file { background: transparent; color: #64748B; border: 1.5px solid #CBD5E1; }
 
 .doc-meta-badges {
     display: flex;
@@ -2729,11 +2732,11 @@ textarea:focus {
 }
 
 .tag-filter-chip {
-    background: #F1F5F9;
+    background: transparent;
     border: 1px solid #CBD5E1;
     border-radius: 999px;
-    padding: 0.25rem 0.7rem;
-    font-size: 0.78rem;
+    padding: 0.2rem 0.65rem;
+    font-size: 0.74rem;
     font-weight: 500;
     color: #475569;
     cursor: pointer;
@@ -2742,7 +2745,8 @@ textarea:focus {
 }
 
 .tag-filter-chip:hover {
-    background: #E2E8F0;
+    background: #F8FAFC;
+    border-color: #94A3B8;
     color: #0F172A;
 }
 
@@ -2766,22 +2770,24 @@ textarea:focus {
 }
 
 .doc-tag-pill {
-    display: inline-block;
-    background: #EFF6FF;
-    border: 1px solid #BFDBFE;
+    display: inline-flex;
+    align-items: center;
+    background: transparent;
+    border: 1px solid #93C5FD;
     border-radius: 999px;
-    padding: 0.1rem 0.5rem;
-    font-size: 0.72rem;
+    padding: 0.05rem 0.42rem;
+    font-size: 0.67rem;
     font-weight: 500;
     color: #1D4ED8;
     white-space: nowrap;
+    line-height: 1.35;
 }
 
 .doc-tags-row {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.25rem;
-    margin-bottom: 0.25rem;
+    gap: 0.2rem;
+    margin-bottom: 0.2rem;
 }
 
 .doc-tag-manager-list {

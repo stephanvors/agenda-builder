@@ -40,7 +40,7 @@ function isAdmin() {
     return name === 'stephen vorster' || role.includes('admin') || role.includes('principal') || role.includes('chairperson');
 }
 
-const APP_VERSION = '20260821-31';
+const APP_VERSION = '20260821-32';
 const MEETING_DATE = new Date('2026-08-27T10:00:00');
 const POLL_INTERVAL_MS = 15000;
 
@@ -2418,24 +2418,52 @@ function getFileTypeInfo(doc) {
     const mime = (doc.mimeType || '').toLowerCase();
 
     if (doc.isVideo || mime.startsWith('video/') || ['mp4', 'mov', 'webm', 'mkv', 'avi', 'wmv', 'flv', '3gp'].includes(ext)) {
-        return { icon: '🎬', className: 'type-video', label: 'Video' };
+        return {
+            icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"></rect><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>`,
+            className: 'type-video',
+            label: 'Video'
+        };
     }
     if (['xlsx', 'xls', 'csv', 'ods'].includes(ext) || mime.includes('spreadsheet') || mime.includes('excel')) {
-        return { icon: '📊', className: 'type-excel', label: 'Spreadsheet' };
+        return {
+            icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line></svg>`,
+            className: 'type-excel',
+            label: 'Spreadsheet'
+        };
     }
     if (['docx', 'doc', 'odt', 'rtf'].includes(ext) || mime.includes('word') || mime.includes('document')) {
-        return { icon: '📑', className: 'type-word', label: 'Document' };
+        return {
+            icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><line x1="12" y1="9" x2="8" y2="9"></line></svg>`,
+            className: 'type-word',
+            label: 'Document'
+        };
     }
     if (['pptx', 'ppt', 'odp', 'key'].includes(ext) || mime.includes('presentation') || mime.includes('powerpoint')) {
-        return { icon: '📽️', className: 'type-ppt', label: 'Presentation' };
+        return {
+            icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line><path d="M7 8h10"></path><path d="M7 12h6"></path></svg>`,
+            className: 'type-ppt',
+            label: 'Presentation'
+        };
     }
     if (ext === 'pdf' || mime.includes('pdf')) {
-        return { icon: '📄', className: 'type-pdf', label: 'PDF Document' };
+        return {
+            icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>`,
+            className: 'type-pdf',
+            label: 'PDF Document'
+        };
     }
     if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp'].includes(ext) || mime.startsWith('image/')) {
-        return { icon: '🖼️', className: 'type-image', label: 'Image' };
+        return {
+            icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>`,
+            className: 'type-image',
+            label: 'Image'
+        };
     }
-    return { icon: '📁', className: 'type-file', label: 'File' };
+    return {
+        icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>`,
+        className: 'type-file',
+        label: 'File'
+    };
 }
 
 function renderDocuments() {
@@ -2509,7 +2537,8 @@ function renderDocuments() {
                     <div class="doc-main-info">
                         <h3 class="doc-title">${escapeHTML(doc.title)}</h3>
                         <div class="doc-filename">
-                            <span>📄</span> <span class="doc-filename-text">${escapeHTML(doc.originalName)}</span>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.55;flex-shrink:0;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                            <span class="doc-filename-text">${escapeHTML(doc.originalName)}</span>
                         </div>
                         ${doc.description ? `
                             <div class="doc-description">${sanitizeRichHtml(doc.description)}</div>
