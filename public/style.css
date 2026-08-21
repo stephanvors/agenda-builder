@@ -1878,7 +1878,7 @@ textarea:focus {
     background: var(--white);
     border: 1px solid var(--border-color);
     border-radius: var(--radius);
-    padding: 1.15rem;
+    padding: 1.1rem;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -1886,6 +1886,9 @@ textarea:focus {
     box-shadow: var(--shadow-sm);
     transition: var(--transition);
     position: relative;
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
 }
 
 .doc-card:hover {
@@ -1896,18 +1899,29 @@ textarea:focus {
 
 .doc-card-top {
     display: flex;
-    gap: 0.85rem;
-    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.65rem;
+    width: 100%;
+    min-width: 0;
+}
+
+.doc-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    width: 100%;
+    flex-wrap: wrap;
 }
 
 .doc-icon-badge {
-    width: 48px;
-    height: 48px;
+    width: 42px;
+    height: 42px;
     border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5rem;
+    font-size: 1.35rem;
     flex-shrink: 0;
 }
 
@@ -1919,18 +1933,13 @@ textarea:focus {
 .doc-icon-badge.type-image { background: #F3E8FF; color: #7E22CE; border: 1px solid #E9D5FF; }
 .doc-icon-badge.type-file { background: #F3F4F6; color: #4B5563; border: 1px solid #E5E7EB; }
 
-.doc-main-info {
-    flex: 1;
-    min-width: 0;
-}
-
-.doc-header-row {
+.doc-meta-badges {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
-    margin-bottom: 0.25rem;
+    gap: 0.4rem;
     flex-wrap: wrap;
+    max-width: calc(100% - 50px);
+    justify-content: flex-end;
 }
 
 .doc-category-badge {
@@ -1938,10 +1947,13 @@ textarea:focus {
     font-weight: 700;
     color: var(--primary);
     background: #EBF1FF;
-    padding: 0.15rem 0.55rem;
+    padding: 0.2rem 0.55rem;
     border-radius: 999px;
     border: 1px solid #D0DCFB;
-    white-space: nowrap;
+    white-space: normal;
+    word-break: break-word;
+    text-align: right;
+    max-width: 100%;
 }
 
 .doc-size-badge {
@@ -1949,9 +1961,15 @@ textarea:focus {
     font-weight: 600;
     color: var(--text-muted);
     background: #F3F4F6;
-    padding: 0.12rem 0.45rem;
+    padding: 0.15rem 0.45rem;
     border-radius: 4px;
     white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.doc-main-info {
+    width: 100%;
+    min-width: 0;
 }
 
 .doc-title {
@@ -1960,7 +1978,8 @@ textarea:focus {
     color: var(--text-main);
     line-height: 1.35;
     word-break: break-word;
-    margin-bottom: 0.25rem;
+    overflow-wrap: break-word;
+    margin-bottom: 0.35rem;
 }
 
 .doc-filename {
@@ -1968,18 +1987,28 @@ textarea:focus {
     color: var(--text-muted);
     font-family: monospace;
     word-break: break-all;
+    overflow-wrap: break-word;
     display: flex;
-    align-items: center;
-    gap: 0.25rem;
+    align-items: flex-start;
+    gap: 0.35rem;
+    line-height: 1.4;
+    margin-bottom: 0.25rem;
+}
+
+.doc-filename-text {
+    word-break: break-all;
+    min-width: 0;
+    flex: 1;
 }
 
 .doc-description {
     font-size: 0.88rem;
     color: #4B5563;
-    line-height: 1.45;
+    line-height: 1.5;
     margin-top: 0.45rem;
     white-space: pre-wrap;
     word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 .doc-card-bottom {
@@ -1990,6 +2019,8 @@ textarea:focus {
     padding-top: 0.75rem;
     border-top: 1px solid rgba(0,0,0,0.06);
     flex-wrap: wrap;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .doc-uploader {
@@ -2009,12 +2040,12 @@ textarea:focus {
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     margin-left: auto;
 }
 
 .btn-doc-action {
-    padding: 0.35rem 0.65rem;
+    padding: 0.4rem 0.7rem;
     font-size: 0.82rem;
     font-weight: 600;
     border-radius: 6px;
@@ -2025,6 +2056,7 @@ textarea:focus {
     text-decoration: none;
     transition: var(--transition);
     border: 1px solid transparent;
+    touch-action: manipulation;
 }
 
 .btn-doc-view {
@@ -2050,14 +2082,65 @@ textarea:focus {
 .btn-doc-delete {
     background: transparent;
     color: var(--danger);
-    font-size: 0.78rem;
+    font-size: 0.85rem;
     opacity: 0.75;
-    padding: 0.35rem;
+    padding: 0.4rem;
 }
 
 .btn-doc-delete:hover {
     opacity: 1;
     text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+    .doc-card {
+        padding: 0.9rem 0.8rem;
+        gap: 0.65rem;
+    }
+
+    .doc-icon-badge {
+        width: 36px;
+        height: 36px;
+        font-size: 1.2rem;
+        border-radius: 8px;
+    }
+
+    .doc-title {
+        font-size: 0.98rem;
+    }
+
+    .doc-category-badge {
+        font-size: 0.68rem;
+        padding: 0.15rem 0.45rem;
+    }
+
+    .doc-size-badge {
+        font-size: 0.68rem;
+    }
+
+    .doc-card-bottom {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.65rem;
+    }
+
+    .doc-actions-group {
+        width: 100%;
+        justify-content: flex-start;
+        margin-left: 0;
+    }
+
+    .btn-doc-action {
+        flex: 1;
+        justify-content: center;
+        padding: 0.45rem 0.5rem;
+        font-size: 0.8rem;
+    }
+
+    .btn-doc-delete {
+        flex: 0 0 auto;
+        padding: 0.45rem 0.75rem;
+    }
 }
 
 @media (min-width: 768px) {

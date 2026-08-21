@@ -1714,17 +1714,19 @@ function renderDocuments() {
         return `
             <div class="doc-card" id="doc-${doc.id}">
                 <div class="doc-card-top">
-                    <div class="doc-icon-badge ${typeInfo.className}">
-                        ${typeInfo.icon}
-                    </div>
-                    <div class="doc-main-info">
-                        <div class="doc-header-row">
+                    <div class="doc-card-header">
+                        <div class="doc-icon-badge ${typeInfo.className}">
+                            ${typeInfo.icon}
+                        </div>
+                        <div class="doc-meta-badges">
                             <span class="doc-category-badge">${escapeHTML(doc.category)}</span>
                             <span class="doc-size-badge">${formatBytes(doc.size)}</span>
                         </div>
+                    </div>
+                    <div class="doc-main-info">
                         <h3 class="doc-title">${escapeHTML(doc.title)}</h3>
                         <div class="doc-filename">
-                            <span>📄</span> ${escapeHTML(doc.originalName)}
+                            <span>📄</span> <span class="doc-filename-text">${escapeHTML(doc.originalName)}</span>
                         </div>
                         ${doc.description ? `
                             <div class="doc-description">${escapeHTML(doc.description)}</div>
