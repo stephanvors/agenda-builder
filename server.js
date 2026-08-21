@@ -318,12 +318,30 @@ function migrateFinanceCategories(store) {
     changed = true;
   }
 
-  // Migrate Documents: doc.category -> doc.tags
+  if (!Array.isArray(store.documentTags)) {
+    store.documentTags = [...DEFAULT_DOCUMENT_TAGS];
+    changed = true;
+  }
+
+  // Migrate Documents: doc.category -> doc.tags and ensure uploader name is in tags
   if (Array.isArray(store.documents)) {
     store.documents.forEach(doc => {
       if (doc.category && !doc.tags) {
         doc.tags = doc.category.split(/\s*>\s*/).map(p => p.trim()).filter(Boolean);
         delete doc.category;
+        changed = true;
+      }
+      if (!Array.isArray(doc.tags)) {
+        doc.tags = [];
+        changed = true;
+      }
+      const uploaderName = (doc.uploadedBy?.memberName || '').trim();
+      if (uploaderName && !doc.tags.some(t => t.toLowerCase() === uploaderName.toLowerCase())) {
+        doc.tags.push(uploaderName);
+        changed = true;
+      }
+      if (uploaderName && !store.documentTags.some(t => t.toLowerCase() === uploaderName.toLowerCase())) {
+        store.documentTags.push(uploaderName);
         changed = true;
       }
     });
@@ -524,7 +542,7 @@ async function requireAuth(req, res, next) {
 
 // ── Public Endpoints ──
 
-const APP_VERSION = '20260821-26';
+const APP_VERSION = '20260821-27';
 
 app.get('/api/version', (req, res) => {
   res.json({ version: APP_VERSION });
@@ -1223,6 +1241,18 @@ app.post('/api/documents/upload', requireAuth, (req, res) => {
       let parsedTags = [];
       try { parsedTags = JSON.parse(tagsRaw || '[]'); } catch { parsedTags = []; }
       parsedTags = parsedTags.filter(t => t && t.trim());
+
+      const memberName = (member.name || '').trim();
+      if (memberName && !parsedTags.some(t => t.toLowerCase() === memberName.toLowerCase())) {
+        parsedTags.push(memberName);
+      }
+
+      if (!Array.isArray(store.documentTags)) {
+        store.documentTags = [...DEFAULT_DOCUMENT_TAGS];
+      }
+      if (memberName && !store.documentTags.some(t => t.toLowerCase() === memberName.toLowerCase())) {
+        store.documentTags.push(memberName);
+      }
 
       const finalTitle = (title && title.trim()) ? title.trim() : req.file.originalname;
 

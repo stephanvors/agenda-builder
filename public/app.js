@@ -39,7 +39,7 @@ function isAdmin() {
     return name === 'stephen vorster' || role.includes('admin') || role.includes('principal') || role.includes('chairperson');
 }
 
-const APP_VERSION = '20260821-26';
+const APP_VERSION = '20260821-27';
 const MEETING_DATE = new Date('2026-08-27T10:00:00');
 const POLL_INTERVAL_MS = 15000;
 
@@ -1236,7 +1236,14 @@ async function loadData() {
         ]);
         state.items = items;
         if (docData && Array.isArray(docData.documents)) {
-            state.documents = docData.documents;
+            state.documents = docData.documents.map(d => {
+                const uploader = (d.uploadedBy?.memberName || '').trim();
+                const tags = Array.isArray(d.tags) ? [...d.tags] : (d.category ? d.category.split(/\s*>\s*/).map(p => p.trim()).filter(Boolean) : []);
+                if (uploader && !tags.some(t => t.toLowerCase() === uploader.toLowerCase())) {
+                    tags.push(uploader);
+                }
+                return { ...d, tags };
+            });
             if (Array.isArray(docData.tags) && docData.tags.length > 0) {
                 state.documentTags = docData.tags;
             }
@@ -2450,7 +2457,18 @@ function resetUploadForm() {
     if (els.dropZoneHint)  els.dropZoneHint.textContent = 'PDF, Word, Excel, PowerPoint, Images (100MB) or Videos (500MB)';
     if (els.docFileError)  els.docFileError.textContent = '';
     if (els.docTagsError)  els.docTagsError.textContent = '';
-    state.selectedUploadTags = [];
+    
+    // Auto-select current member's name as a default tag
+    const memberName = (state.member?.name || '').trim();
+    if (memberName) {
+        if (!state.documentTags.some(t => t.toLowerCase() === memberName.toLowerCase())) {
+            state.documentTags.push(memberName);
+        }
+        state.selectedUploadTags = [memberName];
+    } else {
+        state.selectedUploadTags = [];
+    }
+
     renderDocTagPicker();
     if (els.uploadProgressWrapper) els.uploadProgressWrapper.classList.add('hidden');
     if (els.uploadProgressFill)    els.uploadProgressFill.style.width = '0%';
@@ -2500,6 +2518,12 @@ async function handleSubmitUpload(e) {
     if (file.size > maxBytes) {
         showToast(`File exceeds size limit (${isVideo ? '500MB' : '100MB'})`, true);
         return;
+    }
+
+    // Ensure member's name is always included in the tags
+    const memberName = (state.member?.name || '').trim();
+    if (memberName && !state.selectedUploadTags.some(t => t.toLowerCase() === memberName.toLowerCase())) {
+        state.selectedUploadTags.push(memberName);
     }
 
     if (!state.selectedUploadTags || state.selectedUploadTags.length === 0) {
