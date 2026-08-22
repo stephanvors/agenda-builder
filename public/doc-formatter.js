@@ -1843,11 +1843,30 @@ function escapeHTML(str) {
         .replace(/'/g, '&#039;');
 }
 
+let toastTimer = null;
 function showToast(msg, isError = false) {
-    const t = document.getElementById('toast');
-    if (!t) return;
-    t.textContent = msg;
-    t.classList.toggle('error', !!isError);
-    t.classList.remove('hidden');
-    setTimeout(() => t.classList.add('hidden'), 3500);
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        container.className = 'toast-container';
+        document.body.appendChild(container);
+    }
+
+    container.innerHTML = '';
+    clearTimeout(toastTimer);
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${isError ? 'toast-error' : 'toast-success'}`;
+    toast.innerHTML = `<span>${isError ? '⚠️' : '✅'}</span> <span>${escapeHTML(msg)}</span>`;
+    container.appendChild(toast);
+
+    requestAnimationFrame(() => {
+        toast.classList.add('show');
+    });
+
+    toastTimer = setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 3200);
 }
