@@ -237,21 +237,21 @@ function applyPreset(preset) {
             setCheck('l1-bold', lvl.bold !== false);
             setCheck('l1-uppercase', lvl.uppercase !== false);
         } else if (lvl.level === 2) {
-            setVal('l2-num-pos', lvl.numberPosMm || 0);
-            setVal('l2-text-wrap', lvl.textWrapMm || 10);
-            setVal('l2-hanging', lvl.hangingIndentMm || 10);
+            setVal('l2-num-pos', lvl.numberPosMm !== undefined ? lvl.numberPosMm : 0);
+            setVal('l2-text-wrap', lvl.textWrapMm !== undefined ? lvl.textWrapMm : 10);
+            setVal('l2-hanging', lvl.hangingIndentMm !== undefined ? lvl.hangingIndentMm : 10);
         } else if (lvl.level === 3) {
-            setVal('l3-num-pos', lvl.numberPosMm || 10);
-            setVal('l3-text-wrap', lvl.textWrapMm || 20);
-            setVal('l3-hanging', lvl.hangingIndentMm || 10);
+            setVal('l3-num-pos', lvl.numberPosMm !== undefined ? lvl.numberPosMm : 10);
+            setVal('l3-text-wrap', lvl.textWrapMm !== undefined ? lvl.textWrapMm : 20);
+            setVal('l3-hanging', lvl.hangingIndentMm !== undefined ? lvl.hangingIndentMm : 10);
         } else if (lvl.level === 4) {
-            setVal('l4-num-pos', lvl.numberPosMm || 20);
-            setVal('l4-text-wrap', lvl.textWrapMm || 30);
-            setVal('l4-hanging', lvl.hangingIndentMm || 10);
+            setVal('l4-num-pos', lvl.numberPosMm !== undefined ? lvl.numberPosMm : 20);
+            setVal('l4-text-wrap', lvl.textWrapMm !== undefined ? lvl.textWrapMm : 30);
+            setVal('l4-hanging', lvl.hangingIndentMm !== undefined ? lvl.hangingIndentMm : 10);
         } else if (lvl.level === 5) {
-            setVal('l5-num-pos', lvl.numberPosMm || 30);
-            setVal('l5-text-wrap', lvl.textWrapMm || 40);
-            setVal('l5-hanging', lvl.hangingIndentMm || 10);
+            setVal('l5-num-pos', lvl.numberPosMm !== undefined ? lvl.numberPosMm : 30);
+            setVal('l5-text-wrap', lvl.textWrapMm !== undefined ? lvl.textWrapMm : 40);
+            setVal('l5-hanging', lvl.hangingIndentMm !== undefined ? lvl.hangingIndentMm : 10);
         }
     });
 
@@ -259,35 +259,39 @@ function applyPreset(preset) {
     const hdr = preset.header || {};
     setVal('header-layout-select', hdr.layout || 'lgaa_official');
     setCheck('header-color-bar', hdr.showColorBar !== false);
-    setVal('header-title-input', hdr.title || 'LADY GREY ARTS ACADEMY');
-    setVal('header-subtitle-input', hdr.subtitle || 'KUNSTE-AKADEMIE | Where Learning is an Art');
-    setVal('header-contact-input', hdr.contact || '18 Brummer Street, Lady Grey, 9755 | Tel: 051 603 0046 | admin@lgaa.co.za');
-    setVal('header-emis-input', hdr.emis || 'EMIS: 200600985 | District: Joe Gqabi | Circuit: Ekhephini | CMC: Maletswai');
-    setVal('header-badge-text', hdr.badgeText || 'OFFICIAL');
-    setVal('header-badge-subtext', hdr.badgeSubtext || 'CORRESPONDENCE');
+    setVal('header-title-input', hdr.title !== undefined ? hdr.title : 'LADY GREY ARTS ACADEMY');
+    setVal('header-subtitle-input', hdr.subtitle !== undefined ? hdr.subtitle : 'KUNSTE-AKADEMIE | Where Learning is an Art');
+    setVal('header-contact-input', hdr.contact !== undefined ? hdr.contact : '18 Brummer Street, Lady Grey, 9755 | Tel: 051 603 0046 | admin@lgaa.co.za');
+    setVal('header-emis-input', hdr.emis !== undefined ? hdr.emis : 'EMIS: 200600985 | District: Joe Gqabi | Circuit: Ekhephini | CMC: Maletswai');
+    setVal('header-badge-text', hdr.badgeText !== undefined ? hdr.badgeText : 'OFFICIAL');
+    setVal('header-badge-subtext', hdr.badgeSubtext !== undefined ? hdr.badgeSubtext : 'CORRESPONDENCE');
 
     const ftr = preset.footer || {};
     setVal('footer-pagenum-format', ftr.pageNumberFormat || 'page_x_of_y');
     setVal('footer-alignment', ftr.alignment || 'center');
     setCheck('footer-top-divider', ftr.showTopDivider !== false);
-    setVal('footer-custom-text', ftr.customText || '');
+    setVal('footer-custom-text', ftr.customText !== undefined ? ftr.customText : '');
 
     // Components: Metadata Table, Legal Notice, Signatures
     const comps = preset.components || {};
-    setCheck('enable-metadata-table', comps.metadataTable?.enabled !== false);
-    setVal('meta-col1-title', comps.metadataTable?.col1Title || 'Regulatory Alignment & Authority');
-    setVal('meta-col2-title', comps.metadataTable?.col2Title || 'Details & Specifications');
-    renderMetaRows(comps.metadataTable?.rows || []);
+    const metadataTable = comps.metadataTable || preset.tables?.metadataTable || {};
+    setCheck('enable-metadata-table', metadataTable.enabled !== false);
+    setVal('meta-col1-title', metadataTable.col1Title || 'Regulatory Alignment & Authority');
+    setVal('meta-col2-title', metadataTable.col2Title || 'Details & Specifications');
+    renderMetaRows(metadataTable.rows || []);
 
-    setCheck('enable-legal-notice', comps.legalNotice?.enabled !== false);
-    setVal('legal-notice-prefix', comps.legalNotice?.prefix || 'LEGAL NOTICE: ');
-    setVal('legal-notice-text', comps.legalNotice?.text || '');
+    const legalNotice = comps.legalNotice || preset.tables?.legalNotice || {};
+    setCheck('enable-legal-notice', legalNotice.enabled !== false);
+    setVal('legal-notice-prefix', legalNotice.prefix !== undefined ? legalNotice.prefix : 'LEGAL NOTICE: ');
+    setVal('legal-notice-text', legalNotice.text !== undefined ? legalNotice.text : '');
 
-    setCheck('enable-signatures', comps.signatures?.enabled !== false);
-    setVal('signatures-title', comps.signatures?.title || 'ADOPTION AND SIGN-OFF RESOLUTION');
-    setVal('signatures-intro', comps.signatures?.introText || '');
-    renderSigners(comps.signatures?.signers || []);
+    const signatures = comps.signatures || preset.signatures || {};
+    setCheck('enable-signatures', signatures.enabled !== false);
+    setVal('signatures-title', signatures.title !== undefined ? signatures.title : 'ADOPTION AND SIGN-OFF RESOLUTION');
+    setVal('signatures-intro', signatures.introText !== undefined ? signatures.introText : '');
+    renderSigners(signatures.signers || []);
 
+    updateSpatialGuides();
     parseTextAndUpdatePreview();
 }
 
@@ -342,6 +346,40 @@ function initEventListeners() {
     syncColorPair('primary-color-picker', 'primary-color-input');
     syncColorPair('secondary-color-picker', 'secondary-color-input');
     syncColorPair('text-color-picker', 'text-color-input');
+
+    // Auto sync Hanging Indent and Live Preview when Number Position or Text Wrap changes
+    [2, 3, 4, 5].forEach(lvl => {
+        const numInput = document.getElementById(`l${lvl}-num-pos`);
+        const wrapInput = document.getElementById(`l${lvl}-text-wrap`);
+        const hangInput = document.getElementById(`l${lvl}-hanging`);
+
+        const syncHanging = () => {
+            const num = Number(numInput?.value) || 0;
+            const wrap = Number(wrapInput?.value) || (lvl * 10 - 10);
+            const hang = Math.max(0, wrap - num);
+            if (hangInput) hangInput.value = hang;
+            updateSpatialGuides();
+            parseTextAndUpdatePreview();
+        };
+
+        if (numInput) {
+            numInput.addEventListener('input', syncHanging);
+            numInput.addEventListener('change', syncHanging);
+        }
+        if (wrapInput) {
+            wrapInput.addEventListener('input', syncHanging);
+            wrapInput.addEventListener('change', syncHanging);
+        }
+        if (hangInput) {
+            hangInput.addEventListener('input', () => {
+                const hang = Number(hangInput?.value) || 0;
+                const wrap = Number(wrapInput?.value) || (lvl * 10 - 10);
+                if (numInput) numInput.value = Math.max(0, wrap - hang);
+                updateSpatialGuides();
+                parseTextAndUpdatePreview();
+            });
+        }
+    });
 
     // Live form inputs trigger live preview
     const form = document.getElementById('formatter-form');
@@ -760,42 +798,61 @@ function renderDocumentPreview() {
         `;
     }
 
-    // 5. Clauses Blocks (Levels 1 to 5)
+    // 5. Clauses Blocks (Levels 1 to 5 with dynamic hanging indents)
+    const l1Offset = Number(document.getElementById('l1-left-offset')?.value) || 0;
+    const l1Bold = document.getElementById('l1-bold')?.checked !== false;
+    const l1Upper = document.getElementById('l1-uppercase')?.checked !== false;
+
+    const l2NumPos = Number(document.getElementById('l2-num-pos')?.value) || 0;
+    const l2Wrap = Number(document.getElementById('l2-text-wrap')?.value) || 10;
+    const l2Hanging = Math.max(0.1, l2Wrap - l2NumPos);
+
+    const l3NumPos = Number(document.getElementById('l3-num-pos')?.value) || 10;
+    const l3Wrap = Number(document.getElementById('l3-text-wrap')?.value) || 20;
+    const l3Hanging = Math.max(0.1, l3Wrap - l3NumPos);
+
+    const l4NumPos = Number(document.getElementById('l4-num-pos')?.value) || 20;
+    const l4Wrap = Number(document.getElementById('l4-text-wrap')?.value) || 30;
+    const l4Hanging = Math.max(0.1, l4Wrap - l4NumPos);
+
+    const l5NumPos = Number(document.getElementById('l5-num-pos')?.value) || 30;
+    const l5Wrap = Number(document.getElementById('l5-text-wrap')?.value) || 40;
+    const l5Hanging = Math.max(0.1, l5Wrap - l5NumPos);
+
     state.parsedBlocks.forEach(b => {
         if (b.type === 'level1') {
-            const isUpper = document.getElementById('l1-uppercase')?.checked !== false;
-            const text = isUpper ? (b.number ? b.number + ' ' : '') + b.text.toUpperCase() : (b.number ? b.number + ' ' : '') + b.text;
-            html += `<div class="prev-clause-level1" style="color: ${primaryColor};">${escapeHTML(text)}</div>`;
+            const text = l1Upper ? (b.number ? b.number + ' ' : '') + b.text.toUpperCase() : (b.number ? b.number + ' ' : '') + b.text;
+            html += `<div class="prev-clause-item prev-clause-level1" style="padding-left: ${l1Offset}mm; font-weight: ${l1Bold ? 'bold' : 'normal'}; text-transform: ${l1Upper ? 'uppercase' : 'none'}; color: ${primaryColor}; font-size: ${h1Size}pt; margin: 4mm 0 1.5mm 0;">${escapeHTML(text)}</div>`;
         } else if (b.type === 'level2') {
             html += `
-                <div class="prev-clause-level2">
-                    <span class="prev-num-bold" style="color: ${primaryColor};">${escapeHTML(b.number)}</span>
-                    <span>${escapeHTML(b.text)}</span>
+                <div class="prev-clause-item" style="padding-left: ${l2Wrap}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; margin: 1.5mm 0; text-align: justify;">
+                    <span class="prev-num-bold" style="color: ${primaryColor}; margin-left: -${l2Hanging}mm; width: ${l2Hanging}mm; display: inline-block; font-weight: bold; vertical-align: top; box-sizing: border-box;">${escapeHTML(b.number)}</span>
+                    <span class="prev-clause-text" style="color: ${textColor};">${escapeHTML(b.text)}</span>
                 </div>
             `;
         } else if (b.type === 'level3') {
             html += `
-                <div class="prev-clause-level3">
-                    <span class="prev-num-bold" style="color: ${primaryColor};">${escapeHTML(b.number)}</span>
-                    <span>${escapeHTML(b.text)}</span>
+                <div class="prev-clause-item" style="padding-left: ${l3Wrap}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; margin: 1.2mm 0; text-align: justify;">
+                    <span class="prev-num-bold" style="color: ${primaryColor}; margin-left: -${l3Hanging}mm; width: ${l3Hanging}mm; display: inline-block; font-weight: bold; vertical-align: top; box-sizing: border-box;">${escapeHTML(b.number)}</span>
+                    <span class="prev-clause-text" style="color: ${textColor};">${escapeHTML(b.text)}</span>
                 </div>
             `;
         } else if (b.type === 'level4') {
             html += `
-                <div class="prev-clause-level4">
-                    <span class="prev-num-bold" style="color: ${primaryColor};">${escapeHTML(b.number)}</span>
-                    <span>${escapeHTML(b.text)}</span>
+                <div class="prev-clause-item" style="padding-left: ${l4Wrap}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; margin: 1mm 0; text-align: justify;">
+                    <span class="prev-num-bold" style="color: ${primaryColor}; margin-left: -${l4Hanging}mm; width: ${l4Hanging}mm; display: inline-block; font-weight: bold; vertical-align: top; box-sizing: border-box;">${escapeHTML(b.number)}</span>
+                    <span class="prev-clause-text" style="color: ${textColor};">${escapeHTML(b.text)}</span>
                 </div>
             `;
         } else if (b.type === 'level5') {
             html += `
-                <div class="prev-clause-level5">
-                    <span class="prev-num-bold" style="color: ${primaryColor};">${escapeHTML(b.number)}</span>
-                    <span>${escapeHTML(b.text)}</span>
+                <div class="prev-clause-item" style="padding-left: ${l5Wrap}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; margin: 1mm 0; text-align: justify;">
+                    <span class="prev-num-bold" style="color: ${primaryColor}; margin-left: -${l5Hanging}mm; width: ${l5Hanging}mm; display: inline-block; font-weight: bold; vertical-align: top; box-sizing: border-box;">${escapeHTML(b.number)}</span>
+                    <span class="prev-clause-text" style="color: ${textColor};">${escapeHTML(b.text)}</span>
                 </div>
             `;
         } else {
-            html += `<div class="prev-clause-body">${escapeHTML(b.text)}</div>`;
+            html += `<div class="prev-clause-body" style="font-size: ${bodySize}pt; line-height: ${lineSpacing}; color: ${textColor}; margin: 1.5mm 0;">${escapeHTML(b.text)}</div>`;
         }
     });
 
