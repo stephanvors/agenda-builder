@@ -4,14 +4,18 @@ import fs from 'fs/promises';
 import fsSync from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { createRequire } from 'module';
 import { exec } from 'child_process';
 import util from 'util';
 import XLSX from 'xlsx';
 import pg from 'pg';
 import multer from 'multer';
+import mammoth from 'mammoth';
 import { parseRawText, buildFormattedDocx, convertDocxToPdf } from './formatterEngine.js';
 import { checkDocText } from './spellcheckerEngine.js';
 
+const require = createRequire(import.meta.url);
+const pdfParse = require('pdf-parse');
 const execPromise = util.promisify(exec);
 
 const { Pool } = pg;
@@ -2095,21 +2099,51 @@ app.delete('/api/doc-formatter/documents/:id', async (req, res) => {
   }
 });
 
+// Helper function to extract clean plain text from .docx, .doc, .pdf, .txt, .md
+async function extractTextFromDocument(filePath, originalFilename) {
+  const ext = path.extname(originalFilename || filePath).toLowerCase();
+
+  if (ext === '.txt' || ext === '.md') {
+    return await fs.readFile(filePath, 'utf8');
+  }
+
+  if (ext === '.docx' || ext === '.doc') {
+    try {
+      const docxBuf = await fs.readFile(filePath);
+      const res = await mammoth.extractRawText({ buffer: docxBuf });
+      if (res && res.value && res.value.trim()) {
+        return res.value.trim();
+      }
+    } catch (docxErr) {
+      console.warn('Mammoth docx parse failed, falling back to raw:', docxErr.message);
+    }
+  }
+
+  if (ext === '.pdf') {
+    try {
+      const p = new pdfParse.PDFParse({ url: filePath, verbosity: 0 });
+      await p.load();
+      const res = await p.getText();
+      if (res && res.pages && Array.isArray(res.pages)) {
+        const fullText = res.pages.map(p => p.text || '').join('\n\n').trim();
+        if (fullText) return fullText;
+      }
+    } catch (pdfErr) {
+      console.warn('PDF text parse failed:', pdfErr.message);
+    }
+  }
+
+  return await fs.readFile(filePath, 'utf8');
+}
+
 // POST /api/doc-formatter/parse-raw: extract text from uploaded raw document or parse text
 app.post('/api/doc-formatter/parse-raw', upload.single('rawFile'), async (req, res) => {
   try {
     let rawText = req.body.rawText || '';
 
     if (req.file) {
-      const ext = path.extname(req.file.originalname).toLowerCase();
       const filePath = req.file.path;
-
-      if (ext === '.txt' || ext === '.md') {
-        rawText = await fs.readFile(filePath, 'utf8');
-      } else {
-        rawText = await fs.readFile(filePath, 'utf8');
-      }
-
+      rawText = await extractTextFromDocument(filePath, req.file.originalname);
       try { await fs.unlink(filePath); } catch (e) {}
     }
 
