@@ -554,23 +554,63 @@ export async function buildFormattedDocx(config, parsedBlocks) {
   parsedBlocks.forEach(block => {
     if (block.type === 'level1') {
       const cfg = getLevelConfig(1);
-      const textVal = cfg.uppercase ? (block.number ? block.number + ' ' : '') + block.text.toUpperCase() : (block.number ? block.number + ' ' : '') + block.text;
-      docChildren.push(
-        new Paragraph({
-          spacing: { before: 240, after: 100 },
-          keepWithNext: true,
-          indent: { left: convertMillimetersToTwip(cfg.leftOffsetMm || 0) },
-          children: [
-            new TextRun({
-              text: textVal,
-              bold: cfg.bold !== false,
-              size: h1SizeHps,
-              color: (cfg.color || primaryColor).replace('#', ''),
-              font: fontFamily,
-            }),
-          ],
-        })
-      );
+      const l2Cfg = getLevelConfig(2);
+      const tabPosMm = Number(l2Cfg.textWrapMm) || Number(l2Cfg.leftOffsetMm) || 10;
+      const headingText = cfg.uppercase ? block.text.toUpperCase() : block.text;
+
+      if (block.number) {
+        docChildren.push(
+          new Paragraph({
+            spacing: { before: 240, after: 100 },
+            keepWithNext: true,
+            indent: { left: convertMillimetersToTwip(cfg.leftOffsetMm || 0) },
+            tabStops: [
+              {
+                type: TabStopType.LEFT,
+                position: convertMillimetersToTwip(tabPosMm),
+              },
+            ],
+            children: [
+              new TextRun({
+                text: block.number,
+                bold: cfg.bold !== false,
+                size: h1SizeHps,
+                color: (cfg.color || primaryColor).replace('#', ''),
+                font: fontFamily,
+              }),
+              new TextRun({
+                text: '\t',
+                size: h1SizeHps,
+                font: fontFamily,
+              }),
+              new TextRun({
+                text: headingText,
+                bold: cfg.bold !== false,
+                size: h1SizeHps,
+                color: (cfg.color || primaryColor).replace('#', ''),
+                font: fontFamily,
+              }),
+            ],
+          })
+        );
+      } else {
+        docChildren.push(
+          new Paragraph({
+            spacing: { before: 240, after: 100 },
+            keepWithNext: true,
+            indent: { left: convertMillimetersToTwip(cfg.leftOffsetMm || 0) },
+            children: [
+              new TextRun({
+                text: headingText,
+                bold: cfg.bold !== false,
+                size: h1SizeHps,
+                color: (cfg.color || primaryColor).replace('#', ''),
+                font: fontFamily,
+              }),
+            ],
+          })
+        );
+      }
     } else if (block.type === 'level2' || block.type === 'level3' || block.type === 'level4' || block.type === 'level5') {
       const lvlNum = block.level || (block.type === 'level2' ? 2 : block.type === 'level3' ? 3 : block.type === 'level4' ? 4 : 5);
       const cfg = getLevelConfig(lvlNum);

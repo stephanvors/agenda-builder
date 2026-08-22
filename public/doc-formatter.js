@@ -824,36 +824,20 @@ function renderDocumentPreview() {
 
     state.parsedBlocks.forEach(b => {
         if (b.type === 'level1') {
-            const text = l1Upper ? (b.number ? b.number + ' ' : '') + b.text.toUpperCase() : (b.number ? b.number + ' ' : '') + b.text;
-            html += `<div class="prev-clause-item prev-clause-level1" style="padding-left: ${l1Offset}mm; font-weight: ${l1Bold ? 'bold' : 'normal'}; text-transform: ${l1Upper ? 'uppercase' : 'none'}; color: ${primaryColor}; font-size: ${h1Size}pt; margin: 4mm 0 1.5mm 0;">${escapeHTML(text)}</div>`;
+            const headingText = l1Upper ? b.text.toUpperCase() : b.text;
+            if (b.number) {
+                html += `<div class="prev-clause-item prev-clause-level1" style="padding-left: ${l2Wrap}mm; font-weight: ${l1Bold ? 'bold' : 'normal'}; text-transform: ${l1Upper ? 'uppercase' : 'none'}; color: ${primaryColor}; font-size: ${h1Size}pt; margin: 5mm 0 2mm 0;"><span class="prev-num-bold" style="color: ${primaryColor}; margin-left: -${l2Wrap}mm; width: ${l2Wrap}mm; display: inline-block; font-weight: bold; vertical-align: top; box-sizing: border-box;">${escapeHTML(b.number)}</span><span class="prev-heading-text">${escapeHTML(headingText)}</span></div>`;
+            } else {
+                html += `<div class="prev-clause-item prev-clause-level1" style="padding-left: ${l1Offset}mm; font-weight: ${l1Bold ? 'bold' : 'normal'}; text-transform: ${l1Upper ? 'uppercase' : 'none'}; color: ${primaryColor}; font-size: ${h1Size}pt; margin: 5mm 0 2mm 0;">${escapeHTML(headingText)}</div>`;
+            }
         } else if (b.type === 'level2') {
-            html += `
-                <div class="prev-clause-item" style="padding-left: ${l2Wrap}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; margin: 1.5mm 0; text-align: justify;">
-                    <span class="prev-num-bold" style="color: ${primaryColor}; margin-left: -${l2Hanging}mm; width: ${l2Hanging}mm; display: inline-block; font-weight: bold; vertical-align: top; box-sizing: border-box;">${escapeHTML(b.number)}</span>
-                    <span class="prev-clause-text" style="color: ${textColor};">${escapeHTML(b.text)}</span>
-                </div>
-            `;
+            html += `<div class="prev-clause-item" style="padding-left: ${l2Wrap}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; margin: 1.5mm 0; text-align: justify;"><span class="prev-num-bold" style="color: ${primaryColor}; margin-left: -${l2Hanging}mm; width: ${l2Hanging}mm; display: inline-block; font-weight: bold; vertical-align: top; box-sizing: border-box;">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${escapeHTML(b.text)}</span></div>`;
         } else if (b.type === 'level3') {
-            html += `
-                <div class="prev-clause-item" style="padding-left: ${l3Wrap}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; margin: 1.2mm 0; text-align: justify;">
-                    <span class="prev-num-bold" style="color: ${primaryColor}; margin-left: -${l3Hanging}mm; width: ${l3Hanging}mm; display: inline-block; font-weight: bold; vertical-align: top; box-sizing: border-box;">${escapeHTML(b.number)}</span>
-                    <span class="prev-clause-text" style="color: ${textColor};">${escapeHTML(b.text)}</span>
-                </div>
-            `;
+            html += `<div class="prev-clause-item" style="padding-left: ${l3Wrap}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; margin: 1.2mm 0; text-align: justify;"><span class="prev-num-bold" style="color: ${primaryColor}; margin-left: -${l3Hanging}mm; width: ${l3Hanging}mm; display: inline-block; font-weight: bold; vertical-align: top; box-sizing: border-box;">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${escapeHTML(b.text)}</span></div>`;
         } else if (b.type === 'level4') {
-            html += `
-                <div class="prev-clause-item" style="padding-left: ${l4Wrap}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; margin: 1mm 0; text-align: justify;">
-                    <span class="prev-num-bold" style="color: ${primaryColor}; margin-left: -${l4Hanging}mm; width: ${l4Hanging}mm; display: inline-block; font-weight: bold; vertical-align: top; box-sizing: border-box;">${escapeHTML(b.number)}</span>
-                    <span class="prev-clause-text" style="color: ${textColor};">${escapeHTML(b.text)}</span>
-                </div>
-            `;
+            html += `<div class="prev-clause-item" style="padding-left: ${l4Wrap}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; margin: 1mm 0; text-align: justify;"><span class="prev-num-bold" style="color: ${primaryColor}; margin-left: -${l4Hanging}mm; width: ${l4Hanging}mm; display: inline-block; font-weight: bold; vertical-align: top; box-sizing: border-box;">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${escapeHTML(b.text)}</span></div>`;
         } else if (b.type === 'level5') {
-            html += `
-                <div class="prev-clause-item" style="padding-left: ${l5Wrap}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; margin: 1mm 0; text-align: justify;">
-                    <span class="prev-num-bold" style="color: ${primaryColor}; margin-left: -${l5Hanging}mm; width: ${l5Hanging}mm; display: inline-block; font-weight: bold; vertical-align: top; box-sizing: border-box;">${escapeHTML(b.number)}</span>
-                    <span class="prev-clause-text" style="color: ${textColor};">${escapeHTML(b.text)}</span>
-                </div>
-            `;
+            html += `<div class="prev-clause-item" style="padding-left: ${l5Wrap}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; margin: 1mm 0; text-align: justify;"><span class="prev-num-bold" style="color: ${primaryColor}; margin-left: -${l5Hanging}mm; width: ${l5Hanging}mm; display: inline-block; font-weight: bold; vertical-align: top; box-sizing: border-box;">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${escapeHTML(b.text)}</span></div>`;
         } else {
             html += `<div class="prev-clause-body" style="font-size: ${bodySize}pt; line-height: ${lineSpacing}; color: ${textColor}; margin: 1.5mm 0;">${escapeHTML(b.text)}</div>`;
         }
