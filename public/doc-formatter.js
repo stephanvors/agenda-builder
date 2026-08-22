@@ -135,17 +135,23 @@ function initAuthToken() {
 }
 
 function initTheme() {
-    const savedTheme = localStorage.getItem('sgb_theme') || 'dark';
+    const savedTheme = localStorage.getItem('agendabuilder_theme') || localStorage.getItem('sgb_theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
     document.body.setAttribute('data-theme', savedTheme);
     updateThemeIcon(savedTheme);
 
-    document.getElementById('theme-toggle').addEventListener('click', () => {
-        const current = document.body.getAttribute('data-theme');
-        const next = current === 'dark' ? 'light' : 'dark';
-        document.body.setAttribute('data-theme', next);
-        localStorage.setItem('sgb_theme', next);
-        updateThemeIcon(next);
-    });
+    const toggleBtn = document.getElementById('theme-toggle');
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+            const current = document.documentElement.getAttribute('data-theme') || document.body.getAttribute('data-theme') || 'light';
+            const next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            document.body.setAttribute('data-theme', next);
+            localStorage.setItem('agendabuilder_theme', next);
+            localStorage.setItem('sgb_theme', next);
+            updateThemeIcon(next);
+        });
+    }
 }
 
 function updateThemeIcon(theme) {
@@ -413,6 +419,9 @@ function initEventListeners() {
         const overlay = document.getElementById('grid-overlay');
         if (overlay) overlay.style.display = e.target.checked ? 'block' : 'none';
     });
+
+    // Preset Save Button
+    document.getElementById('btn-save-preset')?.addEventListener('click', saveCurrentAsPreset);
 
     // Generate & Export Button
     document.getElementById('btn-generate-doc')?.addEventListener('click', generateAndExportDocument);
@@ -1043,6 +1052,65 @@ function collectCurrentConfig() {
             }
         }
     };
+}
+
+// ── Save Current Configuration as Preset ──
+async function saveCurrentAsPreset() {
+    const currentName = document.getElementById('preset-select')?.selectedOptions[0]?.text || '';
+    const suggestedName = currentName.includes('(Custom)') ? currentName : (currentName ? currentName + ' (Custom)' : 'My Custom Preset');
+    const presetName = prompt('Enter a name for this custom formatting preset:', suggestedName);
+    if (!presetName || !presetName.trim()) return;
+
+    const payload = gatherFormData();
+    const presetId = 'preset_' + Date.now();
+    const newPreset = {
+        id: presetId,
+        name: presetName.trim(),
+        description: `Custom preset saved on ${new Date().toLocaleDateString()}`,
+        typography: payload.typography,
+        pageSetup: payload.pageSetup,
+        hierarchy: payload.hierarchy,
+        header: payload.header,
+        footer: payload.footer,
+        tables: {
+            metadataTable: payload.components.metadataTable,
+            legalNotice: payload.components.legalNotice
+        },
+        signatures: payload.components.signatures
+    };
+
+    try {
+        showToast('Saving preset...', false);
+        const res = await fetch('/api/doc-formatter/presets', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(state.token ? { 'Authorization': 'Bearer ' + state.token } : {})
+            },
+            body: JSON.stringify({ preset: newPreset })
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+            throw new Error(data.error || 'Failed to save preset');
+        }
+
+        // Add to state.presets and select element
+        state.presets.push(newPreset);
+        const presetSel = document.getElementById('preset-select');
+        if (presetSel) {
+            const opt = document.createElement('option');
+            opt.value = presetId;
+            opt.textContent = presetName.trim();
+            opt.selected = true;
+            presetSel.appendChild(opt);
+        }
+
+        showToast(`Preset "${presetName.trim()}" saved successfully!`, false);
+    } catch (err) {
+        console.error('Save preset error:', err);
+        showToast(err.message || 'Error saving preset', true);
+    }
 }
 
 // ── Helpers ──

@@ -1,5 +1,53 @@
 /* ── Document Formatter Studio Styles ── */
 
+:root {
+    --primary: #0C4FF2;
+    --primary-dark: #0840CC;
+    --primary-light: rgba(12, 79, 242, 0.08);
+    --accent: #DA251D;
+    --bg-main: #F8FAFC;
+    --bg-card: #FFFFFF;
+    --bg-subtle: #EDF2F7;
+    --bg-input: #FFFFFF;
+    --border: #CBD5E1;
+    --border-color: #CBD5E1;
+    --text-main: #0F172A;
+    --text-muted: #475569;
+    --btn-outline-bg: #FFFFFF;
+    --btn-outline-text: #0F172A;
+    --btn-outline-border: #CBD5E1;
+    --btn-outline-hover-bg: #0C4FF2;
+    --btn-outline-hover-text: #FFFFFF;
+    --btn-outline-hover-border: #0C4FF2;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.06);
+    --transition: all 0.2s ease;
+}
+
+[data-theme="dark"],
+:root[data-theme="dark"] {
+    --primary: #3B82F6;
+    --primary-dark: #2563EB;
+    --primary-light: rgba(59, 130, 246, 0.15);
+    --accent: #EF4444;
+    --bg-main: #0B0F19;
+    --bg-card: #151D2E;
+    --bg-subtle: #1E293B;
+    --bg-input: #0E1422;
+    --border: #334155;
+    --border-color: #334155;
+    --text-main: #F8FAFC;
+    --text-muted: #94A3B8;
+    --btn-outline-bg: #1E293B;
+    --btn-outline-text: #F8FAFC;
+    --btn-outline-border: #334155;
+    --btn-outline-hover-bg: #3B82F6;
+    --btn-outline-hover-text: #FFFFFF;
+    --btn-outline-hover-border: #3B82F6;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.4);
+    --shadow-md: 0 4px 8px rgba(0,0,0,0.5);
+}
+
 body.formatter-studio-body {
     margin: 0;
     padding: 0;
@@ -10,6 +58,128 @@ body.formatter-studio-body {
     background: var(--bg-main);
     color: var(--text-main);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+/* ── Buttons Contrast System ── */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    line-height: 1;
+    border-radius: 6px;
+    padding: 0.5rem 0.9rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition: var(--transition);
+    border: 1.5px solid transparent;
+}
+
+.btn svg {
+    flex-shrink: 0;
+    stroke: currentColor;
+}
+
+.btn-sm {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8rem;
+    min-height: 32px;
+}
+
+.btn-primary {
+    background-color: var(--primary) !important;
+    color: #FFFFFF !important;
+    border-color: var(--primary) !important;
+    box-shadow: 0 2px 4px rgba(12, 79, 242, 0.25);
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-dark) !important;
+    border-color: var(--primary-dark) !important;
+}
+
+.btn-secondary {
+    background-color: var(--bg-subtle) !important;
+    color: var(--text-main) !important;
+    border: 1.5px solid var(--border) !important;
+}
+
+.btn-secondary:hover {
+    background-color: var(--primary) !important;
+    color: #FFFFFF !important;
+    border-color: var(--primary) !important;
+}
+
+.btn-outline,
+#btn-save-preset {
+    background-color: var(--btn-outline-bg) !important;
+    color: var(--btn-outline-text) !important;
+    border: 1.5px solid var(--btn-outline-border) !important;
+    font-weight: 600 !important;
+}
+
+.btn-outline:hover,
+#btn-save-preset:hover {
+    background-color: var(--btn-outline-hover-bg) !important;
+    color: var(--btn-outline-hover-text) !important;
+    border-color: var(--btn-outline-hover-border) !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.btn-outline svg,
+#btn-save-preset svg {
+    stroke: currentColor;
+}
+
+.btn-theme-toggle,
+#theme-toggle {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: var(--btn-outline-bg) !important;
+    border: 1.5px solid var(--btn-outline-border) !important;
+    color: var(--text-main) !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.15rem;
+    transition: var(--transition);
+    box-sizing: border-box;
+}
+
+.btn-theme-toggle:hover,
+#theme-toggle:hover {
+    border-color: var(--primary) !important;
+    background: var(--bg-subtle) !important;
+    transform: scale(1.06);
+}
+
+#btn-quick-docx {
+    background: #185ABD !important;
+    color: #FFFFFF !important;
+    border-color: #185ABD !important;
+    font-weight: 700;
+}
+
+#btn-quick-docx:hover {
+    background: #103F91 !important;
+    border-color: #103F91 !important;
+}
+
+#btn-quick-pdf {
+    background: #E5252A !important;
+    color: #FFFFFF !important;
+    border-color: #E5252A !important;
+    font-weight: 700;
+}
+
+#btn-quick-pdf:hover {
+    background: #B91C1C !important;
+    border-color: #B91C1C !important;
 }
 
 /* ── Top Navbar ── */
@@ -35,19 +205,20 @@ body.formatter-studio-body {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    color: var(--text-muted);
+    color: var(--text-main);
     text-decoration: none;
     font-size: 0.85rem;
     font-weight: 600;
-    padding: 0.35rem 0.6rem;
+    padding: 0.4rem 0.65rem;
     border-radius: 6px;
     background: var(--bg-subtle);
-    border: 1px solid var(--border);
+    border: 1.5px solid var(--border);
     transition: var(--transition);
 }
 
 .studio-back-link:hover {
-    color: var(--text-main);
+    color: #FFFFFF;
+    background: var(--primary);
     border-color: var(--primary);
 }
 
@@ -88,6 +259,7 @@ body.formatter-studio-body {
     gap: 0.5rem;
     font-size: 0.82rem;
     font-weight: 600;
+    color: var(--text-main);
 }
 
 /* ── Main Studio Split Workspace ── */

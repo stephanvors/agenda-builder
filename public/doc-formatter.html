@@ -4,11 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Legal & Multi-Level Document Formatter Studio — LGAA</title>
-    <link rel="stylesheet" href="/style.css">
-    <link rel="stylesheet" href="/doc-formatter.css">
+    <link rel="stylesheet" href="/style.css?v=20260822-02">
+    <link rel="stylesheet" href="/doc-formatter.css?v=20260822-02">
     <link rel="icon" href="/logo.svg" type="image/svg+xml">
+    <script>
+        (function() {
+            try {
+                var saved = localStorage.getItem('agendabuilder_theme') || localStorage.getItem('sgb_theme') || 'light';
+                document.documentElement.setAttribute('data-theme', saved);
+            } catch(e) {}
+        })();
+    </script>
 </head>
-<body class="formatter-studio-body" data-theme="dark">
+<body class="formatter-studio-body">
     <!-- Top Studio Navbar -->
     <header class="studio-header">
         <div class="studio-header-left">
@@ -664,6 +672,6 @@
 
     <div id="toast" class="toast hidden"></div>
 
-    <script src="/doc-formatter.js"></script>
+    <script src="/doc-formatter.js?v=20260822-02"></script>
 </body>
 </html>

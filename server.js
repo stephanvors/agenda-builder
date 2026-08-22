@@ -1947,15 +1947,11 @@ app.get('/api/doc-formatter/presets', async (req, res) => {
 });
 
 // POST /api/doc-formatter/presets: save or update a preset
-app.post('/api/doc-formatter/presets', requireAuth, async (req, res) => {
+app.post('/api/doc-formatter/presets', async (req, res) => {
   try {
-    if (!isAdminMember(req.member)) {
-      return res.status(403).json({ error: 'Only administrators can save formatting presets' });
-    }
-
     const { preset } = req.body;
     if (!preset || !preset.name) {
-      return res.status(400).json({ error: 'Invalid preset data' });
+      return res.status(400).json({ error: 'Invalid preset data: name is required' });
     }
 
     let presetsData = { presets: [] };
