@@ -113,14 +113,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     initTheme();
     initTabs();
     initEventListeners();
-    await loadPresets();
 
     // Load default sample text into textarea
     const rawTextEl = document.getElementById('raw-text-input');
     if (rawTextEl && !rawTextEl.value.trim()) {
         rawTextEl.value = SAMPLE_CONSTITUTION_TEXT;
-        parseTextAndUpdatePreview();
     }
+
+    await loadPresets();
+    parseTextAndUpdatePreview();
 });
 
 function initAuthToken() {
@@ -690,17 +691,19 @@ function renderDocumentPreview() {
     const secondaryColor = document.getElementById('secondary-color-input')?.value || '#A6192E';
     const textColor = document.getElementById('text-color-input')?.value || '#1A1A1A';
     const fontFamily = document.getElementById('font-family-select')?.value || 'Arial';
-    const lineSpacing = document.getElementById('line-spacing-select')?.value || '1.15';
+    const lineSpacing = Number(document.getElementById('line-spacing-select')?.value) || 1.15;
+    const bodySize = Number(document.getElementById('body-size-input')?.value) || 10;
+    const h1Size = Number(document.getElementById('h1-size-input')?.value) || 11;
 
     const pageCanvas = document.getElementById('preview-page');
     if (pageCanvas) {
         pageCanvas.style.fontFamily = fontFamily;
         pageCanvas.style.lineHeight = lineSpacing;
         pageCanvas.style.color = textColor;
-        pageCanvas.style.paddingLeft = (document.getElementById('margin-left-input')?.value || 20) + 'mm';
-        pageCanvas.style.paddingRight = (document.getElementById('margin-right-input')?.value || 20) + 'mm';
-        pageCanvas.style.paddingTop = (document.getElementById('margin-top-input')?.value || 18) + 'mm';
-        pageCanvas.style.paddingBottom = (document.getElementById('margin-bottom-input')?.value || 18) + 'mm';
+        pageCanvas.style.paddingLeft = (document.getElementById('margin-left-input')?.value || 10) + 'mm';
+        pageCanvas.style.paddingRight = (document.getElementById('margin-right-input')?.value || 10) + 'mm';
+        pageCanvas.style.paddingTop = (document.getElementById('margin-top-input')?.value || 10) + 'mm';
+        pageCanvas.style.paddingBottom = (document.getElementById('margin-bottom-input')?.value || 10) + 'mm';
     }
 
     let html = '';
@@ -1118,7 +1121,7 @@ async function saveCurrentAsPreset() {
     const presetName = prompt('Enter a name for this custom formatting preset:', suggestedName);
     if (!presetName || !presetName.trim()) return;
 
-    const payload = gatherFormData();
+    const payload = collectCurrentConfig();
     const presetId = 'preset_' + Date.now();
     const newPreset = {
         id: presetId,
@@ -1129,11 +1132,7 @@ async function saveCurrentAsPreset() {
         hierarchy: payload.hierarchy,
         header: payload.header,
         footer: payload.footer,
-        tables: {
-            metadataTable: payload.components.metadataTable,
-            legalNotice: payload.components.legalNotice
-        },
-        signatures: payload.components.signatures
+        components: payload.components
     };
 
     try {
