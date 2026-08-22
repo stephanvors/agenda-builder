@@ -215,11 +215,10 @@ function applyPreset(preset) {
     // Page Setup
     const page = preset.pageSetup || {};
     setVal('paper-size-select', page.paperSize || 'A4');
-    setVal('border-style-select', page.borderStyle || 'none');
-    setVal('margin-left-input', page.leftMarginMm || 20);
-    setVal('margin-right-input', page.rightMarginMm || 20);
-    setVal('margin-top-input', page.topMarginMm || 18);
-    setVal('margin-bottom-input', page.bottomMarginMm || 18);
+    setVal('margin-left-input', page.leftMarginMm !== undefined ? page.leftMarginMm : 10);
+    setVal('margin-right-input', page.rightMarginMm !== undefined ? page.rightMarginMm : 10);
+    setVal('margin-top-input', page.topMarginMm !== undefined ? page.topMarginMm : 10);
+    setVal('margin-bottom-input', page.bottomMarginMm !== undefined ? page.bottomMarginMm : 10);
 
     // Hierarchy
     const hier = preset.hierarchy || {};

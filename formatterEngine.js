@@ -156,10 +156,10 @@ export async function buildFormattedDocx(config, parsedBlocks) {
   // Page Setup in Twips
   const paperWidthMm = page.paperSize === 'Letter' ? 215.9 : 210;
   const paperHeightMm = page.paperSize === 'Letter' ? 279.4 : 297;
-  const leftMarginMm = Number(page.leftMarginMm) || 20;
-  const rightMarginMm = Number(page.rightMarginMm) || 20;
-  const topMarginMm = Number(page.topMarginMm) || 18;
-  const bottomMarginMm = Number(page.bottomMarginMm) || 18;
+  const leftMarginMm = page.leftMarginMm !== undefined ? Number(page.leftMarginMm) : 10;
+  const rightMarginMm = page.rightMarginMm !== undefined ? Number(page.rightMarginMm) : 10;
+  const topMarginMm = page.topMarginMm !== undefined ? Number(page.topMarginMm) : 10;
+  const bottomMarginMm = page.bottomMarginMm !== undefined ? Number(page.bottomMarginMm) : 10;
   const bodyWidthMm = paperWidthMm - leftMarginMm - rightMarginMm;
 
   // Level config lookup map (1..5)

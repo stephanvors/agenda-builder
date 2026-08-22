@@ -2,8 +2,8 @@
   "presets": [
     {
       "id": "sgb_constitution",
-      "name": "SGB Legal Constitution (20mm Grid, 10mm Hanging Indents)",
-      "description": "Strict legal hierarchy with 20mm margins, 10mm level step increments, hanging indents for levels 1-5, official school branding, metadata table, and 3-column signature resolution block.",
+      "name": "SGB Legal Constitution (10mm Grid, 10mm Hanging Indents)",
+      "description": "Strict legal hierarchy with 10mm margins, 10mm level step increments, hanging indents for levels 1-5, official school branding, metadata table, and 3-column signature resolution block.",
       "typography": {
         "fontFamily": "Arial",
         "titleSizePt": 14,
@@ -19,10 +19,10 @@
       },
       "pageSetup": {
         "paperSize": "A4",
-        "leftMarginMm": 20,
-        "rightMarginMm": 20,
-        "topMarginMm": 18,
-        "bottomMarginMm": 18,
+        "leftMarginMm": 10,
+        "rightMarginMm": 10,
+        "topMarginMm": 10,
+        "bottomMarginMm": 10,
         "borderStyle": "none",
         "borderWidthPt": 0,
         "borderColor": "#CBD5E1"

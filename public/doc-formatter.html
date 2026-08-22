@@ -29,7 +29,7 @@
             <div class="preset-selector-group">
                 <label for="preset-select">Preset:</label>
                 <select id="preset-select" class="studio-select" title="Choose formatting preset">
-                    <option value="sgb_constitution" selected>SGB Legal Constitution (20mm grid, 10mm indents)</option>
+                    <option value="sgb_constitution" selected>SGB Legal Constitution (10mm Grid, 10mm Hanging Indents)</option>
                     <option value="sgb_minutes">SGB Meeting Minutes Template</option>
                     <option value="school_policy">School Policy &amp; Regulatory Suite</option>
                 </select>
@@ -351,19 +351,19 @@
                         <div class="form-grid-4 mt-2">
                             <div class="form-group">
                                 <label for="margin-left-input">Left Margin (mm)</label>
-                                <input type="number" id="margin-left-input" class="studio-input" value="20" min="10" max="40">
+                                <input type="number" id="margin-left-input" class="studio-input" value="10" min="5" max="40">
                             </div>
                             <div class="form-group">
                                 <label for="margin-right-input">Right Margin (mm)</label>
-                                <input type="number" id="margin-right-input" class="studio-input" value="20" min="10" max="40">
+                                <input type="number" id="margin-right-input" class="studio-input" value="10" min="5" max="40">
                             </div>
                             <div class="form-group">
                                 <label for="margin-top-input">Top Margin (mm)</label>
-                                <input type="number" id="margin-top-input" class="studio-input" value="18" min="10" max="40">
+                                <input type="number" id="margin-top-input" class="studio-input" value="10" min="5" max="40">
                             </div>
                             <div class="form-group">
                                 <label for="margin-bottom-input">Bottom Margin (mm)</label>
-                                <input type="number" id="margin-bottom-input" class="studio-input" value="18" min="10" max="40">
+                                <input type="number" id="margin-bottom-input" class="studio-input" value="10" min="5" max="40">
                             </div>
                         </div>
                     </div>
@@ -644,13 +644,13 @@
                 <div class="a4-page-canvas" id="preview-page">
                     <!-- Spatial Grid Guidelines (in mm overlay) -->
                     <div class="spatial-grid-overlay" id="grid-overlay">
-                        <div class="guide-line guide-margin-left" style="left: 20mm;" title="Left Margin: 20mm"><span class="guide-tag">Margin (20mm)</span></div>
-                        <div class="guide-line guide-level-1" style="left: 20mm;" title="Level 1 Line: 0mm body offset"><span class="guide-tag">L1 (0mm)</span></div>
-                        <div class="guide-line guide-level-2" style="left: 30mm;" title="Level 2 Line: 10mm indent"><span class="guide-tag">L2 (10mm)</span></div>
-                        <div class="guide-line guide-level-3" style="left: 40mm;" title="Level 3 Line: 20mm indent"><span class="guide-tag">L3 (20mm)</span></div>
-                        <div class="guide-line guide-level-4" style="left: 50mm;" title="Level 4 Line: 30mm indent"><span class="guide-tag">L4 (30mm)</span></div>
-                        <div class="guide-line guide-level-5" style="left: 60mm;" title="Level 5 Line: 40mm indent"><span class="guide-tag">L5 (40mm)</span></div>
-                        <div class="guide-line guide-margin-right" style="right: 20mm;" title="Right Margin: 20mm"><span class="guide-tag">Right (20mm)</span></div>
+                        <div class="guide-line guide-margin-left" style="left: 10mm;" title="Left Margin: 10mm"><span class="guide-tag">Margin (10mm)</span></div>
+                        <div class="guide-line guide-level-1" style="left: 10mm;" title="Level 1 Line: 0mm body offset"><span class="guide-tag">L1 (0mm)</span></div>
+                        <div class="guide-line guide-level-2" style="left: 20mm;" title="Level 2 Line: 10mm indent"><span class="guide-tag">L2 (10mm)</span></div>
+                        <div class="guide-line guide-level-3" style="left: 30mm;" title="Level 3 Line: 20mm indent"><span class="guide-tag">L3 (20mm)</span></div>
+                        <div class="guide-line guide-level-4" style="left: 40mm;" title="Level 4 Line: 30mm indent"><span class="guide-tag">L4 (30mm)</span></div>
+                        <div class="guide-line guide-level-5" style="left: 50mm;" title="Level 5 Line: 40mm indent"><span class="guide-tag">L5 (40mm)</span></div>
+                        <div class="guide-line guide-margin-right" style="right: 10mm;" title="Right Margin: 10mm"><span class="guide-tag">Right (10mm)</span></div>
                     </div>
 
                     <!-- Rendered Document Preview Content -->
