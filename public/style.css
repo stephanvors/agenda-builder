@@ -1975,19 +1975,17 @@ textarea:focus {
     align-items: center;
     justify-content: center;
     background: transparent;
-    border: 1.5px solid #CBD5E1;
-    color: #64748B;
+    border: none;
     flex-shrink: 0;
     transition: all 0.15s ease;
 }
 
-.doc-icon-badge.type-excel { background: transparent; color: #16A34A; border: 1.5px solid #86EFAC; }
-.doc-icon-badge.type-word { background: transparent; color: #2563EB; border: 1.5px solid #93C5FD; }
-.doc-icon-badge.type-ppt { background: transparent; color: #EA580C; border: 1.5px solid #FDBA74; }
-.doc-icon-badge.type-pdf { background: transparent; color: #DC2626; border: 1.5px solid #FCA5A5; }
-.doc-icon-badge.type-video { background: transparent; color: #0891B2; border: 1.5px solid #67E8F9; }
-.doc-icon-badge.type-image { background: transparent; color: #9333EA; border: 1.5px solid #D8B4FE; }
-.doc-icon-badge.type-file { background: transparent; color: #64748B; border: 1.5px solid #CBD5E1; }
+.doc-icon-badge svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    filter: drop-shadow(0 2px 5px rgba(0,0,0,0.2));
+}
 
 .doc-meta-badges {
     display: flex;
@@ -2190,18 +2188,24 @@ textarea:focus {
 }
 
 .btn-doc-action {
-    padding: 0.4rem 0.7rem;
-    font-size: 0.82rem;
+    padding: 0.4rem 0.65rem;
+    font-size: 0.8rem;
     font-weight: 600;
     border-radius: 6px;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: 0.25rem;
+    gap: 0.35rem;
     text-decoration: none;
     transition: var(--transition);
     border: 1px solid transparent;
     touch-action: manipulation;
+    line-height: 1;
+}
+
+.btn-doc-action svg {
+    flex-shrink: 0;
+    vertical-align: middle;
 }
 
 .btn-doc-view {
@@ -2213,15 +2217,19 @@ textarea:focus {
 .btn-doc-view:hover {
     background: var(--primary);
     color: var(--white);
+    border-color: var(--primary);
 }
 
 .btn-doc-download {
-    background: #10B981;
-    color: var(--white);
+    background: #ECFDF5;
+    color: #059669;
+    border-color: #A7F3D0;
 }
 
 .btn-doc-download:hover {
     background: #059669;
+    color: var(--white);
+    border-color: #059669;
 }
 
 .btn-doc-edit {
@@ -2233,6 +2241,7 @@ textarea:focus {
 .btn-doc-edit:hover {
     background: #E2E8F0;
     color: #0F172A;
+    border-color: #94A3B8;
 }
 
 .edit-doc-modal-dialog {
@@ -2250,16 +2259,18 @@ textarea:focus {
 }
 
 .btn-doc-delete {
-    background: transparent;
+    background: #FEF2F2;
     color: var(--danger);
-    font-size: 0.85rem;
-    opacity: 0.75;
-    padding: 0.4rem;
+    border-color: #FECACA;
+    font-size: 0.8rem;
+    padding: 0.4rem 0.55rem;
 }
 
 .btn-doc-delete:hover {
-    opacity: 1;
-    text-decoration: underline;
+    background: var(--danger);
+    color: var(--white);
+    border-color: var(--danger);
+    text-decoration: none;
 }
 
 @media (max-width: 600px) {
@@ -3689,17 +3700,8 @@ textarea:focus {
 
 [data-theme="dark"] .doc-icon-badge {
     background: transparent;
-    border-color: #2A3854;
-    color: #94A3B8;
+    border: none;
 }
-
-[data-theme="dark"] .doc-icon-badge.type-excel { border-color: #16A34A; color: #4ADE80; }
-[data-theme="dark"] .doc-icon-badge.type-word { border-color: #2563EB; color: #60A5FA; }
-[data-theme="dark"] .doc-icon-badge.type-ppt { border-color: #EA580C; color: #FB923C; }
-[data-theme="dark"] .doc-icon-badge.type-pdf { border-color: #DC2626; color: #F87171; }
-[data-theme="dark"] .doc-icon-badge.type-video { border-color: #0891B2; color: #38BDF8; }
-[data-theme="dark"] .doc-icon-badge.type-image { border-color: #9333EA; color: #C084FC; }
-[data-theme="dark"] .doc-icon-badge.type-file { border-color: #2A3854; color: #94A3B8; }
 
 [data-theme="dark"] .btn-doc-action {
     background: #0E1422;
@@ -3713,7 +3715,44 @@ textarea:focus {
     color: #FFFFFF;
 }
 
+[data-theme="dark"] .btn-doc-view {
+    background: rgba(59, 130, 246, 0.1);
+    border-color: rgba(59, 130, 246, 0.28);
+    color: #60A5FA;
+}
+
+[data-theme="dark"] .btn-doc-view:hover {
+    background: #2563EB;
+    border-color: #2563EB;
+    color: #FFFFFF;
+}
+
+[data-theme="dark"] .btn-doc-download {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.28);
+    color: #34D399;
+}
+
+[data-theme="dark"] .btn-doc-download:hover {
+    background: #059669;
+    border-color: #059669;
+    color: #FFFFFF;
+}
+
+[data-theme="dark"] .btn-doc-edit {
+    background: rgba(148, 163, 184, 0.1);
+    border-color: rgba(148, 163, 184, 0.28);
+    color: #CBD5E1;
+}
+
+[data-theme="dark"] .btn-doc-edit:hover {
+    background: #334155;
+    border-color: #64748B;
+    color: #FFFFFF;
+}
+
 [data-theme="dark"] .btn-doc-delete {
+    background: rgba(239, 68, 68, 0.1);
     color: #F87171;
     border-color: rgba(239, 68, 68, 0.3);
 }

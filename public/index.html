@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20260821-40">
+    <link rel="stylesheet" href="style.css?v=20260822-01">
     <script>
         (function() {
             try {
@@ -56,6 +56,11 @@
                 </div>
                 <button type="submit" id="btn-login" class="btn btn-primary btn-block">Sign In</button>
             </form>
+            <div class="login-extra-actions" style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border); text-align: center;">
+                <a href="/doc-formatter.html" target="_blank" class="btn btn-secondary btn-block" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; text-decoration: none;">
+                    <span class="icon">📑</span> <strong>Document Formatter Studio ↗</strong>
+                </a>
+            </div>
         </div>
     </main>
 
@@ -71,6 +76,9 @@
                     </div>
                 </div>
                 <div class="user-info">
+                    <button type="button" id="btn-header-doc-formatter" class="btn btn-secondary btn-sm" title="Open Legal & Multi-Level Document Formatter Studio in a new window" style="font-weight: 600;">
+                        <span class="icon">📑</span> Document Formatter ↗
+                    </button>
                     <button type="button" class="btn-theme-toggle" id="btn-theme-toggle-app" title="Toggle Light / Dark Mode" aria-label="Toggle Light / Dark Mode">
                         <span class="theme-toggle-icon">🌙</span>
                         <span class="theme-toggle-text">Dark</span>
@@ -124,6 +132,10 @@
                 <span class="tab-nav-text">Shared Files &amp; Vault</span>
                 <span class="tab-nav-badge" id="tab-docs-badge">0</span>
             </button>
+            <button type="button" class="tab-nav-btn tab-nav-btn--studio" id="tab-btn-formatter" title="Open Document Formatter Studio in a new window">
+                <span class="tab-nav-icon">📑</span>
+                <span class="tab-nav-text">Document Formatter ↗</span>
+            </button>
         </nav>
 
         <section class="content-section">
@@ -135,6 +147,9 @@
                     </button>
                     <button id="btn-export" class="btn btn-secondary">
                         <span class="icon">📋</span> View Agenda
+                    </button>
+                    <button type="button" id="btn-open-doc-formatter-agenda" class="btn btn-secondary admin-only hidden" title="Open Legal & Multi-Level Document Formatter Studio">
+                        <span class="icon">📑</span> Document Formatter
                     </button>
                 </div>
 
@@ -207,6 +222,9 @@
                 <div class="actions-bar">
                     <button id="btn-toggle-upload" class="btn btn-primary">
                         <span class="icon">⬆️</span> Upload File / Document
+                    </button>
+                    <button type="button" id="btn-open-doc-formatter" class="btn btn-secondary admin-only hidden" title="Open Legal & Multi-Level Document Formatter Studio">
+                        <span class="icon">📑</span> Document Formatter Studio
                     </button>
                     <div class="search-input-wrapper">
                         <input type="search" id="doc-search-input" class="search-input" placeholder="🔍 Search files or authors...">
@@ -574,6 +592,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=20260821-40"></script>
+    <script src="app.js?v=20260822-01"></script>
 </body>
 </html>

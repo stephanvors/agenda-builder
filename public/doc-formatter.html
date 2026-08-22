@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Legal & Multi-Level Document Formatter Studio — LGAA</title>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/doc-formatter.css">
+    <link rel="icon" href="/logo.svg" type="image/svg+xml">
+</head>
+<body class="formatter-studio-body" data-theme="dark">
+    <!-- Top Studio Navbar -->
+    <header class="studio-header">
+        <div class="studio-header-left">
+            <a href="/" class="studio-back-link" title="Back to Agenda Builder">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                <span>Agenda Builder</span>
+            </a>
+            <div class="studio-branding">
+                <img src="/emblem.png" alt="LGAA Logo" class="studio-logo">
+                <div class="studio-title-group">
+                    <h1>Legal &amp; Hierarchical Document Formatter</h1>
+                    <span class="studio-subtitle">Multi-Level Hanging Indent &amp; Typography Engine</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="studio-header-right">
+            <div class="preset-selector-group">
+                <label for="preset-select">Preset:</label>
+                <select id="preset-select" class="studio-select" title="Choose formatting preset">
+                    <option value="sgb_constitution" selected>SGB Legal Constitution (20mm grid, 10mm indents)</option>
+                    <option value="sgb_minutes">SGB Meeting Minutes Template</option>
+                    <option value="school_policy">School Policy &amp; Regulatory Suite</option>
+                </select>
+                <button type="button" class="btn btn-sm btn-outline" id="btn-save-preset" title="Save current settings as a custom preset">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                    <span>Save Preset</span>
+                </button>
+            </div>
+
+            <button type="button" class="btn-theme-toggle" id="theme-toggle" title="Toggle Light/Dark Theme">
+                <span id="theme-icon">☀️</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Workspace Split Container -->
+    <main class="studio-workspace">
+        <!-- Left Panel: Control Form -->
+        <section class="studio-controls-pane">
+            <!-- Form Tabs Navigation -->
+            <nav class="studio-tabs-nav" role="tablist">
+                <button type="button" class="studio-tab-btn active" data-tab="content">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                    <span>1. Content</span>
+                </button>
+                <button type="button" class="studio-tab-btn" data-tab="grid">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line></svg>
+                    <span>2. Indent Grid</span>
+                </button>
+                <button type="button" class="studio-tab-btn" data-tab="typography">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"></polyline><line x1="9" y1="20" x2="15" y2="20"></line><line x1="12" y1="4" x2="12" y2="20"></line></svg>
+                    <span>3. Typography</span>
+                </button>
+                <button type="button" class="studio-tab-btn" data-tab="headerfooter">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="18" rx="2"></rect><line x1="2" y1="8" x2="22" y2="8"></line><line x1="2" y1="17" x2="22" y2="17"></line></svg>
+                    <span>4. Header &amp; Footer</span>
+                </button>
+                <button type="button" class="studio-tab-btn" data-tab="components">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1"></rect></svg>
+                    <span>5. Components</span>
+                </button>
+                <button type="button" class="studio-tab-btn" data-tab="export">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    <span>6. Export</span>
+                </button>
+            </nav>
+
+            <form id="formatter-form" class="studio-form-content">
+                <!-- TAB 1: CONTENT & RAW INPUT -->
+                <div class="studio-tab-pane active" id="pane-content">
+                    <div class="control-card">
+                        <h3>Document Identification</h3>
+                        <div class="form-row">
+                            <div class="form-group flex-1">
+                                <label for="doc-title-input">Primary Document Title</label>
+                                <input type="text" id="doc-title-input" class="studio-input" value="CONSTITUTION OF THE SCHOOL GOVERNING BODY">
+                            </div>
+                        </div>
+                        <div class="form-row mt-2">
+                            <div class="form-group flex-1">
+                                <label for="doc-subtitle-input">Subtitle / Entity Name</label>
+                                <input type="text" id="doc-subtitle-input" class="studio-input" value="LADY GREY ARTS ACADEMY">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="control-card">
+                        <div class="card-header-flex">
+                            <h3>Raw Text / Document Input</h3>
+                            <div class="card-actions">
+                                <button type="button" class="btn-text-action" id="btn-load-sample">📋 Load Constitution Sample</button>
+                                <button type="button" class="btn-text-action" id="btn-clear-text">Clear</button>
+                            </div>
+                        </div>
+
+                        <!-- Upload File Dropzone -->
+                        <div class="file-drop-area" id="drop-zone">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                            <div class="drop-text">
+                                <strong>Drop raw document file here</strong> or <span class="drop-browse">browse</span>
+                            </div>
+                            <span class="drop-hint">Supports .txt, .md, .docx, .pdf</span>
+                            <input type="file" id="raw-file-input" class="hidden" accept=".txt,.md,.docx,.pdf">
+                        </div>
+
+                        <div class="form-group mt-3">
+                            <div class="label-with-badge">
+                                <label for="raw-text-input">Direct Text Editor</label>
+                                <span class="badge-pill" id="parsed-stats-badge">0 Clauses</span>
+                            </div>
+                            <textarea id="raw-text-input" class="studio-textarea" rows="12" placeholder="Paste or type clauses here (e.g. 1. NAME 
+ 1.1 The name of the governing body is... 
+ 3.1.1 the able governance of...)"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 2: INDENT GRID & HIERARCHY -->
+                <div class="studio-tab-pane" id="pane-grid">
+                    <div class="control-card">
+                        <h3>Spatial Grid &amp; Indent Increment</h3>
+                        <div class="form-row align-center">
+                            <div class="form-group flex-1">
+                                <label for="step-increment-input">Indent Step Increment (mm per level)</label>
+                                <div class="input-with-unit">
+                                    <input type="number" id="step-increment-input" class="studio-input" min="5" max="25" step="1" value="10">
+                                    <span class="unit">mm</span>
+                                </div>
+                            </div>
+                            <div class="form-group flex-1">
+                                <label class="checkbox-label" title="Ensures text wrap line is vertically flush and never wraps underneath section numbers">
+                                    <input type="checkbox" id="strict-wrapping-input" checked>
+                                    <span>Strict Hanging Indent (Flush wrap)</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Level 1 -->
+                    <div class="control-card level-card" data-level="1">
+                        <div class="level-card-header">
+                            <span class="level-badge l1">Level 1</span>
+                            <h4>Major Headings (e.g. 4. MEMBERSHIP)</h4>
+                        </div>
+                        <div class="form-grid-3">
+                            <div class="form-group">
+                                <label for="l1-left-offset">Left Offset (mm)</label>
+                                <input type="number" id="l1-left-offset" class="studio-input" value="0" min="0" max="50">
+                            </div>
+                            <div class="form-group">
+                                <label class="checkbox-label"><input type="checkbox" id="l1-bold" checked> <span>Bold Text</span></label>
+                            </div>
+                            <div class="form-group">
+                                <label class="checkbox-label"><input type="checkbox" id="l1-uppercase" checked> <span>UPPERCASE</span></label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Level 2 -->
+                    <div class="control-card level-card" data-level="2">
+                        <div class="level-card-header">
+                            <span class="level-badge l2">Level 2</span>
+                            <h4>Primary Clauses (e.g. 4.1 [Text])</h4>
+                        </div>
+                        <div class="form-grid-3">
+                            <div class="form-group">
+                                <label for="l2-num-pos">Number Position (mm)</label>
+                                <input type="number" id="l2-num-pos" class="studio-input" value="0" min="0" max="50">
+                            </div>
+                            <div class="form-group">
+                                <label for="l2-text-wrap">Text Start &amp; Wrap (mm)</label>
+                                <input type="number" id="l2-text-wrap" class="studio-input" value="10" min="0" max="50">
+                            </div>
+                            <div class="form-group">
+                                <label for="l2-hanging">Hanging Indent (mm)</label>
+                                <input type="number" id="l2-hanging" class="studio-input" value="10" min="0" max="50">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Level 3 -->
+                    <div class="control-card level-card" data-level="3">
+                        <div class="level-card-header">
+                            <span class="level-badge l3">Level 3</span>
+                            <h4>Sub-clauses (e.g. 3.1.5 [Text])</h4>
+                        </div>
+                        <div class="form-grid-3">
+                            <div class="form-group">
+                                <label for="l3-num-pos">Number Position (mm)</label>
+                                <input type="number" id="l3-num-pos" class="studio-input" value="10" min="0" max="50">
+                            </div>
+                            <div class="form-group">
+                                <label for="l3-text-wrap">Text Start &amp; Wrap (mm)</label>
+                                <input type="number" id="l3-text-wrap" class="studio-input" value="20" min="0" max="50">
+                            </div>
+                            <div class="form-group">
+                                <label for="l3-hanging">Hanging Indent (mm)</label>
+                                <input type="number" id="l3-hanging" class="studio-input" value="10" min="0" max="50">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Level 4 -->
+                    <div class="control-card level-card" data-level="4">
+                        <div class="level-card-header">
+                            <span class="level-badge l4">Level 4</span>
+                            <h4>Items / Sub-sections (e.g. 1.1.1.1 or (a) [Text])</h4>
+                        </div>
+                        <div class="form-grid-3">
+                            <div class="form-group">
+                                <label for="l4-num-pos">Number Position (mm)</label>
+                                <input type="number" id="l4-num-pos" class="studio-input" value="20" min="0" max="60">
+                            </div>
+                            <div class="form-group">
+                                <label for="l4-text-wrap">Text Start &amp; Wrap (mm)</label>
+                                <input type="number" id="l4-text-wrap" class="studio-input" value="30" min="0" max="60">
+                            </div>
+                            <div class="form-group">
+                                <label for="l4-hanging">Hanging Indent (mm)</label>
+                                <input type="number" id="l4-hanging" class="studio-input" value="10" min="0" max="50">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Level 5 -->
+                    <div class="control-card level-card" data-level="5">
+                        <div class="level-card-header">
+                            <span class="level-badge l5">Level 5</span>
+                            <h4>Sub-items (e.g. 1.1.1.1.1 or (i) [Text])</h4>
+                        </div>
+                        <div class="form-grid-3">
+                            <div class="form-group">
+                                <label for="l5-num-pos">Number Position (mm)</label>
+                                <input type="number" id="l5-num-pos" class="studio-input" value="30" min="0" max="70">
+                            </div>
+                            <div class="form-group">
+                                <label for="l5-text-wrap">Text Start &amp; Wrap (mm)</label>
+                                <input type="number" id="l5-text-wrap" class="studio-input" value="40" min="0" max="70">
+                            </div>
+                            <div class="form-group">
+                                <label for="l5-hanging">Hanging Indent (mm)</label>
+                                <input type="number" id="l5-hanging" class="studio-input" value="10" min="0" max="50">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 3: TYPOGRAPHY & PAGE SETUP -->
+                <div class="studio-tab-pane" id="pane-typography">
+                    <div class="control-card">
+                        <h3>Typography &amp; Fonts</h3>
+                        <div class="form-grid-2">
+                            <div class="form-group">
+                                <label for="font-family-select">Font Family</label>
+                                <select id="font-family-select" class="studio-select">
+                                    <option value="Arial" selected>Arial (Clean &amp; Legal Standard)</option>
+                                    <option value="Calibri">Calibri</option>
+                                    <option value="Times New Roman">Times New Roman</option>
+                                    <option value="Segoe UI">Segoe UI</option>
+                                    <option value="Aptos">Aptos (Modern MS Office)</option>
+                                    <option value="Georgia">Georgia</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="line-spacing-select">Line Spacing</label>
+                                <select id="line-spacing-select" class="studio-select">
+                                    <option value="1.0">Single (1.0)</option>
+                                    <option value="1.15" selected>Tight Legal (1.15)</option>
+                                    <option value="1.25">Comfortable (1.25)</option>
+                                    <option value="1.5">1.5 Lines</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-grid-4 mt-2">
+                            <div class="form-group">
+                                <label for="title-size-input">Doc Title (pt)</label>
+                                <input type="number" id="title-size-input" class="studio-input" value="14" min="10" max="24">
+                            </div>
+                            <div class="form-group">
+                                <label for="subtitle-size-input">Subtitle (pt)</label>
+                                <input type="number" id="subtitle-size-input" class="studio-input" value="12" min="9" max="20">
+                            </div>
+                            <div class="form-group">
+                                <label for="h1-size-input">Headings (pt)</label>
+                                <input type="number" id="h1-size-input" class="studio-input" value="11" min="9" max="18">
+                            </div>
+                            <div class="form-group">
+                                <label for="body-size-input">Body Text (pt)</label>
+                                <input type="number" id="body-size-input" class="studio-input" value="10" min="8" max="14">
+                            </div>
+                        </div>
+
+                        <div class="form-grid-3 mt-2">
+                            <div class="form-group">
+                                <label for="primary-color-input">Primary / Navy Accent</label>
+                                <div class="color-picker-row">
+                                    <input type="color" id="primary-color-picker" value="#0C2340" class="color-swatch">
+                                    <input type="text" id="primary-color-input" class="studio-input" value="#0C2340">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="secondary-color-input">Secondary / Burgundy</label>
+                                <div class="color-picker-row">
+                                    <input type="color" id="secondary-color-picker" value="#A6192E" class="color-swatch">
+                                    <input type="text" id="secondary-color-input" class="studio-input" value="#A6192E">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="text-color-input">Body Text Color</label>
+                                <div class="color-picker-row">
+                                    <input type="color" id="text-color-picker" value="#1A1A1A" class="color-swatch">
+                                    <input type="text" id="text-color-input" class="studio-input" value="#1A1A1A">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="control-card">
+                        <h3>Page Setup &amp; Margins</h3>
+                        <div class="form-grid-2">
+                            <div class="form-group">
+                                <label for="paper-size-select">Paper Size</label>
+                                <select id="paper-size-select" class="studio-select">
+                                    <option value="A4" selected>A4 (210 × 297 mm)</option>
+                                    <option value="Letter">Letter (8.5 × 11 in)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="border-style-select">Page Border</label>
+                                <select id="border-style-select" class="studio-select">
+                                    <option value="none" selected>None</option>
+                                    <option value="single">Single Line Box</option>
+                                    <option value="double">Double Line</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-grid-4 mt-2">
+                            <div class="form-group">
+                                <label for="margin-left-input">Left Margin (mm)</label>
+                                <input type="number" id="margin-left-input" class="studio-input" value="20" min="10" max="40">
+                            </div>
+                            <div class="form-group">
+                                <label for="margin-right-input">Right Margin (mm)</label>
+                                <input type="number" id="margin-right-input" class="studio-input" value="20" min="10" max="40">
+                            </div>
+                            <div class="form-group">
+                                <label for="margin-top-input">Top Margin (mm)</label>
+                                <input type="number" id="margin-top-input" class="studio-input" value="18" min="10" max="40">
+                            </div>
+                            <div class="form-group">
+                                <label for="margin-bottom-input">Bottom Margin (mm)</label>
+                                <input type="number" id="margin-bottom-input" class="studio-input" value="18" min="10" max="40">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 4: HEADER & FOOTER -->
+                <div class="studio-tab-pane" id="pane-headerfooter">
+                    <div class="control-card">
+                        <h3>Header Customization</h3>
+                        <div class="form-grid-2">
+                            <div class="form-group">
+                                <label for="header-layout-select">Header Layout</label>
+                                <select id="header-layout-select" class="studio-select">
+                                    <option value="lgaa_official" selected>Official LGAA School Letterhead</option>
+                                    <option value="standard">Standard Legal Header</option>
+                                    <option value="none">No Header</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="checkbox-label mt-4"><input type="checkbox" id="header-color-bar" checked> <span>Include Top Two-Tone Colored Stripe</span></label>
+                            </div>
+                        </div>
+
+                        <div class="form-group mt-2">
+                            <label for="header-title-input">Header Institution Name</label>
+                            <input type="text" id="header-title-input" class="studio-input" value="LADY GREY ARTS ACADEMY">
+                        </div>
+
+                        <div class="form-group mt-2">
+                            <label for="header-subtitle-input">Header Subtitle Line</label>
+                            <input type="text" id="header-subtitle-input" class="studio-input" value="KUNSTE-AKADEMIE | Where Learning is an Art">
+                        </div>
+
+                        <div class="form-group mt-2">
+                            <label for="header-contact-input">Address &amp; Contact Line</label>
+                            <input type="text" id="header-contact-input" class="studio-input" value="18 Brummer Street, Lady Grey, 9755 | Tel: 051 603 0046 | admin@lgaa.co.za">
+                        </div>
+
+                        <div class="form-group mt-2">
+                            <label for="header-emis-input">EMIS, District &amp; Circuit Line</label>
+                            <input type="text" id="header-emis-input" class="studio-input" value="EMIS: 200600985 | District: Joe Gqabi | Circuit: Ekhephini | CMC: Maletswai">
+                        </div>
+
+                        <div class="form-grid-2 mt-2">
+                            <div class="form-group">
+                                <label for="header-badge-text">Right Box Primary Text</label>
+                                <input type="text" id="header-badge-text" class="studio-input" value="OFFICIAL">
+                            </div>
+                            <div class="form-group">
+                                <label for="header-badge-subtext">Right Box Subtext</label>
+                                <input type="text" id="header-badge-subtext" class="studio-input" value="CORRESPONDENCE">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="control-card">
+                        <h3>Footer &amp; Page Numbers</h3>
+                        <div class="form-grid-3">
+                            <div class="form-group">
+                                <label for="footer-pagenum-format">Page Number Format</label>
+                                <select id="footer-pagenum-format" class="studio-select">
+                                    <option value="page_x_of_y" selected>Page X of Y</option>
+                                    <option value="page_x">Page X</option>
+                                    <option value="dash_x_dash">- X -</option>
+                                    <option value="x_slash_y">X / Y</option>
+                                    <option value="none">No Page Numbers</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="footer-alignment">Alignment</label>
+                                <select id="footer-alignment" class="studio-select">
+                                    <option value="center" selected>Centered</option>
+                                    <option value="right">Right Aligned</option>
+                                    <option value="left">Left Aligned</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="checkbox-label mt-4"><input type="checkbox" id="footer-top-divider" checked> <span>Top Divider Line</span></label>
+                            </div>
+                        </div>
+
+                        <div class="form-group mt-2">
+                            <label for="footer-custom-text">Custom Footer Text (Optional note/disclaimer)</label>
+                            <input type="text" id="footer-custom-text" class="studio-input" placeholder="e.g. Confidential • School Governing Body Regulatory Document">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 5: TABLES & SIGNATURES -->
+                <div class="studio-tab-pane" id="pane-components">
+                    <div class="control-card">
+                        <div class="card-header-flex">
+                            <h3>Regulatory Alignment / Metadata Table</h3>
+                            <label class="checkbox-label"><input type="checkbox" id="enable-metadata-table" checked> <span>Include Table</span></label>
+                        </div>
+                        <div id="metadata-table-fields" class="mt-2">
+                            <div class="form-grid-2">
+                                <div class="form-group">
+                                    <label for="meta-col1-title">Column 1 Header</label>
+                                    <input type="text" id="meta-col1-title" class="studio-input" value="Regulatory Alignment & Authority">
+                                </div>
+                                <div class="form-group">
+                                    <label for="meta-col2-title">Column 2 Header</label>
+                                    <input type="text" id="meta-col2-title" class="studio-input" value="Details & Specifications">
+                                </div>
+                            </div>
+                            <div class="meta-rows-list mt-2" id="meta-rows-container">
+                                <!-- Dynamic rows populated via JS -->
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline mt-2" id="btn-add-meta-row">+ Add Metadata Row</button>
+                        </div>
+                    </div>
+
+                    <div class="control-card">
+                        <div class="card-header-flex">
+                            <h3>Legal Notice Callout Box</h3>
+                            <label class="checkbox-label"><input type="checkbox" id="enable-legal-notice" checked> <span>Include Box</span></label>
+                        </div>
+                        <div id="legal-notice-fields" class="mt-2">
+                            <div class="form-group">
+                                <label for="legal-notice-prefix">Notice Label / Prefix</label>
+                                <input type="text" id="legal-notice-prefix" class="studio-input" value="LEGAL NOTICE: ">
+                            </div>
+                            <div class="form-group mt-2">
+                                <label for="legal-notice-text">Notice Body</label>
+                                <textarea id="legal-notice-text" class="studio-textarea" rows="3">This constitution is a legally binding regulatory document drafted and adopted by the School Governing Body in terms of Section 22 of the South African Schools Act. All members of the governing body, learners, parents, educators, and staff are subject to the provisions herein.</textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="control-card">
+                        <div class="card-header-flex">
+                            <h3>Adoption &amp; Sign-off Resolution Block</h3>
+                            <label class="checkbox-label"><input type="checkbox" id="enable-signatures" checked> <span>Include Signatures</span></label>
+                        </div>
+                        <div id="signatures-fields" class="mt-2">
+                            <div class="form-group">
+                                <label for="signatures-title">Resolution Title</label>
+                                <input type="text" id="signatures-title" class="studio-input" value="ADOPTION AND SIGN-OFF RESOLUTION">
+                            </div>
+                            <div class="form-group mt-2">
+                                <label for="signatures-intro">Introductory Statement</label>
+                                <textarea id="signatures-intro" class="studio-textarea" rows="2">This Constitution of the School Governing Body was formally accepted, approved, and signed at a meeting of the Governing Body of the Lady Grey Arts Academy.</textarea>
+                            </div>
+                            <div class="signers-list mt-2" id="signers-container">
+                                <!-- Dynamic signers populated via JS -->
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline mt-2" id="btn-add-signer">+ Add Signatory Column</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 6: EXPORT & OUTPUT TARGET -->
+                <div class="studio-tab-pane" id="pane-export">
+                    <div class="control-card">
+                        <h3>Output Format &amp; Generation</h3>
+                        <div class="form-group">
+                            <label>Select Output File Format</label>
+                            <div class="radio-cards-group">
+                                <label class="radio-card">
+                                    <input type="radio" name="output-format" value="docx" checked>
+                                    <div class="radio-card-body">
+                                        <strong>MS Word (.docx)</strong>
+                                        <span>Native OpenXML document with exact spatial indents, tabs, and styles</span>
+                                    </div>
+                                </label>
+                                <label class="radio-card">
+                                    <input type="radio" name="output-format" value="pdf">
+                                    <div class="radio-card-body">
+                                        <strong>PDF Document (.pdf)</strong>
+                                        <span>Print-ready compiled legal PDF publication</span>
+                                    </div>
+                                </label>
+                                <label class="radio-card">
+                                    <input type="radio" name="output-format" value="both">
+                                    <div class="radio-card-body">
+                                        <strong>Both (.docx + .pdf)</strong>
+                                        <span>Download both Word document and PDF package</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="control-card">
+                        <h3>Save Destination</h3>
+                        <div class="form-group">
+                            <label>Where should the formatted document be saved?</label>
+                            <div class="radio-cards-group">
+                                <label class="radio-card">
+                                    <input type="radio" name="save-target" value="download" checked>
+                                    <div class="radio-card-body">
+                                        <strong>Direct Download</strong>
+                                        <span>Download directly to your computer</span>
+                                    </div>
+                                </label>
+                                <label class="radio-card">
+                                    <input type="radio" name="save-target" value="vault">
+                                    <div class="radio-card-body">
+                                        <strong>SGB Shared Files &amp; Vault</strong>
+                                        <span>Publish automatically to the school's Document Vault</span>
+                                    </div>
+                                </label>
+                                <label class="radio-card">
+                                    <input type="radio" name="save-target" value="server_path">
+                                    <div class="radio-card-body">
+                                        <strong>Custom Server Location</strong>
+                                        <span>Save to a specific directory path on the server</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div id="vault-options" class="mt-3 hidden">
+                            <div class="form-grid-2">
+                                <div class="form-group">
+                                    <label for="vault-category-select">Vault Category</label>
+                                    <select id="vault-category-select" class="studio-select">
+                                        <option value="Governance & Policy" selected>Governance &amp; Policy</option>
+                                        <option value="Finances">Finances</option>
+                                        <option value="General">General</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="vault-tag-select">Document Tag</label>
+                                    <select id="vault-tag-select" class="studio-select">
+                                        <option value="Policies" selected>Policies</option>
+                                        <option value="Meeting Documents">Meeting Documents</option>
+                                        <option value="Reports">Reports</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="server-path-options" class="mt-3 hidden">
+                            <div class="form-group">
+                                <label for="custom-server-path">Server Directory Path</label>
+                                <input type="text" id="custom-server-path" class="studio-input" value="c:\Apps\AgendaBuilder\uploads">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="export-action-box">
+                        <button type="button" class="btn btn-primary btn-lg btn-block" id="btn-generate-doc">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+                            <span>Generate Formatted Document</span>
+                        </button>
+                        <div id="generation-status" class="generation-status-box hidden"></div>
+                    </div>
+                </div>
+            </form>
+        </section>
+
+        <!-- Right Panel: Live Spatial Ruler & Rendered Document Preview -->
+        <section class="studio-preview-pane">
+            <div class="preview-toolbar">
+                <div class="preview-toolbar-left">
+                    <span class="preview-label">Live Spatial Preview (A4 Scale)</span>
+                    <label class="grid-toggle-label">
+                        <input type="checkbox" id="toggle-grid-overlay" checked>
+                        <span>Show Spatial Grid Lines</span>
+                    </label>
+                </div>
+                <div class="preview-toolbar-right">
+                    <button type="button" class="btn btn-sm btn-outline" id="btn-quick-docx" title="Download Word DOCX">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        <span>DOCX</span>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline" id="btn-quick-pdf" title="Download PDF">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                        <span>PDF</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Page Canvas Wrapper -->
+            <div class="preview-canvas-scroller">
+                <div class="a4-page-canvas" id="preview-page">
+                    <!-- Spatial Grid Guidelines (in mm overlay) -->
+                    <div class="spatial-grid-overlay" id="grid-overlay">
+                        <div class="guide-line guide-margin-left" style="left: 20mm;" title="Left Margin: 20mm"><span class="guide-tag">Margin (20mm)</span></div>
+                        <div class="guide-line guide-level-1" style="left: 20mm;" title="Level 1 Line: 0mm body offset"><span class="guide-tag">L1 (0mm)</span></div>
+                        <div class="guide-line guide-level-2" style="left: 30mm;" title="Level 2 Line: 10mm indent"><span class="guide-tag">L2 (10mm)</span></div>
+                        <div class="guide-line guide-level-3" style="left: 40mm;" title="Level 3 Line: 20mm indent"><span class="guide-tag">L3 (20mm)</span></div>
+                        <div class="guide-line guide-level-4" style="left: 50mm;" title="Level 4 Line: 30mm indent"><span class="guide-tag">L4 (30mm)</span></div>
+                        <div class="guide-line guide-level-5" style="left: 60mm;" title="Level 5 Line: 40mm indent"><span class="guide-tag">L5 (40mm)</span></div>
+                        <div class="guide-line guide-margin-right" style="right: 20mm;" title="Right Margin: 20mm"><span class="guide-tag">Right (20mm)</span></div>
+                    </div>
+
+                    <!-- Rendered Document Preview Content -->
+                    <div class="doc-preview-content" id="doc-preview-content">
+                        <!-- Populated dynamically via JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="toast" class="toast hidden"></div>
+
+    <script src="/doc-formatter.js"></script>
+</body>
+</html>

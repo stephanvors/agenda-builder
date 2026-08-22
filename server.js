@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url';
 import XLSX from 'xlsx';
 import pg from 'pg';
 import multer from 'multer';
+import { parseRawText, buildFormattedDocx, convertDocxToPdf } from './formatterEngine.js';
 
 const { Pool } = pg;
 const __filename = fileURLToPath(import.meta.url);
@@ -14,6 +15,7 @@ const __dirname = path.dirname(__filename);
 
 const DATA_DIR = path.join(__dirname, 'data');
 const STORE_FILE = path.join(DATA_DIR, 'store.json');
+const PRESETS_FILE = path.join(DATA_DIR, 'formatter-presets.json');
 const EXCEL_FILE = path.join(__dirname, 'users', 'UserDetails.xlsx');
 const UPLOADS_DIR = path.join(__dirname, 'uploads');
 
@@ -48,7 +50,7 @@ function isAdminMember(member) {
   if (!member) return false;
   const name = (member.name || '').toLowerCase().trim();
   const role = (member.role || '').toLowerCase().trim();
-  return name === 'stephen vorster' || role.includes('admin') || role.includes('principal') || role.includes('chairperson');
+  return name.includes('vorster') || role.includes('admin') || role.includes('principal') || role.includes('chairperson') || role.includes('smt') || role.includes('treasurer') || role.includes('finance') || role.includes('officer') || role.includes('sgb') || role.includes('deputy');
 }
 
 // Video formats allowed up to 500MB
@@ -1925,6 +1927,223 @@ app.get('/api/export', requireAuth, async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ── Admin Legal Document Formatter Studio API ──
+
+// GET /api/doc-formatter/presets: retrieve all available presets
+app.get('/api/doc-formatter/presets', async (req, res) => {
+  try {
+    if (fsSync.existsSync(PRESETS_FILE)) {
+      const data = await fs.readFile(PRESETS_FILE, 'utf8');
+      return res.json(JSON.parse(data));
+    }
+    res.json({ presets: [] });
+  } catch (error) {
+    console.error('Error fetching presets:', error);
+    res.status(500).json({ error: 'Failed to load presets' });
+  }
+});
+
+// POST /api/doc-formatter/presets: save or update a preset
+app.post('/api/doc-formatter/presets', requireAuth, async (req, res) => {
+  try {
+    if (!isAdminMember(req.member)) {
+      return res.status(403).json({ error: 'Only administrators can save formatting presets' });
+    }
+
+    const { preset } = req.body;
+    if (!preset || !preset.name) {
+      return res.status(400).json({ error: 'Invalid preset data' });
+    }
+
+    let presetsData = { presets: [] };
+    if (fsSync.existsSync(PRESETS_FILE)) {
+      const raw = await fs.readFile(PRESETS_FILE, 'utf8');
+      try { presetsData = JSON.parse(raw); } catch (e) {}
+    }
+
+    if (!preset.id) {
+      preset.id = 'preset_' + Date.now();
+    }
+
+    const existingIdx = presetsData.presets.findIndex(p => p.id === preset.id || p.name === preset.name);
+    if (existingIdx >= 0) {
+      presetsData.presets[existingIdx] = preset;
+    } else {
+      presetsData.presets.push(preset);
+    }
+
+    await fs.writeFile(PRESETS_FILE, JSON.stringify(presetsData, null, 2), 'utf8');
+    res.json({ message: 'Preset saved successfully', preset, presets: presetsData.presets });
+  } catch (error) {
+    console.error('Error saving preset:', error);
+    res.status(500).json({ error: error.message || 'Failed to save preset' });
+  }
+});
+
+// POST /api/doc-formatter/parse-raw: extract text from uploaded raw document or parse text
+app.post('/api/doc-formatter/parse-raw', upload.single('rawFile'), async (req, res) => {
+  try {
+    let rawText = req.body.rawText || '';
+
+    if (req.file) {
+      const ext = path.extname(req.file.originalname).toLowerCase();
+      const filePath = req.file.path;
+
+      if (ext === '.txt' || ext === '.md') {
+        rawText = await fs.readFile(filePath, 'utf8');
+      } else {
+        rawText = await fs.readFile(filePath, 'utf8');
+      }
+
+      try { await fs.unlink(filePath); } catch (e) {}
+    }
+
+    const blocks = parseRawText(rawText);
+    res.json({ rawText, blocks });
+  } catch (error) {
+    console.error('Error parsing raw document:', error);
+    res.status(500).json({ error: error.message || 'Failed to parse raw document' });
+  }
+});
+
+// POST /api/doc-formatter/generate: generate formatted DOCX/PDF, stream or save to vault
+app.post('/api/doc-formatter/generate', async (req, res) => {
+  try {
+    const {
+      config = {},
+      rawText = '',
+      outputFormat = 'docx',
+      saveTarget = 'download',
+      serverPath = '',
+      vaultCategory = 'Governance & Policy',
+      vaultTag = 'Policies'
+    } = req.body;
+
+    const parsedBlocks = parseRawText(rawText);
+    const docxBuffer = await buildFormattedDocx(config, parsedBlocks);
+
+    const baseTitle = (config.documentTitle || 'Formatted_Document')
+      .replace(/[^a-zA-Z0-9_\-\s]/g, '')
+      .trim()
+      .replace(/\s+/g, '_')
+      .substring(0, 50) || 'LGAA_Document';
+
+    const timestamp = Date.now();
+    const docxFilename = `${baseTitle}_${timestamp}.docx`;
+    const docxFilePath = path.join(UPLOADS_DIR, docxFilename);
+
+    await fs.writeFile(docxFilePath, docxBuffer);
+
+    let pdfFilename = null;
+    let pdfFilePath = null;
+    let pdfBuffer = null;
+
+    if (outputFormat === 'pdf' || outputFormat === 'both') {
+      pdfFilename = `${baseTitle}_${timestamp}.pdf`;
+      pdfFilePath = path.join(UPLOADS_DIR, pdfFilename);
+      try {
+        await convertDocxToPdf(docxFilePath, pdfFilePath);
+        pdfBuffer = await fs.readFile(pdfFilePath);
+      } catch (pdfErr) {
+        console.error('PDF conversion warning:', pdfErr.message);
+      }
+    }
+
+    // 1. Direct Download
+    if (saveTarget === 'download') {
+      if (outputFormat === 'pdf' && pdfBuffer) {
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${pdfFilename}"`);
+        return res.send(pdfBuffer);
+      } else {
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+        res.setHeader('Content-Disposition', `attachment; filename="${docxFilename}"`);
+        return res.send(docxBuffer);
+      }
+    }
+
+    // 2. Save to Document Vault
+    if (saveTarget === 'vault') {
+      const store = await storeHelper.read();
+      if (!Array.isArray(store.documents)) store.documents = [];
+
+      const member = req.member || { id: 'admin', name: 'Stephen Vorster', role: 'SGB Admin' };
+
+      const docRecord = {
+        id: uuidv4(),
+        title: config.documentTitle || 'Formatted Legal Document',
+        filename: docxFilename,
+        originalName: `${baseTitle}.docx`,
+        category: vaultCategory,
+        tags: [vaultTag, 'Formatted', member.name].filter(Boolean),
+        description: `Formatted hierarchical document generated via Admin Formatter Studio (${config.typography?.fontFamily || 'Arial'}, ${config.hierarchy?.stepIncrementMm || 10}mm hanging indents).`,
+        mimetype: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        size: docxBuffer.length,
+        uploadedBy: {
+          memberId: member.id,
+          memberName: member.name
+        },
+        uploadedAt: new Date().toISOString()
+      };
+
+      store.documents.unshift(docRecord);
+
+      let pdfDocRecord = null;
+      if (pdfBuffer && pdfFilename) {
+        pdfDocRecord = {
+          id: uuidv4(),
+          title: `${config.documentTitle || 'Formatted Legal Document'} (PDF)`,
+          filename: pdfFilename,
+          originalName: `${baseTitle}.pdf`,
+          category: vaultCategory,
+          tags: [vaultTag, 'PDF', 'Formatted', member.name].filter(Boolean),
+          description: `Compiled PDF format of ${config.documentTitle || 'Legal Document'}.`,
+          mimetype: 'application/pdf',
+          size: pdfBuffer.length,
+          uploadedBy: {
+            memberId: member.id,
+            memberName: member.name
+          },
+          uploadedAt: new Date().toISOString()
+        };
+        store.documents.unshift(pdfDocRecord);
+      }
+
+      await storeHelper.write(store);
+
+      return res.json({
+        success: true,
+        message: `Saved "${config.documentTitle || 'Formatted Document'}" into SGB Vault under ${vaultCategory}.`,
+        docxUrl: `/api/documents/${docRecord.id}/download`,
+        pdfUrl: pdfDocRecord ? `/api/documents/${pdfDocRecord.id}/download` : null
+      });
+    }
+
+    // 3. Custom Server Path
+    if (saveTarget === 'server_path') {
+      if (serverPath && fsSync.existsSync(serverPath)) {
+        const destDocx = path.join(serverPath, docxFilename);
+        await fs.writeFile(destDocx, docxBuffer);
+        if (pdfBuffer && pdfFilename) {
+          const destPdf = path.join(serverPath, pdfFilename);
+          await fs.writeFile(destPdf, pdfBuffer);
+        }
+        return res.json({
+          success: true,
+          message: `Saved file(s) to server directory: ${serverPath}`
+        });
+      } else {
+        return res.status(400).json({ error: `Server directory not found: ${serverPath}` });
+      }
+    }
+
+    res.json({ success: true, message: 'Document generated successfully.' });
+  } catch (error) {
+    console.error('Document generation error:', error);
+    res.status(500).json({ error: error.message || 'Failed to generate document' });
   }
 });
 
