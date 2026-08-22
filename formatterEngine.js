@@ -891,33 +891,55 @@ export async function buildFormattedDocx(config, parsedBlocks) {
   return await Packer.toBuffer(doc);
 }
 
-// ── Word COM PDF Conversion Helper ──
+// ── Word COM PDF Conversion Helper (with process isolation & cleanup) ──
 export async function convertDocxToPdf(docxPath, pdfPath) {
   const psScript = `
 $docPath = "${docxPath.replace(/\\/g, '\\\\')}"
 $pdfPath = "${pdfPath.replace(/\\/g, '\\\\')}"
-$word = New-Object -ComObject Word.Application
-$word.Visible = $false
-$word.DisplayAlerts = 0
+$word = $null
+$doc = $null
 try {
+    $word = New-Object -ComObject Word.Application
+    $word.Visible = $false
+    $word.DisplayAlerts = 0
     $doc = $word.Documents.Open($docPath, $false, $true)
-    $doc.SaveAs([ref]$pdfPath, [ref]17) # wdFormatPDF
-    $doc.Close([ref]0)
+    $doc.SaveAs([ref]$pdfPath, [ref]17) # wdFormatPDF = 17
+    $doc.Close([ref]0) # wdDoNotSaveChanges = 0
+    $doc = $null
+    Write-Output "CONVERT_OK"
+} catch {
+    Write-Error $_.Exception.Message
+    exit 1
 } finally {
-    $word.Quit()
-    [System.Runtime.InteropServices.Marshal]::ReleaseComObject($word) | Out-Null
+    if ($doc -ne $null) {
+        try { $doc.Close([ref]0) } catch {}
+        try { [System.Runtime.InteropServices.Marshal]::ReleaseComObject($doc) | Out-Null } catch {}
+    }
+    if ($word -ne $null) {
+        try { $word.Quit([ref]0) } catch {}
+        try { [System.Runtime.InteropServices.Marshal]::ReleaseComObject($word) | Out-Null } catch {}
+    }
     [System.GC]::Collect()
+    [System.GC]::WaitForPendingFinalizers()
 }
 `;
 
-  const tempPs1 = path.join(__dirname, 'uploads', `convert_${Date.now()}.ps1`);
+  const tempPs1 = path.join(__dirname, 'uploads', `convert_${Date.now()}_${Math.random().toString(36).substring(2, 6)}.ps1`);
   await fs.writeFile(tempPs1, psScript, 'utf8');
 
   try {
-    const { stdout, stderr } = await execPromise(`powershell -ExecutionPolicy Bypass -File "${tempPs1}"`);
-    return { success: true, pdfPath };
+    const { stdout, stderr } = await execPromise(`powershell -ExecutionPolicy Bypass -File "${tempPs1}"`, {
+      timeout: 30000 // 30s timeout
+    });
+    if (fsSync.existsSync(pdfPath)) {
+      return { success: true, pdfPath };
+    }
+    throw new Error(stderr || 'PDF file was not produced by Word engine');
   } catch (err) {
     console.error('Word COM PDF Conversion error:', err);
+    try {
+      await execPromise('powershell -Command "Stop-Process -Name WINWORD -Force -ErrorAction SilentlyContinue"');
+    } catch (e) {}
     throw err;
   } finally {
     try { await fs.unlink(tempPs1); } catch (e) {}
