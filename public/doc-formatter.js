@@ -102,6 +102,9 @@ const SAMPLE_CONSTITUTION_TEXT = `1. NAME
 
 const state = {
     presets: [],
+    savedDocuments: [],
+    currentDocId: null,
+    headerImageBase64: null,
     currentConfig: null,
     parsedBlocks: [],
     token: ''
@@ -292,6 +295,8 @@ function applyPresetConfig(preset) {
 
     // Header & Footer
     const hdr = preset.header || {};
+    setVal('header-frequency-select', hdr.frequency || 'first_page_only');
+    setVal('header-source-mode-select', hdr.sourceMode || (hdr.layout === 'none' ? 'none' : 'structured'));
     setVal('header-layout-select', hdr.layout || 'lgaa_official');
     setCheck('header-color-bar', hdr.showColorBar !== false);
     setVal('header-title-input', hdr.title !== undefined ? hdr.title : 'LADY GREY ARTS ACADEMY');
@@ -300,6 +305,21 @@ function applyPresetConfig(preset) {
     setVal('header-emis-input', hdr.emis !== undefined ? hdr.emis : 'EMIS: 200600985 | District: Joe Gqabi | Circuit: Ekhephini | CMC: Maletswai');
     setVal('header-badge-text', hdr.badgeText !== undefined ? hdr.badgeText : 'OFFICIAL');
     setVal('header-badge-subtext', hdr.badgeSubtext !== undefined ? hdr.badgeSubtext : 'CORRESPONDENCE');
+    setVal('header-image-height', hdr.imageHeightMm || 32);
+    setVal('header-image-fit', hdr.imageFit || 'contain');
+
+    if (hdr.imageBanner) {
+        state.headerImageBase64 = hdr.imageBanner;
+        const prevImg = document.getElementById('header-image-preview-img');
+        const prevBox = document.getElementById('header-image-preview-box');
+        if (prevImg) prevImg.src = hdr.imageBanner;
+        if (prevBox) prevBox.classList.remove('hidden');
+    } else {
+        state.headerImageBase64 = null;
+        const prevBox = document.getElementById('header-image-preview-box');
+        if (prevBox) prevBox.classList.add('hidden');
+    }
+    syncHeaderSourceMode();
 
     const ftr = preset.footer || {};
     setVal('footer-pagenum-format', ftr.pageNumberFormat || 'page_x_of_y');
@@ -453,6 +473,76 @@ function initEventListeners() {
         document.getElementById('raw-text-input').value = '';
         parseTextAndUpdatePreview();
         saveDraftToLocalStorage();
+    });
+
+    // Document Project Actions (Save / Open / New)
+    document.getElementById('btn-save-doc')?.addEventListener('click', saveCurrentDocumentProject);
+    document.getElementById('btn-open-doc-modal')?.addEventListener('click', () => {
+        document.getElementById('doc-projects-modal')?.classList.remove('hidden');
+        loadSavedDocumentsList();
+    });
+    document.getElementById('btn-new-doc')?.addEventListener('click', newDocumentProject);
+    document.getElementById('btn-modal-new-doc')?.addEventListener('click', newDocumentProject);
+    document.getElementById('btn-close-doc-modal')?.addEventListener('click', () => {
+        document.getElementById('doc-projects-modal')?.classList.add('hidden');
+    });
+    document.getElementById('btn-close-doc-modal-btn')?.addEventListener('click', () => {
+        document.getElementById('doc-projects-modal')?.classList.add('hidden');
+    });
+    document.getElementById('doc-projects-search')?.addEventListener('input', (e) => {
+        renderSavedDocumentsList(e.target.value);
+    });
+
+    // Header Frequency & Source Mode Listeners
+    document.getElementById('header-frequency-select')?.addEventListener('change', () => {
+        parseTextAndUpdatePreview();
+        saveDraftToLocalStorage();
+    });
+    document.getElementById('header-source-mode-select')?.addEventListener('change', () => {
+        syncHeaderSourceMode();
+        parseTextAndUpdatePreview();
+        saveDraftToLocalStorage();
+    });
+    document.getElementById('header-image-height')?.addEventListener('input', () => {
+        parseTextAndUpdatePreview();
+        saveDraftToLocalStorage();
+    });
+    document.getElementById('header-image-fit')?.addEventListener('change', () => {
+        parseTextAndUpdatePreview();
+        saveDraftToLocalStorage();
+    });
+
+    // Custom Header Image Banner Dropzone
+    const headerDropzone = document.getElementById('header-image-dropzone');
+    const headerFileInput = document.getElementById('header-image-file');
+    if (headerDropzone && headerFileInput) {
+        headerDropzone.addEventListener('click', () => headerFileInput.click());
+        headerDropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            headerDropzone.classList.add('drag-over');
+        });
+        headerDropzone.addEventListener('dragleave', () => headerDropzone.classList.remove('drag-over'));
+        headerDropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            headerDropzone.classList.remove('drag-over');
+            if (e.dataTransfer.files?.length) {
+                loadHeaderImage(e.dataTransfer.files[0]);
+            }
+        });
+        headerFileInput.addEventListener('change', (e) => {
+            if (e.target.files?.length) {
+                loadHeaderImage(e.target.files[0]);
+            }
+        });
+    }
+
+    document.getElementById('btn-remove-header-image')?.addEventListener('click', () => {
+        state.headerImageBase64 = null;
+        document.getElementById('header-image-preview-box')?.classList.add('hidden');
+        if (headerFileInput) headerFileInput.value = '';
+        parseTextAndUpdatePreview();
+        saveDraftToLocalStorage();
+        showToast('Header image banner removed.');
     });
 
     // Spell & Grammar Checker Actions
@@ -766,41 +856,61 @@ function renderDocumentPreview() {
 
     let html = '';
 
-    // 1. Header
-    const showHeader = document.getElementById('header-layout-select')?.value !== 'none';
-    if (showHeader) {
-        const showColorBar = document.getElementById('header-color-bar')?.checked;
-        if (showColorBar) {
+    // 1. Header Rendering (Structured vs Image Banner vs None)
+    const headerMode = document.getElementById('header-source-mode-select')?.value || 'structured';
+    const headerFreq = document.getElementById('header-frequency-select')?.value || 'first_page_only';
+
+    if (headerMode !== 'none') {
+        const freqPill = headerFreq === 'first_page_only' 
+            ? `<div class="prev-header-frequency-indicator" title="This header will appear exclusively on Page 1 in Word and PDF export"><span>📄</span> First Page Header Only</div>` 
+            : `<div class="prev-header-frequency-indicator" title="This header will repeat on all pages in Word and PDF export"><span>📑</span> All Pages Running Header</div>`;
+
+        if (headerMode === 'image_banner' && state.headerImageBase64) {
+            const imgHeightMm = Number(document.getElementById('header-image-height')?.value) || 32;
+            const imgFit = document.getElementById('header-image-fit')?.value || 'contain';
             html += `
-                <div class="prev-header-bar">
-                    <div class="stripe-1" style="background: ${secondaryColor};"></div>
-                    <div class="stripe-2" style="background: ${primaryColor};"></div>
+                ${freqPill}
+                <div class="prev-header-image-banner">
+                    <img src="${escapeHTML(state.headerImageBase64)}" style="max-height: ${imgHeightMm}mm; object-fit: ${imgFit};" alt="Header Banner" />
+                </div>
+            `;
+        } else if (headerMode === 'structured') {
+            const showColorBar = document.getElementById('header-color-bar')?.checked;
+            let barHtml = '';
+            if (showColorBar) {
+                barHtml = `
+                    <div class="prev-header-bar">
+                        <div class="stripe-1" style="background: ${secondaryColor};"></div>
+                        <div class="stripe-2" style="background: ${primaryColor};"></div>
+                    </div>
+                `;
+            }
+
+            const hTitle = document.getElementById('header-title-input')?.value || '';
+            const hSub = document.getElementById('header-subtitle-input')?.value || '';
+            const hContact = document.getElementById('header-contact-input')?.value || '';
+            const hEmis = document.getElementById('header-emis-input')?.value || '';
+            const badgeText = document.getElementById('header-badge-text')?.value || 'OFFICIAL';
+            const badgeSub = document.getElementById('header-badge-subtext')?.value || 'CORRESPONDENCE';
+
+            html += `
+                ${freqPill}
+                ${barHtml}
+                <div class="prev-header-table">
+                    <img src="/emblem.png" alt="Logo" class="prev-header-logo">
+                    <div class="prev-header-text">
+                        <div class="title" style="color: ${primaryColor};">${escapeHTML(hTitle)}</div>
+                        <div class="subtitle" style="color: ${secondaryColor};">${escapeHTML(hSub)}</div>
+                        <div class="contact">${escapeHTML(hContact)}</div>
+                        <div class="emis">${escapeHTML(hEmis)}</div>
+                    </div>
+                    <div class="prev-header-badge" style="border-left-color: ${primaryColor};">
+                        <div class="badge-main" style="color: ${primaryColor};">${escapeHTML(badgeText)}</div>
+                        <div class="badge-sub">${escapeHTML(badgeSub)}</div>
+                    </div>
                 </div>
             `;
         }
-
-        const hTitle = document.getElementById('header-title-input')?.value || '';
-        const hSub = document.getElementById('header-subtitle-input')?.value || '';
-        const hContact = document.getElementById('header-contact-input')?.value || '';
-        const hEmis = document.getElementById('header-emis-input')?.value || '';
-        const badgeText = document.getElementById('header-badge-text')?.value || 'OFFICIAL';
-        const badgeSub = document.getElementById('header-badge-subtext')?.value || 'CORRESPONDENCE';
-
-        html += `
-            <div class="prev-header-table">
-                <img src="/emblem.png" alt="Logo" class="prev-header-logo">
-                <div class="prev-header-text">
-                    <div class="title" style="color: ${primaryColor};">${escapeHTML(hTitle)}</div>
-                    <div class="subtitle" style="color: ${secondaryColor};">${escapeHTML(hSub)}</div>
-                    <div class="contact">${escapeHTML(hContact)}</div>
-                    <div class="emis">${escapeHTML(hEmis)}</div>
-                </div>
-                <div class="prev-header-badge" style="border-left-color: ${primaryColor};">
-                    <div class="badge-main" style="color: ${primaryColor};">${escapeHTML(badgeText)}</div>
-                    <div class="badge-sub">${escapeHTML(badgeSub)}</div>
-                </div>
-            </div>
-        `;
     }
 
     // 2. Document Title & Subtitle
@@ -1119,6 +1229,8 @@ function collectCurrentConfig() {
             ]
         },
         header: {
+            frequency: document.getElementById('header-frequency-select')?.value || 'first_page_only',
+            sourceMode: document.getElementById('header-source-mode-select')?.value || 'structured',
             layout: document.getElementById('header-layout-select')?.value || 'lgaa_official',
             showColorBar: document.getElementById('header-color-bar')?.checked !== false,
             title: document.getElementById('header-title-input')?.value || '',
@@ -1126,7 +1238,10 @@ function collectCurrentConfig() {
             contact: document.getElementById('header-contact-input')?.value || '',
             emis: document.getElementById('header-emis-input')?.value || '',
             badgeText: document.getElementById('header-badge-text')?.value || 'OFFICIAL',
-            badgeSubtext: document.getElementById('header-badge-subtext')?.value || 'CORRESPONDENCE'
+            badgeSubtext: document.getElementById('header-badge-subtext')?.value || 'CORRESPONDENCE',
+            imageBanner: state.headerImageBase64 || '',
+            imageHeightMm: Number(document.getElementById('header-image-height')?.value) || 32,
+            imageFit: document.getElementById('header-image-fit')?.value || 'contain'
         },
         footer: {
             pageNumberFormat: document.getElementById('footer-pagenum-format')?.value || 'page_x_of_y',
@@ -1392,6 +1507,235 @@ function applyAllSpellFixes() {
 
 function escapeRegExp(string) {
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// ── Header Source Mode & Custom Image Banner Logic ──
+function syncHeaderSourceMode() {
+    const mode = document.getElementById('header-source-mode-select')?.value || 'structured';
+    const structuredBox = document.getElementById('header-structured-settings');
+    const imageBox = document.getElementById('header-image-settings');
+    if (structuredBox) structuredBox.classList.toggle('hidden', mode !== 'structured');
+    if (imageBox) imageBox.classList.toggle('hidden', mode !== 'image_banner');
+}
+
+function loadHeaderImage(file) {
+    if (!file || !file.type.startsWith('image/')) {
+        showToast('Please select a valid image file (PNG, JPG, SVG).', true);
+        return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        state.headerImageBase64 = e.target.result;
+        const prevImg = document.getElementById('header-image-preview-img');
+        const prevBox = document.getElementById('header-image-preview-box');
+        if (prevImg) prevImg.src = e.target.result;
+        if (prevBox) prevBox.classList.remove('hidden');
+        parseTextAndUpdatePreview();
+        saveDraftToLocalStorage();
+        showToast('Header banner image loaded!');
+    };
+    reader.readAsDataURL(file);
+}
+
+// ── Document Project Sessions (Save / Open / New) ──
+
+async function loadSavedDocumentsList(filter = '') {
+    const listEl = document.getElementById('doc-projects-list');
+    if (!listEl) return;
+
+    listEl.innerHTML = '<div style="padding: 1.5rem; text-align: center; color: var(--text-muted);">Loading saved documents...</div>';
+
+    try {
+        const res = await fetch('/api/doc-formatter/documents', {
+            headers: state.token ? { 'Authorization': 'Bearer ' + state.token } : {}
+        });
+        if (!res.ok) throw new Error('Failed to load documents list');
+
+        const data = await res.json();
+        state.savedDocuments = data.documents || [];
+
+        renderSavedDocumentsList(filter);
+    } catch (err) {
+        console.error('Error fetching documents list:', err);
+        listEl.innerHTML = `<div style="padding: 1rem; color: #EF4444;">Error loading documents: ${escapeHTML(err.message)}</div>`;
+    }
+}
+
+function renderSavedDocumentsList(filter = '') {
+    const listEl = document.getElementById('doc-projects-list');
+    if (!listEl) return;
+
+    const term = filter.toLowerCase().trim();
+    const docs = (state.savedDocuments || []).filter(d => 
+        !term || (d.title && d.title.toLowerCase().includes(term)) || (d.subtitle && d.subtitle.toLowerCase().includes(term)) || (d.previewSnippet && d.previewSnippet.toLowerCase().includes(term))
+    );
+
+    if (docs.length === 0) {
+        listEl.innerHTML = `
+            <div class="doc-empty-state">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+                <span>${term ? 'No saved documents matching your search.' : 'No saved documents yet. Save your first document project above!'}</span>
+            </div>
+        `;
+        return;
+    }
+
+    let html = '';
+    docs.forEach(doc => {
+        const updatedDate = doc.updatedAt ? new Date(doc.updatedAt).toLocaleString() : 'Recently';
+        html += `
+            <div class="doc-project-card" onclick="openDocumentProject('${doc.id}')">
+                <div class="doc-project-info">
+                    <div class="doc-project-title">${escapeHTML(doc.title)}</div>
+                    ${doc.subtitle ? `<div class="doc-project-subtitle">${escapeHTML(doc.subtitle)}</div>` : ''}
+                    ${doc.previewSnippet ? `<div class="doc-project-snippet">${escapeHTML(doc.previewSnippet)}</div>` : ''}
+                    <div class="doc-project-meta">
+                        <span>🕒 ${updatedDate}</span>
+                        <span>•</span>
+                        <span>📑 ${doc.clauseCount || 0} Clauses</span>
+                    </div>
+                </div>
+                <div class="doc-project-actions" onclick="event.stopPropagation()">
+                    <button type="button" class="btn btn-sm btn-primary" onclick="openDocumentProject('${doc.id}')">Open</button>
+                    <button type="button" class="btn btn-sm btn-outline text-danger" onclick="deleteDocumentProject('${doc.id}')" title="Delete Document Project">✕</button>
+                </div>
+            </div>
+        `;
+    });
+
+    listEl.innerHTML = html;
+}
+
+async function saveCurrentDocumentProject() {
+    const currentTitle = document.getElementById('doc-title-input')?.value || 'CONSTITUTION OF THE SCHOOL GOVERNING BODY';
+    const currentSubtitle = document.getElementById('doc-subtitle-input')?.value || 'LADY GREY ARTS ACADEMY';
+    const rawText = document.getElementById('raw-text-input')?.value || '';
+
+    const suggestedName = state.currentDocTitle || currentTitle;
+    const docTitle = prompt('Enter a title to save this Document Session:', suggestedName);
+    if (!docTitle || !docTitle.trim()) return;
+
+    state.currentDocTitle = docTitle.trim();
+    const docId = state.currentDocId || 'doc_' + Date.now();
+    const config = collectCurrentConfig();
+    const clauseCount = (state.parsedBlocks || []).length;
+
+    const payload = {
+        document: {
+            id: docId,
+            title: docTitle.trim(),
+            subtitle: currentSubtitle,
+            rawText,
+            config,
+            clauseCount
+        }
+    };
+
+    try {
+        showToast('Saving document session...', false);
+        const res = await fetch('/api/doc-formatter/documents', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(state.token ? { 'Authorization': 'Bearer ' + state.token } : {})
+            },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to save document');
+
+        state.currentDocId = data.document?.id || docId;
+        localStorage.setItem('sgb_active_doc_id', state.currentDocId);
+
+        saveDraftToLocalStorage();
+        showToast(`Document "${docTitle.trim()}" saved successfully!`, false);
+    } catch (err) {
+        console.error('Save document error:', err);
+        showToast(err.message || 'Error saving document', true);
+    }
+}
+
+async function openDocumentProject(docId) {
+    try {
+        showToast('Loading document project...', false);
+        const res = await fetch(`/api/doc-formatter/documents/${docId}`, {
+            headers: state.token ? { 'Authorization': 'Bearer ' + state.token } : {}
+        });
+        if (!res.ok) throw new Error('Failed to retrieve document project');
+
+        const data = await res.json();
+        const doc = data.document;
+        if (!doc) throw new Error('Document not found');
+
+        state.currentDocId = doc.id;
+        state.currentDocTitle = doc.title;
+        localStorage.setItem('sgb_active_doc_id', doc.id);
+
+        if (doc.title && document.getElementById('doc-title-input')) {
+            document.getElementById('doc-title-input').value = doc.title;
+        }
+        if (doc.subtitle && document.getElementById('doc-subtitle-input')) {
+            document.getElementById('doc-subtitle-input').value = doc.subtitle;
+        }
+        if (doc.rawText !== undefined && document.getElementById('raw-text-input')) {
+            document.getElementById('raw-text-input').value = doc.rawText;
+        }
+        if (doc.config) {
+            applyPresetConfig(doc.config);
+        }
+
+        parseTextAndUpdatePreview();
+        saveDraftToLocalStorage();
+
+        // Close modal
+        document.getElementById('doc-projects-modal')?.classList.add('hidden');
+        showToast(`Opened "${doc.title}"!`, false);
+    } catch (err) {
+        console.error('Open document error:', err);
+        showToast(err.message || 'Error opening document', true);
+    }
+}
+
+async function deleteDocumentProject(docId) {
+    if (!confirm('Are you sure you want to delete this saved document project?')) return;
+
+    try {
+        const res = await fetch(`/api/doc-formatter/documents/${docId}`, {
+            method: 'DELETE',
+            headers: state.token ? { 'Authorization': 'Bearer ' + state.token } : {}
+        });
+        if (!res.ok) throw new Error('Failed to delete document');
+
+        if (state.currentDocId === docId) {
+            state.currentDocId = null;
+            state.currentDocTitle = null;
+            localStorage.removeItem('sgb_active_doc_id');
+        }
+
+        showToast('Document project deleted.');
+        loadSavedDocumentsList(document.getElementById('doc-projects-search')?.value || '');
+    } catch (err) {
+        console.error('Delete document error:', err);
+        showToast(err.message || 'Error deleting document', true);
+    }
+}
+
+function newDocumentProject() {
+    if (confirm('Start a new blank document project? Any unsaved edits on the current document will be replaced.')) {
+        state.currentDocId = null;
+        state.currentDocTitle = 'Untitled Document';
+        state.headerImageBase64 = null;
+        localStorage.removeItem('sgb_active_doc_id');
+
+        document.getElementById('doc-title-input').value = 'NEW REGULATORY DOCUMENT';
+        document.getElementById('doc-subtitle-input').value = 'LADY GREY ARTS ACADEMY';
+        document.getElementById('raw-text-input').value = '';
+        
+        applyPreset(state.presets[0] || null, true);
+        document.getElementById('doc-projects-modal')?.classList.add('hidden');
+        showToast('Started new document project.');
+    }
 }
 
 // ── Helpers ──

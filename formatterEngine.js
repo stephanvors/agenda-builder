@@ -181,10 +181,46 @@ export async function buildFormattedDocx(config, parsedBlocks) {
 
   // Helper to create Header
   function createDocumentHeader() {
-    if (hdr.layout === 'none') return undefined;
+    const headerMode = hdr.sourceMode || (hdr.layout === 'none' ? 'none' : 'structured');
+    if (headerMode === 'none') return undefined;
 
     const headerElements = [];
 
+    // Mode 1: Custom Image Banner
+    if (headerMode === 'image_banner' && hdr.imageBanner) {
+      try {
+        let imgBuffer = null;
+        if (hdr.imageBanner.startsWith('data:image')) {
+          imgBuffer = Buffer.from(hdr.imageBanner.replace(/^data:image\/\w+;base64,/, ''), 'base64');
+        } else if (fsSync.existsSync(hdr.imageBanner)) {
+          imgBuffer = fsSync.readFileSync(hdr.imageBanner);
+        }
+
+        if (imgBuffer) {
+          const bannerHeightMm = Number(hdr.imageHeightMm) || 32;
+          const bannerWidthPx = Math.round(bodyWidthMm * 3.7795);
+          const bannerHeightPx = Math.round(bannerHeightMm * 3.7795);
+
+          headerElements.push(
+            new Paragraph({
+              spacing: { before: 0, after: 80 },
+              alignment: AlignmentType.CENTER,
+              children: [
+                new ImageRun({
+                  data: imgBuffer,
+                  transformation: { width: bannerWidthPx, height: bannerHeightPx },
+                }),
+              ],
+            })
+          );
+          return new Header({ children: headerElements });
+        }
+      } catch (err) {
+        console.warn('Failed to embed custom header image banner in DOCX:', err);
+      }
+    }
+
+    // Mode 2: Structured Letterhead (Dual stripe + Logo + Text + Badge)
     // Optional top color stripe
     if (hdr.showColorBar !== false) {
       const c1 = (hdr.colorBarPrimary || secondaryColor).replace('#', '');
@@ -232,7 +268,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
 
     const tableCells = [];
 
-    // Logo Cell
+    // Logo Cell (round school emblem)
     if (hdr.showLogo !== false && emblemData) {
       tableCells.push(
         new TableCell({
@@ -244,7 +280,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
               children: [
                 new ImageRun({
                   data: emblemData,
-                  transformation: { width: 46, height: 46 },
+                  transformation: { width: 50, height: 50 },
                   type: 'png',
                 }),
               ],
@@ -261,32 +297,32 @@ export async function buildFormattedDocx(config, parsedBlocks) {
     if (hdr.title) {
       detailParagraphs.push(
         new Paragraph({
-          spacing: { before: 10, after: 5 },
-          children: [new TextRun({ text: hdr.title, bold: true, size: 19, color: primaryColor, font: fontFamily })],
+          spacing: { before: 10, after: 4 },
+          children: [new TextRun({ text: hdr.title, bold: true, size: 24, color: primaryColor, font: fontFamily })],
         })
       );
     }
     if (hdr.subtitle) {
       detailParagraphs.push(
         new Paragraph({
-          spacing: { before: 0, after: 5 },
-          children: [new TextRun({ text: hdr.subtitle, bold: true, size: 15, color: secondaryColor, font: fontFamily })],
+          spacing: { before: 0, after: 4 },
+          children: [new TextRun({ text: hdr.subtitle, bold: true, size: 18, color: secondaryColor, font: fontFamily })],
         })
       );
     }
     if (hdr.contact) {
       detailParagraphs.push(
         new Paragraph({
-          spacing: { before: 0, after: 5 },
-          children: [new TextRun({ text: hdr.contact, size: 13, color: '555555', font: fontFamily })],
+          spacing: { before: 0, after: 4 },
+          children: [new TextRun({ text: hdr.contact, size: 16, color: '333333', font: fontFamily })],
         })
       );
     }
     if (hdr.emis) {
       detailParagraphs.push(
         new Paragraph({
-          spacing: { before: 0, after: 10 },
-          children: [new TextRun({ text: hdr.emis, size: 13, color: '555555', font: fontFamily })],
+          spacing: { before: 0, after: 8 },
+          children: [new TextRun({ text: hdr.emis, size: 16, color: '333333', font: fontFamily })],
         })
       );
     }
@@ -295,6 +331,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
       new TableCell({
         width: { size: convertMillimetersToTwip(textCellWidthMm), type: WidthType.DXA },
         verticalAlign: VerticalAlign.CENTER,
+        margins: { left: 80, right: 80, top: 20, bottom: 20 },
         children: detailParagraphs.length ? detailParagraphs : [new Paragraph({ children: [] })],
       })
     );
@@ -306,7 +343,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
           width: { size: convertMillimetersToTwip(45), type: WidthType.DXA },
           verticalAlign: VerticalAlign.CENTER,
           borders: {
-            left: { style: BorderStyle.SINGLE, size: 20, color: primaryColor },
+            left: { style: BorderStyle.SINGLE, size: 24, color: primaryColor },
             top: { style: BorderStyle.NONE },
             right: { style: BorderStyle.NONE },
             bottom: { style: BorderStyle.NONE },
@@ -315,11 +352,11 @@ export async function buildFormattedDocx(config, parsedBlocks) {
           children: [
             new Paragraph({
               spacing: { before: 5, after: 0 },
-              children: [new TextRun({ text: hdr.badgeText || 'OFFICIAL', bold: true, size: 18, color: primaryColor, font: fontFamily })],
+              children: [new TextRun({ text: hdr.badgeText || 'OFFICIAL', bold: true, size: 20, color: primaryColor, font: fontFamily })],
             }),
             new Paragraph({
               spacing: { before: 0, after: 5 },
-              children: [new TextRun({ text: hdr.badgeSubtext || 'CORRESPONDENCE', size: 14, color: '64748B', font: fontFamily })],
+              children: [new TextRun({ text: hdr.badgeSubtext || 'CORRESPONDENCE', size: 16, color: '64748B', font: fontFamily })],
             }),
           ],
         })
@@ -330,7 +367,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
       width: { size: convertMillimetersToTwip(bodyWidthMm), type: WidthType.DXA },
       borders: {
         top: { style: BorderStyle.NONE },
-        bottom: { style: BorderStyle.SINGLE, size: 6, color: 'CBD5E1' },
+        bottom: { style: BorderStyle.SINGLE, size: 8, color: 'CBD5E1' },
         left: { style: BorderStyle.NONE },
         right: { style: BorderStyle.NONE },
         insideHorizontal: { style: BorderStyle.NONE },
@@ -754,6 +791,43 @@ export async function buildFormattedDocx(config, parsedBlocks) {
   }
 
   // Construct Document Object
+  const docHeader = createDocumentHeader();
+  const docFooter = createDocumentFooter();
+  const isFirstPageOnly = (hdr.frequency || 'first_page_only') === 'first_page_only';
+
+  const sectionConfig = {
+    properties: {
+      page: {
+        size: {
+          width: convertMillimetersToTwip(paperWidthMm),
+          height: convertMillimetersToTwip(paperHeightMm),
+        },
+        margin: {
+          top: convertMillimetersToTwip(topMarginMm),
+          bottom: convertMillimetersToTwip(bottomMarginMm),
+          left: convertMillimetersToTwip(leftMarginMm),
+          right: convertMillimetersToTwip(rightMarginMm),
+          header: convertMillimetersToTwip(8),
+          footer: convertMillimetersToTwip(8),
+        },
+      },
+      titlePage: isFirstPageOnly,
+    },
+    headers: isFirstPageOnly
+      ? {
+          first: docHeader,
+          default: new Header({ children: [] }),
+        }
+      : {
+          default: docHeader,
+        },
+    footers: {
+      first: docFooter,
+      default: docFooter,
+    },
+    children: docChildren,
+  };
+
   const doc = new Document({
     styles: {
       default: {
@@ -766,33 +840,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
         },
       },
     },
-    sections: [
-      {
-        properties: {
-          page: {
-            size: {
-              width: convertMillimetersToTwip(paperWidthMm),
-              height: convertMillimetersToTwip(paperHeightMm),
-            },
-            margin: {
-              top: convertMillimetersToTwip(topMarginMm),
-              bottom: convertMillimetersToTwip(bottomMarginMm),
-              left: convertMillimetersToTwip(leftMarginMm),
-              right: convertMillimetersToTwip(rightMarginMm),
-              header: convertMillimetersToTwip(8),
-              footer: convertMillimetersToTwip(8),
-            },
-          },
-        },
-        headers: {
-          default: createDocumentHeader(),
-        },
-        footers: {
-          default: createDocumentFooter(),
-        },
-        children: docChildren,
-      },
-    ],
+    sections: [sectionConfig],
   });
 
   return await Packer.toBuffer(doc);

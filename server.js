@@ -17,6 +17,7 @@ const __dirname = path.dirname(__filename);
 const DATA_DIR = path.join(__dirname, 'data');
 const STORE_FILE = path.join(DATA_DIR, 'store.json');
 const PRESETS_FILE = path.join(DATA_DIR, 'formatter-presets.json');
+const DOCS_FILE = path.join(DATA_DIR, 'formatter-documents.json');
 const EXCEL_FILE = path.join(__dirname, 'users', 'UserDetails.xlsx');
 const UPLOADS_DIR = path.join(__dirname, 'uploads');
 
@@ -1977,6 +1978,116 @@ app.post('/api/doc-formatter/presets', async (req, res) => {
   } catch (error) {
     console.error('Error saving preset:', error);
     res.status(500).json({ error: error.message || 'Failed to save preset' });
+  }
+});
+
+// ── Document Project Sessions API (Save / Load Documents) ──
+
+// GET /api/doc-formatter/documents: retrieve all saved document projects
+app.get('/api/doc-formatter/documents', async (req, res) => {
+  try {
+    let docsData = { documents: [] };
+    if (fsSync.existsSync(DOCS_FILE)) {
+      const raw = await fs.readFile(DOCS_FILE, 'utf8');
+      try { docsData = JSON.parse(raw); } catch (e) {}
+    }
+    // Return summaries sorted by latest updated
+    const summaries = (docsData.documents || []).map(d => ({
+      id: d.id,
+      title: d.title || 'Untitled Document',
+      subtitle: d.subtitle || '',
+      updatedAt: d.updatedAt || d.createdAt,
+      createdAt: d.createdAt,
+      clauseCount: d.clauseCount || 0,
+      previewSnippet: d.previewSnippet || '',
+    })).sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0));
+
+    res.json({ documents: summaries });
+  } catch (error) {
+    console.error('Error fetching document projects:', error);
+    res.status(500).json({ error: 'Failed to load document projects' });
+  }
+});
+
+// GET /api/doc-formatter/documents/:id: retrieve a single document project session
+app.get('/api/doc-formatter/documents/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!fsSync.existsSync(DOCS_FILE)) {
+      return res.status(404).json({ error: 'Document not found' });
+    }
+    const raw = await fs.readFile(DOCS_FILE, 'utf8');
+    const docsData = JSON.parse(raw);
+    const doc = (docsData.documents || []).find(d => d.id === id);
+    if (!doc) {
+      return res.status(404).json({ error: 'Document not found' });
+    }
+    res.json({ document: doc });
+  } catch (error) {
+    console.error('Error fetching document project:', error);
+    res.status(500).json({ error: 'Failed to load document project' });
+  }
+});
+
+// POST /api/doc-formatter/documents: save or update document project session
+app.post('/api/doc-formatter/documents', async (req, res) => {
+  try {
+    const { document: docPayload } = req.body;
+    if (!docPayload || !docPayload.title) {
+      return res.status(400).json({ error: 'Document title is required' });
+    }
+
+    let docsData = { documents: [] };
+    if (fsSync.existsSync(DOCS_FILE)) {
+      const raw = await fs.readFile(DOCS_FILE, 'utf8');
+      try { docsData = JSON.parse(raw); } catch (e) {}
+    }
+
+    const docId = docPayload.id || 'doc_' + Date.now();
+    const now = new Date().toISOString();
+
+    const fullDoc = {
+      id: docId,
+      title: docPayload.title.trim(),
+      subtitle: docPayload.subtitle || '',
+      rawText: docPayload.rawText || '',
+      config: docPayload.config || {},
+      clauseCount: docPayload.clauseCount || 0,
+      previewSnippet: docPayload.rawText ? docPayload.rawText.slice(0, 140).replace(/[\r\n]+/g, ' ') : '',
+      createdAt: docPayload.createdAt || now,
+      updatedAt: now,
+    };
+
+    const existingIdx = docsData.documents.findIndex(d => d.id === docId);
+    if (existingIdx >= 0) {
+      docsData.documents[existingIdx] = fullDoc;
+    } else {
+      docsData.documents.push(fullDoc);
+    }
+
+    await fs.writeFile(DOCS_FILE, JSON.stringify(docsData, null, 2), 'utf8');
+    res.json({ message: 'Document project saved successfully', document: fullDoc });
+  } catch (error) {
+    console.error('Error saving document project:', error);
+    res.status(500).json({ error: error.message || 'Failed to save document project' });
+  }
+});
+
+// DELETE /api/doc-formatter/documents/:id: delete document project session
+app.delete('/api/doc-formatter/documents/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!fsSync.existsSync(DOCS_FILE)) {
+      return res.json({ message: 'Document removed' });
+    }
+    const raw = await fs.readFile(DOCS_FILE, 'utf8');
+    const docsData = JSON.parse(raw);
+    docsData.documents = (docsData.documents || []).filter(d => d.id !== id);
+    await fs.writeFile(DOCS_FILE, JSON.stringify(docsData, null, 2), 'utf8');
+    res.json({ message: 'Document deleted successfully', id });
+  } catch (error) {
+    console.error('Error deleting document project:', error);
+    res.status(500).json({ error: 'Failed to delete document project' });
   }
 });
 
