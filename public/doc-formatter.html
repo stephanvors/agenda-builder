@@ -853,24 +853,10 @@
                 </div>
             </div>
 
-            <!-- Page Canvas Wrapper -->
-            <div class="preview-canvas-scroller">
-                <div class="a4-page-canvas" id="preview-page">
-                    <!-- Spatial Grid Guidelines (in mm overlay) -->
-                    <div class="spatial-grid-overlay" id="grid-overlay">
-                        <div class="guide-line guide-margin-left" style="left: 10mm;" title="Left Margin: 10mm"><span class="guide-tag">Margin (10mm)</span></div>
-                        <div class="guide-line guide-level-1" style="left: 10mm;" title="Level 1 Line: 0mm body offset"><span class="guide-tag">L1 (0mm)</span></div>
-                        <div class="guide-line guide-level-2" style="left: 20mm;" title="Level 2 Line: 10mm indent"><span class="guide-tag">L2 (10mm)</span></div>
-                        <div class="guide-line guide-level-3" style="left: 30mm;" title="Level 3 Line: 20mm indent"><span class="guide-tag">L3 (20mm)</span></div>
-                        <div class="guide-line guide-level-4" style="left: 40mm;" title="Level 4 Line: 30mm indent"><span class="guide-tag">L4 (30mm)</span></div>
-                        <div class="guide-line guide-level-5" style="left: 50mm;" title="Level 5 Line: 40mm indent"><span class="guide-tag">L5 (40mm)</span></div>
-                        <div class="guide-line guide-margin-right" style="right: 10mm;" title="Right Margin: 10mm"><span class="guide-tag">Right (10mm)</span></div>
-                    </div>
-
-                    <!-- Rendered Document Preview Content -->
-                    <div class="doc-preview-content" id="doc-preview-content">
-                        <!-- Populated dynamically via JS -->
-                    </div>
+            <!-- Multi-Page Canvas Wrapper -->
+            <div class="preview-canvas-scroller" id="preview-canvas-scroller">
+                <div class="pages-container" id="pages-container">
+                    <!-- Rendered A4 Page Sheets with Page Breaks Populated Dynamically via JS -->
                 </div>
             </div>
         </section>

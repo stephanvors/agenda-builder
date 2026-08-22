@@ -903,7 +903,11 @@ try {
     $word.Visible = $false
     $word.DisplayAlerts = 0
     $doc = $word.Documents.Open($docPath, $false, $true)
-    $doc.SaveAs([ref]$pdfPath, [ref]17) # wdFormatPDF = 17
+    try {
+        $doc.ExportAsFixedFormat($pdfPath, 17) # wdExportFormatPDF = 17
+    } catch {
+        $doc.SaveAs([ref]$pdfPath, [ref]17)
+    }
     $doc.Close([ref]0) # wdDoNotSaveChanges = 0
     $doc = $null
     Write-Output "CONVERT_OK"

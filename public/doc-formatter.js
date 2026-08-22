@@ -745,7 +745,7 @@ function addSignerRow(role = 'SGB Chairperson', name = '', dateLabel = '') {
     row.querySelector('.btn-del-row').addEventListener('click', () => {
         row.remove();
         parseTextAndUpdatePreview();
-        saveDraftToLocalStorage();
+    saveDraftToLocalStorage();
     });
 
     row.querySelectorAll('input').forEach(i => i.addEventListener('input', () => {
@@ -757,8 +757,8 @@ function addSignerRow(role = 'SGB Chairperson', name = '', dateLabel = '') {
 
 // ── Spatial Grid Guidelines Overlay ──
 function updateSpatialGuides() {
-    const leftMargin = Number(document.getElementById('margin-left-input')?.value) || 20;
-    const rightMargin = Number(document.getElementById('margin-right-input')?.value) || 20;
+    const leftMargin = Number(document.getElementById('margin-left-input')?.value) || 10;
+    const rightMargin = Number(document.getElementById('margin-right-input')?.value) || 10;
 
     const l1Pos = leftMargin + (Number(document.getElementById('l1-left-offset')?.value) || 0);
     const l2Pos = leftMargin + (Number(document.getElementById('l2-text-wrap')?.value) || 10);
@@ -773,18 +773,23 @@ function updateSpatialGuides() {
     setGuidePos('.guide-level-3', l3Pos + 'mm');
     setGuidePos('.guide-level-4', l4Pos + 'mm');
     setGuidePos('.guide-level-5', l5Pos + 'mm');
+
+    const showGrid = document.getElementById('toggle-grid-overlay')?.checked ?? true;
+    document.querySelectorAll('.spatial-grid-overlay').forEach(el => {
+        el.style.display = showGrid ? 'block' : 'none';
+    });
 }
 
 function setGuidePos(selector, posStr, isRight = false) {
-    const el = document.querySelector(selector);
-    if (!el) return;
-    if (isRight) {
-        el.style.right = posStr;
-        el.style.left = 'auto';
-    } else {
-        el.style.left = posStr;
-        el.style.right = 'auto';
-    }
+    document.querySelectorAll(selector).forEach(el => {
+        if (isRight) {
+            el.style.right = posStr;
+            el.style.left = 'auto';
+        } else {
+            el.style.left = posStr;
+            el.style.right = 'auto';
+        }
+    });
 }
 
 // ── Parse Text & Render Live Preview ──
@@ -874,7 +879,7 @@ function getFontFamilyCSS(fontName) {
 }
 
 function renderDocumentPreview() {
-    const container = document.getElementById('doc-preview-content');
+    const container = document.getElementById('pages-container');
     if (!container) return;
 
     const primaryColor = document.getElementById('primary-color-input')?.value || '#0C2340';
@@ -888,23 +893,16 @@ function renderDocumentPreview() {
     const h1Size = Number(document.getElementById('h1-size-input')?.value) || 11;
     const bodySize = Number(document.getElementById('body-size-input')?.value) || 10;
 
-    const pageCanvas = document.getElementById('preview-page');
-    if (pageCanvas) {
-        pageCanvas.style.fontFamily = fontCSS;
-        pageCanvas.style.lineHeight = lineSpacing;
-        pageCanvas.style.color = textColor;
-        pageCanvas.style.paddingLeft = (document.getElementById('margin-left-input')?.value || 10) + 'mm';
-        pageCanvas.style.paddingRight = (document.getElementById('margin-right-input')?.value || 10) + 'mm';
-        pageCanvas.style.paddingTop = (document.getElementById('margin-top-input')?.value || 10) + 'mm';
-        pageCanvas.style.paddingBottom = (document.getElementById('margin-bottom-input')?.value || 10) + 'mm';
-    }
-    container.style.fontFamily = fontCSS;
+    const marginLeft = Number(document.getElementById('margin-left-input')?.value) || 10;
+    const marginRight = Number(document.getElementById('margin-right-input')?.value) || 10;
+    const marginTop = Number(document.getElementById('margin-top-input')?.value) || 10;
+    const marginBottom = Number(document.getElementById('margin-bottom-input')?.value) || 10;
 
-    let html = '';
-
-    // 1. Header Rendering (Structured vs Image Banner vs None)
+    // 1. Page 1 Header & Running Header
     const headerMode = document.getElementById('header-source-mode-select')?.value || 'structured';
     const headerFreq = document.getElementById('header-frequency-select')?.value || 'first_page_only';
+    let page1HeaderHtml = '';
+    let runningHeaderHtml = '';
 
     if (headerMode !== 'none') {
         const freqPill = headerFreq === 'first_page_only' 
@@ -914,12 +912,19 @@ function renderDocumentPreview() {
         if (headerMode === 'image_banner' && state.headerImageBase64) {
             const imgHeightMm = Number(document.getElementById('header-image-height')?.value) || 32;
             const imgFit = document.getElementById('header-image-fit')?.value || 'contain';
-            html += `
+            page1HeaderHtml = `
                 ${freqPill}
                 <div class="prev-header-image-banner">
                     <img src="${escapeHTML(state.headerImageBase64)}" style="max-height: ${imgHeightMm}mm; object-fit: ${imgFit};" alt="Header Banner" />
                 </div>
             `;
+            if (headerFreq === 'all_pages') {
+                runningHeaderHtml = `
+                    <div class="prev-running-header">
+                        <span style="font-weight: 600; color: ${primaryColor};">DOCUMENT HEADER</span>
+                    </div>
+                `;
+            }
         } else if (headerMode === 'structured') {
             const showColorBar = document.getElementById('header-color-bar')?.checked;
             let barHtml = '';
@@ -939,7 +944,7 @@ function renderDocumentPreview() {
             const badgeText = document.getElementById('header-badge-text')?.value || 'OFFICIAL';
             const badgeSub = document.getElementById('header-badge-subtext')?.value || 'CORRESPONDENCE';
 
-            html += `
+            page1HeaderHtml = `
                 ${freqPill}
                 ${barHtml}
                 <div class="prev-header-table">
@@ -956,28 +961,36 @@ function renderDocumentPreview() {
                     </div>
                 </div>
             `;
+
+            if (headerFreq === 'all_pages') {
+                runningHeaderHtml = `
+                    <div class="prev-running-header">
+                        <span style="font-weight: 700; color: ${primaryColor};">${escapeHTML(hTitle)}</span>
+                        <span style="font-size: 7.5pt; text-transform: uppercase;">${escapeHTML(badgeText)}</span>
+                    </div>
+                `;
+            }
         }
     }
 
-    // 2. Document Title & Subtitle
+    // 2. Prepare Sequential Document Blocks
+    const blocks = [];
+
     const docTitle = document.getElementById('doc-title-input')?.value || '';
     const docSubtitle = document.getElementById('doc-subtitle-input')?.value || '';
-
-    if (docTitle) {
-        html += `<div class="prev-doc-title" style="color: ${primaryColor}; font-size: ${titleSize}pt;">${escapeHTML(docTitle)}</div>`;
+    if (docTitle || docSubtitle) {
+        let tHtml = '';
+        if (docTitle) tHtml += `<div class="prev-doc-title" style="color: ${primaryColor}; font-size: ${titleSize}pt;">${escapeHTML(docTitle)}</div>`;
+        if (docSubtitle) tHtml += `<div class="prev-doc-subtitle" style="color: ${secondaryColor}; font-size: ${subtitleSize}pt;">${escapeHTML(docSubtitle)}</div>`;
+        blocks.push({ type: 'title', isHeading: true, html: tHtml });
     }
-    if (docSubtitle) {
-        html += `<div class="prev-doc-subtitle" style="color: ${secondaryColor}; font-size: ${subtitleSize}pt;">${escapeHTML(docSubtitle)}</div>`;
-    }
 
-    // 3. Metadata Table
     const showMetaTable = document.getElementById('enable-metadata-table')?.checked;
     if (showMetaTable) {
         const col1 = document.getElementById('meta-col1-title')?.value || 'Attribute';
         const col2 = document.getElementById('meta-col2-title')?.value || 'Specifications';
-
         const rowEls = document.querySelectorAll('.meta-row-item');
-        html += `
+        let mHtml = `
             <table class="prev-meta-table">
                 <thead>
                     <tr>
@@ -987,85 +1000,87 @@ function renderDocumentPreview() {
                 </thead>
                 <tbody>
         `;
-
         rowEls.forEach(row => {
             const l = row.querySelector('.meta-label-input')?.value || '';
             const v = row.querySelector('.meta-val-input')?.value || '';
-            html += `
+            mHtml += `
                 <tr>
                     <td style="color: ${primaryColor};">${escapeHTML(l)}</td>
                     <td>${escapeHTML(v)}</td>
                 </tr>
             `;
         });
-
-        html += `</tbody></table>`;
+        mHtml += `</tbody></table>`;
+        blocks.push({ type: 'metatable', isHeading: false, html: mHtml });
     }
 
-    // 4. Legal Notice Box
     const showNotice = document.getElementById('enable-legal-notice')?.checked;
     if (showNotice) {
         const prefix = document.getElementById('legal-notice-prefix')?.value || 'LEGAL NOTICE: ';
         const text = document.getElementById('legal-notice-text')?.value || '';
-        html += `
+        const nHtml = `
             <div class="prev-legal-notice" style="border-left-color: ${primaryColor};">
                 <strong style="color: ${primaryColor};">${escapeHTML(prefix)}</strong>
                 <span>${escapeHTML(text)}</span>
             </div>
         `;
+        blocks.push({ type: 'notice', isHeading: false, html: nHtml });
     }
 
-    // 5. Clauses Blocks (Levels 1 to 5 with dynamic hanging indents)
+    // Clauses
     const l1Offset = Number(document.getElementById('l1-left-offset')?.value) || 0;
     const l1Bold = document.getElementById('l1-bold')?.checked !== false;
     const l1Upper = document.getElementById('l1-uppercase')?.checked !== false;
 
     const l2NumPos = Number(document.getElementById('l2-num-pos')?.value) || 0;
     const l2Wrap = Number(document.getElementById('l2-text-wrap')?.value) || 10;
-    const l2Hanging = Math.max(0.1, l2Wrap - l2NumPos);
 
     const l3NumPos = Number(document.getElementById('l3-num-pos')?.value) || 10;
     const l3Wrap = Number(document.getElementById('l3-text-wrap')?.value) || 20;
-    const l3Hanging = Math.max(0.1, l3Wrap - l3NumPos);
 
     const l4NumPos = Number(document.getElementById('l4-num-pos')?.value) || 20;
     const l4Wrap = Number(document.getElementById('l4-text-wrap')?.value) || 30;
-    const l4Hanging = Math.max(0.1, l4Wrap - l4NumPos);
 
     const l5NumPos = Number(document.getElementById('l5-num-pos')?.value) || 30;
     const l5Wrap = Number(document.getElementById('l5-text-wrap')?.value) || 40;
-    const l5Hanging = Math.max(0.1, l5Wrap - l5NumPos);
 
     state.parsedBlocks.forEach(b => {
+        let bHtml = '';
         if (b.type === 'level1') {
             const headingText = l1Upper ? b.text.toUpperCase() : b.text;
             const formattedHeading = formatTextWithSpellHighlights(headingText);
             if (b.number) {
-                html += `<div class="prev-clause-item prev-clause-level1" style="position: relative; padding-left: ${l2Wrap}mm; font-weight: ${l1Bold ? 'bold' : 'normal'}; text-transform: ${l1Upper ? 'uppercase' : 'none'}; color: ${primaryColor}; font-size: ${h1Size}pt; margin: 5mm 0 2mm 0;"><span class="prev-num-bold" style="position: absolute; left: ${l1Offset}mm; top: 0; font-weight: bold; color: ${primaryColor};">${escapeHTML(b.number)}</span><span class="prev-heading-text">${formattedHeading}</span></div>`;
+                bHtml = `<div class="prev-clause-item prev-clause-level1" style="position: relative; padding-left: ${l2Wrap}mm; font-weight: ${l1Bold ? 'bold' : 'normal'}; text-transform: ${l1Upper ? 'uppercase' : 'none'}; color: ${primaryColor}; font-size: ${h1Size}pt; margin: 4mm 0 2mm 0;"><span class="prev-num-bold" style="position: absolute; left: ${l1Offset}mm; top: 0; font-weight: bold; color: ${primaryColor};">${escapeHTML(b.number)}</span><span class="prev-heading-text">${formattedHeading}</span></div>`;
             } else {
-                html += `<div class="prev-clause-item prev-clause-level1" style="padding-left: ${l1Offset}mm; font-weight: ${l1Bold ? 'bold' : 'normal'}; text-transform: ${l1Upper ? 'uppercase' : 'none'}; color: ${primaryColor}; font-size: ${h1Size}pt; margin: 5mm 0 2mm 0;">${formattedHeading}</div>`;
+                bHtml = `<div class="prev-clause-item prev-clause-level1" style="padding-left: ${l1Offset}mm; font-weight: ${l1Bold ? 'bold' : 'normal'}; text-transform: ${l1Upper ? 'uppercase' : 'none'}; color: ${primaryColor}; font-size: ${h1Size}pt; margin: 4mm 0 2mm 0;">${formattedHeading}</div>`;
             }
+            blocks.push({ type: 'level1', isHeading: true, html: bHtml });
         } else if (b.type === 'level2') {
-            html += `<div class="prev-clause-item" style="position: relative; padding-left: ${l2Wrap}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; margin: 1.5mm 0; text-align: justify;"><span class="prev-num-bold" style="position: absolute; left: ${l2NumPos}mm; top: 0; font-weight: bold; color: ${primaryColor};">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${formatTextWithSpellHighlights(b.text)}</span></div>`;
+            bHtml = `<div class="prev-clause-item" style="position: relative; padding-left: ${l2Wrap}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; margin: 1.5mm 0; text-align: justify;"><span class="prev-num-bold" style="position: absolute; left: ${l2NumPos}mm; top: 0; font-weight: bold; color: ${primaryColor};">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${formatTextWithSpellHighlights(b.text)}</span></div>`;
+            blocks.push({ type: 'level2', isHeading: false, html: bHtml });
         } else if (b.type === 'level3') {
-            html += `<div class="prev-clause-item" style="position: relative; padding-left: ${l3Wrap}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; margin: 1.2mm 0; text-align: justify;"><span class="prev-num-bold" style="position: absolute; left: ${l3NumPos}mm; top: 0; font-weight: bold; color: ${primaryColor};">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${formatTextWithSpellHighlights(b.text)}</span></div>`;
+            bHtml = `<div class="prev-clause-item" style="position: relative; padding-left: ${l3Wrap}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; margin: 1.2mm 0; text-align: justify;"><span class="prev-num-bold" style="position: absolute; left: ${l3NumPos}mm; top: 0; font-weight: bold; color: ${primaryColor};">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${formatTextWithSpellHighlights(b.text)}</span></div>`;
+            blocks.push({ type: 'level3', isHeading: false, html: bHtml });
         } else if (b.type === 'level4') {
-            html += `<div class="prev-clause-item" style="position: relative; padding-left: ${l4Wrap}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; margin: 1mm 0; text-align: justify;"><span class="prev-num-bold" style="position: absolute; left: ${l4NumPos}mm; top: 0; font-weight: bold; color: ${primaryColor};">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${formatTextWithSpellHighlights(b.text)}</span></div>`;
+            bHtml = `<div class="prev-clause-item" style="position: relative; padding-left: ${l4Wrap}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; margin: 1mm 0; text-align: justify;"><span class="prev-num-bold" style="position: absolute; left: ${l4NumPos}mm; top: 0; font-weight: bold; color: ${primaryColor};">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${formatTextWithSpellHighlights(b.text)}</span></div>`;
+            blocks.push({ type: 'level4', isHeading: false, html: bHtml });
         } else if (b.type === 'level5') {
-            html += `<div class="prev-clause-item" style="position: relative; padding-left: ${l5Wrap}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; margin: 1mm 0; text-align: justify;"><span class="prev-num-bold" style="position: absolute; left: ${l5NumPos}mm; top: 0; font-weight: bold; color: ${primaryColor};">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${formatTextWithSpellHighlights(b.text)}</span></div>`;
+            bHtml = `<div class="prev-clause-item" style="position: relative; padding-left: ${l5Wrap}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; margin: 1mm 0; text-align: justify;"><span class="prev-num-bold" style="position: absolute; left: ${l5NumPos}mm; top: 0; font-weight: bold; color: ${primaryColor};">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${formatTextWithSpellHighlights(b.text)}</span></div>`;
+            blocks.push({ type: 'level5', isHeading: false, html: bHtml });
         } else {
-            html += `<div class="prev-clause-body" style="font-size: ${bodySize}pt; line-height: ${lineSpacing}; color: ${textColor}; margin: 1.5mm 0;">${formatTextWithSpellHighlights(b.text)}</div>`;
+            bHtml = `<div class="prev-clause-body" style="font-size: ${bodySize}pt; line-height: ${lineSpacing}; color: ${textColor}; margin: 1.5mm 0;">${formatTextWithSpellHighlights(b.text)}</div>`;
+            blocks.push({ type: 'body', isHeading: false, html: bHtml });
         }
     });
 
-    // 6. Signatures Block
+    // Signatures Resolution Block
     const showSignatures = document.getElementById('enable-signatures')?.checked;
     if (showSignatures) {
         const sigTitle = document.getElementById('signatures-title')?.value || 'ADOPTION AND SIGN-OFF RESOLUTION';
         const sigIntro = document.getElementById('signatures-intro')?.value || '';
         const signerEls = document.querySelectorAll('.signer-row-item');
 
-        html += `
+        let sHtml = `
             <div class="prev-signatures-section">
                 <div class="prev-signatures-title" style="color: ${primaryColor};">${escapeHTML(sigTitle)}</div>
                 <div class="prev-signatures-intro">${escapeHTML(sigIntro)}</div>
@@ -1075,20 +1090,12 @@ function renderDocumentPreview() {
         signerEls.forEach(s => {
             const role = s.querySelector('.signer-role-input')?.value || 'Signatory';
             let name = s.querySelector('.signer-name-input')?.value || '';
-            if (name.toLowerCase().startsWith('name:')) {
-                name = name.replace(/^name:\s*/i, '');
-            } else if (name.toLowerCase().startsWith('surname, name:')) {
-                name = name.replace(/^surname,\s*name:\s*/i, '');
-            }
             const displayName = name.replace(/^_+$/, '').trim();
 
             let date = s.querySelector('.signer-date-input')?.value || '';
-            if (date.toLowerCase().startsWith('date:')) {
-                date = date.replace(/^date:\s*/i, '');
-            }
             const displayDate = date.replace(/^_+$/, '').trim();
 
-            html += `
+            sHtml += `
                 <div class="prev-signer-col">
                     <div class="sig-line-wrap"></div>
                     <div class="sig-label">Signature</div>
@@ -1105,27 +1112,143 @@ function renderDocumentPreview() {
             `;
         });
 
-        html += `</div></div>`;
+        sHtml += `</div></div>`;
+        blocks.push({ type: 'signatures', isSignatures: true, html: sHtml });
     }
 
-    // 7. Footer
-    const pFmt = document.getElementById('footer-pagenum-format')?.value || 'page_x_of_y';
-    if (pFmt !== 'none') {
-        const fText = document.getElementById('footer-custom-text')?.value || '';
-        let pageStr = 'Page 1 of 5';
-        if (pFmt === 'page_x') pageStr = 'Page 1';
-        if (pFmt === 'dash_x_dash') pageStr = '- 1 -';
-        if (pFmt === 'x_slash_y') pageStr = '1 / 5';
+    // 3. Measurement & Multi-Page Partitioning
+    const MM_TO_PX = 3.779527;
+    const pageUsableHeight = (297 - marginTop - marginBottom) * MM_TO_PX;
+    const footerHeightPx = 36;
 
-        html += `
-            <div class="prev-footer">
-                ${fText ? `<span>${escapeHTML(fText)} • </span>` : ''}
-                <span>${pageStr}</span>
+    // Measurement Sandbox
+    let sandbox = document.getElementById('preview-measure-sandbox');
+    if (!sandbox) {
+        sandbox = document.createElement('div');
+        sandbox.id = 'preview-measure-sandbox';
+        sandbox.style.position = 'fixed';
+        sandbox.style.visibility = 'hidden';
+        sandbox.style.left = '-99999px';
+        sandbox.style.top = '0';
+        sandbox.style.boxSizing = 'border-box';
+        document.body.appendChild(sandbox);
+    }
+    sandbox.style.width = `${(210 - marginLeft - marginRight) * MM_TO_PX}px`;
+    sandbox.style.fontFamily = fontCSS;
+    sandbox.style.fontSize = `${bodySize}pt`;
+    sandbox.style.lineHeight = String(lineSpacing);
+
+    function measureHtml(htmlSnippet) {
+        if (!htmlSnippet) return 0;
+        sandbox.innerHTML = htmlSnippet;
+        return sandbox.offsetHeight;
+    }
+
+    const header1Height = measureHtml(page1HeaderHtml);
+    const runHeaderHeight = measureHtml(runningHeaderHtml);
+
+    const maxPage1 = Math.max(100, pageUsableHeight - footerHeightPx - header1Height - 8);
+    const maxPageN = Math.max(100, pageUsableHeight - footerHeightPx - runHeaderHeight - 8);
+
+    const pages = [ [] ];
+    let curPage = 0;
+    let curHeight = 0;
+    let curMax = maxPage1;
+
+    blocks.forEach(b => {
+        const bHeight = measureHtml(b.html) + 6;
+        if (b.isSignatures) {
+            if (curHeight + bHeight > curMax && curHeight > 0) {
+                curPage++;
+                curHeight = 0;
+                curMax = maxPageN;
+                pages.push([]);
+            }
+            pages[curPage].push(b.html);
+            curHeight += bHeight;
+        } else if (b.isHeading) {
+            if (curHeight + bHeight + 40 > curMax && curHeight > 0) {
+                curPage++;
+                curHeight = 0;
+                curMax = maxPageN;
+                pages.push([]);
+            }
+            pages[curPage].push(b.html);
+            curHeight += bHeight;
+        } else {
+            if (curHeight + bHeight > curMax && curHeight > 0) {
+                curPage++;
+                curHeight = 0;
+                curMax = maxPageN;
+                pages.push([]);
+            }
+            pages[curPage].push(b.html);
+            curHeight += bHeight;
+        }
+    });
+
+    // 4. Render All Multi-Page Sheets with Page Breaks
+    const totalPages = pages.length;
+    const pFmt = document.getElementById('footer-pagenum-format')?.value || 'page_x_of_y';
+    const fText = document.getElementById('footer-custom-text')?.value || '';
+
+    const l1Pos = marginLeft + l1Offset;
+    const l2Pos = marginLeft + l2Wrap;
+    const l3Pos = marginLeft + l3Wrap;
+    const l4Pos = marginLeft + l4Wrap;
+    const l5Pos = marginLeft + l5Wrap;
+
+    let fullHtml = '';
+
+    for (let p = 0; p < totalPages; p++) {
+        const pageNum = p + 1;
+        let pageStr = `Page ${pageNum} of ${totalPages}`;
+        if (pFmt === 'page_x') pageStr = `Page ${pageNum}`;
+        if (pFmt === 'dash_x_dash') pageStr = `- ${pageNum} -`;
+        if (pFmt === 'x_slash_y') pageStr = `${pageNum} / ${totalPages}`;
+        if (pFmt === 'none') pageStr = '';
+
+        const headerSnippet = p === 0 ? page1HeaderHtml : (headerFreq === 'all_pages' ? runningHeaderHtml : '');
+
+        if (p > 0) {
+            fullHtml += `
+                <div class="preview-page-break-divider">
+                    <div class="page-break-line"></div>
+                    <span class="page-break-badge">✂️ Page Break — Page ${pageNum}</span>
+                    <div class="page-break-line"></div>
+                </div>
+            `;
+        }
+
+        fullHtml += `
+            <div class="a4-page-canvas a4-sheet" data-page="${pageNum}" style="font-family: ${fontCSS}; line-height: ${lineSpacing}; color: ${textColor}; padding: ${marginTop}mm ${marginRight}mm ${marginBottom}mm ${marginLeft}mm;">
+                <div class="spatial-grid-overlay">
+                    <div class="guide-line guide-margin-left" style="left: ${marginLeft}mm;" title="Left Margin: ${marginLeft}mm"><span class="guide-tag">Margin (${marginLeft}mm)</span></div>
+                    <div class="guide-line guide-level-1" style="left: ${l1Pos}mm;" title="Level 1 Line"><span class="guide-tag">L1</span></div>
+                    <div class="guide-line guide-level-2" style="left: ${l2Pos}mm;" title="Level 2 Line"><span class="guide-tag">L2</span></div>
+                    <div class="guide-line guide-level-3" style="left: ${l3Pos}mm;" title="Level 3 Line"><span class="guide-tag">L3</span></div>
+                    <div class="guide-line guide-level-4" style="left: ${l4Pos}mm;" title="Level 4 Line"><span class="guide-tag">L4</span></div>
+                    <div class="guide-line guide-level-5" style="left: ${l5Pos}mm;" title="Level 5 Line"><span class="guide-tag">L5</span></div>
+                    <div class="guide-line guide-margin-right" style="right: ${marginRight}mm;" title="Right Margin: ${marginRight}mm"><span class="guide-tag">Right (${marginRight}mm)</span></div>
+                </div>
+                <div class="doc-page-inner">
+                    ${headerSnippet ? `<div class="doc-page-header">${headerSnippet}</div>` : ''}
+                    <div class="doc-page-body">
+                        ${pages[p].join('')}
+                    </div>
+                    ${pFmt !== 'none' || fText ? `
+                        <div class="prev-footer">
+                            ${fText ? `<span>${escapeHTML(fText)} • </span>` : '<span></span>'}
+                            <span>${pageStr}</span>
+                        </div>
+                    ` : ''}
+                </div>
             </div>
         `;
     }
 
-    container.innerHTML = html;
+    container.innerHTML = fullHtml;
+    updateSpatialGuides();
 }
 
 // ── Document Generation & Export API ──
