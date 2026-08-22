@@ -898,12 +898,15 @@ $docPath = "${docxPath.replace(/\\/g, '\\\\')}"
 $pdfPath = "${pdfPath.replace(/\\/g, '\\\\')}"
 $word = New-Object -ComObject Word.Application
 $word.Visible = $false
+$word.DisplayAlerts = 0
 try {
-    $doc = $word.Documents.Open($docPath)
+    $doc = $word.Documents.Open($docPath, $false, $true)
     $doc.SaveAs([ref]$pdfPath, [ref]17) # wdFormatPDF
-    $doc.Close()
+    $doc.Close([ref]0)
 } finally {
     $word.Quit()
+    [System.Runtime.InteropServices.Marshal]::ReleaseComObject($word) | Out-Null
+    [System.GC]::Collect()
 }
 `;
 

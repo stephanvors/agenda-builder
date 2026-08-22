@@ -1129,20 +1129,20 @@ function renderDocumentPreview() {
 }
 
 // ── Document Generation & Export API ──
-async function generateAndExportDocument() {
+async function generateAndExportDocument(formatOverride = null) {
     const statusBox = document.getElementById('generation-status');
     const genBtn = document.getElementById('btn-generate-doc');
 
     if (statusBox) {
         statusBox.classList.remove('hidden');
-        statusBox.innerHTML = `<div class="spinner-row"><span>Compiling formatted document with hanging indents...</span></div>`;
+        statusBox.innerHTML = `<div class="spinner-row"><span>Compiling formatted document...</span></div>`;
     }
     if (genBtn) genBtn.disabled = true;
 
     try {
         const config = collectCurrentConfig();
         const rawText = document.getElementById('raw-text-input')?.value || '';
-        const outputFormat = document.querySelector('input[name="output-format"]:checked')?.value || 'docx';
+        const outputFormat = formatOverride || document.querySelector('input[name="output-format"]:checked')?.value || 'docx';
         const saveTarget = document.querySelector('input[name="save-target"]:checked')?.value || 'download';
         const serverPath = document.getElementById('custom-server-path')?.value || '';
         const vaultCategory = document.getElementById('vault-category-select')?.value || 'Governance & Policy';

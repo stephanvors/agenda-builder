@@ -2171,13 +2171,19 @@ app.post('/api/doc-formatter/generate', async (req, res) => {
         await convertDocxToPdf(docxFilePath, pdfFilePath);
         pdfBuffer = await fs.readFile(pdfFilePath);
       } catch (pdfErr) {
-        console.error('PDF conversion warning:', pdfErr.message);
+        console.error('PDF conversion error:', pdfErr);
+        if (outputFormat === 'pdf') {
+          return res.status(500).json({ error: `PDF conversion failed: ${pdfErr.message || pdfErr}` });
+        }
       }
     }
 
     // 1. Direct Download
     if (saveTarget === 'download') {
-      if (outputFormat === 'pdf' && pdfBuffer) {
+      if (outputFormat === 'pdf') {
+        if (!pdfBuffer) {
+          return res.status(500).json({ error: 'PDF file could not be generated' });
+        }
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename="${pdfFilename}"`);
         return res.send(pdfBuffer);
