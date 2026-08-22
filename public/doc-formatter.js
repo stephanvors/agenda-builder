@@ -714,17 +714,25 @@ function renderSigners(signers) {
     const container = document.getElementById('signers-container');
     if (!container) return;
     container.innerHTML = '';
-    signers.forEach(s => addSignerRow(s.role, s.dateLabel));
+    if (!signers || signers.length === 0) {
+        signers = [
+            { role: 'SGB Chairperson', name: '', dateLabel: 'Date: ____________________' },
+            { role: 'SGB Treasurer', name: '', dateLabel: 'Date: ____________________' },
+            { role: 'School Principal', name: '', dateLabel: 'Date: ____________________' }
+        ];
+    }
+    signers.forEach(s => addSignerRow(s.role, s.name || '', s.dateLabel));
 }
 
-function addSignerRow(role = 'SGB Chairperson', dateLabel = 'Date: ____________________') {
+function addSignerRow(role = 'SGB Chairperson', name = '', dateLabel = 'Date: ____________________') {
     const container = document.getElementById('signers-container');
     if (!container) return;
 
     const row = document.createElement('div');
     row.className = 'signer-row-item';
     row.innerHTML = `
-        <input type="text" class="studio-input signer-role-input" placeholder="Role Title" value="${escapeHTML(role)}">
+        <input type="text" class="studio-input signer-role-input" placeholder="Role (e.g. SGB Chairperson)" value="${escapeHTML(role)}">
+        <input type="text" class="studio-input signer-name-input" placeholder="Name (e.g. Dr. A. Smith / Blank)" value="${escapeHTML(name)}">
         <input type="text" class="studio-input signer-date-input" placeholder="Date Label" value="${escapeHTML(dateLabel)}">
         <button type="button" class="btn-del-row" title="Delete Signer">✕</button>
     `;
@@ -732,9 +740,13 @@ function addSignerRow(role = 'SGB Chairperson', dateLabel = 'Date: _____________
     row.querySelector('.btn-del-row').addEventListener('click', () => {
         row.remove();
         parseTextAndUpdatePreview();
+        saveDraftToLocalStorage();
     });
 
-    row.querySelectorAll('input').forEach(i => i.addEventListener('input', parseTextAndUpdatePreview));
+    row.querySelectorAll('input').forEach(i => i.addEventListener('input', () => {
+        parseTextAndUpdatePreview();
+        saveDraftToLocalStorage();
+    }));
     container.appendChild(row);
 }
 
@@ -1037,10 +1049,14 @@ function renderDocumentPreview() {
 
         signerEls.forEach(s => {
             const role = s.querySelector('.signer-role-input')?.value || 'Signatory';
+            const name = s.querySelector('.signer-name-input')?.value || '';
+            const nameDisplay = name.trim() ? (name.toLowerCase().startsWith('name:') ? name : `Name: ${name}`) : 'Name: _____________________';
             const date = s.querySelector('.signer-date-input')?.value || 'Date: ____________________';
             html += `
                 <div class="prev-signer-col">
-                    <div class="line">_____________________________</div>
+                    <div class="sig-line">_____________________________</div>
+                    <div class="sig-label">Signature</div>
+                    <div class="signer-name">${escapeHTML(nameDisplay)}</div>
                     <div class="role" style="color: ${primaryColor};">${escapeHTML(role)}</div>
                     <div class="date">${escapeHTML(date)}</div>
                 </div>
@@ -1172,6 +1188,7 @@ function collectCurrentConfig() {
     document.querySelectorAll('.signer-row-item').forEach(s => {
         signers.push({
             role: s.querySelector('.signer-role-input')?.value || '',
+            name: s.querySelector('.signer-name-input')?.value || '',
             dateLabel: s.querySelector('.signer-date-input')?.value || ''
         });
     });

@@ -714,13 +714,14 @@ export async function buildFormattedDocx(config, parsedBlocks) {
     }
   });
 
-  // 5. Sign-off Resolution Signature Block
+  // 5. Sign-off Resolution Signature Block (Held together as one single unit)
   if (comps.signatures && comps.signatures.enabled && Array.isArray(comps.signatures.signers) && comps.signatures.signers.length) {
     if (comps.signatures.title) {
       docChildren.push(
         new Paragraph({
           spacing: { before: 260, after: 100 },
           keepWithNext: true,
+          keepLines: true,
           children: [
             new TextRun({
               text: comps.signatures.title.toUpperCase(),
@@ -736,8 +737,10 @@ export async function buildFormattedDocx(config, parsedBlocks) {
     if (comps.signatures.introText) {
       docChildren.push(
         new Paragraph({
-          spacing: { before: 60, after: 120, line: lineSpacing },
+          spacing: { before: 60, after: 140, line: lineSpacing },
           alignment: AlignmentType.BOTH,
+          keepWithNext: true,
+          keepLines: true,
           children: [
             new TextRun({
               text: comps.signatures.introText,
@@ -754,20 +757,41 @@ export async function buildFormattedDocx(config, parsedBlocks) {
     const colWidthMm = bodyWidthMm / signers.length;
 
     const signatureCells = signers.map(s => {
+      const nameText = s.name && s.name.trim()
+        ? (s.name.toLowerCase().startsWith('name:') ? s.name : `Name: ${s.name}`)
+        : 'Name: _____________________';
+
       return new TableCell({
         width: { size: convertMillimetersToTwip(colWidthMm), type: WidthType.DXA },
-        margins: { left: 40, right: 40, top: 200, bottom: 0 },
+        margins: { left: 40, right: 40, top: 160, bottom: 40 },
         children: [
           new Paragraph({
-            spacing: { before: 0, after: 40 },
+            spacing: { before: 0, after: 20 },
+            keepWithNext: true,
+            keepLines: true,
             children: [new TextRun({ text: '_____________________________', color: '64748B', font: fontFamily, size: baseSizeHps })],
           }),
           new Paragraph({
+            spacing: { before: 0, after: 50 },
+            keepWithNext: true,
+            keepLines: true,
+            children: [new TextRun({ text: 'Signature', italics: true, color: '64748B', font: fontFamily, size: Math.max(7, (baseSizeHps / 2) - 2) * 2 })],
+          }),
+          new Paragraph({
             spacing: { before: 0, after: 30 },
+            keepWithNext: true,
+            keepLines: true,
+            children: [new TextRun({ text: nameText, color: textColor, font: fontFamily, size: baseSizeHps - 1 })],
+          }),
+          new Paragraph({
+            spacing: { before: 0, after: 30 },
+            keepWithNext: true,
+            keepLines: true,
             children: [new TextRun({ text: s.role || 'Signatory', bold: true, color: primaryColor, font: fontFamily, size: baseSizeHps - 1 })],
           }),
           new Paragraph({
             spacing: { before: 0, after: 0 },
+            keepLines: true,
             children: [new TextRun({ text: s.dateLabel || 'Date: ____________________', color: textColor, font: fontFamily, size: baseSizeHps - 2 })],
           }),
         ],
@@ -785,7 +809,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
           insideHorizontal: { style: BorderStyle.NONE },
           insideVertical: { style: BorderStyle.NONE },
         },
-        rows: [new TableRow({ children: signatureCells })],
+        rows: [new TableRow({ cantSplit: true, children: signatureCells })],
       })
     );
   }

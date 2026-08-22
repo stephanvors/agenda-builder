@@ -538,13 +538,19 @@ body.formatter-studio-body {
 }
 
 .badge-pill {
-    padding: 0.15rem 0.45rem;
+    padding: 0.2rem 0.55rem;
     background: var(--bg-subtle);
     border: 1px solid var(--border);
     border-radius: 12px;
-    font-size: 0.7rem;
+    font-size: 0.72rem;
     color: var(--text-muted);
     font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    white-space: nowrap;
+    line-height: 1.2;
 }
 
 /* File Drop Zone */
@@ -635,10 +641,31 @@ body.formatter-studio-body {
 }
 
 /* Meta Rows & Signers dynamic lists */
-.meta-row-item,
-.signer-row-item {
+.meta-row-item {
     display: grid;
     grid-template-columns: 1fr 1fr 32px;
+    gap: 0.4rem;
+    align-items: center;
+    margin-bottom: 0.4rem;
+}
+
+.signers-header-row {
+    display: grid;
+    grid-template-columns: 1.1fr 1.1fr 1fr 32px;
+    gap: 0.4rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 0 0.2rem 0.2rem 0.2rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0.4rem;
+}
+
+.signer-row-item {
+    display: grid;
+    grid-template-columns: 1.1fr 1.1fr 1fr 32px;
     gap: 0.4rem;
     align-items: center;
     margin-bottom: 0.4rem;
@@ -948,6 +975,9 @@ body.formatter-studio-body {
 
 .prev-signatures-section {
     margin-top: 8mm;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    break-inside: avoid-page !important;
 }
 
 .prev-signatures-title {
@@ -955,12 +985,16 @@ body.formatter-studio-body {
     font-weight: bold;
     color: #0C2340;
     margin-bottom: 2mm;
+    page-break-after: avoid;
+    break-after: avoid;
 }
 
 .prev-signatures-intro {
     font-size: 10pt;
     margin-bottom: 4mm;
     text-align: justify;
+    page-break-after: avoid;
+    break-after: avoid;
 }
 
 .prev-signatures-table {
@@ -969,16 +1003,35 @@ body.formatter-studio-body {
     grid-template-columns: repeat(3, 1fr);
     gap: 5mm;
     margin-top: 5mm;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
 }
 
 .prev-signer-col {
     display: flex;
     flex-direction: column;
-    gap: 1mm;
+    gap: 0.8mm;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
 }
 
-.prev-signer-col .line {
+.prev-signer-col .sig-line {
     color: #64748B;
+    font-weight: 500;
+}
+
+.prev-signer-col .sig-label {
+    font-size: 7.5pt;
+    font-style: italic;
+    color: #64748B;
+    margin-top: -0.5mm;
+    margin-bottom: 1.5mm;
+}
+
+.prev-signer-col .signer-name {
+    font-size: 8.8pt;
+    color: #1E293B;
+    margin-bottom: 0.5mm;
 }
 
 .prev-signer-col .role {
@@ -1014,9 +1067,15 @@ body.formatter-studio-body {
     background: #EF4444 !important;
     color: #FFFFFF !important;
     font-weight: 700;
-    padding: 0.1rem 0.4rem;
-    border-radius: 10px;
-    font-size: 0.68rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.72rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    white-space: nowrap;
+    line-height: 1.2;
 }
 
 .enza-badge.clean {
