@@ -4,11 +4,15 @@ import fs from 'fs/promises';
 import fsSync from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { exec } from 'child_process';
+import util from 'util';
 import XLSX from 'xlsx';
 import pg from 'pg';
 import multer from 'multer';
 import { parseRawText, buildFormattedDocx, convertDocxToPdf } from './formatterEngine.js';
 import { checkDocText } from './spellcheckerEngine.js';
+
+const execPromise = util.promisify(exec);
 
 const { Pool } = pg;
 const __filename = fileURLToPath(import.meta.url);
@@ -2360,6 +2364,23 @@ app.get('/api/doc-formatter/download-audit', async (req, res) => {
     res.download(filePath, safeFile);
   } catch (err) {
     res.status(500).send(err.message);
+  }
+});
+
+// POST /api/doc-formatter/open-folder: open target folder in Windows File Explorer
+app.post('/api/doc-formatter/open-folder', async (req, res) => {
+  try {
+    const { folder = '01_SGB_Constitution' } = req.body;
+    const safeFolder = path.basename(folder);
+    const targetPath = path.join(SGB_AUDIT_BASE_DIR, safeFolder);
+    if (!fsSync.existsSync(targetPath)) {
+      await fs.mkdir(targetPath, { recursive: true });
+    }
+    exec(`explorer.exe "${targetPath}"`);
+    res.json({ success: true, message: `Opened folder: ${targetPath}` });
+  } catch (err) {
+    console.error('Failed to open folder:', err);
+    res.status(500).json({ error: err.message });
   }
 });
 

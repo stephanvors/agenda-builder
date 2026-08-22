@@ -1336,11 +1336,13 @@ async function generateAndExportDocument(formatOverride = null) {
         const contentType = res.headers.get('Content-Type') || '';
         if (contentType.includes('application/json')) {
             const result = await res.json();
+            const folderId = result.auditFolder || '01_SGB_Constitution';
             statusBox.innerHTML = `
                 <div style="color: #10B981; font-weight: bold; margin-bottom: 4px;">✅ Document Generated &amp; Saved!</div>
                 <div style="font-size: 9.5pt; color: #E2E8F0; margin-bottom: 4px;">${escapeHTML(result.message || 'Saved successfully.')}</div>
-                ${result.auditFolderPath ? `<div style="font-size: 8.5pt; color: #94A3B8; margin-bottom: 8px;">Audit Path: <code>${escapeHTML(result.auditFolderPath)}</code></div>` : ''}
-                <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px;">
+                ${result.auditFolderPath ? `<div style="font-size: 8.5pt; color: #94A3B8; margin-bottom: 8px;">Target Directory: <code>${escapeHTML(result.auditFolderPath)}</code></div>` : ''}
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px;">
+                    <button type="button" class="btn btn-sm btn-primary" onclick="openAuditFolderInExplorer('${escapeHTML(folderId)}')">📂 Open Folder in File Explorer</button>
                     ${result.docxUrl ? `<a href="${result.docxUrl}" class="btn btn-sm btn-outline" download>📥 Download DOCX</a> ` : ''}
                     ${result.pdfUrl ? `<a href="${result.pdfUrl}" class="btn btn-sm btn-outline" download>📥 Download PDF</a> ` : ''}
                 </div>
@@ -2033,3 +2035,17 @@ function showToast(msg, isError = false) {
         setTimeout(() => toast.remove(), 300);
     }, 3200);
 }
+
+window.openAuditFolderInExplorer = async function(folderId) {
+    try {
+        const res = await fetch('/api/doc-formatter/open-folder', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ folder: folderId })
+        });
+        const d = await res.json();
+        showToast(d.message || 'Opened folder in File Explorer');
+    } catch (e) {
+        showToast('Could not open folder: ' + e.message, true);
+    }
+};
