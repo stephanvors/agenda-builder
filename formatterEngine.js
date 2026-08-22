@@ -22,6 +22,7 @@ const {
   AlignmentType,
   VerticalAlign,
   BorderStyle,
+  HeightRule,
   Header,
   Footer,
   PageNumber,
@@ -223,8 +224,8 @@ export async function buildFormattedDocx(config, parsedBlocks) {
     // Mode 2: Structured Letterhead (Dual stripe + Logo + Text + Badge)
     // Optional top color stripe
     if (hdr.showColorBar !== false) {
-      const c1 = (hdr.colorBarPrimary || secondaryColor).replace('#', '');
-      const c2 = (hdr.colorBarSecondary || primaryColor).replace('#', '');
+      const c1 = (hdr.colorBarPrimary || secondaryColor || 'A6192E').replace('#', '');
+      const c2 = (hdr.colorBarSecondary || primaryColor || '0C2340').replace('#', '');
       const stripeTable = new Table({
         width: { size: convertMillimetersToTwip(bodyWidthMm), type: WidthType.DXA },
         borders: {
@@ -237,18 +238,19 @@ export async function buildFormattedDocx(config, parsedBlocks) {
         },
         rows: [
           new TableRow({
+            height: { value: convertMillimetersToTwip(2.2), rule: HeightRule.EXACT },
             children: [
               new TableCell({
-                width: { size: convertMillimetersToTwip(bodyWidthMm * 0.68), type: WidthType.DXA },
+                width: { size: convertMillimetersToTwip(bodyWidthMm * 0.65), type: WidthType.DXA },
                 shading: { fill: c1 },
-                children: [new Paragraph({ spacing: { before: 0, after: 0 }, children: [] })],
-                margins: { top: 20, bottom: 20, left: 0, right: 0 },
+                margins: { top: 0, bottom: 0, left: 0, right: 0 },
+                children: [new Paragraph({ spacing: { before: 0, after: 0, line: 20 }, children: [new TextRun({ text: ' ', size: 2 })] })],
               }),
               new TableCell({
-                width: { size: convertMillimetersToTwip(bodyWidthMm * 0.32), type: WidthType.DXA },
+                width: { size: convertMillimetersToTwip(bodyWidthMm * 0.35), type: WidthType.DXA },
                 shading: { fill: c2 },
-                children: [new Paragraph({ spacing: { before: 0, after: 0 }, children: [] })],
-                margins: { top: 20, bottom: 20, left: 0, right: 0 },
+                margins: { top: 0, bottom: 0, left: 0, right: 0 },
+                children: [new Paragraph({ spacing: { before: 0, after: 0, line: 20 }, children: [new TextRun({ text: ' ', size: 2 })] })],
               }),
             ],
           }),
@@ -274,13 +276,14 @@ export async function buildFormattedDocx(config, parsedBlocks) {
         new TableCell({
           width: { size: convertMillimetersToTwip(18), type: WidthType.DXA },
           verticalAlign: VerticalAlign.CENTER,
+          margins: { top: 20, bottom: 20, left: 0, right: 30 },
           children: [
             new Paragraph({
-              spacing: { before: 20, after: 20 },
+              spacing: { before: 0, after: 0 },
               children: [
                 new ImageRun({
                   data: emblemData,
-                  transformation: { width: 50, height: 50 },
+                  transformation: { width: 46, height: 46 },
                   type: 'png',
                 }),
               ],
@@ -291,38 +294,38 @@ export async function buildFormattedDocx(config, parsedBlocks) {
     }
 
     // Center Details Cell
-    const textCellWidthMm = hdr.showBadge !== false ? bodyWidthMm - (tableCells.length ? 18 : 0) - 45 : bodyWidthMm - (tableCells.length ? 18 : 0);
+    const textCellWidthMm = hdr.showBadge !== false ? bodyWidthMm - (tableCells.length ? 18 : 0) - 40 : bodyWidthMm - (tableCells.length ? 18 : 0);
     const detailParagraphs = [];
 
     if (hdr.title) {
       detailParagraphs.push(
         new Paragraph({
-          spacing: { before: 10, after: 4 },
-          children: [new TextRun({ text: hdr.title, bold: true, size: 24, color: primaryColor, font: fontFamily })],
+          spacing: { before: 0, after: 15, line: 240 },
+          children: [new TextRun({ text: hdr.title, bold: true, size: 22, color: primaryColor, font: fontFamily })],
         })
       );
     }
     if (hdr.subtitle) {
       detailParagraphs.push(
         new Paragraph({
-          spacing: { before: 0, after: 4 },
-          children: [new TextRun({ text: hdr.subtitle, bold: true, size: 18, color: secondaryColor, font: fontFamily })],
+          spacing: { before: 0, after: 15, line: 240 },
+          children: [new TextRun({ text: hdr.subtitle, bold: true, size: 17, color: secondaryColor, font: fontFamily })],
         })
       );
     }
     if (hdr.contact) {
       detailParagraphs.push(
         new Paragraph({
-          spacing: { before: 0, after: 4 },
-          children: [new TextRun({ text: hdr.contact, size: 16, color: '333333', font: fontFamily })],
+          spacing: { before: 0, after: 10, line: 220 },
+          children: [new TextRun({ text: hdr.contact, size: 15, color: '475569', font: fontFamily })],
         })
       );
     }
     if (hdr.emis) {
       detailParagraphs.push(
         new Paragraph({
-          spacing: { before: 0, after: 8 },
-          children: [new TextRun({ text: hdr.emis, size: 16, color: '333333', font: fontFamily })],
+          spacing: { before: 0, after: 0, line: 200 },
+          children: [new TextRun({ text: hdr.emis, size: 14, color: '475569', font: fontFamily })],
         })
       );
     }
@@ -331,7 +334,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
       new TableCell({
         width: { size: convertMillimetersToTwip(textCellWidthMm), type: WidthType.DXA },
         verticalAlign: VerticalAlign.CENTER,
-        margins: { left: 80, right: 80, top: 20, bottom: 20 },
+        margins: { left: 40, right: 40, top: 15, bottom: 15 },
         children: detailParagraphs.length ? detailParagraphs : [new Paragraph({ children: [] })],
       })
     );
@@ -340,23 +343,23 @@ export async function buildFormattedDocx(config, parsedBlocks) {
     if (hdr.showBadge !== false && (hdr.badgeText || hdr.badgeSubtext)) {
       tableCells.push(
         new TableCell({
-          width: { size: convertMillimetersToTwip(45), type: WidthType.DXA },
+          width: { size: convertMillimetersToTwip(40), type: WidthType.DXA },
           verticalAlign: VerticalAlign.CENTER,
           borders: {
-            left: { style: BorderStyle.SINGLE, size: 24, color: primaryColor },
+            left: { style: BorderStyle.SINGLE, size: 18, color: primaryColor },
             top: { style: BorderStyle.NONE },
             right: { style: BorderStyle.NONE },
             bottom: { style: BorderStyle.NONE },
           },
-          margins: { left: 140, right: 0, top: 20, bottom: 20 },
+          margins: { left: 80, right: 0, top: 15, bottom: 15 },
           children: [
             new Paragraph({
-              spacing: { before: 5, after: 0 },
-              children: [new TextRun({ text: hdr.badgeText || 'OFFICIAL', bold: true, size: 20, color: primaryColor, font: fontFamily })],
+              spacing: { before: 0, after: 4 },
+              children: [new TextRun({ text: hdr.badgeText || 'OFFICIAL', bold: true, size: 18, color: primaryColor, font: fontFamily })],
             }),
             new Paragraph({
-              spacing: { before: 0, after: 5 },
-              children: [new TextRun({ text: hdr.badgeSubtext || 'CORRESPONDENCE', size: 16, color: '64748B', font: fontFamily })],
+              spacing: { before: 0, after: 0 },
+              children: [new TextRun({ text: hdr.badgeSubtext || 'CORRESPONDENCE', size: 14, color: '64748B', font: fontFamily })],
             }),
           ],
         })

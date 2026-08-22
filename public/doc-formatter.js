@@ -611,14 +611,16 @@ function initEventListeners() {
     document.getElementById('btn-save-preset')?.addEventListener('click', saveCurrentAsPreset);
 
     // Generate & Export Button
-    document.getElementById('btn-generate-doc')?.addEventListener('click', generateAndExportDocument);
+    document.getElementById('btn-generate-doc')?.addEventListener('click', () => generateAndExportDocument());
     document.getElementById('btn-quick-docx')?.addEventListener('click', () => {
-        document.querySelector('input[name="output-format"][value="docx"]').checked = true;
-        generateAndExportDocument();
+        const r = document.querySelector('input[name="output-format"][value="docx"]');
+        if (r) r.checked = true;
+        generateAndExportDocument('docx');
     });
     document.getElementById('btn-quick-pdf')?.addEventListener('click', () => {
-        document.querySelector('input[name="output-format"][value="pdf"]').checked = true;
-        generateAndExportDocument();
+        const r = document.querySelector('input[name="output-format"][value="pdf"]');
+        if (r) r.checked = true;
+        generateAndExportDocument('pdf');
     });
 }
 
@@ -855,6 +857,22 @@ function scheduleBackgroundSpellCheck() {
     }, 450);
 }
 
+function getFontFamilyCSS(fontName) {
+    const map = {
+        'Aptos': '"Aptos", "Aptos Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Calibri, sans-serif',
+        'Arial': 'Arial, "Helvetica Neue", Helvetica, sans-serif',
+        'Calibri': 'Calibri, "Segoe UI", Candara, Arial, sans-serif',
+        'Times New Roman': '"Times New Roman", Times, "Liberation Serif", serif',
+        'Segoe UI': '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif',
+        'Georgia': 'Georgia, "Times New Roman", Times, serif',
+        'Cambria': 'Cambria, Georgia, serif',
+        'Garamond': 'Garamond, "EB Garamond", Georgia, serif',
+        'Tahoma': 'Tahoma, Verdana, "Segoe UI", sans-serif',
+        'Verdana': 'Verdana, Geneva, sans-serif'
+    };
+    return map[fontName] || `"${fontName}", sans-serif`;
+}
+
 function renderDocumentPreview() {
     const container = document.getElementById('doc-preview-content');
     if (!container) return;
@@ -863,13 +881,16 @@ function renderDocumentPreview() {
     const secondaryColor = document.getElementById('secondary-color-input')?.value || '#A6192E';
     const textColor = document.getElementById('text-color-input')?.value || '#1A1A1A';
     const fontFamily = document.getElementById('font-family-select')?.value || 'Arial';
+    const fontCSS = getFontFamilyCSS(fontFamily);
     const lineSpacing = Number(document.getElementById('line-spacing-select')?.value) || 1.15;
-    const bodySize = Number(document.getElementById('body-size-input')?.value) || 10;
+    const titleSize = Number(document.getElementById('title-size-input')?.value) || 14;
+    const subtitleSize = Number(document.getElementById('subtitle-size-input')?.value) || 12;
     const h1Size = Number(document.getElementById('h1-size-input')?.value) || 11;
+    const bodySize = Number(document.getElementById('body-size-input')?.value) || 10;
 
     const pageCanvas = document.getElementById('preview-page');
     if (pageCanvas) {
-        pageCanvas.style.fontFamily = fontFamily;
+        pageCanvas.style.fontFamily = fontCSS;
         pageCanvas.style.lineHeight = lineSpacing;
         pageCanvas.style.color = textColor;
         pageCanvas.style.paddingLeft = (document.getElementById('margin-left-input')?.value || 10) + 'mm';
@@ -877,6 +898,7 @@ function renderDocumentPreview() {
         pageCanvas.style.paddingTop = (document.getElementById('margin-top-input')?.value || 10) + 'mm';
         pageCanvas.style.paddingBottom = (document.getElementById('margin-bottom-input')?.value || 10) + 'mm';
     }
+    container.style.fontFamily = fontCSS;
 
     let html = '';
 
@@ -942,10 +964,10 @@ function renderDocumentPreview() {
     const docSubtitle = document.getElementById('doc-subtitle-input')?.value || '';
 
     if (docTitle) {
-        html += `<div class="prev-doc-title" style="color: ${primaryColor};">${escapeHTML(docTitle)}</div>`;
+        html += `<div class="prev-doc-title" style="color: ${primaryColor}; font-size: ${titleSize}pt;">${escapeHTML(docTitle)}</div>`;
     }
     if (docSubtitle) {
-        html += `<div class="prev-doc-subtitle" style="color: ${secondaryColor};">${escapeHTML(docSubtitle)}</div>`;
+        html += `<div class="prev-doc-subtitle" style="color: ${secondaryColor}; font-size: ${subtitleSize}pt;">${escapeHTML(docSubtitle)}</div>`;
     }
 
     // 3. Metadata Table
