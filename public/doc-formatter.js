@@ -603,9 +603,16 @@ function initEventListeners() {
         });
     });
 
-    // Audit Folder Selector change
+    // Audit Folder Selector change & Title change
     document.getElementById('audit-folder-select')?.addEventListener('change', updateAuditFolderHint);
-    document.getElementById('doc-title-input')?.addEventListener('input', updateAuditFolderHint);
+    document.getElementById('doc-title-input')?.addEventListener('input', () => {
+        updateDynamicTitleInSignaturesAndNotice();
+        updateAuditFolderHint();
+    });
+    document.getElementById('doc-title-input')?.addEventListener('change', () => {
+        updateDynamicTitleInSignaturesAndNotice();
+        updateAuditFolderHint();
+    });
 
     // Spatial Grid toggle
     document.getElementById('toggle-grid-overlay')?.addEventListener('change', (e) => {
@@ -658,6 +665,34 @@ function updateAuditFolderHint() {
     else if (title.includes('safety') || title.includes('emergency') || title.includes('disaster')) detected = '16_Safety_Policy_and_Emergency_Protocols';
 
     hintEl.innerHTML = `Target Path (Auto-Detected): <code>SGB_Functionality_Audit_2026/${detected}</code>`;
+}
+
+function updateDynamicTitleInSignaturesAndNotice() {
+    const rawTitle = document.getElementById('doc-title-input')?.value || '';
+    if (!rawTitle.trim()) return;
+
+    let formattedTitle = rawTitle.trim();
+    if (formattedTitle === formattedTitle.toUpperCase() && formattedTitle.length > 3) {
+        formattedTitle = formattedTitle.toLowerCase().replace(/(?:^|\s|-)\S/g, c => c.toUpperCase());
+    }
+
+    const sigIntroEl = document.getElementById('signatures-intro');
+    if (sigIntroEl) {
+        const val = sigIntroEl.value;
+        const match = val.match(/^This\s+(.+?)\s+was formally accepted,\s*approved,\s*and signed at a meeting of the Governing Body/i);
+        if (match || val.includes('Constitution of the School Governing Body') || val.includes('{documentTitle}') || val.includes('{title}')) {
+            sigIntroEl.value = `This ${formattedTitle} was formally accepted, approved, and signed at a meeting of the Governing Body of the Lady Grey Arts Academy.`;
+        }
+    }
+
+    const legalNoticeEl = document.getElementById('legal-notice-text');
+    if (legalNoticeEl) {
+        const val = legalNoticeEl.value;
+        const match = val.match(/^This\s+(.+?)\s+is a legally binding regulatory document/i);
+        if (match || val.toLowerCase().includes('this constitution is a legally binding')) {
+            legalNoticeEl.value = `This ${formattedTitle.toLowerCase()} is a legally binding regulatory document drafted and adopted by the School Governing Body in terms of the South African Schools Act. All members of the governing body, learners, parents, educators, and staff are subject to the provisions herein.`;
+        }
+    }
 }
 
 function syncColorPair(pickerId, inputId) {
@@ -1113,7 +1148,19 @@ function renderDocumentPreview() {
     const showSignatures = document.getElementById('enable-signatures')?.checked;
     if (showSignatures) {
         const sigTitle = document.getElementById('signatures-title')?.value || 'ADOPTION AND SIGN-OFF RESOLUTION';
-        const sigIntro = document.getElementById('signatures-intro')?.value || '';
+        let sigIntro = document.getElementById('signatures-intro')?.value || '';
+        const rawDocTitle = document.getElementById('doc-title-input')?.value || '';
+        if (rawDocTitle) {
+            let formattedTitle = rawDocTitle.trim();
+            if (formattedTitle === formattedTitle.toUpperCase() && formattedTitle.length > 3) {
+                formattedTitle = formattedTitle.toLowerCase().replace(/(?:^|\s|-)\S/g, c => c.toUpperCase());
+            }
+            if (sigIntro.includes('{documentTitle}') || sigIntro.includes('{title}')) {
+                sigIntro = sigIntro.replace(/\{documentTitle\}|\{title\}/g, formattedTitle);
+            } else if (sigIntro.includes('Constitution of the School Governing Body') && !rawDocTitle.toLowerCase().includes('constitution')) {
+                sigIntro = sigIntro.replace(/Constitution of the School Governing Body/gi, formattedTitle);
+            }
+        }
         const signerEls = document.querySelectorAll('.signer-row-item');
 
         let sHtml = `

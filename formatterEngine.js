@@ -766,6 +766,20 @@ export async function buildFormattedDocx(config, parsedBlocks) {
       );
     }
     if (comps.signatures.introText) {
+      let introStr = comps.signatures.introText;
+      const rawTitle = config.documentTitle || '';
+      if (rawTitle) {
+        let formattedTitle = rawTitle.trim();
+        if (formattedTitle === formattedTitle.toUpperCase() && formattedTitle.length > 3) {
+          formattedTitle = formattedTitle.toLowerCase().replace(/(?:^|\s|-)\S/g, c => c.toUpperCase());
+        }
+        if (introStr.includes('{documentTitle}') || introStr.includes('{title}')) {
+          introStr = introStr.replace(/\{documentTitle\}|\{title\}/g, formattedTitle);
+        } else if (introStr.includes('Constitution of the School Governing Body') && !rawTitle.toLowerCase().includes('constitution')) {
+          introStr = introStr.replace(/Constitution of the School Governing Body/gi, formattedTitle);
+        }
+      }
+
       docChildren.push(
         new Paragraph({
           spacing: { before: 60, after: 140, line: lineSpacing },
@@ -774,7 +788,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
           keepLines: true,
           children: [
             new TextRun({
-              text: comps.signatures.introText,
+              text: introStr,
               size: baseSizeHps,
               color: textColor,
               font: fontFamily,
