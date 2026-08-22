@@ -1015,9 +1015,11 @@ body.formatter-studio-body {
     break-inside: avoid !important;
 }
 
-.prev-signer-col .sig-line {
-    color: #64748B;
-    font-weight: 500;
+.prev-signer-col .sig-line-wrap {
+    width: 100%;
+    border-bottom: 1px solid #64748B;
+    height: 3mm;
+    margin-bottom: 1mm;
 }
 
 .prev-signer-col .sig-label {
@@ -1025,24 +1027,46 @@ body.formatter-studio-body {
     font-style: italic;
     color: #64748B;
     margin-top: -0.5mm;
-    margin-bottom: 1.5mm;
+    margin-bottom: 2mm;
 }
 
-.prev-signer-col .signer-name {
+.prev-signer-col .sig-field-row {
+    width: 100%;
+    display: flex;
+    align-items: flex-end;
+    gap: 1.5mm;
     font-size: 8.8pt;
     color: #1E293B;
-    margin-bottom: 0.5mm;
+    margin-bottom: 1mm;
+}
+
+.prev-signer-col .sig-field-label {
+    font-weight: 500;
+    white-space: nowrap;
+    color: #334155;
+    font-size: 8.5pt;
+}
+
+.prev-signer-col .sig-field-underline {
+    flex: 1;
+    border-bottom: 1px solid #64748B;
+    min-height: 3.5mm;
+    font-size: 8.8pt;
+    color: #1E293B;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .prev-signer-col .role {
     font-weight: bold;
     color: #0C2340;
     font-size: 9.5pt;
+    margin-top: 0.5mm;
 }
 
-.prev-signer-col .date {
-    font-size: 8.5pt;
-    color: #333333;
+.prev-signer-col .date-field-row {
+    margin-top: 3.5mm; /* Line spacing before date fields */
 }
 
 .prev-footer {

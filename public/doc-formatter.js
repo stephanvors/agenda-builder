@@ -732,7 +732,7 @@ function addSignerRow(role = 'SGB Chairperson', name = '', dateLabel = 'Date: __
     row.className = 'signer-row-item';
     row.innerHTML = `
         <input type="text" class="studio-input signer-role-input" placeholder="Role (e.g. SGB Chairperson)" value="${escapeHTML(role)}">
-        <input type="text" class="studio-input signer-name-input" placeholder="Name (e.g. Dr. A. Smith / Blank)" value="${escapeHTML(name)}">
+        <input type="text" class="studio-input signer-name-input" placeholder="Surname, Name (e.g. Smith, John)" value="${escapeHTML(name)}">
         <input type="text" class="studio-input signer-date-input" placeholder="Date Label" value="${escapeHTML(dateLabel)}">
         <button type="button" class="btn-del-row" title="Delete Signer">✕</button>
     `;
@@ -1049,16 +1049,31 @@ function renderDocumentPreview() {
 
         signerEls.forEach(s => {
             const role = s.querySelector('.signer-role-input')?.value || 'Signatory';
-            const name = s.querySelector('.signer-name-input')?.value || '';
-            const nameDisplay = name.trim() ? (name.toLowerCase().startsWith('name:') ? name : `Name: ${name}`) : 'Name: _____________________';
-            const date = s.querySelector('.signer-date-input')?.value || 'Date: ____________________';
+            let name = s.querySelector('.signer-name-input')?.value || '';
+            if (name.toLowerCase().startsWith('name:')) {
+                name = name.replace(/^name:\s*/i, '');
+            } else if (name.toLowerCase().startsWith('surname, name:')) {
+                name = name.replace(/^surname,\s*name:\s*/i, '');
+            }
+
+            let date = s.querySelector('.signer-date-input')?.value || '';
+            if (date.toLowerCase().startsWith('date:')) {
+                date = date.replace(/^date:\s*/i, '');
+            }
+
             html += `
                 <div class="prev-signer-col">
-                    <div class="sig-line">_____________________________</div>
+                    <div class="sig-line-wrap"></div>
                     <div class="sig-label">Signature</div>
-                    <div class="signer-name">${escapeHTML(nameDisplay)}</div>
+                    <div class="sig-field-row">
+                        <span class="sig-field-label">Surname, Name:</span>
+                        <span class="sig-field-underline">${escapeHTML(name.trim())}</span>
+                    </div>
                     <div class="role" style="color: ${primaryColor};">${escapeHTML(role)}</div>
-                    <div class="date">${escapeHTML(date)}</div>
+                    <div class="sig-field-row date-field-row">
+                        <span class="sig-field-label">Date:</span>
+                        <span class="sig-field-underline">${escapeHTML(date.trim())}</span>
+                    </div>
                 </div>
             `;
         });

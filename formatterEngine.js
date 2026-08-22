@@ -757,42 +757,60 @@ export async function buildFormattedDocx(config, parsedBlocks) {
     const colWidthMm = bodyWidthMm / signers.length;
 
     const signatureCells = signers.map(s => {
-      const nameText = s.name && s.name.trim()
-        ? (s.name.toLowerCase().startsWith('name:') ? s.name : `Name: ${s.name}`)
-        : 'Name: _____________________';
+      let nameVal = s.name ? s.name.trim() : '';
+      if (nameVal.toLowerCase().startsWith('name:')) {
+        nameVal = nameVal.replace(/^name:\s*/i, '');
+      } else if (nameVal.toLowerCase().startsWith('surname, name:')) {
+        nameVal = nameVal.replace(/^surname,\s*name:\s*/i, '');
+      }
+
+      let dateVal = s.dateLabel ? s.dateLabel.trim() : '';
+      if (dateVal.toLowerCase().startsWith('date:')) {
+        dateVal = dateVal.replace(/^date:\s*/i, '');
+      }
 
       return new TableCell({
         width: { size: convertMillimetersToTwip(colWidthMm), type: WidthType.DXA },
         margins: { left: 40, right: 40, top: 160, bottom: 40 },
         children: [
+          // 1. Signature line & label
           new Paragraph({
             spacing: { before: 0, after: 20 },
             keepWithNext: true,
             keepLines: true,
-            children: [new TextRun({ text: '_____________________________', color: '64748B', font: fontFamily, size: baseSizeHps })],
+            children: [new TextRun({ text: '__________________________________', color: '64748B', font: fontFamily, size: baseSizeHps })],
           }),
           new Paragraph({
-            spacing: { before: 0, after: 50 },
+            spacing: { before: 0, after: 60 },
             keepWithNext: true,
             keepLines: true,
             children: [new TextRun({ text: 'Signature', italics: true, color: '64748B', font: fontFamily, size: Math.max(7, (baseSizeHps / 2) - 2) * 2 })],
           }),
+          // 2. Surname, Name
           new Paragraph({
             spacing: { before: 0, after: 30 },
             keepWithNext: true,
             keepLines: true,
-            children: [new TextRun({ text: nameText, color: textColor, font: fontFamily, size: baseSizeHps - 1 })],
+            children: [
+              new TextRun({ text: 'Surname, Name: ', font: fontFamily, size: baseSizeHps - 1 }),
+              new TextRun({ text: nameVal || '____________________', color: textColor, font: fontFamily, size: baseSizeHps - 1 }),
+            ],
           }),
+          // 3. Role
           new Paragraph({
-            spacing: { before: 0, after: 30 },
+            spacing: { before: 0, after: 0 },
             keepWithNext: true,
             keepLines: true,
             children: [new TextRun({ text: s.role || 'Signatory', bold: true, color: primaryColor, font: fontFamily, size: baseSizeHps - 1 })],
           }),
+          // 4. Date (with line spacing before date fields)
           new Paragraph({
-            spacing: { before: 0, after: 0 },
+            spacing: { before: 140, after: 0 },
             keepLines: true,
-            children: [new TextRun({ text: s.dateLabel || 'Date: ____________________', color: textColor, font: fontFamily, size: baseSizeHps - 2 })],
+            children: [
+              new TextRun({ text: 'Date: ', font: fontFamily, size: baseSizeHps - 2 }),
+              new TextRun({ text: dateVal || '____________________________', color: textColor, font: fontFamily, size: baseSizeHps - 2 }),
+            ],
           }),
         ],
       });
