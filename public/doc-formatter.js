@@ -594,12 +594,18 @@ function initEventListeners() {
     // Save Target radio switcher
     document.querySelectorAll('input[name="save-target"]').forEach(radio => {
         radio.addEventListener('change', (e) => {
+            const auditOpts = document.getElementById('audit-folder-options');
             const vaultOpts = document.getElementById('vault-options');
             const serverOpts = document.getElementById('server-path-options');
+            if (auditOpts) auditOpts.classList.toggle('hidden', e.target.value !== 'audit_folder');
             if (vaultOpts) vaultOpts.classList.toggle('hidden', e.target.value !== 'vault');
             if (serverOpts) serverOpts.classList.toggle('hidden', e.target.value !== 'server_path');
         });
     });
+
+    // Audit Folder Selector change
+    document.getElementById('audit-folder-select')?.addEventListener('change', updateAuditFolderHint);
+    document.getElementById('doc-title-input')?.addEventListener('input', updateAuditFolderHint);
 
     // Spatial Grid toggle
     document.getElementById('toggle-grid-overlay')?.addEventListener('change', (e) => {
@@ -622,6 +628,36 @@ function initEventListeners() {
         if (r) r.checked = true;
         generateAndExportDocument('pdf');
     });
+}
+
+function updateAuditFolderHint() {
+    const hintEl = document.getElementById('audit-folder-resolved-hint');
+    if (!hintEl) return;
+    const select = document.getElementById('audit-folder-select');
+    const selectedVal = select?.value || 'auto';
+    if (selectedVal !== 'auto') {
+        hintEl.innerHTML = `Target Path: <code>SGB_Functionality_Audit_2026/${escapeHTML(selectedVal)}</code>`;
+        return;
+    }
+    const title = (document.getElementById('doc-title-input')?.value || '').toLowerCase();
+    let detected = '01_SGB_Constitution';
+    if (title.includes('mission') || title.includes('vision') || title.includes('creed')) detected = '02_School_Mission_Statement';
+    else if (title.includes('admission')) detected = '03_Admission_Policy';
+    else if (title.includes('language')) detected = '04_Language_Policy';
+    else if (title.includes('religious') || title.includes('religion')) detected = '05_Religious_Observances_Policy';
+    else if (title.includes('conduct') || title.includes('discipline')) detected = '06_Code_of_Conduct_for_Learners';
+    else if (title.includes('constituted') || title.includes('election') || title.includes('component')) detected = '07_SGB_Correctly_Constituted';
+    else if (title.includes('bearer') || title.includes('handover') || title.includes('portfolio')) detected = '08_Office_Bearers_Elections_and_Portfolios';
+    else if (title.includes('schedule') || title.includes('record') || title.includes('minutes') || title.includes('notice')) detected = '09_SGB_Meetings_Schedule_and_Records';
+    else if (title.includes('finance policy') || title.includes('procurement')) detected = '10_Finance_Policy';
+    else if (title.includes('fincom') || title.includes('finance committee')) detected = '11_Finance_Committee_FinCom';
+    else if (title.includes('budget') || title.includes('agm')) detected = '12_School_Budget_and_AGM_Approval';
+    else if (title.includes('audit') || title.includes('afs') || title.includes('financial')) detected = '13_Financial_Records_and_Audit';
+    else if (title.includes('lsm') || title.includes('support material') || title.includes('textbook')) detected = '14_Learner_Support_Material_LSM';
+    else if (title.includes('property') || title.includes('building') || title.includes('grounds')) detected = '15_School_Property_Buildings_and_Grounds';
+    else if (title.includes('safety') || title.includes('emergency') || title.includes('disaster')) detected = '16_Safety_Policy_and_Emergency_Protocols';
+
+    hintEl.innerHTML = `Target Path (Auto-Detected): <code>SGB_Functionality_Audit_2026/${detected}</code>`;
 }
 
 function syncColorPair(pickerId, inputId) {
@@ -1265,7 +1301,8 @@ async function generateAndExportDocument(formatOverride = null) {
         const config = collectCurrentConfig();
         const rawText = document.getElementById('raw-text-input')?.value || '';
         const outputFormat = formatOverride || document.querySelector('input[name="output-format"]:checked')?.value || 'docx';
-        const saveTarget = document.querySelector('input[name="save-target"]:checked')?.value || 'download';
+        const saveTarget = document.querySelector('input[name="save-target"]:checked')?.value || 'audit_folder';
+        const auditFolder = document.getElementById('audit-folder-select')?.value || 'auto';
         const serverPath = document.getElementById('custom-server-path')?.value || '';
         const vaultCategory = document.getElementById('vault-category-select')?.value || 'Governance & Policy';
         const vaultTag = document.getElementById('vault-tag-select')?.value || 'Policies';
@@ -1275,6 +1312,7 @@ async function generateAndExportDocument(formatOverride = null) {
             rawText,
             outputFormat,
             saveTarget,
+            auditFolder,
             serverPath,
             vaultCategory,
             vaultTag
@@ -1294,17 +1332,20 @@ async function generateAndExportDocument(formatOverride = null) {
             throw new Error(err.error || 'Failed to generate document');
         }
 
-        // Check if response is JSON (vault/server save) or Blob download
+        // Check if response is JSON (vault/audit_folder save) or Blob download
         const contentType = res.headers.get('Content-Type') || '';
         if (contentType.includes('application/json')) {
             const result = await res.json();
             statusBox.innerHTML = `
-                <div style="color: #10B981; font-weight: bold; margin-bottom: 4px;">✅ Document Generated &amp; Published!</div>
-                <div>${escapeHTML(result.message || 'Saved successfully.')}</div>
-                ${result.docxUrl ? `<a href="${result.docxUrl}" class="btn btn-sm btn-outline mt-2" download>Download DOCX</a> ` : ''}
-                ${result.pdfUrl ? `<a href="${result.pdfUrl}" class="btn btn-sm btn-outline mt-2" download>Download PDF</a> ` : ''}
+                <div style="color: #10B981; font-weight: bold; margin-bottom: 4px;">✅ Document Generated &amp; Saved!</div>
+                <div style="font-size: 9.5pt; color: #E2E8F0; margin-bottom: 4px;">${escapeHTML(result.message || 'Saved successfully.')}</div>
+                ${result.auditFolderPath ? `<div style="font-size: 8.5pt; color: #94A3B8; margin-bottom: 8px;">Audit Path: <code>${escapeHTML(result.auditFolderPath)}</code></div>` : ''}
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px;">
+                    ${result.docxUrl ? `<a href="${result.docxUrl}" class="btn btn-sm btn-outline" download>📥 Download DOCX</a> ` : ''}
+                    ${result.pdfUrl ? `<a href="${result.pdfUrl}" class="btn btn-sm btn-outline" download>📥 Download PDF</a> ` : ''}
+                </div>
             `;
-            showToast('Document created successfully!');
+            showToast(result.message || 'Document generated and saved!');
         } else {
             // Blob file download
             const blob = await res.blob();

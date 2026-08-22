@@ -768,17 +768,24 @@
                             <label>Where should the formatted document be saved?</label>
                             <div class="radio-cards-group">
                                 <label class="radio-card">
-                                    <input type="radio" name="save-target" value="download" checked>
+                                    <input type="radio" name="save-target" value="audit_folder" checked>
                                     <div class="radio-card-body">
-                                        <strong>Direct Download</strong>
-                                        <span>Download directly to your computer</span>
+                                        <strong>📁 SGB Functionality Audit 2026 Folder</strong>
+                                        <span>Save automatically into the audit evidence package directory (DOCX &amp; PDF)</span>
                                     </div>
                                 </label>
                                 <label class="radio-card">
                                     <input type="radio" name="save-target" value="vault">
                                     <div class="radio-card-body">
                                         <strong>SGB Shared Files &amp; Vault</strong>
-                                        <span>Publish automatically to the school's Document Vault</span>
+                                        <span>Publish to the school's Document Vault + Audit folder</span>
+                                    </div>
+                                </label>
+                                <label class="radio-card">
+                                    <input type="radio" name="save-target" value="download">
+                                    <div class="radio-card-body">
+                                        <strong>Direct Download</strong>
+                                        <span>Download directly to your computer</span>
                                     </div>
                                 </label>
                                 <label class="radio-card">
@@ -788,6 +795,34 @@
                                         <span>Save to a specific directory path on the server</span>
                                     </div>
                                 </label>
+                            </div>
+                        </div>
+
+                        <div id="audit-folder-options" class="mt-3">
+                            <div class="form-group">
+                                <label for="audit-folder-select">Target SGB Audit Folder</label>
+                                <select id="audit-folder-select" class="studio-select">
+                                    <option value="auto" selected>✨ Auto-Detect from Document Title &amp; Content</option>
+                                    <option value="01_SGB_Constitution">01. SGB Constitution</option>
+                                    <option value="02_School_Mission_Statement">02. School Mission Statement</option>
+                                    <option value="03_Admission_Policy">03. Admission Policy</option>
+                                    <option value="04_Language_Policy">04. Language Policy</option>
+                                    <option value="05_Religious_Observances_Policy">05. Religious Observances Policy</option>
+                                    <option value="06_Code_of_Conduct_for_Learners">06. Code of Conduct for Learners</option>
+                                    <option value="07_SGB_Correctly_Constituted">07. SGB Correctly Constituted</option>
+                                    <option value="08_Office_Bearers_Elections_and_Portfolios">08. Office-Bearers Elections &amp; Portfolios</option>
+                                    <option value="09_SGB_Meetings_Schedule_and_Records">09. SGB Meetings Schedule &amp; Records</option>
+                                    <option value="10_Finance_Policy">10. Finance Policy</option>
+                                    <option value="11_Finance_Committee_FinCom">11. Finance Committee (FinCom)</option>
+                                    <option value="12_School_Budget_and_AGM_Approval">12. School Budget &amp; AGM Approval</option>
+                                    <option value="13_Financial_Records_and_Audit">13. Financial Records &amp; Audit</option>
+                                    <option value="14_Learner_Support_Material_LSM">14. Learner Support Material (LSM)</option>
+                                    <option value="15_School_Property_Buildings_and_Grounds">15. School Property, Buildings &amp; Grounds</option>
+                                    <option value="16_Safety_Policy_and_Emergency_Protocols">16. Safety Policy &amp; Emergency Protocols</option>
+                                </select>
+                                <div class="help-text mt-1" id="audit-folder-resolved-hint" style="font-size: 8pt; color: #64748B;">
+                                    Target Path: <code>SGB_Functionality_Audit_2026/01_SGB_Constitution</code>
+                                </div>
                             </div>
                         </div>
 

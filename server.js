@@ -2132,14 +2132,51 @@ app.post('/api/doc-formatter/spellcheck', async (req, res) => {
   }
 });
 
-// POST /api/doc-formatter/generate: generate formatted DOCX/PDF, stream or save to vault
+// ── SGB Functionality Audit Directory Resolution & Helper ──
+const SGB_AUDIT_BASE_DIR = path.join(__dirname, 'SGB_Functionality_Audit_2026');
+
+const SGB_AUDIT_FOLDER_MAP = [
+  { id: '01_SGB_Constitution', name: '01. SGB Constitution', keywords: ['constitution'] },
+  { id: '02_School_Mission_Statement', name: '02. School Mission Statement', keywords: ['mission', 'vision', 'motto', 'creed', 'strategic plan'] },
+  { id: '03_Admission_Policy', name: '03. Admission Policy', keywords: ['admission', 'admissions', 'enrolment', 'enrollment'] },
+  { id: '04_Language_Policy', name: '04. Language Policy', keywords: ['language', 'medium of instruction', 'afrikaans', 'isixhosa', 'english'] },
+  { id: '05_Religious_Observances_Policy', name: '05. Religious Observances Policy', keywords: ['religious', 'religion', 'observance', 'observances', 'faith'] },
+  { id: '06_Code_of_Conduct_for_Learners', name: '06. Code of Conduct for Learners', keywords: ['code of conduct', 'conduct', 'discipline', 'learner discipline', 'school rules'] },
+  { id: '07_SGB_Correctly_Constituted', name: '07. SGB Correctly Constituted', keywords: ['correctly constituted', 'composition', 'component roster', 'sgb election', 'electoral', 'vacancy', 'vacancies'] },
+  { id: '08_Office_Bearers_Elections_and_Portfolios', name: '08. Office-Bearers Elections & Portfolios', keywords: ['office-bearer', 'office bearer', 'office-bearers', 'handover', 'portfolio', 'election of chairperson'] },
+  { id: '09_SGB_Meetings_Schedule_and_Records', name: '09. SGB Meetings Schedule & Records', keywords: ['schedule', 'meeting schedule', 'ordinary meeting', 'special meeting', 'minutes', 'agenda', 'attendance register', 'notice'] },
+  { id: '10_Finance_Policy', name: '10. Finance Policy', keywords: ['finance policy', 'financial policy', 'procurement', 'petty cash', 'cheque', 'banking'] },
+  { id: '11_Finance_Committee_FinCom', name: '11. Finance Committee (FinCom)', keywords: ['fincom', 'finance committee', 'terms of reference', 'treasurer charter'] },
+  { id: '12_School_Budget_and_AGM_Approval', name: '12. School Budget & AGM Approval', keywords: ['budget', 'agm', 'annual general meeting', 'parent budget', 'budget presentation', '14 days notice'] },
+  { id: '13_Financial_Records_and_Audit', name: '13. Financial Records & Audit', keywords: ['financial records', 'audit', 'afs', 'audited', 'financial statements', 'auditor report'] },
+  { id: '14_Learner_Support_Material_LSM', name: '14. Learner Support Material (LSM)', keywords: ['lsm', 'learner support', 'textbook', 'textbooks', 'stationery', 'requisition', 'inventory'] },
+  { id: '15_School_Property_Buildings_and_Grounds', name: '15. School Property, Buildings & Grounds', keywords: ['property', 'building', 'grounds', 'infrastructure', 'maintenance plan', 'asset register', 'facilities'] },
+  { id: '16_Safety_Policy_and_Emergency_Protocols', name: '16. Safety Policy & Emergency Protocols', keywords: ['safety', 'emergency', 'disaster', 'security', 'evacuation', 'first aid', 'fire drill'] }
+];
+
+function resolveAuditFolder(selectedFolder, title, rawText) {
+  if (selectedFolder && selectedFolder !== 'auto') {
+    const found = SGB_AUDIT_FOLDER_MAP.find(f => f.id === selectedFolder);
+    if (found) return found.id;
+  }
+  const fullText = `${title || ''} ${(rawText || '').substring(0, 1500)}`.toLowerCase();
+  for (const item of SGB_AUDIT_FOLDER_MAP) {
+    if (item.keywords.some(kw => fullText.includes(kw.toLowerCase()))) {
+      return item.id;
+    }
+  }
+  return '01_SGB_Constitution';
+}
+
+// POST /api/doc-formatter/generate: generate formatted DOCX/PDF, stream or save to audit folder / vault
 app.post('/api/doc-formatter/generate', async (req, res) => {
   try {
     const {
       config = {},
       rawText = '',
       outputFormat = 'docx',
-      saveTarget = 'download',
+      saveTarget = 'audit_folder',
+      auditFolder = 'auto',
       serverPath = '',
       vaultCategory = 'Governance & Policy',
       vaultTag = 'Policies'
@@ -2152,7 +2189,7 @@ app.post('/api/doc-formatter/generate', async (req, res) => {
       .replace(/[^a-zA-Z0-9_\-\s]/g, '')
       .trim()
       .replace(/\s+/g, '_')
-      .substring(0, 50) || 'LGAA_Document';
+      .substring(0, 60) || 'LGAA_Document';
 
     const timestamp = Date.now();
     const docxFilename = `${baseTitle}_${timestamp}.docx`;
@@ -2164,37 +2201,68 @@ app.post('/api/doc-formatter/generate', async (req, res) => {
     let pdfFilePath = null;
     let pdfBuffer = null;
 
-    if (outputFormat === 'pdf' || outputFormat === 'both') {
+    if (outputFormat === 'pdf' || outputFormat === 'both' || saveTarget === 'audit_folder' || saveTarget === 'vault') {
       pdfFilename = `${baseTitle}_${timestamp}.pdf`;
       pdfFilePath = path.join(UPLOADS_DIR, pdfFilename);
       try {
         await convertDocxToPdf(docxFilePath, pdfFilePath, config, parsedBlocks);
-        pdfBuffer = await fs.readFile(pdfFilePath);
+        if (fsSync.existsSync(pdfFilePath)) {
+          pdfBuffer = await fs.readFile(pdfFilePath);
+        }
       } catch (pdfErr) {
         console.error('PDF conversion error:', pdfErr);
-        if (outputFormat === 'pdf') {
+        if (outputFormat === 'pdf' && saveTarget === 'download') {
           return res.status(500).json({ error: `PDF conversion failed: ${pdfErr.message || pdfErr}` });
         }
       }
     }
 
-    // 1. Direct Download
+    // Always mirror saved file(s) to the corresponding SGB Functionality Audit folder
+    const targetFolderId = resolveAuditFolder(auditFolder, config.documentTitle, rawText);
+    const auditFolderPath = path.join(SGB_AUDIT_BASE_DIR, targetFolderId);
+    await fs.mkdir(auditFolderPath, { recursive: true });
+
+    const cleanDocxName = `${baseTitle}.docx`;
+    const cleanPdfName = `${baseTitle}.pdf`;
+    const auditDocxPath = path.join(auditFolderPath, cleanDocxName);
+    await fs.writeFile(auditDocxPath, docxBuffer);
+
+    if (pdfBuffer) {
+      const auditPdfPath = path.join(auditFolderPath, cleanPdfName);
+      await fs.writeFile(auditPdfPath, pdfBuffer);
+    }
+
+    // 1. Audit Folder Destination
+    if (saveTarget === 'audit_folder') {
+      return res.json({
+        success: true,
+        message: `Saved into SGB Audit Folder: SGB_Functionality_Audit_2026/${targetFolderId}`,
+        auditFolder: targetFolderId,
+        auditFolderPath: `SGB_Functionality_Audit_2026/${targetFolderId}`,
+        docxFilename: cleanDocxName,
+        pdfFilename: cleanPdfName,
+        docxUrl: `/api/doc-formatter/download-audit?folder=${encodeURIComponent(targetFolderId)}&file=${encodeURIComponent(cleanDocxName)}`,
+        pdfUrl: pdfBuffer ? `/api/doc-formatter/download-audit?folder=${encodeURIComponent(targetFolderId)}&file=${encodeURIComponent(cleanPdfName)}` : null
+      });
+    }
+
+    // 2. Direct Download
     if (saveTarget === 'download') {
       if (outputFormat === 'pdf') {
         if (!pdfBuffer) {
           return res.status(500).json({ error: 'PDF file could not be generated' });
         }
         res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename="${pdfFilename}"`);
+        res.setHeader('Content-Disposition', `attachment; filename="${cleanPdfName}"`);
         return res.send(pdfBuffer);
       } else {
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-        res.setHeader('Content-Disposition', `attachment; filename="${docxFilename}"`);
+        res.setHeader('Content-Disposition', `attachment; filename="${cleanDocxName}"`);
         return res.send(docxBuffer);
       }
     }
 
-    // 2. Save to Document Vault
+    // 3. Save to Document Vault
     if (saveTarget === 'vault') {
       const store = await storeHelper.read();
       if (!Array.isArray(store.documents)) store.documents = [];
@@ -2205,10 +2273,10 @@ app.post('/api/doc-formatter/generate', async (req, res) => {
         id: uuidv4(),
         title: config.documentTitle || 'Formatted Legal Document',
         filename: docxFilename,
-        originalName: `${baseTitle}.docx`,
+        originalName: cleanDocxName,
         category: vaultCategory,
-        tags: [vaultTag, 'Formatted', member.name].filter(Boolean),
-        description: `Formatted hierarchical document generated via Admin Formatter Studio (${config.typography?.fontFamily || 'Arial'}, ${config.hierarchy?.stepIncrementMm || 10}mm hanging indents).`,
+        tags: [vaultTag, 'Formatted', member.name, targetFolderId].filter(Boolean),
+        description: `Formatted hierarchical document saved into ${targetFolderId}.`,
         mimetype: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         size: docxBuffer.length,
         uploadedBy: {
@@ -2226,10 +2294,10 @@ app.post('/api/doc-formatter/generate', async (req, res) => {
           id: uuidv4(),
           title: `${config.documentTitle || 'Formatted Legal Document'} (PDF)`,
           filename: pdfFilename,
-          originalName: `${baseTitle}.pdf`,
+          originalName: cleanPdfName,
           category: vaultCategory,
-          tags: [vaultTag, 'PDF', 'Formatted', member.name].filter(Boolean),
-          description: `Compiled PDF format of ${config.documentTitle || 'Legal Document'}.`,
+          tags: [vaultTag, 'PDF', 'Formatted', member.name, targetFolderId].filter(Boolean),
+          description: `Compiled PDF format saved into ${targetFolderId}.`,
           mimetype: 'application/pdf',
           size: pdfBuffer.length,
           uploadedBy: {
@@ -2245,19 +2313,21 @@ app.post('/api/doc-formatter/generate', async (req, res) => {
 
       return res.json({
         success: true,
-        message: `Saved "${config.documentTitle || 'Formatted Document'}" into SGB Vault under ${vaultCategory}.`,
+        message: `Saved into Document Vault (${vaultCategory}) and SGB Audit Folder (${targetFolderId}).`,
+        auditFolder: targetFolderId,
+        auditFolderPath: `SGB_Functionality_Audit_2026/${targetFolderId}`,
         docxUrl: `/api/documents/${docRecord.id}/download`,
         pdfUrl: pdfDocRecord ? `/api/documents/${pdfDocRecord.id}/download` : null
       });
     }
 
-    // 3. Custom Server Path
+    // 4. Custom Server Path
     if (saveTarget === 'server_path') {
       if (serverPath && fsSync.existsSync(serverPath)) {
-        const destDocx = path.join(serverPath, docxFilename);
+        const destDocx = path.join(serverPath, cleanDocxName);
         await fs.writeFile(destDocx, docxBuffer);
-        if (pdfBuffer && pdfFilename) {
-          const destPdf = path.join(serverPath, pdfFilename);
+        if (pdfBuffer) {
+          const destPdf = path.join(serverPath, cleanPdfName);
           await fs.writeFile(destPdf, pdfBuffer);
         }
         return res.json({
@@ -2273,6 +2343,23 @@ app.post('/api/doc-formatter/generate', async (req, res) => {
   } catch (error) {
     console.error('Document generation error:', error);
     res.status(500).json({ error: error.message || 'Failed to generate document' });
+  }
+});
+
+// GET /api/doc-formatter/download-audit: download a generated file directly from SGB_Functionality_Audit_2026
+app.get('/api/doc-formatter/download-audit', async (req, res) => {
+  try {
+    const { folder, file } = req.query;
+    if (!folder || !file) return res.status(400).send('Missing folder or file parameter');
+    const safeFolder = path.basename(folder);
+    const safeFile = path.basename(file);
+    const filePath = path.join(SGB_AUDIT_BASE_DIR, safeFolder, safeFile);
+    if (!fsSync.existsSync(filePath)) {
+      return res.status(404).send('File not found in audit directory');
+    }
+    res.download(filePath, safeFile);
+  } catch (err) {
+    res.status(500).send(err.message);
   }
 });
 
