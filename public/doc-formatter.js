@@ -174,7 +174,7 @@ function initTabs() {
     });
 }
 
-// ── Presets Management ──
+// ── Presets & State Persistence ──
 async function loadPresets() {
     try {
         const res = await fetch('/api/doc-formatter/presets', {
@@ -184,7 +184,29 @@ async function loadPresets() {
             const data = await res.json();
             state.presets = data.presets || [];
             populatePresetSelect();
-            applyPreset(state.presets[0] || null);
+
+            const savedActiveId = localStorage.getItem('sgb_active_preset_id');
+            const found = state.presets.find(p => p.id === savedActiveId) || state.presets[0] || null;
+            if (found) {
+                const select = document.getElementById('preset-select');
+                if (select) select.value = found.id;
+                applyPreset(found, false); // don't overwrite if draft exists
+            }
+
+            // Restore any in-progress draft edits (including header, metadata, indents)
+            const rawDraft = localStorage.getItem('sgb_formatter_draft');
+            if (rawDraft) {
+                try {
+                    const draft = JSON.parse(rawDraft);
+                    if (draft.config) {
+                        applyPresetConfig(draft.config);
+                    }
+                    if (draft.rawText && document.getElementById('raw-text-input')) {
+                        document.getElementById('raw-text-input').value = draft.rawText;
+                    }
+                } catch(e) {}
+            }
+            parseTextAndUpdatePreview();
         }
     } catch (e) {
         console.warn('Using default fallback preset:', e);
@@ -196,13 +218,25 @@ function populatePresetSelect() {
     if (!select) return;
 
     select.innerHTML = state.presets.map(p => 
-        `<option value="${p.id}">${p.name}</option>`
+        `<option value="${p.id}">${escapeHTML(p.name)}</option>`
     ).join('');
 }
 
-function applyPreset(preset) {
+function applyPreset(preset, clearDraft = true) {
     if (!preset) return;
     state.currentConfig = JSON.parse(JSON.stringify(preset));
+    if (clearDraft) {
+        localStorage.setItem('sgb_active_preset_id', preset.id);
+    }
+    applyPresetConfig(preset);
+    if (clearDraft) {
+        saveDraftToLocalStorage();
+    }
+    parseTextAndUpdatePreview();
+}
+
+function applyPresetConfig(preset) {
+    if (!preset) return;
 
     // Typography
     const typo = preset.typography || {};
@@ -383,28 +417,50 @@ function initEventListeners() {
     });
 
     // Live form inputs trigger live preview
+    // Live form inputs trigger live preview and auto-save draft
     const form = document.getElementById('formatter-form');
     if (form) {
         form.addEventListener('input', () => {
             updateSpatialGuides();
             parseTextAndUpdatePreview();
+            saveDraftToLocalStorage();
         });
         form.addEventListener('change', () => {
             updateSpatialGuides();
             parseTextAndUpdatePreview();
+            saveDraftToLocalStorage();
         });
     }
+
+    // Preset Selection Switcher
+    document.getElementById('preset-select')?.addEventListener('change', (e) => {
+        const found = state.presets.find(p => p.id === e.target.value);
+        if (found) {
+            applyPreset(found, true);
+            showToast(`Loaded preset "${found.name}"`);
+        }
+    });
 
     // Sample Loader & Clear Buttons
     document.getElementById('btn-load-sample')?.addEventListener('click', () => {
         document.getElementById('raw-text-input').value = SAMPLE_CONSTITUTION_TEXT;
         parseTextAndUpdatePreview();
+        saveDraftToLocalStorage();
         showToast('Constitution sample text loaded.');
     });
 
     document.getElementById('btn-clear-text')?.addEventListener('click', () => {
         document.getElementById('raw-text-input').value = '';
         parseTextAndUpdatePreview();
+        saveDraftToLocalStorage();
+    });
+
+    // Spell & Grammar Checker Actions
+    document.getElementById('btn-spellcheck')?.addEventListener('click', runSpellCheck);
+    document.getElementById('btn-recheck-spelling')?.addEventListener('click', runSpellCheck);
+    document.getElementById('btn-fix-all-spelling')?.addEventListener('click', applyAllSpellFixes);
+    document.getElementById('btn-close-spellcheck')?.addEventListener('click', () => {
+        document.getElementById('spellcheck-drawer')?.classList.add('hidden');
     });
 
     // File Drag & Drop
@@ -436,11 +492,13 @@ function initEventListeners() {
     document.getElementById('btn-add-meta-row')?.addEventListener('click', () => {
         addMetaRow('', '');
         parseTextAndUpdatePreview();
+        saveDraftToLocalStorage();
     });
 
     document.getElementById('btn-add-signer')?.addEventListener('click', () => {
         addSignerRow('New Officer', 'Date: ____________________');
         parseTextAndUpdatePreview();
+        saveDraftToLocalStorage();
     });
 
     // Save Target radio switcher
@@ -1099,18 +1157,29 @@ function collectCurrentConfig() {
 }
 
 // ── Save Current Configuration as Preset ──
+// ── Save Current Configuration as Preset ──
 async function saveCurrentAsPreset() {
-    const currentName = document.getElementById('preset-select')?.selectedOptions[0]?.text || '';
-    const suggestedName = currentName.includes('(Custom)') ? currentName : (currentName ? currentName + ' (Custom)' : 'My Custom Preset');
-    const presetName = prompt('Enter a name for this custom formatting preset:', suggestedName);
-    if (!presetName || !presetName.trim()) return;
+    const presetSel = document.getElementById('preset-select');
+    const selectedOpt = presetSel?.selectedOptions[0];
+    const currentId = presetSel?.value || 'sgb_constitution';
+    const currentName = selectedOpt?.text || 'SGB Legal Constitution (10mm Grid, 10mm Hanging Indents)';
+
+    let targetId = currentId;
+    let targetName = currentName;
+
+    const shouldUpdate = confirm(`Do you want to update the active preset "${currentName}"?\n\n• Click "OK" to update "${currentName}"\n• Click "Cancel" to save as a new custom preset.`);
+    if (!shouldUpdate) {
+        const customName = prompt('Enter a name for the new custom preset:', currentName + ' (Custom)');
+        if (!customName || !customName.trim()) return;
+        targetId = 'preset_' + Date.now();
+        targetName = customName.trim();
+    }
 
     const payload = collectCurrentConfig();
-    const presetId = 'preset_' + Date.now();
     const newPreset = {
-        id: presetId,
-        name: presetName.trim(),
-        description: `Custom preset saved on ${new Date().toLocaleDateString()}`,
+        id: targetId,
+        name: targetName,
+        description: `Preset updated on ${new Date().toLocaleDateString()}`,
         typography: payload.typography,
         pageSetup: payload.pageSetup,
         hierarchy: payload.hierarchy,
@@ -1135,22 +1204,194 @@ async function saveCurrentAsPreset() {
             throw new Error(data.error || 'Failed to save preset');
         }
 
-        // Add to state.presets and select element
-        state.presets.push(newPreset);
-        const presetSel = document.getElementById('preset-select');
-        if (presetSel) {
-            const opt = document.createElement('option');
-            opt.value = presetId;
-            opt.textContent = presetName.trim();
-            opt.selected = true;
-            presetSel.appendChild(opt);
-        }
+        // Store active preset ID in localStorage
+        localStorage.setItem('sgb_active_preset_id', targetId);
 
-        showToast(`Preset "${presetName.trim()}" saved successfully!`, false);
+        // Update presets list and select element
+        state.presets = data.presets || state.presets;
+        populatePresetSelect();
+        if (presetSel) presetSel.value = targetId;
+
+        // Auto-save draft to localStorage
+        saveDraftToLocalStorage();
+
+        showToast(`Preset "${targetName}" saved successfully!`, false);
     } catch (err) {
         console.error('Save preset error:', err);
         showToast(err.message || 'Error saving preset', true);
     }
+}
+
+function saveDraftToLocalStorage() {
+    try {
+        const config = collectCurrentConfig();
+        const activePresetId = document.getElementById('preset-select')?.value || 'sgb_constitution';
+        const rawText = document.getElementById('raw-text-input')?.value || '';
+        localStorage.setItem('sgb_formatter_draft', JSON.stringify({
+            presetId: activePresetId,
+            config,
+            rawText
+        }));
+    } catch (e) {}
+}
+
+// ── English (South Africa) [en-ZA] Spell & Grammar Checker ──
+let spellcheckState = {
+    issues: [],
+    loading: false
+};
+
+async function runSpellCheck() {
+    const rawText = document.getElementById('raw-text-input')?.value || '';
+    const badge = document.getElementById('spellcheck-badge');
+    const drawer = document.getElementById('spellcheck-drawer');
+    const statusPill = document.getElementById('spellcheck-status-pill');
+    const list = document.getElementById('spellcheck-issues-list');
+
+    if (!rawText.trim()) {
+        showToast('Please enter document text to spell check.', true);
+        return;
+    }
+
+    if (drawer) drawer.classList.remove('hidden');
+    if (statusPill) {
+        statusPill.textContent = 'Inspecting (en-ZA)...';
+        statusPill.className = 'badge-pill';
+    }
+    if (list) list.innerHTML = '<div style="padding: 1.25rem; text-align: center; color: var(--text-muted); font-size: 0.85rem;">Inspecting against English (South Africa) & Legal drafting rules...</div>';
+
+    try {
+        const res = await fetch('/api/doc-formatter/spellcheck', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: rawText, language: 'en-ZA' })
+        });
+        const data = await res.json();
+        spellcheckState.issues = data.issues || [];
+
+        // Update badge
+        if (badge) {
+            badge.textContent = spellcheckState.issues.length;
+            badge.classList.remove('hidden');
+            badge.classList.toggle('clean', spellcheckState.issues.length === 0);
+        }
+
+        renderSpellcheckDrawer();
+    } catch (err) {
+        console.error('Spellcheck error:', err);
+        if (list) list.innerHTML = `<div style="padding: 1rem; color: #EF4444;">Spellcheck failed: ${escapeHTML(err.message)}</div>`;
+    }
+}
+
+function renderSpellcheckDrawer() {
+    const list = document.getElementById('spellcheck-issues-list');
+    const statusPill = document.getElementById('spellcheck-status-pill');
+    const fixAllBtn = document.getElementById('btn-fix-all-spelling');
+    if (!list) return;
+
+    const issues = spellcheckState.issues;
+    if (statusPill) {
+        statusPill.textContent = issues.length === 0 ? '✓ 100% Clean' : `${issues.length} Issue${issues.length === 1 ? '' : 's'} Found`;
+        statusPill.className = issues.length === 0 ? 'badge-pill enza-badge clean' : 'badge-pill enza-badge';
+    }
+    if (fixAllBtn) fixAllBtn.style.display = issues.length > 0 ? 'inline-block' : 'none';
+
+    if (issues.length === 0) {
+        list.innerHTML = `
+            <div class="spellcheck-empty-clean">
+                <span>✓</span>
+                <span>Document copy is 100% compliant with English (South Africa) spelling, statutory terms &amp; grammar rules!</span>
+            </div>
+        `;
+        return;
+    }
+
+    let html = '';
+    issues.forEach(iss => {
+        const tagClass = iss.type === 'legal_term' ? 'tag-legal' : '';
+        html += `
+            <div class="spellcheck-card type-${iss.type}" id="card-${iss.id}">
+                <div class="spellcheck-card-content">
+                    <div class="spellcheck-meta-line">
+                        <span class="spellcheck-tag ${tagClass}">${escapeHTML(iss.category)}</span>
+                        <span class="spellcheck-line-indicator">Line ${iss.line}</span>
+                    </div>
+                    <div class="spellcheck-word-diff">
+                        <span class="spell-original">${escapeHTML(iss.original)}</span>
+                        <span class="spell-arrow">➜</span>
+                        <span class="spell-suggestion">${escapeHTML(iss.suggestion)}</span>
+                    </div>
+                    <div class="spell-reason">${escapeHTML(iss.message)}</div>
+                </div>
+                <div class="spellcheck-card-actions">
+                    <button type="button" class="btn-sm btn-apply-fix" onclick="applySpellFix('${iss.id}')">Apply Fix</button>
+                    <button type="button" class="btn-sm btn-icon" onclick="dismissSpellIssue('${iss.id}')" title="Ignore">✕</button>
+                </div>
+            </div>
+        `;
+    });
+
+    list.innerHTML = html;
+}
+
+window.applySpellFix = function(issueId) {
+    const iss = spellcheckState.issues.find(i => i.id === issueId);
+    if (!iss) return;
+
+    const textEl = document.getElementById('raw-text-input');
+    if (!textEl) return;
+
+    const current = textEl.value;
+    if (current.includes(iss.original)) {
+        textEl.value = current.replace(iss.original, iss.suggestion);
+        parseTextAndUpdatePreview();
+        saveDraftToLocalStorage();
+        showToast(`Applied fix: "${iss.original}" ➜ "${iss.suggestion}"`);
+        runSpellCheck();
+    }
+};
+
+window.dismissSpellIssue = function(issueId) {
+    spellcheckState.issues = spellcheckState.issues.filter(i => i.id !== issueId);
+    const card = document.getElementById('card-' + issueId);
+    if (card) card.remove();
+    const badge = document.getElementById('spellcheck-badge');
+    if (badge) {
+        badge.textContent = spellcheckState.issues.length;
+        badge.classList.toggle('clean', spellcheckState.issues.length === 0);
+    }
+    const statusPill = document.getElementById('spellcheck-status-pill');
+    if (statusPill) {
+        statusPill.textContent = spellcheckState.issues.length === 0 ? '✓ 100% Clean' : `${spellcheckState.issues.length} Issues`;
+        statusPill.className = spellcheckState.issues.length === 0 ? 'badge-pill enza-badge clean' : 'badge-pill enza-badge';
+    }
+    const fixAllBtn = document.getElementById('btn-fix-all-spelling');
+    if (fixAllBtn) fixAllBtn.style.display = spellcheckState.issues.length > 0 ? 'inline-block' : 'none';
+};
+
+function applyAllSpellFixes() {
+    const textEl = document.getElementById('raw-text-input');
+    if (!textEl) return;
+
+    let text = textEl.value;
+    let fixCount = 0;
+
+    spellcheckState.issues.forEach(iss => {
+        if (text.includes(iss.original)) {
+            text = text.replace(new RegExp(escapeRegExp(iss.original), 'g'), iss.suggestion);
+            fixCount++;
+        }
+    });
+
+    textEl.value = text;
+    parseTextAndUpdatePreview();
+    saveDraftToLocalStorage();
+    showToast(`Applied ${fixCount} English (South Africa) & Legal fixes!`);
+    runSpellCheck();
+}
+
+function escapeRegExp(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 // ── Helpers ──

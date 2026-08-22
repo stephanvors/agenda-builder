@@ -8,6 +8,7 @@ import XLSX from 'xlsx';
 import pg from 'pg';
 import multer from 'multer';
 import { parseRawText, buildFormattedDocx, convertDocxToPdf } from './formatterEngine.js';
+import { checkDocText } from './spellcheckerEngine.js';
 
 const { Pool } = pg;
 const __filename = fileURLToPath(import.meta.url);
@@ -2002,6 +2003,21 @@ app.post('/api/doc-formatter/parse-raw', upload.single('rawFile'), async (req, r
   } catch (error) {
     console.error('Error parsing raw document:', error);
     res.status(500).json({ error: error.message || 'Failed to parse raw document' });
+  }
+});
+
+// POST /api/doc-formatter/spellcheck: perform English (South Africa) spell & grammar inspection
+app.post('/api/doc-formatter/spellcheck', async (req, res) => {
+  try {
+    const { text = '', language = 'en-ZA' } = req.body;
+    const result = checkDocText(text);
+    res.json({
+      language: 'en-ZA',
+      ...result
+    });
+  } catch (error) {
+    console.error('Error during spellcheck:', error);
+    res.status(500).json({ error: error.message || 'Spellcheck failed' });
   }
 });
 

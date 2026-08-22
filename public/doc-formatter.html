@@ -108,6 +108,11 @@
                         <div class="card-header-flex">
                             <h3>Raw Text / Document Input</h3>
                             <div class="card-actions">
+                                <button type="button" class="btn-text-action btn-spellcheck-toggle" id="btn-spellcheck" title="Run South African English Spell & Grammar Inspection">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><path d="m9 11 2 2 4-4"></path></svg>
+                                    <span>Spell &amp; Grammar (en-ZA)</span>
+                                    <span id="spellcheck-badge" class="badge-pill enza-badge hidden">0</span>
+                                </button>
                                 <button type="button" class="btn-text-action" id="btn-load-sample">📋 Load Constitution Sample</button>
                                 <button type="button" class="btn-text-action" id="btn-clear-text">Clear</button>
                             </div>
@@ -229,6 +234,28 @@
 13. RULES AND POLICY
 13.1 Subject to any legal provision and this Constitution, the governing body may in its discretion make rules or determine policy in connection with any matter concerning its functioning or the functioning of any of its committees or in the manner in which any office bearer or authorised representative of the governing body should perform his or her functions.
 13.2 Such rules and policy do not form part of this Constitution and any amendment thereof need not comply with the provisions relating to the amendment of the Constitution.</textarea>
+                        </div>
+
+                        <!-- English (South Africa) Quality Inspector Drawer -->
+                        <div id="spellcheck-drawer" class="spellcheck-drawer hidden">
+                            <div class="spellcheck-header">
+                                <div class="spellcheck-title-group">
+                                    <span class="spellcheck-flag">🇿🇦</span>
+                                    <div class="spellcheck-title-text">
+                                        <h4>English (South Africa) Quality Inspector</h4>
+                                        <span class="spellcheck-subtitle">Spelling, Legal Diction &amp; Grammar Rules</span>
+                                    </div>
+                                    <span id="spellcheck-status-pill" class="badge-pill">0 Issues</span>
+                                </div>
+                                <div class="spellcheck-actions">
+                                    <button type="button" class="btn-sm btn-primary" id="btn-fix-all-spelling">⚡ Fix All Suggestions</button>
+                                    <button type="button" class="btn-sm btn-outline" id="btn-recheck-spelling">↻ Re-check</button>
+                                    <button type="button" class="btn-sm btn-icon" id="btn-close-spellcheck" title="Close Inspector">✕</button>
+                                </div>
+                            </div>
+                            <div id="spellcheck-issues-list" class="spellcheck-issues-list">
+                                <!-- Dynamic issue cards -->
+                            </div>
                         </div>
                     </div>
                 </div>
