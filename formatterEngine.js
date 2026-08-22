@@ -802,45 +802,46 @@ export async function buildFormattedDocx(config, parsedBlocks) {
 
       return new TableCell({
         width: { size: convertMillimetersToTwip(colWidthMm), type: WidthType.DXA },
-        margins: { left: 40, right: 40, top: 160, bottom: 40 },
+        margins: { left: 40, right: 40, top: 140, bottom: 40 },
         children: [
-          // 1. Signature line & label
+          // 1. Signature solid vector line & label
           new Paragraph({
             spacing: { before: 0, after: 20 },
             keepWithNext: true,
             keepLines: true,
-            children: [new TextRun({ text: '__________________________________', color: '64748B', font: fontFamily, size: baseSizeHps })],
+            border: {
+              bottom: { style: BorderStyle.SINGLE, size: 6, color: '64748B' }
+            },
+            children: [new TextRun({ text: '', font: fontFamily, size: 2 })],
           }),
           new Paragraph({
-            spacing: { before: 0, after: 60 },
+            spacing: { before: 0, after: 50 },
             keepWithNext: true,
             keepLines: true,
             children: [new TextRun({ text: 'Signature', italics: true, color: '64748B', font: fontFamily, size: Math.max(7, (baseSizeHps / 2) - 2) * 2 })],
           }),
-          // 2. Surname, Name
+          // 2. Name (Direct name without "Surname, Name:" prefix)
           new Paragraph({
-            spacing: { before: 0, after: 30 },
+            spacing: { before: 0, after: 20 },
             keepWithNext: true,
             keepLines: true,
             children: [
-              new TextRun({ text: 'Surname, Name: ', font: fontFamily, size: baseSizeHps - 1 }),
-              new TextRun({ text: nameVal || '____________________', color: textColor, font: fontFamily, size: baseSizeHps - 1 }),
+              new TextRun({ text: nameVal || '____________________', bold: true, color: textColor, font: fontFamily, size: baseSizeHps }),
             ],
           }),
           // 3. Role
           new Paragraph({
-            spacing: { before: 0, after: 0 },
+            spacing: { before: 0, after: 30 },
             keepWithNext: true,
             keepLines: true,
             children: [new TextRun({ text: s.role || 'Signatory', bold: true, color: primaryColor, font: fontFamily, size: baseSizeHps - 1 })],
           }),
-          // 4. Date (with line spacing before date fields)
+          // 4. Date
           new Paragraph({
-            spacing: { before: 140, after: 0 },
+            spacing: { before: 40, after: 0 },
             keepLines: true,
             children: [
-              new TextRun({ text: 'Date: ', font: fontFamily, size: baseSizeHps - 2 }),
-              new TextRun({ text: dateVal || '____________________________', color: textColor, font: fontFamily, size: baseSizeHps - 2 }),
+              new TextRun({ text: dateVal ? `Date: ${dateVal}` : 'Date: ____________________', color: '64748B', font: fontFamily, size: baseSizeHps - 2 }),
             ],
           }),
         ],
@@ -1080,16 +1081,10 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
             ${signers.map(s => `
               <td style="vertical-align: top; padding: 0 8px;">
                 <div style="border-bottom: 1px solid #64748B; height: 16px; margin-bottom: 2px;"></div>
-                <div style="font-size: 8pt; font-style: italic; color: #64748B; margin-bottom: 4px;">Signature</div>
-                <div style="font-size: 8.5pt; margin-bottom: 4px;">
-                  <span>Surname, Name: </span>
-                  <span style="border-bottom: 1px solid #64748B; display: inline-block; min-width: 60%;">${s.name || ''}</span>
-                </div>
-                <div style="font-size: 9pt; font-weight: bold; color: ${primaryColor}; margin-bottom: 6px;">${s.role || ''}</div>
-                <div style="font-size: 8.5pt;">
-                  <span>Date: </span>
-                  <span style="border-bottom: 1px solid #64748B; display: inline-block; min-width: 60%;">${s.dateLabel || ''}</span>
-                </div>
+                <div style="font-size: 8pt; font-style: italic; color: #64748B; margin-bottom: 6px;">Signature</div>
+                <div style="font-size: 9.5pt; font-weight: bold; color: ${textColor}; margin-bottom: 2px;">${s.name || ''}</div>
+                <div style="font-size: 8.5pt; font-weight: bold; color: ${primaryColor}; margin-bottom: 6px;">${s.role || ''}</div>
+                <div style="font-size: 8pt; color: #64748B;">Date: ${s.dateLabel || ''}</div>
               </td>
             `).join('')}
           </tr>

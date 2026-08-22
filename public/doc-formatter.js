@@ -1099,11 +1099,10 @@ function renderDocumentPreview() {
                 <div class="prev-signer-col">
                     <div class="sig-line-wrap"></div>
                     <div class="sig-label">Signature</div>
-                    <div class="sig-field-row">
-                        <span class="sig-field-label">Surname, Name:</span>
-                        <span class="sig-field-underline">${escapeHTML(displayName)}</span>
+                    <div class="sig-name-row" style="font-weight: 700; color: ${textColor}; margin-bottom: 2px;">
+                        ${escapeHTML(displayName || '____________________')}
                     </div>
-                    <div class="role" style="color: ${primaryColor};">${escapeHTML(role)}</div>
+                    <div class="role" style="color: ${primaryColor}; font-weight: bold;">${escapeHTML(role)}</div>
                     <div class="sig-field-row date-field-row">
                         <span class="sig-field-label">Date:</span>
                         <span class="sig-field-underline">${escapeHTML(displayDate)}</span>
