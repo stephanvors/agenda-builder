@@ -300,7 +300,9 @@ function applyPresetConfig(preset) {
     setVal('header-layout-select', hdr.layout || 'lgaa_official');
     setCheck('header-color-bar', hdr.showColorBar !== false);
     setVal('header-title-input', hdr.title !== undefined ? hdr.title : 'LADY GREY ARTS ACADEMY');
-    setVal('header-subtitle-input', hdr.subtitle !== undefined ? hdr.subtitle : 'KUNSTE-AKADEMIE | Where Learning is an Art');
+    let sub = hdr.subtitle !== undefined ? hdr.subtitle : 'Where Learning is an Art';
+    if (sub.includes('KUNSTE-AKADEMIE')) sub = 'Where Learning is an Art';
+    setVal('header-subtitle-input', sub);
     setVal('header-contact-input', hdr.contact !== undefined ? hdr.contact : '18 Brummer Street, Lady Grey, 9755 | Tel: 051 603 0046 | admin@lgaa.co.za');
     setVal('header-emis-input', hdr.emis !== undefined ? hdr.emis : 'EMIS: 200600985 | District: Joe Gqabi | Circuit: Ekhephini | CMC: Maletswai');
     setVal('header-badge-text', hdr.badgeText !== undefined ? hdr.badgeText : 'OFFICIAL');
