@@ -716,24 +716,27 @@ function renderSigners(signers) {
     container.innerHTML = '';
     if (!signers || signers.length === 0) {
         signers = [
-            { role: 'SGB Chairperson', name: '', dateLabel: 'Date: ____________________' },
-            { role: 'SGB Treasurer', name: '', dateLabel: 'Date: ____________________' },
-            { role: 'School Principal', name: '', dateLabel: 'Date: ____________________' }
+            { role: 'SGB Chairperson', name: '', dateLabel: '' },
+            { role: 'SGB Treasurer', name: '', dateLabel: '' },
+            { role: 'School Principal', name: '', dateLabel: '' }
         ];
     }
-    signers.forEach(s => addSignerRow(s.role, s.name || '', s.dateLabel));
+    signers.forEach(s => addSignerRow(s.role, s.name || '', s.dateLabel || ''));
 }
 
-function addSignerRow(role = 'SGB Chairperson', name = '', dateLabel = 'Date: ____________________') {
+function addSignerRow(role = 'SGB Chairperson', name = '', dateLabel = '') {
     const container = document.getElementById('signers-container');
     if (!container) return;
+
+    const cleanName = name ? name.replace(/^name:\s*/i, '').replace(/^surname,\s*name:\s*/i, '').replace(/^_+$/, '').trim() : '';
+    const cleanDate = dateLabel ? dateLabel.replace(/^date:\s*/i, '').replace(/^_+$/, '').trim() : '';
 
     const row = document.createElement('div');
     row.className = 'signer-row-item';
     row.innerHTML = `
         <input type="text" class="studio-input signer-role-input" placeholder="Role (e.g. SGB Chairperson)" value="${escapeHTML(role)}">
-        <input type="text" class="studio-input signer-name-input" placeholder="Surname, Name (e.g. Smith, John)" value="${escapeHTML(name)}">
-        <input type="text" class="studio-input signer-date-input" placeholder="Date Label" value="${escapeHTML(dateLabel)}">
+        <input type="text" class="studio-input signer-name-input" placeholder="Surname, Name (Optional)" value="${escapeHTML(cleanName)}">
+        <input type="text" class="studio-input signer-date-input" placeholder="Date (Optional e.g. 2026-08-22)" value="${escapeHTML(cleanDate)}">
         <button type="button" class="btn-del-row" title="Delete Signer">✕</button>
     `;
 
@@ -1055,11 +1058,13 @@ function renderDocumentPreview() {
             } else if (name.toLowerCase().startsWith('surname, name:')) {
                 name = name.replace(/^surname,\s*name:\s*/i, '');
             }
+            const displayName = name.replace(/^_+$/, '').trim();
 
             let date = s.querySelector('.signer-date-input')?.value || '';
             if (date.toLowerCase().startsWith('date:')) {
                 date = date.replace(/^date:\s*/i, '');
             }
+            const displayDate = date.replace(/^_+$/, '').trim();
 
             html += `
                 <div class="prev-signer-col">
@@ -1067,12 +1072,12 @@ function renderDocumentPreview() {
                     <div class="sig-label">Signature</div>
                     <div class="sig-field-row">
                         <span class="sig-field-label">Surname, Name:</span>
-                        <span class="sig-field-underline">${escapeHTML(name.trim())}</span>
+                        <span class="sig-field-underline">${escapeHTML(displayName)}</span>
                     </div>
                     <div class="role" style="color: ${primaryColor};">${escapeHTML(role)}</div>
                     <div class="sig-field-row date-field-row">
                         <span class="sig-field-label">Date:</span>
-                        <span class="sig-field-underline">${escapeHTML(date.trim())}</span>
+                        <span class="sig-field-underline">${escapeHTML(displayDate)}</span>
                     </div>
                 </div>
             `;
