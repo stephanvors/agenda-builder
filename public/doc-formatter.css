@@ -1476,3 +1476,34 @@ body.formatter-studio-body {
     align-items: center;
     gap: 0.5rem;
 }
+
+/* ── Spell & Grammar Red Highlighting in Preview Canvas ── */
+.prev-spell-issue {
+    background: rgba(239, 68, 68, 0.15) !important;
+    color: #DC2626 !important;
+    border-bottom: 2px wavy #EF4444 !important;
+    border-radius: 2px;
+    padding: 0 2px;
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: 600;
+    transition: var(--transition);
+    display: inline;
+}
+
+.prev-spell-issue:hover {
+    background: rgba(239, 68, 68, 0.3) !important;
+    color: #991B1B !important;
+    box-shadow: 0 0 0 1.5px #EF4444;
+}
+
+[data-theme="dark"] .prev-spell-issue {
+    background: rgba(239, 68, 68, 0.3) !important;
+    color: #FCA5A5 !important;
+    border-bottom-color: #F87171 !important;
+}
+
+[data-theme="dark"] .prev-spell-issue:hover {
+    background: rgba(239, 68, 68, 0.5) !important;
+    color: #FFFFFF !important;
+}

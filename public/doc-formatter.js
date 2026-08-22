@@ -829,6 +829,15 @@ function parseTextAndUpdatePreview() {
     }
 
     renderDocumentPreview();
+    scheduleBackgroundSpellCheck();
+}
+
+let spellDebounceTimer = null;
+function scheduleBackgroundSpellCheck() {
+    clearTimeout(spellDebounceTimer);
+    spellDebounceTimer = setTimeout(() => {
+        runSpellCheck(true);
+    }, 450);
 }
 
 function renderDocumentPreview() {
@@ -993,21 +1002,22 @@ function renderDocumentPreview() {
     state.parsedBlocks.forEach(b => {
         if (b.type === 'level1') {
             const headingText = l1Upper ? b.text.toUpperCase() : b.text;
+            const formattedHeading = formatTextWithSpellHighlights(headingText);
             if (b.number) {
-                html += `<div class="prev-clause-item prev-clause-level1" style="position: relative; padding-left: ${l2Wrap}mm; font-weight: ${l1Bold ? 'bold' : 'normal'}; text-transform: ${l1Upper ? 'uppercase' : 'none'}; color: ${primaryColor}; font-size: ${h1Size}pt; margin: 5mm 0 2mm 0;"><span class="prev-num-bold" style="position: absolute; left: ${l1Offset}mm; top: 0; font-weight: bold; color: ${primaryColor};">${escapeHTML(b.number)}</span><span class="prev-heading-text">${escapeHTML(headingText)}</span></div>`;
+                html += `<div class="prev-clause-item prev-clause-level1" style="position: relative; padding-left: ${l2Wrap}mm; font-weight: ${l1Bold ? 'bold' : 'normal'}; text-transform: ${l1Upper ? 'uppercase' : 'none'}; color: ${primaryColor}; font-size: ${h1Size}pt; margin: 5mm 0 2mm 0;"><span class="prev-num-bold" style="position: absolute; left: ${l1Offset}mm; top: 0; font-weight: bold; color: ${primaryColor};">${escapeHTML(b.number)}</span><span class="prev-heading-text">${formattedHeading}</span></div>`;
             } else {
-                html += `<div class="prev-clause-item prev-clause-level1" style="padding-left: ${l1Offset}mm; font-weight: ${l1Bold ? 'bold' : 'normal'}; text-transform: ${l1Upper ? 'uppercase' : 'none'}; color: ${primaryColor}; font-size: ${h1Size}pt; margin: 5mm 0 2mm 0;">${escapeHTML(headingText)}</div>`;
+                html += `<div class="prev-clause-item prev-clause-level1" style="padding-left: ${l1Offset}mm; font-weight: ${l1Bold ? 'bold' : 'normal'}; text-transform: ${l1Upper ? 'uppercase' : 'none'}; color: ${primaryColor}; font-size: ${h1Size}pt; margin: 5mm 0 2mm 0;">${formattedHeading}</div>`;
             }
         } else if (b.type === 'level2') {
-            html += `<div class="prev-clause-item" style="position: relative; padding-left: ${l2Wrap}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; margin: 1.5mm 0; text-align: justify;"><span class="prev-num-bold" style="position: absolute; left: ${l2NumPos}mm; top: 0; font-weight: bold; color: ${primaryColor};">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${escapeHTML(b.text)}</span></div>`;
+            html += `<div class="prev-clause-item" style="position: relative; padding-left: ${l2Wrap}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; margin: 1.5mm 0; text-align: justify;"><span class="prev-num-bold" style="position: absolute; left: ${l2NumPos}mm; top: 0; font-weight: bold; color: ${primaryColor};">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${formatTextWithSpellHighlights(b.text)}</span></div>`;
         } else if (b.type === 'level3') {
-            html += `<div class="prev-clause-item" style="position: relative; padding-left: ${l3Wrap}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; margin: 1.2mm 0; text-align: justify;"><span class="prev-num-bold" style="position: absolute; left: ${l3NumPos}mm; top: 0; font-weight: bold; color: ${primaryColor};">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${escapeHTML(b.text)}</span></div>`;
+            html += `<div class="prev-clause-item" style="position: relative; padding-left: ${l3Wrap}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; margin: 1.2mm 0; text-align: justify;"><span class="prev-num-bold" style="position: absolute; left: ${l3NumPos}mm; top: 0; font-weight: bold; color: ${primaryColor};">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${formatTextWithSpellHighlights(b.text)}</span></div>`;
         } else if (b.type === 'level4') {
-            html += `<div class="prev-clause-item" style="position: relative; padding-left: ${l4Wrap}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; margin: 1mm 0; text-align: justify;"><span class="prev-num-bold" style="position: absolute; left: ${l4NumPos}mm; top: 0; font-weight: bold; color: ${primaryColor};">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${escapeHTML(b.text)}</span></div>`;
+            html += `<div class="prev-clause-item" style="position: relative; padding-left: ${l4Wrap}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; margin: 1mm 0; text-align: justify;"><span class="prev-num-bold" style="position: absolute; left: ${l4NumPos}mm; top: 0; font-weight: bold; color: ${primaryColor};">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${formatTextWithSpellHighlights(b.text)}</span></div>`;
         } else if (b.type === 'level5') {
-            html += `<div class="prev-clause-item" style="position: relative; padding-left: ${l5Wrap}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; margin: 1mm 0; text-align: justify;"><span class="prev-num-bold" style="position: absolute; left: ${l5NumPos}mm; top: 0; font-weight: bold; color: ${primaryColor};">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${escapeHTML(b.text)}</span></div>`;
+            html += `<div class="prev-clause-item" style="position: relative; padding-left: ${l5Wrap}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; margin: 1mm 0; text-align: justify;"><span class="prev-num-bold" style="position: absolute; left: ${l5NumPos}mm; top: 0; font-weight: bold; color: ${primaryColor};">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${formatTextWithSpellHighlights(b.text)}</span></div>`;
         } else {
-            html += `<div class="prev-clause-body" style="font-size: ${bodySize}pt; line-height: ${lineSpacing}; color: ${textColor}; margin: 1.5mm 0;">${escapeHTML(b.text)}</div>`;
+            html += `<div class="prev-clause-body" style="font-size: ${bodySize}pt; line-height: ${lineSpacing}; color: ${textColor}; margin: 1.5mm 0;">${formatTextWithSpellHighlights(b.text)}</div>`;
         }
     });
 
@@ -1356,7 +1366,29 @@ let spellcheckState = {
     loading: false
 };
 
-async function runSpellCheck() {
+function formatTextWithSpellHighlights(text) {
+    if (!text) return '';
+    let escaped = escapeHTML(text);
+    if (!spellcheckState.issues || spellcheckState.issues.length === 0) {
+        return escaped;
+    }
+
+    // Sort issues by length descending so longer phrases match first
+    const activeIssues = [...spellcheckState.issues].sort((a, b) => (b.original || '').length - (a.original || '').length);
+
+    activeIssues.forEach(iss => {
+        if (!iss.original) return;
+        const origEscaped = escapeHTML(iss.original);
+        const regex = new RegExp(`\\b${escapeRegExp(origEscaped)}\\b`, 'gi');
+        escaped = escaped.replace(regex, (match) => {
+            return `<mark class="prev-spell-issue" data-issue-id="${iss.id}" title="Issue: ${escapeHTML(iss.message)} &#10;Click to fix: &#34;${escapeHTML(iss.suggestion)}&#34;" onclick="applySpellFix('${iss.id}')">${match}</mark>`;
+        });
+    });
+
+    return escaped;
+}
+
+async function runSpellCheck(silent = false) {
     const rawText = document.getElementById('raw-text-input')?.value || '';
     const badge = document.getElementById('spellcheck-badge');
     const drawer = document.getElementById('spellcheck-drawer');
@@ -1364,16 +1396,18 @@ async function runSpellCheck() {
     const list = document.getElementById('spellcheck-issues-list');
 
     if (!rawText.trim()) {
-        showToast('Please enter document text to spell check.', true);
+        if (!silent) showToast('Please enter document text to spell check.', true);
         return;
     }
 
-    if (drawer) drawer.classList.remove('hidden');
-    if (statusPill) {
-        statusPill.textContent = 'Inspecting (en-ZA)...';
-        statusPill.className = 'badge-pill';
+    if (!silent) {
+        if (drawer) drawer.classList.remove('hidden');
+        if (statusPill) {
+            statusPill.textContent = 'Inspecting (en-ZA)...';
+            statusPill.className = 'badge-pill';
+        }
+        if (list) list.innerHTML = '<div style="padding: 1.25rem; text-align: center; color: var(--text-muted); font-size: 0.85rem;">Inspecting against English (South Africa) & Legal drafting rules...</div>';
     }
-    if (list) list.innerHTML = '<div style="padding: 1.25rem; text-align: center; color: var(--text-muted); font-size: 0.85rem;">Inspecting against English (South Africa) & Legal drafting rules...</div>';
 
     try {
         const res = await fetch('/api/doc-formatter/spellcheck', {
@@ -1392,9 +1426,10 @@ async function runSpellCheck() {
         }
 
         renderSpellcheckDrawer();
+        renderDocumentPreview(); // Re-render preview with red highlights!
     } catch (err) {
         console.error('Spellcheck error:', err);
-        if (list) list.innerHTML = `<div style="padding: 1rem; color: #EF4444;">Spellcheck failed: ${escapeHTML(err.message)}</div>`;
+        if (!silent && list) list.innerHTML = `<div style="padding: 1rem; color: #EF4444;">Spellcheck failed: ${escapeHTML(err.message)}</div>`;
     }
 }
 
