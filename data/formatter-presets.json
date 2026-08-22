@@ -2,8 +2,8 @@
   "presets": [
     {
       "id": "sgb_constitution",
-      "name": "SGB Legal Constitution (10mm Grid, 10mm Hanging Indents)",
-      "description": "Strict legal hierarchy with 10mm margins, 10mm level step increments, hanging indents for levels 1-5, official school branding, metadata table, and 3-column signature resolution block.",
+      "name": "SGB Legal Constitution",
+      "description": "Updated preset test",
       "typography": {
         "fontFamily": "Arial",
         "titleSizePt": 14,
@@ -11,8 +11,6 @@
         "heading1SizePt": 11,
         "bodySizePt": 10,
         "lineSpacing": 1.15,
-        "spaceBeforePt": 3.5,
-        "spaceAfterPt": 4.5,
         "primaryColor": "#0C2340",
         "secondaryColor": "#A6192E",
         "textColor": "#1A1A1A"
@@ -23,9 +21,7 @@
         "rightMarginMm": 10,
         "topMarginMm": 10,
         "bottomMarginMm": 10,
-        "borderStyle": "none",
-        "borderWidthPt": 0,
-        "borderColor": "#CBD5E1"
+        "borderStyle": "none"
       },
       "hierarchy": {
         "stepIncrementMm": 10,
@@ -33,144 +29,47 @@
         "levels": [
           {
             "level": 1,
-            "name": "Level 1 (Heading)",
             "leftOffsetMm": 0,
-            "hangingIndentMm": 0,
-            "numberPosMm": 0,
-            "textWrapMm": 0,
             "bold": true,
-            "uppercase": true,
-            "italic": false,
-            "color": "#0C2340"
-          },
-          {
-            "level": 2,
-            "name": "Level 2 (Section)",
-            "leftOffsetMm": 10,
-            "hangingIndentMm": 10,
-            "numberPosMm": 0,
-            "textWrapMm": 10,
-            "bold": false,
-            "numberBold": true,
-            "uppercase": false,
-            "italic": false,
-            "color": "#1A1A1A"
-          },
-          {
-            "level": 3,
-            "name": "Level 3 (Sub-clause)",
-            "leftOffsetMm": 20,
-            "hangingIndentMm": 10,
-            "numberPosMm": 10,
-            "textWrapMm": 20,
-            "bold": false,
-            "numberBold": true,
-            "uppercase": false,
-            "italic": false,
-            "color": "#1A1A1A"
-          },
-          {
-            "level": 4,
-            "name": "Level 4 (Item)",
-            "leftOffsetMm": 30,
-            "hangingIndentMm": 10,
-            "numberPosMm": 20,
-            "textWrapMm": 30,
-            "bold": false,
-            "numberBold": true,
-            "uppercase": false,
-            "italic": false,
-            "color": "#1A1A1A"
-          },
-          {
-            "level": 5,
-            "name": "Level 5 (Sub-item)",
-            "leftOffsetMm": 40,
-            "hangingIndentMm": 10,
-            "numberPosMm": 30,
-            "textWrapMm": 40,
-            "bold": false,
-            "numberBold": true,
-            "uppercase": false,
-            "italic": false,
-            "color": "#1A1A1A"
+            "uppercase": true
           }
         ]
       },
       "header": {
+        "frequency": "first_page_only",
+        "sourceMode": "structured",
         "layout": "lgaa_official",
-        "showLogo": true,
+        "showColorBar": true,
         "title": "LADY GREY ARTS ACADEMY",
         "subtitle": "Where Learning is an Art",
         "contact": "18 Brummer Street, Lady Grey, 9755 | Tel: 051 603 0046 | admin@lgaa.co.za",
         "emis": "EMIS: 200600985 | District: Joe Gqabi | Circuit: Ekhephini | CMC: Maletswai",
-        "showBadge": true,
         "badgeText": "OFFICIAL",
-        "badgeSubtext": "CORRESPONDENCE",
-        "showColorBar": true,
-        "colorBarPrimary": "#A6192E",
-        "colorBarSecondary": "#0C2340"
+        "badgeSubtext": "CORRESPONDENCE"
       },
       "footer": {
-        "customText": "",
         "pageNumberFormat": "page_x_of_y",
         "alignment": "center",
-        "showTopDivider": true
+        "showTopDivider": true,
+        "customText": "Lady Grey Arts Academy • SGB Official Document"
       },
       "components": {
         "metadataTable": {
           "enabled": true,
           "col1Title": "Regulatory Alignment & Authority",
           "col2Title": "Details & Specifications",
-          "rows": [
-            {
-              "label": "National Legislative Basis",
-              "value": "South African Schools Act, 1996 (Act No. 84 of 1996)"
-            },
-            {
-              "label": "Provincial Legislative Basis",
-              "value": "Eastern Cape School Education Act, 2000 (Act No. 2 of 2000)"
-            },
-            {
-              "label": "Juristic Person Status",
-              "value": "Lady Grey Arts Academy (EMIS: 200600985)"
-            },
-            {
-              "label": "Financial Year Lifecycle",
-              "value": "1 January to 31 December"
-            },
-            {
-              "label": "Governance Oversight",
-              "value": "School Governing Body (SGB) specialized committees"
-            }
-          ]
+          "rows": []
         },
         "legalNotice": {
           "enabled": true,
           "prefix": "LEGAL NOTICE: ",
-          "text": "This constitution is a legally binding regulatory document drafted and adopted by the School Governing Body in terms of Section 22 of the South African Schools Act. All members of the governing body, learners, parents, educators, and staff are subject to the provisions herein."
+          "text": "This document is legally binding."
         },
         "signatures": {
           "enabled": true,
           "title": "ADOPTION AND SIGN-OFF RESOLUTION",
-          "introText": "This Constitution of the School Governing Body was formally accepted, approved, and signed at a meeting of the Governing Body of the Lady Grey Arts Academy.",
-          "signers": [
-            {
-              "role": "SGB Chairperson",
-              "name": "",
-              "dateLabel": "Date: ____________________"
-            },
-            {
-              "role": "SGB Treasurer",
-              "name": "",
-              "dateLabel": "Date: ____________________"
-            },
-            {
-              "role": "School Principal",
-              "name": "",
-              "dateLabel": "Date: ____________________"
-            }
-          ]
+          "introText": "",
+          "signers": []
         }
       }
     },
