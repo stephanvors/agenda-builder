@@ -2168,7 +2168,7 @@ app.post('/api/doc-formatter/generate', async (req, res) => {
       pdfFilename = `${baseTitle}_${timestamp}.pdf`;
       pdfFilePath = path.join(UPLOADS_DIR, pdfFilename);
       try {
-        await convertDocxToPdf(docxFilePath, pdfFilePath);
+        await convertDocxToPdf(docxFilePath, pdfFilePath, config, parsedBlocks);
         pdfBuffer = await fs.readFile(pdfFilePath);
       } catch (pdfErr) {
         console.error('PDF conversion error:', pdfErr);

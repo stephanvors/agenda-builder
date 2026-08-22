@@ -891,8 +891,232 @@ export async function buildFormattedDocx(config, parsedBlocks) {
   return await Packer.toBuffer(doc);
 }
 
-// ── Word COM PDF Conversion Helper (with process isolation & cleanup) ──
-export async function convertDocxToPdf(docxPath, pdfPath) {
+// ── Generate Printable HTML for Headless Browser PDF Fallback ──
+export function generatePrintableHtml(config = {}, parsed = {}) {
+  const primaryColor = config.colors?.primary || '#0C2340';
+  const secondaryColor = config.colors?.secondary || '#A6192E';
+  const textColor = config.colors?.bodyText || '#1A1A1A';
+  const fontFamily = config.typography?.fontFamily || 'Arial';
+  const lineSpacing = config.typography?.lineSpacing || 1.15;
+  const titleSizePt = config.typography?.titleSizePt || 14;
+  const subtitleSizePt = config.typography?.subtitleSizePt || 12;
+  const h1SizePt = config.typography?.heading1SizePt || 11;
+  const bodySizePt = config.typography?.bodySizePt || 10;
+
+  const marginLeft = config.margins?.left || 10;
+  const marginRight = config.margins?.right || 10;
+  const marginTop = config.margins?.top || 10;
+  const marginBottom = config.margins?.bottom || 10;
+
+  const header = config.header || {};
+  let headerHtml = '';
+
+  if (header.sourceMode === 'image_banner' && header.imageBase64) {
+    headerHtml = `
+      <div style="text-align: center; margin-bottom: 5mm;">
+        <img src="${header.imageBase64}" style="max-height: ${header.imageHeight || 32}mm; max-width: 100%; object-fit: ${header.imageFit || 'contain'};" />
+      </div>
+    `;
+  } else if (header.sourceMode !== 'none') {
+    const showBar = header.showColorBar !== false;
+    headerHtml = `
+      <div style="margin-bottom: 5mm;">
+        ${showBar ? `
+          <div style="display: flex; height: 3mm; margin-bottom: 2mm;">
+            <div style="width: 68%; background: ${secondaryColor};"></div>
+            <div style="width: 32%; background: ${primaryColor};"></div>
+          </div>
+        ` : ''}
+        <table style="width: 100%; border-collapse: collapse; border: none;">
+          <tr>
+            <td style="width: 48px; vertical-align: middle; padding: 0 8px 0 0;">
+              <img src="http://localhost:3000/emblem.png" style="width: 44px; height: 44px; object-fit: contain;" />
+            </td>
+            <td style="vertical-align: middle; padding: 0;">
+              <div style="font-weight: bold; font-size: 10.5pt; color: ${primaryColor};">${header.title || 'LADY GREY ARTS ACADEMY'}</div>
+              <div style="font-size: 8.5pt; font-style: italic; color: ${secondaryColor};">${header.subtitle || 'Where Learning is an Art'}</div>
+              <div style="font-size: 7.5pt; color: #64748B;">${header.contact || '18 Brummer Street, Lady Grey, 9755 | Tel: 051 603 0046'}</div>
+              <div style="font-size: 7.5pt; font-weight: bold; color: ${primaryColor};">${header.emis || 'EMIS: 200600985'}</div>
+            </td>
+            ${header.showBadge !== false ? `
+              <td style="width: 100px; text-align: center; vertical-align: middle; border-left: 2px solid ${primaryColor}; padding-left: 8px;">
+                <div style="font-size: 11pt; font-weight: bold; color: ${primaryColor};">${header.badgeText || 'OFFICIAL'}</div>
+                <div style="font-size: 7pt; color: #64748B;">${header.badgeSubtext || 'CORRESPONDENCE'}</div>
+              </td>
+            ` : ''}
+          </tr>
+        </table>
+      </div>
+    `;
+  }
+
+  // Titles
+  let titleHtml = '';
+  if (config.documentTitle) {
+    titleHtml += `<div style="text-align: center; font-weight: bold; font-size: ${titleSizePt}pt; color: ${primaryColor}; margin-top: 3mm;">${config.documentTitle}</div>`;
+  }
+  if (config.documentSubtitle) {
+    titleHtml += `<div style="text-align: center; font-weight: bold; font-size: ${subtitleSizePt}pt; color: ${secondaryColor}; margin-bottom: 4mm;">${config.documentSubtitle}</div>`;
+  }
+
+  // Metadata Table
+  let metaHtml = '';
+  if (config.components?.metadataTable?.enabled && Array.isArray(config.components.metadataTable.rows)) {
+    metaHtml = `
+      <table style="width: 100%; border-collapse: collapse; margin: 4mm 0 6mm 0; font-size: ${bodySizePt}pt;">
+        <thead>
+          <tr>
+            <th style="background: ${primaryColor}; color: #FFF; padding: 4px 8px; text-align: left; font-size: 8.5pt; width: 40%;">${config.components.metadataTable.col1Title || 'Attribute'}</th>
+            <th style="background: ${primaryColor}; color: #FFF; padding: 4px 8px; text-align: left; font-size: 8.5pt;">${config.components.metadataTable.col2Title || 'Specifications'}</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${config.components.metadataTable.rows.map(r => `
+            <tr style="border-bottom: 1px solid #E2E8F0;">
+              <td style="padding: 4px 8px; font-weight: bold; color: ${primaryColor};">${r.label || ''}</td>
+              <td style="padding: 4px 8px; color: ${textColor};">${r.value || ''}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+
+  // Legal Notice
+  let noticeHtml = '';
+  if (config.components?.legalNotice?.enabled) {
+    noticeHtml = `
+      <div style="border-left: 3.5px solid ${primaryColor}; background: #F8FAFC; padding: 6px 10px; margin: 4mm 0 6mm 0; font-size: 8.5pt; color: ${textColor};">
+        <strong style="color: ${primaryColor};">${config.components.legalNotice.prefix || 'LEGAL NOTICE: '}</strong>
+        <span>${config.components.legalNotice.text || ''}</span>
+      </div>
+    `;
+  }
+
+  // Clauses
+  const indentL1 = config.indents?.level1?.leftOffsetMm || 0;
+  const l2Wrap = config.indents?.level2?.textStartWrapMm || 10;
+  const l2Num = config.indents?.level2?.numberPositionMm || 0;
+  const l3Wrap = config.indents?.level3?.textStartWrapMm || 20;
+  const l3Num = config.indents?.level3?.numberPositionMm || 10;
+  const l4Wrap = config.indents?.level4?.textStartWrapMm || 30;
+  const l4Num = config.indents?.level4?.numberPositionMm || 20;
+  const l5Wrap = config.indents?.level5?.textStartWrapMm || 40;
+  const l5Num = config.indents?.level5?.numberPositionMm || 30;
+
+  let bodyHtml = '';
+  const blocks = Array.isArray(parsed) ? parsed : (parsed?.blocks || []);
+  blocks.forEach(b => {
+    if (b.type === 'level1') {
+      const headingText = config.indents?.level1?.uppercase !== false ? b.text.toUpperCase() : b.text;
+      bodyHtml += `
+        <div style="font-weight: bold; font-size: ${h1SizePt}pt; color: ${primaryColor}; margin: 5mm 0 2mm ${indentL1}mm; page-break-after: avoid;">
+          ${b.number ? `<span style="display: inline-block; min-width: 10mm;">${b.number}</span>` : ''}
+          <span>${headingText}</span>
+        </div>
+      `;
+    } else if (b.type === 'level2') {
+      bodyHtml += `
+        <div style="position: relative; padding-left: ${l2Wrap}mm; font-size: ${bodySizePt}pt; line-height: ${lineSpacing}; margin: 1.5mm 0; text-align: justify;">
+          <span style="position: absolute; left: ${l2Num}mm; top: 0; font-weight: bold; color: ${primaryColor};">${b.number}</span>
+          <span style="color: ${textColor};">${b.text}</span>
+        </div>
+      `;
+    } else if (b.type === 'level3') {
+      bodyHtml += `
+        <div style="position: relative; padding-left: ${l3Wrap}mm; font-size: ${bodySizePt}pt; line-height: ${lineSpacing}; margin: 1.2mm 0; text-align: justify;">
+          <span style="position: absolute; left: ${l3Num}mm; top: 0; font-weight: bold; color: ${primaryColor};">${b.number}</span>
+          <span style="color: ${textColor};">${b.text}</span>
+        </div>
+      `;
+    } else if (b.type === 'level4') {
+      bodyHtml += `
+        <div style="position: relative; padding-left: ${l4Wrap}mm; font-size: ${bodySizePt}pt; line-height: ${lineSpacing}; margin: 1mm 0; text-align: justify;">
+          <span style="position: absolute; left: ${l4Num}mm; top: 0; font-weight: bold; color: ${primaryColor};">${b.number}</span>
+          <span style="color: ${textColor};">${b.text}</span>
+        </div>
+      `;
+    } else if (b.type === 'level5') {
+      bodyHtml += `
+        <div style="position: relative; padding-left: ${l5Wrap}mm; font-size: ${bodySizePt}pt; line-height: ${lineSpacing}; margin: 1mm 0; text-align: justify;">
+          <span style="position: absolute; left: ${l5Num}mm; top: 0; font-weight: bold; color: ${primaryColor};">${b.number}</span>
+          <span style="color: ${textColor};">${b.text}</span>
+        </div>
+      `;
+    } else {
+      bodyHtml += `<div style="font-size: ${bodySizePt}pt; line-height: ${lineSpacing}; color: ${textColor}; margin: 1.5mm 0;">${b.text}</div>`;
+    }
+  });
+
+  // Signatures
+  let sigHtml = '';
+  if (config.components?.signatures?.enabled && Array.isArray(config.components.signatures.signers)) {
+    const signers = config.components.signatures.signers;
+    sigHtml = `
+      <div style="page-break-inside: avoid; margin-top: 6mm; padding-top: 4mm;">
+        <div style="font-weight: bold; font-size: ${h1SizePt}pt; color: ${primaryColor}; margin-bottom: 2mm;">${config.components.signatures.title || 'ADOPTION AND SIGN-OFF RESOLUTION'}</div>
+        <div style="font-size: ${bodySizePt}pt; line-height: 1.25; margin-bottom: 4mm; color: ${textColor};">${config.components.signatures.introText || ''}</div>
+        <table style="width: 100%; border-collapse: collapse; table-layout: fixed; margin-top: 3mm;">
+          <tr>
+            ${signers.map(s => `
+              <td style="vertical-align: top; padding: 0 8px;">
+                <div style="border-bottom: 1px solid #64748B; height: 16px; margin-bottom: 2px;"></div>
+                <div style="font-size: 8pt; font-style: italic; color: #64748B; margin-bottom: 4px;">Signature</div>
+                <div style="font-size: 8.5pt; margin-bottom: 4px;">
+                  <span>Surname, Name: </span>
+                  <span style="border-bottom: 1px solid #64748B; display: inline-block; min-width: 60%;">${s.name || ''}</span>
+                </div>
+                <div style="font-size: 9pt; font-weight: bold; color: ${primaryColor}; margin-bottom: 6px;">${s.role || ''}</div>
+                <div style="font-size: 8.5pt;">
+                  <span>Date: </span>
+                  <span style="border-bottom: 1px solid #64748B; display: inline-block; min-width: 60%;">${s.dateLabel || ''}</span>
+                </div>
+              </td>
+            `).join('')}
+          </tr>
+        </table>
+      </div>
+    `;
+  }
+
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    @page {
+      size: A4 portrait;
+      margin-top: ${marginTop}mm;
+      margin-right: ${marginRight}mm;
+      margin-bottom: ${marginBottom + 6}mm;
+      margin-left: ${marginLeft}mm;
+    }
+    body {
+      font-family: ${fontFamily}, Arial, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 0;
+      color: ${textColor};
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+  </style>
+</head>
+<body>
+  ${headerHtml}
+  ${titleHtml}
+  ${metaHtml}
+  ${noticeHtml}
+  ${bodyHtml}
+  ${sigHtml}
+</body>
+</html>
+  `;
+}
+
+// ── Fail-Safe PDF Conversion (Word COM with Headless Edge Fallback) ──
+export async function convertDocxToPdf(docxPath, pdfPath, config = null, parsed = null) {
+  // Strategy 1: Word COM Automation
   const psScript = `
 $docPath = "${docxPath.replace(/\\/g, '\\\\')}"
 $pdfPath = "${pdfPath.replace(/\\/g, '\\\\')}"
@@ -902,7 +1126,7 @@ try {
     $word = New-Object -ComObject Word.Application
     $word.Visible = $false
     $word.DisplayAlerts = 0
-    $doc = $word.Documents.Open($docPath, $false, $true)
+    $doc = $word.Documents.Open($docPath)
     try {
         $doc.ExportAsFixedFormat($pdfPath, 17) # wdExportFormatPDF = 17
     } catch {
@@ -933,19 +1157,44 @@ try {
 
   try {
     const { stdout, stderr } = await execPromise(`powershell -ExecutionPolicy Bypass -File "${tempPs1}"`, {
-      timeout: 30000 // 30s timeout
+      timeout: 25000
     });
     if (fsSync.existsSync(pdfPath)) {
-      return { success: true, pdfPath };
+      return { success: true, pdfPath, method: 'word_com' };
     }
-    throw new Error(stderr || 'PDF file was not produced by Word engine');
-  } catch (err) {
-    console.error('Word COM PDF Conversion error:', err);
+  } catch (wordErr) {
+    console.warn('Word COM PDF conversion encountered issue, falling back to Browser PDF engine:', wordErr.message);
     try {
       await execPromise('powershell -Command "Stop-Process -Name WINWORD -Force -ErrorAction SilentlyContinue"');
     } catch (e) {}
-    throw err;
   } finally {
     try { await fs.unlink(tempPs1); } catch (e) {}
+  }
+
+  // Strategy 2: Headless Edge / Chrome Fallback Engine
+  const edgePaths = [
+    'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
+    'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
+    'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+    'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe'
+  ];
+  const browserPath = edgePaths.find(p => fsSync.existsSync(p));
+  if (!browserPath) {
+    throw new Error('PDF conversion failed: neither Word COM nor browser engine were accessible');
+  }
+
+  const htmlContent = generatePrintableHtml(config, parsed);
+  const tempHtml = path.join(__dirname, 'uploads', `render_${Date.now()}_${Math.random().toString(36).substring(2, 6)}.html`);
+  await fs.writeFile(tempHtml, htmlContent, 'utf8');
+
+  try {
+    const cmd = `"${browserPath}" --headless --disable-gpu --run-all-compositor-stages-before-draw --print-to-pdf="${pdfPath}" "${tempHtml}"`;
+    await execPromise(cmd, { timeout: 25000 });
+    if (fsSync.existsSync(pdfPath)) {
+      return { success: true, pdfPath, method: 'browser_headless' };
+    }
+    throw new Error('PDF output file was not produced by browser engine');
+  } finally {
+    try { await fs.unlink(tempHtml); } catch (e) {}
   }
 }

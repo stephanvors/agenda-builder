@@ -1729,13 +1729,15 @@ body.formatter-studio-body {
     flex-direction: column;
     gap: 8px;
     align-items: center;
+    max-width: 90vw;
+    width: auto;
 }
 
 .toast {
     background: #0F172A;
     color: #FFFFFF;
     border: 1px solid #334155;
-    padding: 0.65rem 1.25rem;
+    padding: 0.75rem 1.25rem;
     border-radius: 8px;
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
     font-size: 0.84rem;
@@ -1745,11 +1747,14 @@ body.formatter-studio-body {
     transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     pointer-events: auto;
     display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    max-width: 480px;
-    text-align: center;
-    white-space: nowrap;
+    align-items: flex-start;
+    gap: 0.6rem;
+    max-width: min(650px, 90vw);
+    text-align: left;
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.4;
+    box-sizing: border-box;
 }
 
 .toast.show {
