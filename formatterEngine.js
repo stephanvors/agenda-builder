@@ -180,207 +180,39 @@ export async function buildFormattedDocx(config, parsedBlocks) {
     return { leftOffsetMm: offset, hangingIndentMm: step, numberPosMm: (lvlNum - 2) * step, textWrapMm: offset, bold: false, numberBold: true, uppercase: false, color: textColor };
   }
 
-  // Helper to create Header
-  function createDocumentHeader() {
-    const headerMode = hdr.sourceMode || (hdr.layout === 'none' ? 'none' : 'structured');
-    if (headerMode === 'none') return undefined;
+  // Helper to create running header for Page 2+ (when frequency is all_pages)
+  function createRunningHeader() {
+    if (hdr.frequency !== 'all_pages') return undefined;
 
-    const headerElements = [];
-
-    // Mode 1: Custom Image Banner
-    if (headerMode === 'image_banner' && hdr.imageBanner) {
-      try {
-        let imgBuffer = null;
-        if (hdr.imageBanner.startsWith('data:image')) {
-          imgBuffer = Buffer.from(hdr.imageBanner.replace(/^data:image\/\w+;base64,/, ''), 'base64');
-        } else if (fsSync.existsSync(hdr.imageBanner)) {
-          imgBuffer = fsSync.readFileSync(hdr.imageBanner);
-        }
-
-        if (imgBuffer) {
-          const bannerHeightMm = Number(hdr.imageHeightMm) || 32;
-          const bannerWidthPx = Math.round(bodyWidthMm * 3.7795);
-          const bannerHeightPx = Math.round(bannerHeightMm * 3.7795);
-
-          headerElements.push(
-            new Paragraph({
-              spacing: { before: 0, after: 80 },
-              alignment: AlignmentType.CENTER,
-              children: [
-                new ImageRun({
-                  data: imgBuffer,
-                  transformation: { width: bannerWidthPx, height: bannerHeightPx },
-                }),
-              ],
-            })
-          );
-          return new Header({ children: headerElements });
-        }
-      } catch (err) {
-        console.warn('Failed to embed custom header image banner in DOCX:', err);
-      }
-    }
-
-    // Mode 2: Structured Letterhead (Dual stripe + Logo + Text + Badge)
-    // Optional top color stripe
-    if (hdr.showColorBar !== false) {
-      const c1 = (hdr.colorBarPrimary || secondaryColor || 'A6192E').replace('#', '');
-      const c2 = (hdr.colorBarSecondary || primaryColor || '0C2340').replace('#', '');
-      const stripeTable = new Table({
-        width: { size: convertMillimetersToTwip(bodyWidthMm), type: WidthType.DXA },
-        borders: {
-          top: { style: BorderStyle.NONE },
-          bottom: { style: BorderStyle.NONE },
-          left: { style: BorderStyle.NONE },
-          right: { style: BorderStyle.NONE },
-          insideHorizontal: { style: BorderStyle.NONE },
-          insideVertical: { style: BorderStyle.NONE },
-        },
-        rows: [
-          new TableRow({
-            height: { value: convertMillimetersToTwip(2.2), rule: HeightRule.EXACT },
-            children: [
-              new TableCell({
-                width: { size: convertMillimetersToTwip(bodyWidthMm * 0.65), type: WidthType.DXA },
-                shading: { fill: c1 },
-                margins: { top: 0, bottom: 0, left: 0, right: 0 },
-                children: [new Paragraph({ spacing: { before: 0, after: 0, line: 20 }, children: [new TextRun({ text: ' ', size: 2 })] })],
-              }),
-              new TableCell({
-                width: { size: convertMillimetersToTwip(bodyWidthMm * 0.35), type: WidthType.DXA },
-                shading: { fill: c2 },
-                margins: { top: 0, bottom: 0, left: 0, right: 0 },
-                children: [new Paragraph({ spacing: { before: 0, after: 0, line: 20 }, children: [new TextRun({ text: ' ', size: 2 })] })],
-              }),
-            ],
-          }),
-        ],
-      });
-      headerElements.push(stripeTable);
-    }
-
-    // Logo resolution
-    let emblemData = null;
-    try {
-      const emblemPath = path.join(__dirname, 'public', 'emblem.png');
-      if (fsSync.existsSync(emblemPath)) {
-        emblemData = fsSync.readFileSync(emblemPath);
-      }
-    } catch (e) {}
-
-    const tableCells = [];
-
-    // Logo Cell (round school emblem)
-    if (hdr.showLogo !== false && emblemData) {
-      tableCells.push(
-        new TableCell({
-          width: { size: convertMillimetersToTwip(18), type: WidthType.DXA },
-          verticalAlign: VerticalAlign.CENTER,
-          margins: { top: 20, bottom: 20, left: 0, right: 30 },
-          children: [
-            new Paragraph({
-              spacing: { before: 0, after: 0 },
-              children: [
-                new ImageRun({
-                  data: emblemData,
-                  transformation: { width: 46, height: 46 },
-                  type: 'png',
-                }),
-              ],
-            }),
-          ],
-        })
-      );
-    }
-
-    // Center Details Cell
-    const textCellWidthMm = hdr.showBadge !== false ? bodyWidthMm - (tableCells.length ? 18 : 0) - 40 : bodyWidthMm - (tableCells.length ? 18 : 0);
-    const detailParagraphs = [];
-
-    if (hdr.title) {
-      detailParagraphs.push(
+    return new Header({
+      children: [
         new Paragraph({
-          spacing: { before: 0, after: 15, line: 240 },
-          children: [new TextRun({ text: hdr.title, bold: true, size: 22, color: primaryColor, font: fontFamily })],
-        })
-      );
-    }
-    if (hdr.subtitle) {
-      detailParagraphs.push(
-        new Paragraph({
-          spacing: { before: 0, after: 15, line: 240 },
-          children: [new TextRun({ text: hdr.subtitle, bold: true, size: 17, color: secondaryColor, font: fontFamily })],
-        })
-      );
-    }
-    if (hdr.contact) {
-      detailParagraphs.push(
-        new Paragraph({
-          spacing: { before: 0, after: 10, line: 220 },
-          children: [new TextRun({ text: hdr.contact, size: 15, color: '475569', font: fontFamily })],
-        })
-      );
-    }
-    if (hdr.emis) {
-      detailParagraphs.push(
-        new Paragraph({
-          spacing: { before: 0, after: 0, line: 200 },
-          children: [new TextRun({ text: hdr.emis, size: 14, color: '475569', font: fontFamily })],
-        })
-      );
-    }
-
-    tableCells.push(
-      new TableCell({
-        width: { size: convertMillimetersToTwip(textCellWidthMm), type: WidthType.DXA },
-        verticalAlign: VerticalAlign.CENTER,
-        margins: { left: 40, right: 40, top: 15, bottom: 15 },
-        children: detailParagraphs.length ? detailParagraphs : [new Paragraph({ children: [] })],
-      })
-    );
-
-    // Right Badge Cell
-    if (hdr.showBadge !== false && (hdr.badgeText || hdr.badgeSubtext)) {
-      tableCells.push(
-        new TableCell({
-          width: { size: convertMillimetersToTwip(40), type: WidthType.DXA },
-          verticalAlign: VerticalAlign.CENTER,
-          borders: {
-            left: { style: BorderStyle.SINGLE, size: 18, color: primaryColor },
-            top: { style: BorderStyle.NONE },
-            right: { style: BorderStyle.NONE },
-            bottom: { style: BorderStyle.NONE },
+          spacing: { before: 0, after: 80 },
+          border: {
+            bottom: { style: BorderStyle.SINGLE, size: 6, color: 'CBD5E1' }
           },
-          margins: { left: 80, right: 0, top: 15, bottom: 15 },
           children: [
-            new Paragraph({
-              spacing: { before: 0, after: 4 },
-              children: [new TextRun({ text: hdr.badgeText || 'OFFICIAL', bold: true, size: 18, color: primaryColor, font: fontFamily })],
+            new TextRun({
+              text: hdr.title || 'LADY GREY ARTS ACADEMY',
+              bold: true,
+              size: 16,
+              color: primaryColor,
+              font: fontFamily,
             }),
-            new Paragraph({
-              spacing: { before: 0, after: 0 },
-              children: [new TextRun({ text: hdr.badgeSubtext || 'CORRESPONDENCE', size: 14, color: '64748B', font: fontFamily })],
+            new TextRun({
+              text: '\t',
+              font: fontFamily,
+            }),
+            new TextRun({
+              text: hdr.badgeText || 'GOVERNANCE',
+              size: 14,
+              color: '64748B',
+              font: fontFamily,
             }),
           ],
-        })
-      );
-    }
-
-    const headerTable = new Table({
-      width: { size: convertMillimetersToTwip(bodyWidthMm), type: WidthType.DXA },
-      borders: {
-        top: { style: BorderStyle.NONE },
-        bottom: { style: BorderStyle.SINGLE, size: 8, color: 'CBD5E1' },
-        left: { style: BorderStyle.NONE },
-        right: { style: BorderStyle.NONE },
-        insideHorizontal: { style: BorderStyle.NONE },
-        insideVertical: { style: BorderStyle.NONE },
-      },
-      rows: [new TableRow({ children: tableCells })],
+        }),
+      ],
     });
-
-    headerElements.push(headerTable);
-    return new Header({ children: headerElements });
   }
 
   // Helper to create Footer
@@ -438,6 +270,202 @@ export async function buildFormattedDocx(config, parsedBlocks) {
 
   // Document Content Array
   const docChildren = [];
+
+  // 0. First Page Institutional Header (Rendered directly in page flow for perfect layout)
+  if (hdr.sourceMode === 'image_banner' && hdr.imageBase64) {
+    try {
+      const base64Data = hdr.imageBase64.replace(/^data:image\/\w+;base64,/, '');
+      const imgBuffer = Buffer.from(base64Data, 'base64');
+      const bannerHeightMm = Number(hdr.imageHeightMm) || 32;
+      const bannerWidthPx = Math.round(bodyWidthMm * 3.7795);
+      const bannerHeightPx = Math.round(bannerHeightMm * 3.7795);
+
+      docChildren.push(
+        new Paragraph({
+          spacing: { before: 0, after: 120 },
+          alignment: AlignmentType.CENTER,
+          children: [
+            new ImageRun({
+              data: imgBuffer,
+              transformation: { width: bannerWidthPx, height: bannerHeightPx },
+            }),
+          ],
+        })
+      );
+    } catch (err) {
+      console.warn('Failed to embed custom header image banner in DOCX:', err);
+    }
+  } else if (hdr.sourceMode !== 'none') {
+    // 0a. Top color stripes (68% Secondary Color / 32% Primary Color)
+    if (hdr.showColorBar !== false) {
+      const c1 = (hdr.colorBarPrimary || secondaryColor || 'A6192E').replace('#', '');
+      const c2 = (hdr.colorBarSecondary || primaryColor || '0C2340').replace('#', '');
+      const stripeTable = new Table({
+        width: { size: convertMillimetersToTwip(bodyWidthMm), type: WidthType.DXA },
+        borders: {
+          top: { style: BorderStyle.NONE },
+          bottom: { style: BorderStyle.NONE },
+          left: { style: BorderStyle.NONE },
+          right: { style: BorderStyle.NONE },
+          insideHorizontal: { style: BorderStyle.NONE },
+          insideVertical: { style: BorderStyle.NONE },
+        },
+        rows: [
+          new TableRow({
+            height: { value: convertMillimetersToTwip(3.5), rule: HeightRule.EXACT },
+            children: [
+              new TableCell({
+                width: { size: convertMillimetersToTwip(bodyWidthMm * 0.68), type: WidthType.DXA },
+                shading: { fill: c1 },
+                margins: { top: 0, bottom: 0, left: 0, right: 0 },
+                children: [new Paragraph({ spacing: { before: 0, after: 0, line: 20 }, children: [new TextRun({ text: ' ', size: 2 })] })],
+              }),
+              new TableCell({
+                width: { size: convertMillimetersToTwip(bodyWidthMm * 0.32), type: WidthType.DXA },
+                shading: { fill: c2 },
+                margins: { top: 0, bottom: 0, left: 0, right: 0 },
+                children: [new Paragraph({ spacing: { before: 0, after: 0, line: 20 }, children: [new TextRun({ text: ' ', size: 2 })] })],
+              }),
+            ],
+          }),
+        ],
+      });
+      docChildren.push(stripeTable);
+      docChildren.push(new Paragraph({ spacing: { before: 0, after: 60 }, children: [] }));
+    }
+
+    // 0b. Header Table with Logo, Text & Badge
+    let emblemData = null;
+    try {
+      const emblemPath = path.join(__dirname, 'public', 'emblem.png');
+      if (fsSync.existsSync(emblemPath)) {
+        emblemData = fsSync.readFileSync(emblemPath);
+      }
+    } catch (e) {}
+
+    const tableCells = [];
+
+    // Logo Cell
+    if (hdr.showLogo !== false && emblemData) {
+      tableCells.push(
+        new TableCell({
+          width: { size: convertMillimetersToTwip(16), type: WidthType.DXA },
+          verticalAlign: VerticalAlign.CENTER,
+          margins: { top: 10, bottom: 10, left: 0, right: 40 },
+          children: [
+            new Paragraph({
+              spacing: { before: 0, after: 0 },
+              children: [
+                new ImageRun({
+                  data: emblemData,
+                  transformation: { width: 46, height: 46 },
+                  type: 'png',
+                }),
+              ],
+            }),
+          ],
+        })
+      );
+    }
+
+    // Text Cell
+    const textWidthMm = hdr.showBadge !== false ? bodyWidthMm - 16 - 36 : bodyWidthMm - 16;
+    const detailParagraphs = [];
+    if (hdr.title) {
+      detailParagraphs.push(
+        new Paragraph({
+          spacing: { before: 0, after: 8, line: 220 },
+          children: [new TextRun({ text: hdr.title, bold: true, size: 20, color: primaryColor, font: fontFamily })],
+        })
+      );
+    }
+    if (hdr.subtitle) {
+      detailParagraphs.push(
+        new Paragraph({
+          spacing: { before: 0, after: 8, line: 220 },
+          children: [new TextRun({ text: hdr.subtitle, bold: true, italics: true, size: 15, color: secondaryColor, font: fontFamily })],
+        })
+      );
+    }
+    if (hdr.contact) {
+      detailParagraphs.push(
+        new Paragraph({
+          spacing: { before: 0, after: 6, line: 200 },
+          children: [new TextRun({ text: hdr.contact, size: 14, color: '475569', font: fontFamily })],
+        })
+      );
+    }
+    if (hdr.emis) {
+      detailParagraphs.push(
+        new Paragraph({
+          spacing: { before: 0, after: 0, line: 200 },
+          children: [new TextRun({ text: hdr.emis, size: 14, color: '475569', font: fontFamily })],
+        })
+      );
+    }
+
+    tableCells.push(
+      new TableCell({
+        width: { size: convertMillimetersToTwip(textWidthMm), type: WidthType.DXA },
+        verticalAlign: VerticalAlign.CENTER,
+        margins: { top: 10, bottom: 10, left: 30, right: 30 },
+        children: detailParagraphs.length ? detailParagraphs : [new Paragraph({ children: [] })],
+      })
+    );
+
+    // Badge Cell
+    if (hdr.showBadge !== false && (hdr.badgeText || hdr.badgeSubtext)) {
+      tableCells.push(
+        new TableCell({
+          width: { size: convertMillimetersToTwip(36), type: WidthType.DXA },
+          verticalAlign: VerticalAlign.CENTER,
+          borders: {
+            left: { style: BorderStyle.SINGLE, size: 20, color: primaryColor },
+            top: { style: BorderStyle.NONE },
+            right: { style: BorderStyle.NONE },
+            bottom: { style: BorderStyle.NONE },
+          },
+          margins: { top: 10, bottom: 10, left: 60, right: 0 },
+          children: [
+            new Paragraph({
+              spacing: { before: 0, after: 2, line: 200 },
+              children: [new TextRun({ text: hdr.badgeText || 'OFFICIAL', bold: true, size: 19, color: primaryColor, font: fontFamily })],
+            }),
+            new Paragraph({
+              spacing: { before: 0, after: 0, line: 180 },
+              children: [new TextRun({ text: hdr.badgeSubtext || 'CORRESPONDENCE', size: 14, color: '64748B', font: fontFamily })],
+            }),
+          ],
+        })
+      );
+    }
+
+    const headerTable = new Table({
+      width: { size: convertMillimetersToTwip(bodyWidthMm), type: WidthType.DXA },
+      borders: {
+        top: { style: BorderStyle.NONE },
+        bottom: { style: BorderStyle.NONE },
+        left: { style: BorderStyle.NONE },
+        right: { style: BorderStyle.NONE },
+        insideHorizontal: { style: BorderStyle.NONE },
+        insideVertical: { style: BorderStyle.NONE },
+      },
+      rows: [new TableRow({ children: tableCells })],
+    });
+
+    docChildren.push(headerTable);
+
+    // 0c. Clean subtle bottom divider line
+    docChildren.push(
+      new Paragraph({
+        spacing: { before: 40, after: 120 },
+        border: {
+          bottom: { style: BorderStyle.SINGLE, size: 6, color: 'CBD5E1' }
+        },
+        children: []
+      })
+    );
+  }
 
   // 1. Document Title & Subtitle
   if (config.documentTitle) {
@@ -836,9 +864,8 @@ export async function buildFormattedDocx(config, parsedBlocks) {
   }
 
   // Construct Document Object
-  const docHeader = createDocumentHeader();
+  const docRunningHeader = createRunningHeader();
   const docFooter = createDocumentFooter();
-  const isFirstPageOnly = (hdr.frequency || 'first_page_only') === 'first_page_only';
 
   const sectionConfig = {
     properties: {
@@ -856,18 +883,9 @@ export async function buildFormattedDocx(config, parsedBlocks) {
           footer: convertMillimetersToTwip(8),
         },
       },
-      titlePage: isFirstPageOnly,
     },
-    headers: isFirstPageOnly
-      ? {
-          first: docHeader,
-          default: new Header({ children: [] }),
-        }
-      : {
-          default: docHeader,
-        },
+    headers: docRunningHeader ? { default: docRunningHeader } : undefined,
     footers: {
-      first: docFooter,
       default: docFooter,
     },
     children: docChildren,
@@ -922,30 +940,31 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
     headerHtml = `
       <div style="margin-bottom: 5mm;">
         ${showBar ? `
-          <div style="display: flex; height: 3mm; margin-bottom: 2mm;">
+          <div style="display: flex; height: 3.5mm; margin-bottom: 2.5mm;">
             <div style="width: 68%; background: ${secondaryColor};"></div>
             <div style="width: 32%; background: ${primaryColor};"></div>
           </div>
         ` : ''}
-        <table style="width: 100%; border-collapse: collapse; border: none;">
+        <table style="width: 100%; border-collapse: collapse; border: none; margin-bottom: 2mm;">
           <tr>
-            <td style="width: 48px; vertical-align: middle; padding: 0 8px 0 0;">
-              <img src="http://localhost:3000/emblem.png" style="width: 44px; height: 44px; object-fit: contain;" />
+            <td style="width: 16mm; vertical-align: middle; padding: 0 4mm 0 0;">
+              <img src="http://localhost:3000/emblem.png" style="width: 14mm; height: 14mm; object-fit: contain;" />
             </td>
-            <td style="vertical-align: middle; padding: 0;">
-              <div style="font-weight: bold; font-size: 10.5pt; color: ${primaryColor};">${header.title || 'LADY GREY ARTS ACADEMY'}</div>
-              <div style="font-size: 8.5pt; font-style: italic; color: ${secondaryColor};">${header.subtitle || 'Where Learning is an Art'}</div>
-              <div style="font-size: 7.5pt; color: #64748B;">${header.contact || '18 Brummer Street, Lady Grey, 9755 | Tel: 051 603 0046'}</div>
-              <div style="font-size: 7.5pt; font-weight: bold; color: ${primaryColor};">${header.emis || 'EMIS: 200600985'}</div>
+            <td style="vertical-align: middle; padding: 0 3mm;">
+              <div style="font-weight: bold; font-size: 10pt; color: ${primaryColor}; line-height: 1.2;">${header.title || 'LADY GREY ARTS ACADEMY'}</div>
+              <div style="font-size: 7.5pt; font-weight: bold; font-style: italic; color: ${secondaryColor}; line-height: 1.2;">${header.subtitle || 'Where Learning is an Art'}</div>
+              <div style="font-size: 7pt; color: #475569; line-height: 1.2;">${header.contact || '18 Brummer Street, Lady Grey, 9755 | Tel: 051 603 0046 | admin@lgaa.co.za'}</div>
+              <div style="font-size: 7pt; color: #475569; line-height: 1.2;">${header.emis || 'EMIS: 200600985 | District: Joe Gqabi | Circuit: Ekhephini | CMC: Maletswai'}</div>
             </td>
             ${header.showBadge !== false ? `
-              <td style="width: 100px; text-align: center; vertical-align: middle; border-left: 2px solid ${primaryColor}; padding-left: 8px;">
-                <div style="font-size: 11pt; font-weight: bold; color: ${primaryColor};">${header.badgeText || 'OFFICIAL'}</div>
-                <div style="font-size: 7pt; color: #64748B;">${header.badgeSubtext || 'CORRESPONDENCE'}</div>
+              <td style="width: 36mm; vertical-align: middle; border-left: 2.5px solid ${primaryColor}; padding-left: 3mm;">
+                <div style="font-size: 9.5pt; font-weight: bold; color: ${primaryColor}; line-height: 1.1;">${header.badgeText || 'OFFICIAL'}</div>
+                <div style="font-size: 7.5pt; color: #64748B; line-height: 1.1;">${header.badgeSubtext || 'CORRESPONDENCE'}</div>
               </td>
             ` : ''}
           </tr>
         </table>
+        <div style="border-bottom: 1.5px solid #CBD5E1; margin-bottom: 4mm;"></div>
       </div>
     `;
   }
@@ -1134,6 +1153,8 @@ try {
     }
     $doc.Close([ref]0) # wdDoNotSaveChanges = 0
     $doc = $null
+    $word.Quit([ref]0)
+    $word = $null
     Write-Output "CONVERT_OK"
 } catch {
     Write-Error $_.Exception.Message
