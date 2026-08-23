@@ -144,6 +144,28 @@
                             <input type="file" id="raw-file-input" class="hidden" accept=".txt,.md,.docx,.pdf">
                         </div>
 
+                        <!-- English (South Africa) Quality Inspector Drawer -->
+                        <div id="spellcheck-drawer" class="spellcheck-drawer hidden">
+                            <div class="spellcheck-header">
+                                <div class="spellcheck-title-group">
+                                    <span class="spellcheck-flag">🇿🇦</span>
+                                    <div class="spellcheck-title-text">
+                                        <h4>English (South Africa) Quality Inspector</h4>
+                                        <span class="spellcheck-subtitle">Spelling, Legal Diction &amp; Grammar Rules</span>
+                                    </div>
+                                    <span id="spellcheck-status-pill" class="badge-pill">0 Issues</span>
+                                </div>
+                                <div class="spellcheck-actions">
+                                    <button type="button" class="btn-sm btn-primary" id="btn-fix-all-spelling">⚡ Fix All Suggestions</button>
+                                    <button type="button" class="btn-sm btn-outline" id="btn-recheck-spelling">↻ Re-check</button>
+                                    <button type="button" class="btn-sm btn-icon" id="btn-close-spellcheck" title="Close Inspector">✕</button>
+                                </div>
+                            </div>
+                            <div id="spellcheck-issues-list" class="spellcheck-issues-list">
+                                <!-- Dynamic issue cards -->
+                            </div>
+                        </div>
+
                         <div class="form-group mt-3">
                             <div class="label-with-badge">
                                 <label for="raw-text-input">Direct Text Editor</label>
@@ -250,28 +272,6 @@
 13. RULES AND POLICY
 13.1 Subject to any legal provision and this Constitution, the governing body may in its discretion make rules or determine policy in connection with any matter concerning its functioning or the functioning of any of its committees or in the manner in which any office bearer or authorised representative of the governing body should perform his or her functions.
 13.2 Such rules and policy do not form part of this Constitution and any amendment thereof need not comply with the provisions relating to the amendment of the Constitution.</textarea>
-                        </div>
-
-                        <!-- English (South Africa) Quality Inspector Drawer -->
-                        <div id="spellcheck-drawer" class="spellcheck-drawer hidden">
-                            <div class="spellcheck-header">
-                                <div class="spellcheck-title-group">
-                                    <span class="spellcheck-flag">🇿🇦</span>
-                                    <div class="spellcheck-title-text">
-                                        <h4>English (South Africa) Quality Inspector</h4>
-                                        <span class="spellcheck-subtitle">Spelling, Legal Diction &amp; Grammar Rules</span>
-                                    </div>
-                                    <span id="spellcheck-status-pill" class="badge-pill">0 Issues</span>
-                                </div>
-                                <div class="spellcheck-actions">
-                                    <button type="button" class="btn-sm btn-primary" id="btn-fix-all-spelling">⚡ Fix All Suggestions</button>
-                                    <button type="button" class="btn-sm btn-outline" id="btn-recheck-spelling">↻ Re-check</button>
-                                    <button type="button" class="btn-sm btn-icon" id="btn-close-spellcheck" title="Close Inspector">✕</button>
-                                </div>
-                            </div>
-                            <div id="spellcheck-issues-list" class="spellcheck-issues-list">
-                                <!-- Dynamic issue cards -->
-                            </div>
                         </div>
                     </div>
                 </div>

@@ -629,10 +629,27 @@ function initEventListeners() {
     });
 
     // Spell & Grammar Checker Actions
-    document.getElementById('btn-spellcheck')?.addEventListener('click', runSpellCheck);
-    document.getElementById('btn-recheck-spelling')?.addEventListener('click', runSpellCheck);
-    document.getElementById('btn-fix-all-spelling')?.addEventListener('click', applyAllSpellFixes);
-    document.getElementById('btn-close-spellcheck')?.addEventListener('click', () => {
+    document.getElementById('btn-spellcheck')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        const drawer = document.getElementById('spellcheck-drawer');
+        if (drawer && !drawer.classList.contains('hidden')) {
+            drawer.classList.add('hidden');
+        } else {
+            if (drawer) drawer.classList.remove('hidden');
+            runSpellCheck(false);
+            drawer?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    });
+    document.getElementById('btn-recheck-spelling')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        runSpellCheck(false);
+    });
+    document.getElementById('btn-fix-all-spelling')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        applyAllSpellFixes();
+    });
+    document.getElementById('btn-close-spellcheck')?.addEventListener('click', (e) => {
+        e.preventDefault();
         document.getElementById('spellcheck-drawer')?.classList.add('hidden');
     });
 
@@ -2482,7 +2499,8 @@ function formatTextWithSpellHighlights(text) {
     return escaped;
 }
 
-async function runSpellCheck(silent = false) {
+async function runSpellCheck(isSilentParam = false) {
+    const silent = (isSilentParam === true);
     const rawText = document.getElementById('raw-text-input')?.value || '';
     const badge = document.getElementById('spellcheck-badge');
     const drawer = document.getElementById('spellcheck-drawer');
@@ -2591,7 +2609,7 @@ window.applySpellFix = function(issueId) {
         parseTextAndUpdatePreview();
         saveDraftToLocalStorage();
         showToast(`Applied fix: "${iss.original}" ➜ "${iss.suggestion}"`);
-        runSpellCheck();
+        runSpellCheck(false);
     }
 };
 
@@ -2631,7 +2649,7 @@ function applyAllSpellFixes() {
     parseTextAndUpdatePreview();
     saveDraftToLocalStorage();
     showToast(`Applied ${fixCount} English (South Africa) & Legal fixes!`);
-    runSpellCheck();
+    runSpellCheck(false);
 }
 
 function escapeRegExp(string) {
