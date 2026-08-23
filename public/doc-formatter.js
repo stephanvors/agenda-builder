@@ -1243,9 +1243,12 @@ function renderDocumentPreview() {
     const l5NumPos = Number(document.getElementById('l5-num-pos')?.value) || 30;
     const l5Wrap = Number(document.getElementById('l5-text-wrap')?.value) || 40;
 
+    let currentBodyIndentMm = 0;
+
     state.parsedBlocks.forEach(b => {
         let bHtml = '';
         if (b.type === 'level1') {
+            currentBodyIndentMm = l2Wrap; // Subsequent body paragraphs line up under the Level 1 text!
             const headingText = l1Upper ? b.text.toUpperCase() : b.text;
             const formattedHeading = formatTextWithSpellHighlights(headingText);
             if (b.number) {
@@ -1255,19 +1258,23 @@ function renderDocumentPreview() {
             }
             blocks.push({ type: 'level1', isHeading: true, html: bHtml });
         } else if (b.type === 'level2') {
+            currentBodyIndentMm = l2Wrap;
             bHtml = `<div class="prev-clause-item" style="position: relative; padding-left: ${l2Wrap}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; margin: 1.5mm 0; text-align: justify;"><span class="prev-num-bold" style="position: absolute; left: ${l2NumPos}mm; top: 0; font-weight: bold; color: ${primaryColor};">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${formatTextWithSpellHighlights(b.text)}</span></div>`;
             blocks.push({ type: 'level2', isHeading: false, html: bHtml });
         } else if (b.type === 'level3') {
+            currentBodyIndentMm = l3Wrap;
             bHtml = `<div class="prev-clause-item" style="position: relative; padding-left: ${l3Wrap}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; margin: 1.2mm 0; text-align: justify;"><span class="prev-num-bold" style="position: absolute; left: ${l3NumPos}mm; top: 0; font-weight: bold; color: ${primaryColor};">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${formatTextWithSpellHighlights(b.text)}</span></div>`;
             blocks.push({ type: 'level3', isHeading: false, html: bHtml });
         } else if (b.type === 'level4') {
+            currentBodyIndentMm = l4Wrap;
             bHtml = `<div class="prev-clause-item" style="position: relative; padding-left: ${l4Wrap}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; margin: 1mm 0; text-align: justify;"><span class="prev-num-bold" style="position: absolute; left: ${l4NumPos}mm; top: 0; font-weight: bold; color: ${primaryColor};">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${formatTextWithSpellHighlights(b.text)}</span></div>`;
             blocks.push({ type: 'level4', isHeading: false, html: bHtml });
         } else if (b.type === 'level5') {
+            currentBodyIndentMm = l5Wrap;
             bHtml = `<div class="prev-clause-item" style="position: relative; padding-left: ${l5Wrap}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; margin: 1mm 0; text-align: justify;"><span class="prev-num-bold" style="position: absolute; left: ${l5NumPos}mm; top: 0; font-weight: bold; color: ${primaryColor};">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${formatTextWithSpellHighlights(b.text)}</span></div>`;
             blocks.push({ type: 'level5', isHeading: false, html: bHtml });
         } else {
-            bHtml = `<div class="prev-clause-body" style="font-size: ${bodySize}pt; line-height: ${lineSpacing}; color: ${textColor}; margin: 1.5mm 0;">${formatTextWithSpellHighlights(b.text)}</div>`;
+            bHtml = `<div class="prev-clause-body" style="padding-left: ${currentBodyIndentMm}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; color: ${textColor}; margin: 1.5mm 0; text-align: justify;">${formatTextWithSpellHighlights(b.text)}</div>`;
             blocks.push({ type: 'body', isHeading: false, html: bHtml });
         }
     });

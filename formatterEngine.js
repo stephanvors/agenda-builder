@@ -708,11 +708,14 @@ export async function buildFormattedDocx(config, parsedBlocks) {
   }
 
   // 4. Formatted Hierarchical Blocks (Levels 1 to 5)
+  let currentBodyIndentMm = 0;
+
   parsedBlocks.forEach(block => {
     if (block.type === 'level1') {
       const cfg = getLevelConfig(1);
       const l2Cfg = getLevelConfig(2);
       const tabPosMm = Number(l2Cfg.textWrapMm) || Number(l2Cfg.leftOffsetMm) || 10;
+      currentBodyIndentMm = tabPosMm; // Subsequent body paragraphs line up under Level 1 text!
       const headingText = cfg.uppercase ? block.text.toUpperCase() : block.text;
 
       if (block.number) {
@@ -775,6 +778,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
       const leftOffsetMm = Number(cfg.leftOffsetMm) || (lvlNum - 1) * 10;
       const hangingMm = Number(cfg.hangingIndentMm) || 10;
       const textWrapMm = Number(cfg.textWrapMm) || leftOffsetMm;
+      currentBodyIndentMm = textWrapMm;
 
       docChildren.push(
         new Paragraph({
@@ -815,12 +819,12 @@ export async function buildFormattedDocx(config, parsedBlocks) {
         })
       );
     } else {
-      // General Body text
+      // General Body text: lines up under the active section/clause header text!
       docChildren.push(
         new Paragraph({
           spacing: { before: spaceBefore, after: spaceAfter, line: lineSpacing },
           alignment: AlignmentType.BOTH,
-          indent: { left: convertMillimetersToTwip(0) },
+          indent: { left: convertMillimetersToTwip(currentBodyIndentMm) },
           children: [
             new TextRun({
               text: block.text || block.fullText || '',
@@ -1128,9 +1132,11 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
   const l5Num = config.indents?.level5?.numberPositionMm || 30;
 
   let bodyHtml = '';
+  let currentBodyIndentMm = 0;
   const blocks = Array.isArray(parsed) ? parsed : (parsed?.blocks || []);
   blocks.forEach(b => {
     if (b.type === 'level1') {
+      currentBodyIndentMm = l2Wrap; // Subsequent body paragraphs line up under Level 1 text!
       const headingText = config.indents?.level1?.uppercase !== false ? b.text.toUpperCase() : b.text;
       bodyHtml += `
         <div style="font-weight: bold; font-size: ${h1SizePt}pt; color: ${primaryColor}; margin: 5mm 0 2mm ${indentL1}mm; page-break-after: avoid;">
@@ -1139,6 +1145,7 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
         </div>
       `;
     } else if (b.type === 'level2') {
+      currentBodyIndentMm = l2Wrap;
       bodyHtml += `
         <div style="position: relative; padding-left: ${l2Wrap}mm; font-size: ${bodySizePt}pt; line-height: ${lineSpacing}; margin: 1.5mm 0; text-align: justify;">
           <span style="position: absolute; left: ${l2Num}mm; top: 0; font-weight: bold; color: ${primaryColor};">${b.number}</span>
@@ -1146,6 +1153,7 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
         </div>
       `;
     } else if (b.type === 'level3') {
+      currentBodyIndentMm = l3Wrap;
       bodyHtml += `
         <div style="position: relative; padding-left: ${l3Wrap}mm; font-size: ${bodySizePt}pt; line-height: ${lineSpacing}; margin: 1.2mm 0; text-align: justify;">
           <span style="position: absolute; left: ${l3Num}mm; top: 0; font-weight: bold; color: ${primaryColor};">${b.number}</span>
@@ -1153,6 +1161,7 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
         </div>
       `;
     } else if (b.type === 'level4') {
+      currentBodyIndentMm = l4Wrap;
       bodyHtml += `
         <div style="position: relative; padding-left: ${l4Wrap}mm; font-size: ${bodySizePt}pt; line-height: ${lineSpacing}; margin: 1mm 0; text-align: justify;">
           <span style="position: absolute; left: ${l4Num}mm; top: 0; font-weight: bold; color: ${primaryColor};">${b.number}</span>
@@ -1160,6 +1169,7 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
         </div>
       `;
     } else if (b.type === 'level5') {
+      currentBodyIndentMm = l5Wrap;
       bodyHtml += `
         <div style="position: relative; padding-left: ${l5Wrap}mm; font-size: ${bodySizePt}pt; line-height: ${lineSpacing}; margin: 1mm 0; text-align: justify;">
           <span style="position: absolute; left: ${l5Num}mm; top: 0; font-weight: bold; color: ${primaryColor};">${b.number}</span>
@@ -1167,7 +1177,7 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
         </div>
       `;
     } else {
-      bodyHtml += `<div style="font-size: ${bodySizePt}pt; line-height: ${lineSpacing}; color: ${textColor}; margin: 1.5mm 0;">${b.text}</div>`;
+      bodyHtml += `<div style="padding-left: ${currentBodyIndentMm}mm; font-size: ${bodySizePt}pt; line-height: ${lineSpacing}; color: ${textColor}; margin: 1.5mm 0; text-align: justify;">${b.text}</div>`;
     }
   });
 
