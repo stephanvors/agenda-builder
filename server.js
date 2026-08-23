@@ -2108,6 +2108,19 @@ async function extractTextFromDocument(filePath, originalFilename) {
   }
 
   if (ext === '.docx' || ext === '.doc') {
+    // 1. Try Word COM via PowerShell to preserve Word automatic list numbers (ListFormat.ListString)
+    try {
+      const escapedPath = filePath.replace(/\\/g, '\\\\');
+      const psCommand = `powershell -NoProfile -ExecutionPolicy Bypass -Command "$word = New-Object -ComObject Word.Application; $word.Visible = $false; $word.DisplayAlerts = 0; try { $doc = $word.Documents.Open('${escapedPath}', $false, $true); $lines = @(); foreach ($p in $doc.Paragraphs) { $rawText = $p.Range.Text; if ($rawText) { $rawText = $rawText.TrimEnd(\`"\`r\`\", \`"\`n\`\", [char]7, [char]12) }; $listStr = $p.Range.ListFormat.ListString; if ($listStr -and $listStr.Trim()) { $line = \`"$($listStr.Trim()) $rawText\`" } else { $line = $rawText }; if ($line -and $line.Trim()) { $lines += $line.Trim() } }; $doc.Close([ref]0); $lines -join \`"\`r\`n\`\" } finally { $word.Quit([ref]0); [System.Runtime.InteropServices.Marshal]::ReleaseComObject($word) | Out-Null }"`;
+      const { stdout } = await execPromise(psCommand);
+      if (stdout && stdout.trim()) {
+        return stdout.trim();
+      }
+    } catch (wordComErr) {
+      console.warn('Word COM extraction failed, falling back to mammoth:', wordComErr.message);
+    }
+
+    // 2. Fallback to mammoth
     try {
       const docxBuf = await fs.readFile(filePath);
       const res = await mammoth.extractRawText({ buffer: docxBuf });
