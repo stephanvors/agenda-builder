@@ -245,7 +245,8 @@ function applyPresetConfig(preset) {
     const typo = preset.typography || {};
     setVal('font-family-select', typo.fontFamily || 'Arial');
     setVal('line-spacing-select', String(typo.lineSpacing || 1.15));
-    setVal('para-spacing-input', typo.paragraphSpacingPt !== undefined ? typo.paragraphSpacingPt : (typo.spaceAfterPt !== undefined ? typo.spaceAfterPt : 4));
+    setVal('space-before-input', typo.spaceBeforePt !== undefined ? typo.spaceBeforePt : 0);
+    setVal('space-after-input', typo.spaceAfterPt !== undefined ? typo.spaceAfterPt : (typo.paragraphSpacingPt !== undefined ? typo.paragraphSpacingPt : 4));
     setVal('title-size-input', typo.titleSizePt || 14);
     setVal('subtitle-size-input', typo.subtitleSizePt || 12);
     setVal('body-size-input', typo.bodySizePt || 10);
@@ -473,7 +474,7 @@ function initEventListeners() {
     }
 
     const directInputIds = [
-        'font-family-select', 'line-spacing-select', 'para-spacing-input',
+        'font-family-select', 'line-spacing-select', 'space-before-input', 'space-after-input',
         'title-size-input', 'subtitle-size-input', 'body-size-input',
         'primary-color-input', 'primary-color-picker', 'secondary-color-input', 'secondary-color-picker',
         'text-color-input', 'text-color-picker',
@@ -1134,9 +1135,13 @@ function renderDocumentPreview() {
     const fontFamily = document.getElementById('font-family-select')?.value || 'Arial';
     const fontCSS = getFontFamilyCSS(fontFamily);
     const lineSpacing = Number(document.getElementById('line-spacing-select')?.value) || 1.15;
-    const rawParaSpacing = document.getElementById('para-spacing-input')?.value;
-    const paraSpacingPt = (rawParaSpacing !== undefined && rawParaSpacing !== '' && !isNaN(Number(rawParaSpacing)))
-        ? Number(rawParaSpacing)
+    const rawBefore = document.getElementById('space-before-input')?.value;
+    const spaceBeforePt = (rawBefore !== undefined && rawBefore !== '' && !isNaN(Number(rawBefore)))
+        ? Number(rawBefore)
+        : 0;
+    const rawAfter = document.getElementById('space-after-input')?.value;
+    const spaceAfterPt = (rawAfter !== undefined && rawAfter !== '' && !isNaN(Number(rawAfter)))
+        ? Number(rawAfter)
         : 4;
     const titleSize = Number(document.getElementById('title-size-input')?.value) || 14;
     const subtitleSize = Number(document.getElementById('subtitle-size-input')?.value) || 12;
@@ -1325,11 +1330,11 @@ function renderDocumentPreview() {
             const headingText = l1Upper ? b.text.toUpperCase() : b.text;
             const formattedHeading = formatTextWithSpellHighlights(headingText);
             const textDecor = l1Underline ? 'underline' : 'none';
-            const topMarginPt = Math.round(paraSpacingPt * 1.5);
+            const topMarginPt = Math.max(spaceBeforePt, Math.round(spaceBeforePt + 8));
             if (b.number) {
-                bHtml = `<div class="prev-clause-item prev-clause-level1" style="position: relative; padding-left: ${l2Wrap}mm; font-weight: ${l1Bold ? 'bold' : 'normal'}; text-decoration: ${textDecor}; text-transform: ${l1Upper ? 'uppercase' : 'none'}; color: ${primaryColor}; font-size: ${l1Size}pt; margin: ${topMarginPt}pt 0 ${paraSpacingPt}pt 0;"><span class="prev-num-bold" style="position: absolute; left: ${l1Offset}mm; top: 0; font-weight: bold; color: ${primaryColor}; text-decoration: none;">${escapeHTML(b.number)}</span><span class="prev-heading-text">${formattedHeading}</span></div>`;
+                bHtml = `<div class="prev-clause-item prev-clause-level1" style="position: relative; padding-left: ${l2Wrap}mm; font-weight: ${l1Bold ? 'bold' : 'normal'}; text-decoration: ${textDecor}; text-transform: ${l1Upper ? 'uppercase' : 'none'}; color: ${primaryColor}; font-size: ${l1Size}pt; margin: ${topMarginPt}pt 0 ${spaceAfterPt}pt 0;"><span class="prev-num-bold" style="position: absolute; left: ${l1Offset}mm; top: 0; font-weight: bold; color: ${primaryColor}; text-decoration: none;">${escapeHTML(b.number)}</span><span class="prev-heading-text">${formattedHeading}</span></div>`;
             } else {
-                bHtml = `<div class="prev-clause-item prev-clause-level1" style="padding-left: ${l1Offset}mm; font-weight: ${l1Bold ? 'bold' : 'normal'}; text-decoration: ${textDecor}; text-transform: ${l1Upper ? 'uppercase' : 'none'}; color: ${primaryColor}; font-size: ${l1Size}pt; margin: ${topMarginPt}pt 0 ${paraSpacingPt}pt 0;">${formattedHeading}</div>`;
+                bHtml = `<div class="prev-clause-item prev-clause-level1" style="padding-left: ${l1Offset}mm; font-weight: ${l1Bold ? 'bold' : 'normal'}; text-decoration: ${textDecor}; text-transform: ${l1Upper ? 'uppercase' : 'none'}; color: ${primaryColor}; font-size: ${l1Size}pt; margin: ${topMarginPt}pt 0 ${spaceAfterPt}pt 0;">${formattedHeading}</div>`;
             }
             blocks.push({ type: 'level1', isHeading: true, html: bHtml, text: b.text });
         } else if (b.type === 'level2') {
@@ -1339,8 +1344,8 @@ function renderDocumentPreview() {
                 const processed = l2Upper ? txt.toUpperCase() : txt;
                 const formatted = formatTextWithSpellHighlights(processed);
                 return isCont ?
-                    `<div class="prev-clause-item" style="padding-left: ${l2Wrap}mm; font-size: ${l2Size}pt; font-weight: ${l2Bold ? 'bold' : 'normal'}; text-decoration: ${textDecor}; text-transform: ${l2Upper ? 'uppercase' : 'none'}; line-height: ${lineSpacing}; margin: 0 0 ${paraSpacingPt}pt 0; text-align: justify; color: ${textColor};">${formatted}</div>` :
-                    `<div class="prev-clause-item" style="position: relative; padding-left: ${l2Wrap}mm; font-size: ${l2Size}pt; font-weight: ${l2Bold ? 'bold' : 'normal'}; text-decoration: ${textDecor}; text-transform: ${l2Upper ? 'uppercase' : 'none'}; line-height: ${lineSpacing}; margin: 0 0 ${paraSpacingPt}pt 0; text-align: justify;"><span class="prev-num-bold" style="position: absolute; left: ${l2NumPos}mm; top: 0; font-weight: bold; color: ${primaryColor}; text-decoration: none;">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${formatted}</span></div>`;
+                    `<div class="prev-clause-item" style="padding-left: ${l2Wrap}mm; font-size: ${l2Size}pt; font-weight: ${l2Bold ? 'bold' : 'normal'}; text-decoration: ${textDecor}; text-transform: ${l2Upper ? 'uppercase' : 'none'}; line-height: ${lineSpacing}; margin: 0 0 ${spaceAfterPt}pt 0; text-align: justify; color: ${textColor};">${formatted}</div>` :
+                    `<div class="prev-clause-item" style="position: relative; padding-left: ${l2Wrap}mm; font-size: ${l2Size}pt; font-weight: ${l2Bold ? 'bold' : 'normal'}; text-decoration: ${textDecor}; text-transform: ${l2Upper ? 'uppercase' : 'none'}; line-height: ${lineSpacing}; margin: ${spaceBeforePt}pt 0 ${spaceAfterPt}pt 0; text-align: justify;"><span class="prev-num-bold" style="position: absolute; left: ${l2NumPos}mm; top: 0; font-weight: bold; color: ${primaryColor}; text-decoration: none;">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${formatted}</span></div>`;
             };
             blocks.push({ type: 'level2', isHeading: false, html: makeL2Html(b.text), text: b.text, renderHtml: makeL2Html, renderContHtml: (t) => makeL2Html(t, true) });
         } else if (b.type === 'level3') {
@@ -1350,8 +1355,8 @@ function renderDocumentPreview() {
                 const processed = l3Upper ? txt.toUpperCase() : txt;
                 const formatted = formatTextWithSpellHighlights(processed);
                 return isCont ?
-                    `<div class="prev-clause-item" style="padding-left: ${l3Wrap}mm; font-size: ${l3Size}pt; font-weight: ${l3Bold ? 'bold' : 'normal'}; text-decoration: ${textDecor}; text-transform: ${l3Upper ? 'uppercase' : 'none'}; line-height: ${lineSpacing}; margin: 0 0 ${paraSpacingPt}pt 0; text-align: justify; color: ${textColor};">${formatted}</div>` :
-                    `<div class="prev-clause-item" style="position: relative; padding-left: ${l3Wrap}mm; font-size: ${l3Size}pt; font-weight: ${l3Bold ? 'bold' : 'normal'}; text-decoration: ${textDecor}; text-transform: ${l3Upper ? 'uppercase' : 'none'}; line-height: ${lineSpacing}; margin: 0 0 ${paraSpacingPt}pt 0; text-align: justify;"><span class="prev-num-bold" style="position: absolute; left: ${l3NumPos}mm; top: 0; font-weight: bold; color: ${primaryColor}; text-decoration: none;">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${formatted}</span></div>`;
+                    `<div class="prev-clause-item" style="padding-left: ${l3Wrap}mm; font-size: ${l3Size}pt; font-weight: ${l3Bold ? 'bold' : 'normal'}; text-decoration: ${textDecor}; text-transform: ${l3Upper ? 'uppercase' : 'none'}; line-height: ${lineSpacing}; margin: 0 0 ${spaceAfterPt}pt 0; text-align: justify; color: ${textColor};">${formatted}</div>` :
+                    `<div class="prev-clause-item" style="position: relative; padding-left: ${l3Wrap}mm; font-size: ${l3Size}pt; font-weight: ${l3Bold ? 'bold' : 'normal'}; text-decoration: ${textDecor}; text-transform: ${l3Upper ? 'uppercase' : 'none'}; line-height: ${lineSpacing}; margin: ${spaceBeforePt}pt 0 ${spaceAfterPt}pt 0; text-align: justify;"><span class="prev-num-bold" style="position: absolute; left: ${l3NumPos}mm; top: 0; font-weight: bold; color: ${primaryColor}; text-decoration: none;">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${formatted}</span></div>`;
             };
             blocks.push({ type: 'level3', isHeading: false, html: makeL3Html(b.text), text: b.text, renderHtml: makeL3Html, renderContHtml: (t) => makeL3Html(t, true) });
         } else if (b.type === 'level4') {
@@ -1361,8 +1366,8 @@ function renderDocumentPreview() {
                 const processed = l4Upper ? txt.toUpperCase() : txt;
                 const formatted = formatTextWithSpellHighlights(processed);
                 return isCont ?
-                    `<div class="prev-clause-item" style="padding-left: ${l4Wrap}mm; font-size: ${l4Size}pt; font-weight: ${l4Bold ? 'bold' : 'normal'}; text-decoration: ${textDecor}; text-transform: ${l4Upper ? 'uppercase' : 'none'}; line-height: ${lineSpacing}; margin: 0 0 ${paraSpacingPt}pt 0; text-align: justify; color: ${textColor};">${formatted}</div>` :
-                    `<div class="prev-clause-item" style="position: relative; padding-left: ${l4Wrap}mm; font-size: ${l4Size}pt; font-weight: ${l4Bold ? 'bold' : 'normal'}; text-decoration: ${textDecor}; text-transform: ${l4Upper ? 'uppercase' : 'none'}; line-height: ${lineSpacing}; margin: 0 0 ${paraSpacingPt}pt 0; text-align: justify;"><span class="prev-num-bold" style="position: absolute; left: ${l4NumPos}mm; top: 0; font-weight: bold; color: ${primaryColor}; text-decoration: none;">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${formatted}</span></div>`;
+                    `<div class="prev-clause-item" style="padding-left: ${l4Wrap}mm; font-size: ${l4Size}pt; font-weight: ${l4Bold ? 'bold' : 'normal'}; text-decoration: ${textDecor}; text-transform: ${l4Upper ? 'uppercase' : 'none'}; line-height: ${lineSpacing}; margin: 0 0 ${spaceAfterPt}pt 0; text-align: justify; color: ${textColor};">${formatted}</div>` :
+                    `<div class="prev-clause-item" style="position: relative; padding-left: ${l4Wrap}mm; font-size: ${l4Size}pt; font-weight: ${l4Bold ? 'bold' : 'normal'}; text-decoration: ${textDecor}; text-transform: ${l4Upper ? 'uppercase' : 'none'}; line-height: ${lineSpacing}; margin: ${spaceBeforePt}pt 0 ${spaceAfterPt}pt 0; text-align: justify;"><span class="prev-num-bold" style="position: absolute; left: ${l4NumPos}mm; top: 0; font-weight: bold; color: ${primaryColor}; text-decoration: none;">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${formatted}</span></div>`;
             };
             blocks.push({ type: 'level4', isHeading: false, html: makeL4Html(b.text), text: b.text, renderHtml: makeL4Html, renderContHtml: (t) => makeL4Html(t, true) });
         } else if (b.type === 'level5') {
@@ -1372,13 +1377,13 @@ function renderDocumentPreview() {
                 const processed = l5Upper ? txt.toUpperCase() : txt;
                 const formatted = formatTextWithSpellHighlights(processed);
                 return isCont ?
-                    `<div class="prev-clause-item" style="padding-left: ${l5Wrap}mm; font-size: ${l5Size}pt; font-weight: ${l5Bold ? 'bold' : 'normal'}; text-decoration: ${textDecor}; text-transform: ${l5Upper ? 'uppercase' : 'none'}; line-height: ${lineSpacing}; margin: 0 0 ${paraSpacingPt}pt 0; text-align: justify; color: ${textColor};">${formatted}</div>` :
-                    `<div class="prev-clause-item" style="position: relative; padding-left: ${l5Wrap}mm; font-size: ${l5Size}pt; font-weight: ${l5Bold ? 'bold' : 'normal'}; text-decoration: ${textDecor}; text-transform: ${l5Upper ? 'uppercase' : 'none'}; line-height: ${lineSpacing}; margin: 0 0 ${paraSpacingPt}pt 0; text-align: justify;"><span class="prev-num-bold" style="position: absolute; left: ${l5NumPos}mm; top: 0; font-weight: bold; color: ${primaryColor}; text-decoration: none;">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${formatted}</span></div>`;
+                    `<div class="prev-clause-item" style="padding-left: ${l5Wrap}mm; font-size: ${l5Size}pt; font-weight: ${l5Bold ? 'bold' : 'normal'}; text-decoration: ${textDecor}; text-transform: ${l5Upper ? 'uppercase' : 'none'}; line-height: ${lineSpacing}; margin: 0 0 ${spaceAfterPt}pt 0; text-align: justify; color: ${textColor};">${formatted}</div>` :
+                    `<div class="prev-clause-item" style="position: relative; padding-left: ${l5Wrap}mm; font-size: ${l5Size}pt; font-weight: ${l5Bold ? 'bold' : 'normal'}; text-decoration: ${textDecor}; text-transform: ${l5Upper ? 'uppercase' : 'none'}; line-height: ${lineSpacing}; margin: ${spaceBeforePt}pt 0 ${spaceAfterPt}pt 0; text-align: justify;"><span class="prev-num-bold" style="position: absolute; left: ${l5NumPos}mm; top: 0; font-weight: bold; color: ${primaryColor}; text-decoration: none;">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${formatted}</span></div>`;
             };
             blocks.push({ type: 'level5', isHeading: false, html: makeL5Html(b.text), text: b.text, renderHtml: makeL5Html, renderContHtml: (t) => makeL5Html(t, true) });
         } else {
             const indentForThis = currentBodyIndentMm;
-            const makeBodyHtml = (txt) => `<div class="prev-clause-body" style="padding-left: ${indentForThis}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; color: ${textColor}; margin: 0 0 ${paraSpacingPt}pt 0; text-align: justify;">${formatTextWithSpellHighlights(txt)}</div>`;
+            const makeBodyHtml = (txt) => `<div class="prev-clause-body" style="padding-left: ${indentForThis}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; color: ${textColor}; margin: ${spaceBeforePt}pt 0 ${spaceAfterPt}pt 0; text-align: justify;">${formatTextWithSpellHighlights(txt)}</div>`;
             blocks.push({ type: 'body', isHeading: false, html: makeBodyHtml(b.text), text: b.text, renderHtml: makeBodyHtml });
         }
     });
@@ -1765,8 +1770,9 @@ function collectCurrentConfig() {
         typography: {
             fontFamily: document.getElementById('font-family-select')?.value || 'Arial',
             lineSpacing: Number(document.getElementById('line-spacing-select')?.value) || 1.15,
-            paragraphSpacingPt: Number(document.getElementById('para-spacing-input')?.value) || 4,
-            spaceAfterPt: Number(document.getElementById('para-spacing-input')?.value) || 4,
+            spaceBeforePt: Number(document.getElementById('space-before-input')?.value !== '' ? document.getElementById('space-before-input')?.value : 0),
+            spaceAfterPt: Number(document.getElementById('space-after-input')?.value !== '' ? document.getElementById('space-after-input')?.value : 4),
+            paragraphSpacingPt: Number(document.getElementById('space-after-input')?.value !== '' ? document.getElementById('space-after-input')?.value : 4),
             titleSizePt: Number(document.getElementById('title-size-input')?.value) || 14,
             subtitleSizePt: Number(document.getElementById('subtitle-size-input')?.value) || 12,
             bodySizePt: Number(document.getElementById('body-size-input')?.value) || 10,

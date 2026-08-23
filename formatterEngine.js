@@ -241,9 +241,10 @@ export async function buildFormattedDocx(config, parsedBlocks) {
   const secondaryColor = (typo.secondaryColor || '#A6192E').replace('#', '');
   const textColor = (typo.textColor || '#1A1A1A').replace('#', '');
   const lineSpacing = Math.round((typo.lineSpacing || 1.15) * 240);
-  const paraSpacingPt = Number(typo.paragraphSpacingPt !== undefined ? typo.paragraphSpacingPt : (typo.spaceAfterPt !== undefined ? typo.spaceAfterPt : 4));
-  const spaceBefore = Math.round((typo.spaceBeforePt || 0) * 20);
-  const spaceAfter = Math.round(paraSpacingPt * 20);
+  const spaceBeforePt = Number(typo.spaceBeforePt !== undefined ? typo.spaceBeforePt : 0);
+  const spaceAfterPt = Number(typo.spaceAfterPt !== undefined ? typo.spaceAfterPt : (typo.paragraphSpacingPt !== undefined ? typo.paragraphSpacingPt : 4));
+  const spaceBefore = Math.round(spaceBeforePt * 20);
+  const spaceAfter = Math.round(spaceAfterPt * 20);
 
   // Page Setup in Twips
   const paperWidthMm = page.paperSize === 'Letter' ? 215.9 : 210;
@@ -723,9 +724,8 @@ export async function buildFormattedDocx(config, parsedBlocks) {
       const l1SizeHps = convertPointToHalfPoint(l1Size);
       const l1Underline = cfg.underline ? { type: UnderlineType.SINGLE } : undefined;
       const headingText = cfg.uppercase !== false ? block.text.toUpperCase() : block.text;
-
-      const l1SpaceBefore = Math.round(paraSpacingPt * 1.5 * 20) + 120;
-      const l1SpaceAfter = Math.round(paraSpacingPt * 20);
+      const l1SpaceBefore = Math.round(spaceBeforePt * 20) + 160;
+      const l1SpaceAfter = Math.round(spaceAfterPt * 20);
 
       if (block.number) {
         docChildren.push(
@@ -1231,7 +1231,8 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
   const l5Underline = l5Cfg.underline === true;
   const l5Upper = l5Cfg.uppercase === true;
 
-  const paraSpacingPt = Number(config.typography?.paragraphSpacingPt !== undefined ? config.typography.paragraphSpacingPt : (config.typography?.spaceAfterPt !== undefined ? config.typography.spaceAfterPt : 4));
+  const spaceBeforePt = Number(config.typography?.spaceBeforePt !== undefined ? config.typography.spaceBeforePt : 0);
+  const spaceAfterPt = Number(config.typography?.spaceAfterPt !== undefined ? config.typography.spaceAfterPt : (config.typography?.paragraphSpacingPt !== undefined ? config.typography.paragraphSpacingPt : 4));
 
   let bodyHtml = '';
   let currentBodyIndentMm = 0;
@@ -1242,9 +1243,9 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
       const headingText = l1Upper ? b.text.toUpperCase() : b.text;
       const textDecor = l1Underline ? 'underline' : 'none';
       const weight = l1Bold ? 'bold' : 'normal';
-      const topMarginPt = Math.round(paraSpacingPt * 1.5);
+      const topMarginPt = Math.max(spaceBeforePt, Math.round(spaceBeforePt + 8));
       bodyHtml += `
-        <div style="font-weight: ${weight}; text-decoration: ${textDecor}; font-size: ${l1SizePt}pt; color: ${primaryColor}; margin: ${topMarginPt}pt 0 ${paraSpacingPt}pt ${indentL1}mm; page-break-after: avoid;">
+        <div style="font-weight: ${weight}; text-decoration: ${textDecor}; font-size: ${l1SizePt}pt; color: ${primaryColor}; margin: ${topMarginPt}pt 0 ${spaceAfterPt}pt ${indentL1}mm; page-break-after: avoid;">
           ${b.number ? `<span style="display: inline-block; min-width: 10mm; text-decoration: none;">${b.number}</span>` : ''}
           <span>${headingText}</span>
         </div>
@@ -1255,7 +1256,7 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
       const textDecor = l2Underline ? 'underline' : 'none';
       const weight = l2Bold ? 'bold' : 'normal';
       bodyHtml += `
-        <div style="position: relative; padding-left: ${l2Wrap}mm; font-size: ${l2SizePt}pt; font-weight: ${weight}; text-decoration: ${textDecor}; line-height: ${lineSpacing}; margin: 0 0 ${paraSpacingPt}pt 0; text-align: justify;">
+        <div style="position: relative; padding-left: ${l2Wrap}mm; font-size: ${l2SizePt}pt; font-weight: ${weight}; text-decoration: ${textDecor}; line-height: ${lineSpacing}; margin: ${spaceBeforePt}pt 0 ${spaceAfterPt}pt 0; text-align: justify;">
           <span style="position: absolute; left: ${l2Num}mm; top: 0; font-weight: bold; color: ${primaryColor}; text-decoration: none;">${b.number}</span>
           <span style="color: ${textColor};">${l2Text}</span>
         </div>
@@ -1266,7 +1267,7 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
       const textDecor = l3Underline ? 'underline' : 'none';
       const weight = l3Bold ? 'bold' : 'normal';
       bodyHtml += `
-        <div style="position: relative; padding-left: ${l3Wrap}mm; font-size: ${l3SizePt}pt; font-weight: ${weight}; text-decoration: ${textDecor}; line-height: ${lineSpacing}; margin: 0 0 ${paraSpacingPt}pt 0; text-align: justify;">
+        <div style="position: relative; padding-left: ${l3Wrap}mm; font-size: ${l3SizePt}pt; font-weight: ${weight}; text-decoration: ${textDecor}; line-height: ${lineSpacing}; margin: ${spaceBeforePt}pt 0 ${spaceAfterPt}pt 0; text-align: justify;">
           <span style="position: absolute; left: ${l3Num}mm; top: 0; font-weight: bold; color: ${primaryColor}; text-decoration: none;">${b.number}</span>
           <span style="color: ${textColor};">${l3Text}</span>
         </div>
@@ -1277,7 +1278,7 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
       const textDecor = l4Underline ? 'underline' : 'none';
       const weight = l4Bold ? 'bold' : 'normal';
       bodyHtml += `
-        <div style="position: relative; padding-left: ${l4Wrap}mm; font-size: ${l4SizePt}pt; font-weight: ${weight}; text-decoration: ${textDecor}; line-height: ${lineSpacing}; margin: 0 0 ${paraSpacingPt}pt 0; text-align: justify;">
+        <div style="position: relative; padding-left: ${l4Wrap}mm; font-size: ${l4SizePt}pt; font-weight: ${weight}; text-decoration: ${textDecor}; line-height: ${lineSpacing}; margin: ${spaceBeforePt}pt 0 ${spaceAfterPt}pt 0; text-align: justify;">
           <span style="position: absolute; left: ${l4Num}mm; top: 0; font-weight: bold; color: ${primaryColor}; text-decoration: none;">${b.number}</span>
           <span style="color: ${textColor};">${l4Text}</span>
         </div>
@@ -1288,13 +1289,13 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
       const textDecor = l5Underline ? 'underline' : 'none';
       const weight = l5Bold ? 'bold' : 'normal';
       bodyHtml += `
-        <div style="position: relative; padding-left: ${l5Wrap}mm; font-size: ${l5SizePt}pt; font-weight: ${weight}; text-decoration: ${textDecor}; line-height: ${lineSpacing}; margin: 0 0 ${paraSpacingPt}pt 0; text-align: justify;">
+        <div style="position: relative; padding-left: ${l5Wrap}mm; font-size: ${l5SizePt}pt; font-weight: ${weight}; text-decoration: ${textDecor}; line-height: ${lineSpacing}; margin: ${spaceBeforePt}pt 0 ${spaceAfterPt}pt 0; text-align: justify;">
           <span style="position: absolute; left: ${l5Num}mm; top: 0; font-weight: bold; color: ${primaryColor}; text-decoration: none;">${b.number}</span>
           <span style="color: ${textColor};">${l5Text}</span>
         </div>
       `;
     } else {
-      bodyHtml += `<div style="padding-left: ${currentBodyIndentMm}mm; font-size: ${bodySizePt}pt; line-height: ${lineSpacing}; color: ${textColor}; margin: 0 0 ${paraSpacingPt}pt 0; text-align: justify;">${b.text}</div>`;
+      bodyHtml += `<div style="padding-left: ${currentBodyIndentMm}mm; font-size: ${bodySizePt}pt; line-height: ${lineSpacing}; color: ${textColor}; margin: ${spaceBeforePt}pt 0 ${spaceAfterPt}pt 0; text-align: justify;">${b.text}</div>`;
     }
   });
 

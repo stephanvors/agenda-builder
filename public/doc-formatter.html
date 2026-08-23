@@ -479,7 +479,7 @@
                 <div class="studio-tab-pane" id="pane-typography">
                     <div class="control-card">
                         <h3>Typography &amp; Fonts</h3>
-                        <div class="form-grid-3">
+                        <div class="form-grid-2">
                             <div class="form-group">
                                 <label for="font-family-select">Font Family</label>
                                 <select id="font-family-select" class="studio-select">
@@ -500,9 +500,16 @@
                                     <option value="1.5">1.5 Lines</option>
                                 </select>
                             </div>
+                        </div>
+
+                        <div class="form-grid-2 mt-2">
                             <div class="form-group">
-                                <label for="para-spacing-input" title="Paragraph Spacing / Space After (pt)">Para Spacing (pt)</label>
-                                <input type="number" id="para-spacing-input" class="studio-input" value="4" min="0" max="36" step="0.5">
+                                <label for="space-before-input" title="Space Before Paragraph (pt)">Space Before (pt)</label>
+                                <input type="number" id="space-before-input" class="studio-input" value="0" min="0" max="36" step="0.5">
+                            </div>
+                            <div class="form-group">
+                                <label for="space-after-input" title="Space After Paragraph (pt)">Space After (pt)</label>
+                                <input type="number" id="space-after-input" class="studio-input" value="4" min="0" max="36" step="0.5">
                             </div>
                         </div>
 
