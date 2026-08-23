@@ -218,7 +218,9 @@ async function loadPresets() {
                     }
                 } catch(e) {}
             }
+            updateDynamicTitleInSignaturesAndNotice();
             parseTextAndUpdatePreview();
+            saveDraftToLocalStorage();
         }
     } catch (e) {
         console.warn('Using default fallback preset:', e);
@@ -382,7 +384,15 @@ function applyPresetConfig(preset) {
     const legalNotice = comps.legalNotice || preset.tables?.legalNotice || {};
     setCheck('enable-legal-notice', legalNotice.enabled !== false);
     setVal('legal-notice-prefix', legalNotice.prefix !== undefined ? legalNotice.prefix : 'LEGAL NOTICE: ');
-    setVal('legal-notice-text', legalNotice.text !== undefined ? legalNotice.text : '');
+    let noticeText = legalNotice.text !== undefined ? legalNotice.text : '';
+    if (noticeText && (!noticeText.includes('Constitution of the Republic of South Africa') || noticeText.includes('terms of the South African Schools Act.'))) {
+        const rawTitle = document.getElementById('doc-title-input')?.value || preset.documentTitle || '';
+        const rawText = document.getElementById('raw-text-input')?.value || '';
+        const contextKey = detectContextFromDocument(rawTitle, rawText);
+        const tpl = CONTEXTUAL_METADATA_PRESETS[contextKey] || CONTEXTUAL_METADATA_PRESETS.mission;
+        noticeText = tpl.legalNoticeText;
+    }
+    setVal('legal-notice-text', noticeText);
 
     const signatures = comps.signatures || preset.signatures || {};
     setCheck('enable-signatures', signatures.enabled !== false);
@@ -1743,8 +1753,8 @@ function renderDocumentPreview() {
     const header1Height = measureHtml(page1HeaderHtml);
     const runHeaderHeight = measureHtml(runningHeaderHtml);
 
-    const maxPage1 = Math.max(100, pageUsableHeight - footerHeightPx - header1Height);
-    const maxPageN = Math.max(100, pageUsableHeight - footerHeightPx - runHeaderHeight);
+    const maxPage1 = Math.max(100, pageUsableHeight - footerHeightPx - header1Height - 16);
+    const maxPageN = Math.max(100, pageUsableHeight - footerHeightPx - runHeaderHeight - 16);
 
     const pages = [ [] ];
     const blockMeta = [ [] ];
@@ -1756,8 +1766,8 @@ function renderDocumentPreview() {
         const b = blocks[i];
         const bHeight = measureHtml(b.html);
 
-        // Heading lookahead: If placing this heading on curPage leaves less than 40px, break to next
-        if (curHeight > 0 && b.isHeading && (curMax - (curHeight + bHeight) < 40)) {
+        // Heading lookahead: If placing this heading on curPage leaves less than 55px (room for at least 3 lines of body), break to next
+        if (curHeight > 0 && b.isHeading && (curMax - (curHeight + bHeight) < 55)) {
             curPage++;
             curHeight = 0;
             curMax = maxPageN;
@@ -1778,9 +1788,11 @@ function renderDocumentPreview() {
         }
 
         const spaceLeft = curMax - curHeight;
+        const lastBlockOnPage = blockMeta[curPage]?.[blockMeta[curPage].length - 1];
+        const isUnderHeading = lastBlockOnPage && lastBlockOnPage.isHeading;
 
-        // If it's signatures or heading or small block that cannot split
-        if (b.isSignatures || b.isHeading || !b.text || b.text.length < 50 || spaceLeft < 36) {
+        // If it's signatures or heading or small block that cannot split, or if following a heading:
+        if (b.isSignatures || b.isHeading || isUnderHeading || !b.text || b.text.length < 90 || spaceLeft < 55) {
             // Orphan Heading Prevention: move trailing headings to next page
             const headingsToMove = [];
             while (
@@ -1823,7 +1835,7 @@ function renderDocumentPreview() {
             continue;
         }
 
-        // Paragraph splitting for long text blocks
+        // Paragraph splitting for long standalone body text blocks
         const words = b.text.split(/\s+/);
         let fitWords = [];
         let remainWords = [...words];
@@ -1834,7 +1846,7 @@ function renderDocumentPreview() {
             fitWords.push(remainWords.shift());
             const candidateHtml = b.renderHtml ? b.renderHtml(fitWords.join(' ')) : fitWords.join(' ');
             const h = measureHtml(candidateHtml);
-            if (h <= spaceLeft) {
+            if (h <= spaceLeft - 6) {
                 bestFitHtml = candidateHtml;
                 bestFitHeight = h;
             } else {
@@ -1843,7 +1855,7 @@ function renderDocumentPreview() {
             }
         }
 
-        if (fitWords.length >= 10 && remainWords.length >= 6) {
+        if (fitWords.length >= 25 && remainWords.length >= 15) {
             // Split successful!
             pages[curPage].push(bestFitHtml);
             blockMeta[curPage].push({ ...b, html: bestFitHtml });

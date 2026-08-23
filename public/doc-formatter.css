@@ -891,7 +891,7 @@ body.formatter-studio-body {
 
 .doc-page-body {
     flex: 1;
-    overflow: hidden;
+    overflow: visible;
 }
 
 /* ── Page Break Divider ── */
