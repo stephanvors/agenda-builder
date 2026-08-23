@@ -1060,7 +1060,8 @@ body.formatter-studio-body {
     font-size: 14pt;
     font-weight: bold;
     color: #0C2340;
-    margin: 4mm 0 1.5mm 0;
+    margin: 0;
+    padding: 3mm 0 1mm 0;
 }
 
 .prev-doc-subtitle {
@@ -1068,13 +1069,14 @@ body.formatter-studio-body {
     font-size: 12pt;
     font-weight: bold;
     color: #A6192E;
-    margin: 0 0 5mm 0;
+    margin: 0;
+    padding: 0 0 3mm 0;
 }
 
 .prev-meta-table {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 4mm;
+    margin: 0 0 3mm 0;
     font-size: 9pt;
 }
 
@@ -1106,7 +1108,7 @@ body.formatter-studio-body {
     border: 1px solid #E2E8F0;
     border-left: 4px solid #0C2340;
     padding: 2.5mm 3.5mm;
-    margin-bottom: 5mm;
+    margin: 0 0 3mm 0;
     font-size: 9pt;
     line-height: 1.25;
 }
