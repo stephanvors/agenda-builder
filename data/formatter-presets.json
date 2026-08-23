@@ -2,26 +2,26 @@
   "presets": [
     {
       "id": "sgb_constitution",
-      "name": "SGB Legal Constitution",
-      "description": "Updated preset test",
+      "name": "SGB Legal Constitution (10mm Grid, 10mm Hanging Indents)",
+      "description": "Preset updated on 8/23/2026",
       "typography": {
         "fontFamily": "Arial",
+        "lineSpacing": 1.15,
         "titleSizePt": 14,
         "subtitleSizePt": 12,
         "heading1SizePt": 11,
         "bodySizePt": 10,
-        "lineSpacing": 1.15,
         "primaryColor": "#0C2340",
         "secondaryColor": "#A6192E",
         "textColor": "#1A1A1A"
       },
       "pageSetup": {
         "paperSize": "A4",
+        "borderStyle": "none",
         "leftMarginMm": 10,
         "rightMarginMm": 10,
         "topMarginMm": 10,
-        "bottomMarginMm": 10,
-        "borderStyle": "none"
+        "bottomMarginMm": 10
       },
       "hierarchy": {
         "stepIncrementMm": 10,
@@ -32,6 +32,34 @@
             "leftOffsetMm": 0,
             "bold": true,
             "uppercase": true
+          },
+          {
+            "level": 2,
+            "leftOffsetMm": 10,
+            "numberPosMm": 0,
+            "textWrapMm": 10,
+            "hangingIndentMm": 10
+          },
+          {
+            "level": 3,
+            "leftOffsetMm": 20,
+            "numberPosMm": 10,
+            "textWrapMm": 20,
+            "hangingIndentMm": 10
+          },
+          {
+            "level": 4,
+            "leftOffsetMm": 30,
+            "numberPosMm": 20,
+            "textWrapMm": 30,
+            "hangingIndentMm": 10
+          },
+          {
+            "level": 5,
+            "leftOffsetMm": 40,
+            "numberPosMm": 30,
+            "textWrapMm": 40,
+            "hangingIndentMm": 10
           }
         ]
       },
@@ -44,32 +72,72 @@
         "subtitle": "Where Learning is an Art",
         "contact": "18 Brummer Street, Lady Grey, 9755 | Tel: 051 603 0046 | admin@lgaa.co.za",
         "emis": "EMIS: 200600985 | District: Joe Gqabi | Circuit: Ekhephini | CMC: Maletswai",
-        "badgeText": "OFFICIAL",
-        "badgeSubtext": "CORRESPONDENCE"
+        "badgeText": "SGB",
+        "badgeSubtext": "Statement",
+        "imageBanner": "",
+        "imageHeightMm": 32,
+        "imageFit": "contain"
       },
       "footer": {
-        "pageNumberFormat": "page_x_of_y",
+        "pageNumberFormat": "x_slash_y",
         "alignment": "center",
         "showTopDivider": true,
-        "customText": "Lady Grey Arts Academy • SGB Official Document"
+        "customText": ""
       },
       "components": {
         "metadataTable": {
           "enabled": true,
           "col1Title": "Regulatory Alignment & Authority",
           "col2Title": "Details & Specifications",
-          "rows": []
+          "rows": [
+            {
+              "label": "National Legislative Basis",
+              "value": "South African Schools Act, 1996 (Act No. 84 of 1996)"
+            },
+            {
+              "label": "Provincial Legislative Basis",
+              "value": "Eastern Cape School Education Act, 2000 (Act No. 2 of 2000)"
+            },
+            {
+              "label": "Juristic Person Status",
+              "value": "Lady Grey Arts Academy (EMIS: 200600985)"
+            },
+            {
+              "label": "Financial Year Lifecycle",
+              "value": "1 January to 31 December"
+            },
+            {
+              "label": "Governance Oversight",
+              "value": "School Governing Body (SGB) specialized committees"
+            }
+          ]
         },
         "legalNotice": {
           "enabled": true,
           "prefix": "LEGAL NOTICE: ",
-          "text": "This document is legally binding."
+          "text": "This school mission statement is a legally binding regulatory document drafted and adopted by the School Governing Body in terms of the South African Schools Act. All members of the governing body, learners, parents, educators, and staff are subject to the provisions herein."
         },
         "signatures": {
           "enabled": true,
           "title": "ADOPTION AND SIGN-OFF RESOLUTION",
-          "introText": "",
-          "signers": []
+          "introText": "This School Mission Statement was formally accepted, approved, and signed at a meeting of the Governing Body of the Lady Grey Arts Academy.",
+          "signers": [
+            {
+              "role": "SGB Chairperson",
+              "name": "",
+              "dateLabel": ""
+            },
+            {
+              "role": "SGB Treasurer",
+              "name": "",
+              "dateLabel": ""
+            },
+            {
+              "role": "School Principal",
+              "name": "",
+              "dateLabel": ""
+            }
+          ]
         }
       }
     },

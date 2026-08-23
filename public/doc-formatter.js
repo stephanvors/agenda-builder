@@ -871,45 +871,159 @@ function parseTextAndUpdatePreview() {
     const lines = rawText.split(/\r?\n/);
     const blocks = [];
 
+    const KNOWN_L1_SECTIONS = new Set([
+        'our vision', 'vision', 'vision statement', 'our vision statement',
+        'our mission', 'mission', 'mission statement', 'our mission statement',
+        'our values', 'our core values', 'core values', 'values', 'shared values',
+        'vision and mission', 'vision, mission and values',
+        'aims and objectives', 'objectives', 'strategic objectives', 'our goals',
+        'institutional identity', 'school identity', 'background', 'background and context',
+        'preamble', 'introduction', 'purpose', 'scope', 'scope of policy', 'applicability',
+        'statutory compliance', 'regulatory framework', 'legislative framework',
+        'policy statement', 'guiding principles', 'principles', 'policy principles',
+        'definitions', 'definitions and acronyms', 'terms and definitions',
+        'roles and responsibilities', 'governance and oversight', 'powers and functions',
+        'code of conduct', 'rules and regulations', 'rules and policy',
+        'implementation', 'implementation guidelines', 'procedures',
+        'disciplinary procedures', 'grievance procedure', 'dispute resolution',
+        'financial provisions', 'financial management', 'budget and resources',
+        'monitoring and evaluation', 'monitoring and review', 'review and amendment',
+        'amendment of the constitution', 'amendments', 'general provisions',
+        'adoption and sign-off', 'adoption and sign-off resolution', 'adoption and approval',
+        'confirmation and adoption', 'sign-off resolution', 'resolution'
+    ]);
+
     for (let i = 0; i < lines.length; i++) {
         const rawLine = lines[i].trim();
         if (!rawLine) continue;
 
-        const l1Match = rawLine.match(/^(\d+)\.\s+([A-Z0-9\s\&\,\-\(\)]+)$/);
-        if (l1Match) {
-            blocks.push({ type: 'level1', level: 1, number: l1Match[1] + '.', text: l1Match[2].trim() });
+        // 0. Markdown Headings (# Heading 1, ## Heading 2, ### Heading 3, etc.)
+        const mdMatch = rawLine.match(/^(#{1,5})\s+(.*)$/);
+        if (mdMatch) {
+            const lvl = mdMatch[1].length;
+            blocks.push({
+                type: lvl === 1 ? 'level1' : ('level' + lvl),
+                level: lvl,
+                number: '',
+                text: mdMatch[2].trim()
+            });
             continue;
         }
 
-        if (/^[A-Z0-9\s\&\,\-\(\)\:]{4,}$/.test(rawLine) && !rawLine.startsWith('http') && !rawLine.includes('EMIS:')) {
-            blocks.push({ type: 'level1', level: 1, number: '', text: rawLine.trim() });
+        // 1. Level 1: Major Numbered Headings (e.g. '1. NAME', '1. Our Vision', '12. AMENDMENT')
+        const l1Numbered = rawLine.match(/^(\d+)\.\s+([^\.].*)$/);
+        if (l1Numbered && !/^\d+\.\d+/.test(rawLine)) {
+            blocks.push({
+                type: 'level1',
+                level: 1,
+                number: l1Numbered[1] + '.',
+                text: l1Numbered[2].trim()
+            });
             continue;
         }
 
+        // 2. Level 1: Section / Article / Chapter prefixes
+        const secMatch = rawLine.match(/^(SECTION|ARTICLE|CHAPTER|CLAUSE|PART|SCHEDULE|ANNEXURE)\s+([A-Z0-9\.\:\-]+)\s*(\:|\-|\–)?\s*(.*)$/i);
+        if (secMatch) {
+            const title = secMatch[4] ? secMatch[4].trim() : secMatch[0];
+            blocks.push({
+                type: 'level1',
+                level: 1,
+                number: `${secMatch[1]} ${secMatch[2]}`,
+                text: title
+            });
+            continue;
+        }
+
+        // 3. Level 1: Roman Numeral Major Headings (e.g. 'I. PREAMBLE', 'II. OUR VISION')
+        const romanL1 = rawLine.match(/^(I|II|III|IV|V|VI|VII|VIII|IX|X|XI|XII|XIII|XIV|XV)\.\s+(.*)$/i);
+        if (romanL1) {
+            blocks.push({
+                type: 'level1',
+                level: 1,
+                number: romanL1[1] + '.',
+                text: romanL1[2].trim()
+            });
+            continue;
+        }
+
+        // 4. Level 1: Standalone All-Caps Lines (e.g. 'OUR VISION', 'CODE OF CONDUCT')
+        if (/^[A-Z0-9\s\&\,\-\(\)\:\/\|]{3,65}$/.test(rawLine) && !rawLine.startsWith('http') && !rawLine.includes('EMIS:') && !rawLine.endsWith('.')) {
+            blocks.push({
+                type: 'level1',
+                level: 1,
+                number: '',
+                text: rawLine.trim()
+            });
+            continue;
+        }
+
+        // 5. Level 1: Known Section Headings (e.g. 'Our Vision', 'Our Mission', 'Our Core Values')
+        const normalized = rawLine.toLowerCase().replace(/[\:\-\–\—]+$/, '').trim();
+        if (KNOWN_L1_SECTIONS.has(normalized)) {
+            blocks.push({
+                type: 'level1',
+                level: 1,
+                number: '',
+                text: rawLine.replace(/[\:\-\–\—]+$/, '').trim()
+            });
+            continue;
+        }
+
+        // 6. Level 1: Short Standalone Title Case line (< 50 chars, no sentence punctuation, title-cased)
+        const isTitleCaseHeading = /^[A-Z][a-zA-Z0-9\s\&\,\-\(\)\'\’]{2,50}$/.test(rawLine) &&
+            !rawLine.endsWith('.') &&
+            !rawLine.endsWith(',') &&
+            !rawLine.endsWith(';') &&
+            rawLine.split(/\s+/).length <= 6 &&
+            rawLine.split(/\s+/).every(w => /^(and|or|of|in|for|the|to|a|an|with|by|on|at|as|&)$/i.test(w) || /^[A-Z]/.test(w));
+
+        if (isTitleCaseHeading && (rawLine.startsWith('Our ') || rawLine.endsWith(' Statement') || rawLine.endsWith(' Values') || rawLine.endsWith(' Policy') || rawLine.endsWith(' Framework') || rawLine.endsWith(' Procedures'))) {
+            blocks.push({
+                type: 'level1',
+                level: 1,
+                number: '',
+                text: rawLine.trim()
+            });
+            continue;
+        }
+
+        // 7. Level 5: 5-level decimal numbering (e.g. '1.1.1.1.1 [Text]') or '(aa) [Text]'
         const l5Match = rawLine.match(/^(\d+\.\d+\.\d+\.\d+\.\d+|\([a-z]{2}\))\s+(.*)$/i);
         if (l5Match) {
             blocks.push({ type: 'level5', level: 5, number: l5Match[1], text: l5Match[2].trim() });
             continue;
         }
 
+        // 8. Level 4: 4-level decimal numbering or '(a) [Text]' or '(i) [Text]' or Bullets
         const l4Match = rawLine.match(/^(\d+\.\d+\.\d+\.\d+|\([a-z]\)|\([ivxlcdm]+\))\s+(.*)$/i);
         if (l4Match) {
             blocks.push({ type: 'level4', level: 4, number: l4Match[1], text: l4Match[2].trim() });
             continue;
         }
 
-        const l3Match = rawLine.match(/^(\d+\.\d+\.\d+)\s+(.*)$/);
+        // Bullets (e.g. '• [Text]', '- [Text]', '* [Text]')
+        const bulletMatch = rawLine.match(/^([•\-\*\u2022\u2023\u25E6\u2043\u2219])\s+(.*)$/);
+        if (bulletMatch) {
+            blocks.push({ type: 'level4', level: 4, number: '•', text: bulletMatch[2].trim() });
+            continue;
+        }
+
+        // 9. Level 3: 3-level decimal numbering (e.g. '3.1.5 [Text]', '10.4.1 [Text]') or 'a) [Text]'
+        const l3Match = rawLine.match(/^(\d+\.\d+\.\d+|[a-z]\))\s+(.*)$/);
         if (l3Match) {
             blocks.push({ type: 'level3', level: 3, number: l3Match[1], text: l3Match[2].trim() });
             continue;
         }
 
-        const l2Match = rawLine.match(/^(\d+\.\d+)\s+(.*)$/);
+        // 10. Level 2: 2-level decimal numbering (e.g. '1.1 [Text]', '4.1 [Text]') or 'A. [Text]'
+        const l2Match = rawLine.match(/^(\d+\.\d+|[A-Z]\.|\([A-Z]\))\s+(.*)$/);
         if (l2Match) {
             blocks.push({ type: 'level2', level: 2, number: l2Match[1], text: l2Match[2].trim() });
             continue;
         }
 
+        // 11. Regular Body Paragraph
         blocks.push({ type: 'body', level: 0, number: '', text: rawLine });
     }
 
