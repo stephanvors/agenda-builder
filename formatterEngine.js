@@ -1195,6 +1195,241 @@ export async function buildFormattedDocx(config, parsedBlocks) {
         rows: tableRows,
       })
     );
+
+    // 4. Official School Stamp Space (Institutional verification)
+    if (comps.signatures.showSchoolStamp !== false) {
+      const schoolStampWidthMm = Math.min(65, Math.max(50, bodyWidthMm / 3));
+      docChildren.push(
+        new Paragraph({ spacing: { before: 140, after: 0 }, keepWithNext: true, children: [] }),
+        new Table({
+          width: { size: convertMillimetersToTwip(schoolStampWidthMm), type: WidthType.DXA },
+          alignment: AlignmentType.LEFT,
+          cantSplit: true,
+          borders: {
+            top: { style: BorderStyle.DASHED, size: 6, color: '94A3B8' },
+            bottom: { style: BorderStyle.DASHED, size: 6, color: '94A3B8' },
+            left: { style: BorderStyle.DASHED, size: 6, color: '94A3B8' },
+            right: { style: BorderStyle.DASHED, size: 6, color: '94A3B8' },
+          },
+          rows: [
+            new TableRow({
+              cantSplit: true,
+              children: [
+                new TableCell({
+                  width: { size: convertMillimetersToTwip(schoolStampWidthMm), type: WidthType.DXA },
+                  shading: { fill: 'F8FAFC', type: ShadingType.CLEAR },
+                  margins: { left: 140, right: 140, top: 100, bottom: 100 },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.CENTER,
+                      spacing: { before: 60, after: 30 },
+                      children: [
+                        new TextRun({
+                          text: 'OFFICIAL SCHOOL STAMP',
+                          bold: true,
+                          size: 15,
+                          color: '475569',
+                          font: fontFamily,
+                        }),
+                      ],
+                    }),
+                    new Paragraph({
+                      alignment: AlignmentType.CENTER,
+                      spacing: { before: 80, after: 80 },
+                      children: [
+                        new TextRun({
+                          text: '(Place Official School Date Stamp Here)',
+                          italic: true,
+                          size: 14,
+                          color: '94A3B8',
+                          font: fontFamily,
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+          ],
+        })
+      );
+    }
+
+    // 5. District Endorsement Section (Official District Stamp + Circuit Manager Signature Card)
+    if (comps.signatures.showDistrictStamp !== false) {
+      const districtRoleTitle = comps.signatures.districtRole || 'Circuit Manager';
+      const districtColSpacerMm = 5;
+      const districtColWidthMm = (bodyWidthMm - districtColSpacerMm) / 2;
+      const districtBoxInnerTwip = convertMillimetersToTwip(districtColWidthMm) - 320;
+
+      docChildren.push(
+        new Paragraph({
+          spacing: { before: 180, after: 30 },
+          keepWithNext: true,
+          keepLines: true,
+          children: [
+            new TextRun({
+              text: 'DISTRICT ENDORSEMENT & RECORD OF RECEIPT',
+              bold: true,
+              size: 18,
+              color: primaryColor,
+              font: fontFamily,
+            }),
+          ],
+        }),
+        new Paragraph({
+          spacing: { before: 0, after: 60 },
+          keepWithNext: true,
+          keepLines: true,
+          children: [
+            new TextRun({
+              text: 'Received, verified, and endorsed for departmental records by the District Office:',
+              size: baseSizeHps - 2,
+              color: textColor,
+              font: fontFamily,
+            }),
+          ],
+        }),
+        new Table({
+          width: { size: convertMillimetersToTwip(bodyWidthMm), type: WidthType.DXA },
+          alignment: AlignmentType.CENTER,
+          cantSplit: true,
+          borders: {
+            top: { style: BorderStyle.NONE },
+            bottom: { style: BorderStyle.NONE },
+            left: { style: BorderStyle.NONE },
+            right: { style: BorderStyle.NONE },
+            insideHorizontal: { style: BorderStyle.NONE },
+            insideVertical: { style: BorderStyle.NONE },
+          },
+          rows: [
+            new TableRow({
+              cantSplit: true,
+              children: [
+                // Left Cell: Official District Stamp Box
+                new TableCell({
+                  width: { size: convertMillimetersToTwip(districtColWidthMm), type: WidthType.DXA },
+                  borders: {
+                    top: { style: BorderStyle.DASHED, size: 6, color: '94A3B8' },
+                    bottom: { style: BorderStyle.DASHED, size: 6, color: '94A3B8' },
+                    left: { style: BorderStyle.DASHED, size: 6, color: '94A3B8' },
+                    right: { style: BorderStyle.DASHED, size: 6, color: '94A3B8' },
+                  },
+                  shading: { fill: 'F8FAFC', type: ShadingType.CLEAR },
+                  margins: { left: 160, right: 160, top: 120, bottom: 120 },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.CENTER,
+                      spacing: { before: 80, after: 40 },
+                      children: [
+                        new TextRun({
+                          text: 'OFFICIAL DISTRICT / CIRCUIT STAMP',
+                          bold: true,
+                          size: 15,
+                          color: '475569',
+                          font: fontFamily,
+                        }),
+                      ],
+                    }),
+                    new Paragraph({
+                      alignment: AlignmentType.CENTER,
+                      spacing: { before: 180, after: 160 },
+                      children: [
+                        new TextRun({
+                          text: '(Place District Registry / Circuit Office Date Stamp Here)',
+                          italic: true,
+                          size: 14,
+                          color: '94A3B8',
+                          font: fontFamily,
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                // Spacer Column
+                new TableCell({
+                  width: { size: convertMillimetersToTwip(districtColSpacerMm), type: WidthType.DXA },
+                  borders: {
+                    top: { style: BorderStyle.NONE },
+                    bottom: { style: BorderStyle.NONE },
+                    left: { style: BorderStyle.NONE },
+                    right: { style: BorderStyle.NONE },
+                  },
+                  margins: { left: 0, right: 0, top: 0, bottom: 0 },
+                  children: [new Paragraph({ spacing: { before: 0, after: 0 }, children: [] })],
+                }),
+                // Right Cell: Circuit Manager Signature Box
+                new TableCell({
+                  width: { size: convertMillimetersToTwip(districtColWidthMm), type: WidthType.DXA },
+                  borders: {
+                    top: { style: BorderStyle.SINGLE, size: 6, color: '94A3B8' },
+                    bottom: { style: BorderStyle.SINGLE, size: 6, color: '94A3B8' },
+                    left: { style: BorderStyle.SINGLE, size: 6, color: '94A3B8' },
+                    right: { style: BorderStyle.SINGLE, size: 6, color: '94A3B8' },
+                  },
+                  margins: { left: 160, right: 160, top: 100, bottom: 100 },
+                  children: [
+                    new Paragraph({
+                      spacing: { before: 180, after: 0 },
+                      children: [],
+                    }),
+                    new Paragraph({
+                      spacing: { before: 0, after: 10 },
+                      border: {
+                        bottom: { style: BorderStyle.SINGLE, size: 8, color: primaryColor }
+                      },
+                      children: [],
+                    }),
+                    new Paragraph({
+                      spacing: { before: 0, after: 90 },
+                      keepWithNext: true,
+                      children: [
+                        new TextRun({
+                          text: 'SIGNATURE',
+                          size: 14,
+                          bold: true,
+                          color: '64748B',
+                          font: fontFamily,
+                        }),
+                      ],
+                    }),
+                    new Paragraph({
+                      spacing: { before: 0, after: 15 },
+                      keepWithNext: true,
+                      tabStops: [{ type: TabStopType.RIGHT, position: districtBoxInnerTwip, leader: LeaderType.UNDERSCORE }],
+                      children: [
+                        new TextRun({ text: 'NAME:\t', bold: true, color: '64748B', font: fontFamily, size: baseSizeHps - 2 }),
+                      ],
+                    }),
+                    new Paragraph({
+                      spacing: { before: 0, after: 20 },
+                      keepWithNext: true,
+                      children: [
+                        new TextRun({
+                          text: districtRoleTitle.toUpperCase(),
+                          bold: true,
+                          color: primaryColor,
+                          font: fontFamily,
+                          size: baseSizeHps - 1,
+                        }),
+                      ],
+                    }),
+                    new Paragraph({
+                      alignment: AlignmentType.RIGHT,
+                      spacing: { before: 40, after: 0 },
+                      children: [
+                        new TextRun({ text: 'DATE: ', bold: true, color: '64748B', font: fontFamily, size: baseSizeHps - 2 }),
+                        new TextRun({ text: '________________________', color: '94A3B8', font: fontFamily, size: baseSizeHps - 2 }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+          ],
+        })
+      );
+    }
   }
 
   // Construct Document Object
@@ -1503,6 +1738,43 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
             </tr>
           `).join('')}
         </table>
+
+        ${config.components.signatures.showSchoolStamp !== false ? `
+          <div style="margin-top: 4mm;">
+            <div style="max-width: 65mm; background: #F8FAFC; border: 1.5px dashed #94A3B8; border-radius: 3px; padding: 10px 12px; text-align: center; box-sizing: border-box;">
+              <div style="font-size: 7.5pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.8px; color: #475569; margin-bottom: 6px;">OFFICIAL SCHOOL STAMP</div>
+              <div style="font-size: 7pt; color: #94A3B8; font-style: italic; margin-top: 10px;">(Place Official School Date Stamp Here)</div>
+            </div>
+          </div>
+        ` : ''}
+
+        ${config.components.signatures.showDistrictStamp !== false ? `
+          <div style="margin-top: 6mm;">
+            <div style="font-weight: 800; font-size: 9.5pt; color: ${primaryColor}; margin-bottom: 1.5mm; letter-spacing: 0.4px;">DISTRICT ENDORSEMENT &amp; RECORD OF RECEIPT</div>
+            <div style="font-size: 8pt; color: #475569; margin-bottom: 3mm;">Received, verified, and endorsed for departmental records by the District Office:</div>
+            <table style="width: 100%; border-collapse: separate; border-spacing: 5mm 0; table-layout: fixed;">
+              <tr>
+                <td style="width: 50%; vertical-align: top; background: #F8FAFC; border: 1.5px dashed #94A3B8; border-radius: 3px; padding: 12px 14px; text-align: center; box-sizing: border-box;">
+                  <div style="font-size: 7.5pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.8px; color: #475569; margin-bottom: 6px;">OFFICIAL DISTRICT / CIRCUIT STAMP</div>
+                  <div style="font-size: 7pt; color: #94A3B8; font-style: italic; margin-top: 24px;">(Place District Registry / Circuit Office Date Stamp Here)</div>
+                </td>
+                <td style="width: 50%; vertical-align: top; background: #FFFFFF; border: 1.5px solid #94A3B8; border-radius: 3px; padding: 12px 14px; box-sizing: border-box;">
+                  <div style="height: 15mm; min-height: 15mm;"></div>
+                  <div style="border-bottom: 1.5px solid ${primaryColor}; margin-bottom: 2px;"></div>
+                  <div style="font-size: 7pt; text-transform: uppercase; letter-spacing: 0.8px; color: #64748B; font-weight: bold; margin-bottom: 14px;">Signature</div>
+                  <div style="font-size: 9.5pt; font-weight: bold; color: ${textColor}; margin-bottom: 2px; line-height: 1.2;">
+                    <div style="display: flex; align-items: flex-end; gap: 4px;"><span style="color: #64748B; font-size: 8pt; font-weight: 600; white-space: nowrap;">NAME:</span> <span style="flex: 1; border-bottom: 1px solid #94A3B8; min-height: 1px; margin-bottom: 2px;"></span></div>
+                  </div>
+                  <div style="font-size: 8.5pt; font-weight: bold; color: ${primaryColor}; text-transform: uppercase; margin-bottom: 4px; line-height: 1.2;">${escapeHtml((config.components.signatures.districtRole || 'Circuit Manager').toUpperCase())}</div>
+                  <div style="text-align: right; font-size: 8pt; color: #64748B; line-height: 1.2; margin-top: 6px;">
+                    <span style="font-weight: bold;">DATE:</span> 
+                    <span style="display: inline-block; width: 28mm; border-bottom: 1px solid #94A3B8; margin-bottom: 2px;"></span>
+                  </div>
+                </td>
+              </tr>
+            </table>
+          </div>
+        ` : ''}
       </div>
     `;
   }

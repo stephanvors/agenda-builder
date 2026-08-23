@@ -398,6 +398,9 @@ function applyPresetConfig(preset) {
     setCheck('enable-signatures', signatures.enabled !== false);
     setVal('signatures-title', signatures.title !== undefined ? signatures.title : 'ADOPTION AND SIGN-OFF RESOLUTION');
     setVal('signatures-intro', signatures.introText !== undefined ? signatures.introText : '');
+    setCheck('signatures-school-stamp', signatures.showSchoolStamp !== false);
+    setCheck('signatures-district-endorsement', signatures.showDistrictStamp !== false);
+    setVal('signatures-district-role', signatures.districtRole || 'Circuit Manager');
     renderSigners(signatures.signers || []);
 
     updateSpatialGuides();
@@ -517,7 +520,8 @@ function initEventListeners() {
         'l4-num-pos', 'l4-text-wrap', 'l4-hanging', 'l4-size-input', 'l4-bold', 'l4-underline', 'l4-uppercase',
         'l5-num-pos', 'l5-text-wrap', 'l5-hanging', 'l5-size-input', 'l5-bold', 'l5-underline', 'l5-uppercase',
         'margin-left-input', 'margin-right-input', 'margin-top-input', 'margin-bottom-input',
-        'paper-size-select', 'border-style-select'
+        'paper-size-select', 'border-style-select',
+        'signatures-school-stamp', 'signatures-district-endorsement', 'signatures-district-role'
     ];
     directInputIds.forEach(id => {
         const el = document.getElementById(id);
@@ -1699,6 +1703,10 @@ function renderDocumentPreview() {
     if (showSignatures) {
         const sigTitle = document.getElementById('signatures-title')?.value || 'ADOPTION AND SIGN-OFF RESOLUTION';
         let sigIntro = document.getElementById('signatures-intro')?.value || '';
+        const showSchoolStamp = document.getElementById('signatures-school-stamp')?.checked !== false;
+        const showDistrictStamp = document.getElementById('signatures-district-endorsement')?.checked !== false;
+        const districtRole = document.getElementById('signatures-district-role')?.value || 'Circuit Manager';
+
         const rawDocTitle = document.getElementById('doc-title-input')?.value || '';
         if (rawDocTitle) {
             let formattedTitle = rawDocTitle.trim();
@@ -1748,7 +1756,54 @@ function renderDocumentPreview() {
             `;
         });
 
-        sHtml += `</div></div>`;
+        sHtml += `</div>`;
+
+        // 1. Official School Stamp Space
+        if (showSchoolStamp) {
+            sHtml += `
+                <div class="prev-stamp-section">
+                    <div class="prev-stamp-card" style="max-width: 65mm;">
+                        <div class="stamp-icon">🏫</div>
+                        <div class="stamp-title">Official School Stamp</div>
+                        <div class="stamp-hint">(Place Official School Date Stamp Here)</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 2. District Endorsement Section (District Stamp + Circuit Manager Signature Card)
+        if (showDistrictStamp) {
+            sHtml += `
+                <div class="prev-district-section">
+                    <div class="prev-district-title" style="color: ${primaryColor};">DISTRICT ENDORSEMENT &amp; RECORD OF RECEIPT</div>
+                    <div class="prev-district-intro">Received, verified, and endorsed for departmental records by the District Office:</div>
+                    <div class="prev-district-grid">
+                        <div class="prev-stamp-card">
+                            <div class="stamp-icon">🏛️</div>
+                            <div class="stamp-title">Official District / Circuit Stamp</div>
+                            <div class="stamp-hint">(Place District Registry / Circuit Office Date Stamp Here)</div>
+                        </div>
+                        <div class="prev-signer-card">
+                            <div class="sig-space-zone"></div>
+                            <div class="sig-baseline-rule" style="border-bottom: 1.5px solid ${primaryColor};"></div>
+                            <div class="sig-label">Signature</div>
+                            <div class="sig-details-body">
+                                <div class="sig-name-row">
+                                    <div class="sig-blank-row"><span class="sig-field-prefix">Name:</span><span class="sig-field-line"></span></div>
+                                </div>
+                                <div class="sig-role-row" style="color: ${primaryColor};">${escapeHTML(districtRole.toUpperCase())}</div>
+                                <div class="sig-date-row">
+                                    <span class="sig-field-prefix">Date:</span>
+                                    <span class="sig-field-line"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        sHtml += `</div>`;
         blocks.push({ type: 'signatures', isSignatures: true, isHeading: false, html: sHtml });
     }
 
@@ -2378,6 +2433,9 @@ function collectCurrentConfig() {
                 enabled: document.getElementById('enable-signatures')?.checked !== false,
                 title: document.getElementById('signatures-title')?.value || 'ADOPTION AND SIGN-OFF RESOLUTION',
                 introText: document.getElementById('signatures-intro')?.value || '',
+                showSchoolStamp: document.getElementById('signatures-school-stamp')?.checked !== false,
+                showDistrictStamp: document.getElementById('signatures-district-endorsement')?.checked !== false,
+                districtRole: document.getElementById('signatures-district-role')?.value || 'Circuit Manager',
                 signers: signers
             }
         }

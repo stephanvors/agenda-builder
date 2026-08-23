@@ -820,6 +820,18 @@
                                 <!-- Dynamic signers populated via JS -->
                             </div>
                             <button type="button" class="btn btn-sm btn-outline mt-2" id="btn-add-signer">+ Add Signatory Column</button>
+
+                            <div class="mt-4 pt-3 border-top">
+                                <h4 class="mb-2" style="font-size: 0.95rem; font-weight: 600; color: var(--text-main);">Verification Stamps &amp; District Endorsement</h4>
+                                <div class="grid grid-2 gap-3">
+                                    <label class="checkbox-label"><input type="checkbox" id="signatures-school-stamp" checked> <span>Include Official School Stamp Box</span></label>
+                                    <label class="checkbox-label"><input type="checkbox" id="signatures-district-endorsement" checked> <span>Include District Stamp &amp; Circuit Manager Sign-off</span></label>
+                                </div>
+                                <div class="form-group mt-2" id="district-role-group">
+                                    <label for="signatures-district-role">District Official Role Title</label>
+                                    <input type="text" id="signatures-district-role" class="studio-input" value="Circuit Manager">
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
