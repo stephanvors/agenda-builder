@@ -712,9 +712,11 @@ export async function buildFormattedDocx(config, parsedBlocks) {
 
   // 4. Formatted Hierarchical Blocks (Levels 1 to 5)
   let currentBodyIndentMm = 0;
+  let isFirstParagraphAfterHeading = true;
 
   parsedBlocks.forEach(block => {
     if (block.type === 'level1') {
+      isFirstParagraphAfterHeading = true;
       const cfg = getLevelConfig(1);
       const l2Cfg = getLevelConfig(2);
       const tabPosMm = Number(l2Cfg.textWrapMm) || Number(l2Cfg.leftOffsetMm) || 10;
@@ -783,10 +785,11 @@ export async function buildFormattedDocx(config, parsedBlocks) {
         );
       }
     } else if (block.type === 'level2') {
+      isFirstParagraphAfterHeading = true;
       const cfg = getLevelConfig(2);
-      const leftOffsetMm = Number(cfg.leftOffsetMm) || 10;
+      const leftOffsetMm = Number(cfg.leftOffsetMm) || 0;
       const hangingMm = Number(cfg.hangingIndentMm) || 10;
-      const textWrapMm = Number(cfg.textWrapMm) || leftOffsetMm;
+      const textWrapMm = Number(cfg.textWrapMm) || (leftOffsetMm + hangingMm);
       currentBodyIndentMm = textWrapMm;
 
       const l2Size = Number(cfg.fontSizePt || cfg.sizePt || typo.bodySizePt || 10);
@@ -836,6 +839,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
         })
       );
     } else if (block.type === 'level3' || block.type === 'level4' || block.type === 'level5') {
+      isFirstParagraphAfterHeading = true;
       const lvlNum = block.level || (block.type === 'level3' ? 3 : block.type === 'level4' ? 4 : 5);
       const cfg = getLevelConfig(lvlNum);
 
@@ -892,9 +896,11 @@ export async function buildFormattedDocx(config, parsedBlocks) {
       );
     } else {
       // General Body text: lines up under the active section/clause header text!
+      const topSpace = isFirstParagraphAfterHeading ? 0 : spaceBefore;
+      isFirstParagraphAfterHeading = false;
       docChildren.push(
         new Paragraph({
-          spacing: { before: 0, after: spaceAfter, line: lineSpacing },
+          spacing: { before: topSpace, after: spaceAfter, line: lineSpacing },
           alignment: AlignmentType.BOTH,
           indent: { left: convertMillimetersToTwip(currentBodyIndentMm) },
           children: [
@@ -1238,9 +1244,11 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
 
   let bodyHtml = '';
   let currentBodyIndentMm = 0;
+  let isFirstParagraphAfterHeading = true;
   const blocks = Array.isArray(parsed) ? parsed : (parsed?.blocks || []);
   blocks.forEach(b => {
     if (b.type === 'level1') {
+      isFirstParagraphAfterHeading = true;
       currentBodyIndentMm = l2Wrap; // Subsequent body paragraphs line up under Level 1 text!
       const headingText = l1Upper ? b.text.toUpperCase() : b.text;
       const textDecor = l1Underline ? 'underline' : 'none';
@@ -1253,6 +1261,7 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
         </div>
       `;
     } else if (b.type === 'level2') {
+      isFirstParagraphAfterHeading = true;
       currentBodyIndentMm = l2Wrap;
       const l2Text = l2Upper ? b.text.toUpperCase() : b.text;
       const textDecor = l2Underline ? 'underline' : 'none';
@@ -1264,6 +1273,7 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
         </div>
       `;
     } else if (b.type === 'level3') {
+      isFirstParagraphAfterHeading = true;
       currentBodyIndentMm = l3Wrap;
       const l3Text = l3Upper ? b.text.toUpperCase() : b.text;
       const textDecor = l3Underline ? 'underline' : 'none';
@@ -1275,6 +1285,7 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
         </div>
       `;
     } else if (b.type === 'level4') {
+      isFirstParagraphAfterHeading = true;
       currentBodyIndentMm = l4Wrap;
       const l4Text = l4Upper ? b.text.toUpperCase() : b.text;
       const textDecor = l4Underline ? 'underline' : 'none';
@@ -1286,6 +1297,7 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
         </div>
       `;
     } else if (b.type === 'level5') {
+      isFirstParagraphAfterHeading = true;
       currentBodyIndentMm = l5Wrap;
       const l5Text = l5Upper ? b.text.toUpperCase() : b.text;
       const textDecor = l5Underline ? 'underline' : 'none';
@@ -1297,7 +1309,9 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
         </div>
       `;
     } else {
-      bodyHtml += `<div style="padding-left: ${currentBodyIndentMm}mm; font-size: ${bodySizePt}pt; line-height: ${lineSpacing}; color: ${textColor}; margin: 0 0 ${spaceAfterPt}pt 0; text-align: justify;">${b.text}</div>`;
+      const topMargin = isFirstParagraphAfterHeading ? 0 : spaceBeforePt;
+      isFirstParagraphAfterHeading = false;
+      bodyHtml += `<div style="padding-left: ${currentBodyIndentMm}mm; font-size: ${bodySizePt}pt; line-height: ${lineSpacing}; color: ${textColor}; margin: ${topMargin}pt 0 ${spaceAfterPt}pt 0; text-align: justify;">${b.text}</div>`;
     }
   });
 

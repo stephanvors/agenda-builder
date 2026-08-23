@@ -1602,10 +1602,12 @@ function renderDocumentPreview() {
     const l5Upper = document.getElementById('l5-uppercase')?.checked === true;
 
     let currentBodyIndentMm = 0;
+    let isFirstParagraphAfterHeading = true;
 
     state.parsedBlocks.forEach(b => {
         let bHtml = '';
         if (b.type === 'level1') {
+            isFirstParagraphAfterHeading = true;
             currentBodyIndentMm = l2Wrap; // Subsequent body paragraphs line up under the Level 1 text!
             const headingText = l1Upper ? b.text.toUpperCase() : b.text;
             const formattedHeading = formatTextWithSpellHighlights(headingText);
@@ -1617,6 +1619,7 @@ function renderDocumentPreview() {
             }
             blocks.push({ type: 'level1', isHeading: true, html: bHtml, text: b.text });
         } else if (b.type === 'level2') {
+            isFirstParagraphAfterHeading = true;
             currentBodyIndentMm = l2Wrap;
             const textDecor = l2Underline ? 'underline' : 'none';
             const makeL2Html = (txt, isCont = false) => {
@@ -1628,6 +1631,7 @@ function renderDocumentPreview() {
             };
             blocks.push({ type: 'level2', isHeading: true, html: makeL2Html(b.text), text: b.text, renderHtml: makeL2Html, renderContHtml: (t) => makeL2Html(t, true) });
         } else if (b.type === 'level3') {
+            isFirstParagraphAfterHeading = true;
             currentBodyIndentMm = l3Wrap;
             const textDecor = l3Underline ? 'underline' : 'none';
             const makeL3Html = (txt, isCont = false) => {
@@ -1639,6 +1643,7 @@ function renderDocumentPreview() {
             };
             blocks.push({ type: 'level3', isHeading: true, html: makeL3Html(b.text), text: b.text, renderHtml: makeL3Html, renderContHtml: (t) => makeL3Html(t, true) });
         } else if (b.type === 'level4') {
+            isFirstParagraphAfterHeading = true;
             currentBodyIndentMm = l4Wrap;
             const textDecor = l4Underline ? 'underline' : 'none';
             const makeL4Html = (txt, isCont = false) => {
@@ -1650,6 +1655,7 @@ function renderDocumentPreview() {
             };
             blocks.push({ type: 'level4', isHeading: true, html: makeL4Html(b.text), text: b.text, renderHtml: makeL4Html, renderContHtml: (t) => makeL4Html(t, true) });
         } else if (b.type === 'level5') {
+            isFirstParagraphAfterHeading = true;
             currentBodyIndentMm = l5Wrap;
             const textDecor = l5Underline ? 'underline' : 'none';
             const makeL5Html = (txt, isCont = false) => {
@@ -1662,7 +1668,9 @@ function renderDocumentPreview() {
             blocks.push({ type: 'level5', isHeading: true, html: makeL5Html(b.text), text: b.text, renderHtml: makeL5Html, renderContHtml: (t) => makeL5Html(t, true) });
         } else {
             const indentForThis = currentBodyIndentMm;
-            const makeBodyHtml = (txt) => `<div class="prev-clause-body" style="padding-left: ${indentForThis}mm; padding-top: 0; padding-bottom: ${spaceAfterPt}pt; margin: 0; font-size: ${bodySize}pt; line-height: ${lineSpacing}; color: ${textColor}; text-align: justify;">${formatTextWithSpellHighlights(txt)}</div>`;
+            const topPad = isFirstParagraphAfterHeading ? 0 : spaceBeforePt;
+            isFirstParagraphAfterHeading = false;
+            const makeBodyHtml = (txt) => `<div class="prev-clause-body" style="padding-left: ${indentForThis}mm; padding-top: ${topPad}pt; padding-bottom: ${spaceAfterPt}pt; margin: 0; font-size: ${bodySize}pt; line-height: ${lineSpacing}; color: ${textColor}; text-align: justify;">${formatTextWithSpellHighlights(txt)}</div>`;
             blocks.push({ type: 'body', isHeading: false, html: makeBodyHtml(b.text), text: b.text, renderHtml: makeBodyHtml });
         }
     });
