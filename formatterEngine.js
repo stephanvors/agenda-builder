@@ -29,6 +29,7 @@ const {
   ImageRun,
   convertMillimetersToTwip,
   TabStopType,
+  LeaderType,
   ShadingType,
   UnderlineType,
 } = docx;
@@ -286,6 +287,12 @@ export async function buildFormattedDocx(config, parsedBlocks) {
       children: [
         new Paragraph({
           spacing: { before: 0, after: 80 },
+          tabStops: [
+            {
+              type: TabStopType.RIGHT,
+              position: convertMillimetersToTwip(bodyWidthMm),
+            },
+          ],
           border: {
             bottom: { style: BorderStyle.SINGLE, size: 6, color: 'CBD5E1' }
           },
@@ -896,14 +903,12 @@ export async function buildFormattedDocx(config, parsedBlocks) {
     } else {
       // General Body text: lines up under the active section/clause header text!
       const topSpace = isFirstParagraphAfterHeading ? 0 : spaceBefore;
-      const isFirst = isFirstParagraphAfterHeading;
       isFirstParagraphAfterHeading = false;
       docChildren.push(
         new Paragraph({
           spacing: { before: topSpace, after: spaceAfter, line: lineSpacing },
           alignment: AlignmentType.BOTH,
           keepLines: true,
-          keepWithNext: isFirst,
           indent: { left: convertMillimetersToTwip(currentBodyIndentMm) },
           children: [
             new TextRun({
@@ -992,6 +997,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
     const spacerMm = maxCols > 1 ? (maxCols === 3 ? 5 : 6) : 0;
     const totalSpacerWidthMm = (maxCols - 1) * spacerMm;
     const boxWidthMm = (bodyWidthMm - totalSpacerWidthMm) / maxCols;
+    const boxInnerWidthTwip = convertMillimetersToTwip(boxWidthMm) - 320;
     const totalTableCols = maxCols + (maxCols > 1 ? maxCols - 1 : 0);
     const tableRows = [];
 
@@ -1087,15 +1093,15 @@ export async function buildFormattedDocx(config, parsedBlocks) {
                   }),
                 ],
               }),
-              // 4. Name
+              // 4. Name (extended underline to right edge)
               new Paragraph({
                 spacing: { before: 0, after: 15 },
                 keepWithNext: true,
+                tabStops: nameVal ? [] : [{ type: TabStopType.RIGHT, position: boxInnerWidthTwip, leader: LeaderType.UNDERSCORE }],
                 children: nameVal
                   ? [new TextRun({ text: nameVal, bold: true, color: textColor, font: fontFamily, size: baseSizeHps })]
                   : [
-                      new TextRun({ text: 'NAME: ', bold: true, color: '64748B', font: fontFamily, size: baseSizeHps - 2 }),
-                      new TextRun({ text: '______________________', color: '94A3B8', font: fontFamily, size: baseSizeHps - 2 }),
+                      new TextRun({ text: 'NAME:\t', bold: true, color: '64748B', font: fontFamily, size: baseSizeHps - 2 }),
                     ],
               }),
               // 5. Role
@@ -1112,7 +1118,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
                   }),
                 ],
               }),
-              // 6. Date (Right-Justified)
+              // 6. Date (Right-Justified and flush with right margin)
               new Paragraph({
                 alignment: AlignmentType.RIGHT,
                 spacing: { before: 40, after: 0 },
@@ -1123,7 +1129,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
                     ]
                   : [
                       new TextRun({ text: 'DATE: ', bold: true, color: '64748B', font: fontFamily, size: baseSizeHps - 2 }),
-                      new TextRun({ text: '__________________', color: '94A3B8', font: fontFamily, size: baseSizeHps - 2 }),
+                      new TextRun({ text: '________________________', color: '94A3B8', font: fontFamily, size: baseSizeHps - 2 }),
                     ],
               }),
             ],
@@ -1483,12 +1489,12 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
                     <div style="border-bottom: 1.5px solid ${primaryColor}; margin-bottom: 2px;"></div>
                     <div style="font-size: 7pt; text-transform: uppercase; letter-spacing: 0.8px; color: #64748B; font-weight: bold; margin-bottom: 14px;">Signature</div>
                     <div style="font-size: 9.5pt; font-weight: bold; color: ${textColor}; margin-bottom: 2px; line-height: 1.2;">
-                      ${nVal ? escapeHtml(nVal) : `<span style="color: #64748B; font-size: 8pt;">NAME:</span> <span style="display: inline-block; width: 65%; border-bottom: 1px solid #94A3B8;"></span>`}
+                      ${nVal ? escapeHtml(nVal) : `<div style="display: flex; align-items: flex-end; gap: 4px;"><span style="color: #64748B; font-size: 8pt; font-weight: 600; white-space: nowrap;">NAME:</span> <span style="flex: 1; border-bottom: 1px solid #94A3B8; min-height: 1px; margin-bottom: 2px;"></span></div>`}
                     </div>
                     <div style="font-size: 8.5pt; font-weight: bold; color: ${primaryColor}; text-transform: uppercase; margin-bottom: 4px; line-height: 1.2;">${escapeHtml(s.role || 'SIGNATORY')}</div>
                     <div style="text-align: right; font-size: 8pt; color: #64748B; line-height: 1.2; margin-top: 6px;">
                       <span style="font-weight: bold;">DATE:</span> 
-                      ${dVal ? `<span style="color: ${textColor}; font-weight: 600;">${escapeHtml(dVal)}</span>` : `<span style="display: inline-block; width: 28mm; border-bottom: 1px solid #94A3B8;"></span>`}
+                      ${dVal ? `<span style="color: ${textColor}; font-weight: 600;">${escapeHtml(dVal)}</span>` : `<span style="display: inline-block; width: 28mm; border-bottom: 1px solid #94A3B8; margin-bottom: 2px;"></span>`}
                     </div>
                   </td>
                 `;
