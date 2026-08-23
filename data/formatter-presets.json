@@ -7,9 +7,11 @@
       "typography": {
         "fontFamily": "Arial",
         "lineSpacing": 1.15,
+        "paragraphSpacingPt": 4,
+        "spaceAfterPt": 4,
+        "spaceBeforePt": 0,
         "titleSizePt": 14,
         "subtitleSizePt": 12,
-        "heading1SizePt": 11,
         "bodySizePt": 10,
         "primaryColor": "#0C2340",
         "secondaryColor": "#A6192E",
@@ -30,7 +32,7 @@
           {
             "level": 1,
             "leftOffsetMm": 0,
-            "fontSizePt": 11,
+            "fontSizePt": 12,
             "bold": true,
             "underline": false,
             "uppercase": true
@@ -41,31 +43,43 @@
             "numberPosMm": 0,
             "textWrapMm": 10,
             "hangingIndentMm": 10,
-            "fontSizePt": 10,
-            "bold": false,
+            "fontSizePt": 11,
+            "bold": true,
             "underline": false,
-            "uppercase": false
+            "uppercase": true
           },
           {
             "level": 3,
             "leftOffsetMm": 20,
             "numberPosMm": 10,
             "textWrapMm": 20,
-            "hangingIndentMm": 10
+            "hangingIndentMm": 10,
+            "fontSizePt": 10,
+            "bold": false,
+            "underline": false,
+            "uppercase": false
           },
           {
             "level": 4,
             "leftOffsetMm": 30,
             "numberPosMm": 20,
             "textWrapMm": 30,
-            "hangingIndentMm": 10
+            "hangingIndentMm": 10,
+            "fontSizePt": 10,
+            "bold": false,
+            "underline": false,
+            "uppercase": false
           },
           {
             "level": 5,
             "leftOffsetMm": 40,
             "numberPosMm": 30,
             "textWrapMm": 40,
-            "hangingIndentMm": 10
+            "hangingIndentMm": 10,
+            "fontSizePt": 10,
+            "bold": false,
+            "underline": false,
+            "uppercase": false
           }
         ]
       },
@@ -121,12 +135,12 @@
         "legalNotice": {
           "enabled": true,
           "prefix": "LEGAL NOTICE: ",
-          "text": "This school mission statement is a legally binding regulatory document drafted and adopted by the School Governing Body in terms of the South African Schools Act. All members of the governing body, learners, parents, educators, and staff are subject to the provisions herein."
+          "text": "This school vision statement is a legally binding regulatory document drafted and adopted by the School Governing Body in terms of the South African Schools Act. All members of the governing body, learners, parents, educators, and staff are subject to the provisions herein."
         },
         "signatures": {
           "enabled": true,
           "title": "ADOPTION AND SIGN-OFF RESOLUTION",
-          "introText": "This School Mission Statement was formally accepted, approved, and signed at a meeting of the Governing Body of the Lady Grey Arts Academy.",
+          "introText": "This School Vision Statement was formally accepted, approved, and signed at a meeting of the Governing Body of the Lady Grey Arts Academy.",
           "signers": [
             {
               "role": "SGB Chairperson",
@@ -158,6 +172,7 @@
         "heading1SizePt": 11,
         "bodySizePt": 10,
         "lineSpacing": 1.15,
+        "paragraphSpacingPt": 4.5,
         "spaceBeforePt": 3.5,
         "spaceAfterPt": 4.5,
         "primaryColor": "#0C2340",
@@ -214,7 +229,9 @@
             "hangingIndentMm": 10,
             "numberPosMm": 10,
             "textWrapMm": 20,
+            "fontSizePt": 10,
             "bold": false,
+            "underline": false,
             "numberBold": true,
             "uppercase": false,
             "italic": false,
@@ -227,7 +244,9 @@
             "hangingIndentMm": 10,
             "numberPosMm": 20,
             "textWrapMm": 30,
+            "fontSizePt": 10,
             "bold": false,
+            "underline": false,
             "numberBold": true,
             "uppercase": false,
             "italic": false,
@@ -240,7 +259,9 @@
             "hangingIndentMm": 10,
             "numberPosMm": 30,
             "textWrapMm": 40,
+            "fontSizePt": 10,
             "bold": false,
+            "underline": false,
             "numberBold": true,
             "uppercase": false,
             "italic": false,
@@ -327,6 +348,7 @@
         "heading1SizePt": 11,
         "bodySizePt": 10,
         "lineSpacing": 1.15,
+        "paragraphSpacingPt": 4.5,
         "spaceBeforePt": 3.5,
         "spaceAfterPt": 4.5,
         "primaryColor": "#0C2340",
@@ -383,7 +405,9 @@
             "hangingIndentMm": 10,
             "numberPosMm": 10,
             "textWrapMm": 20,
+            "fontSizePt": 10,
             "bold": false,
+            "underline": false,
             "numberBold": true,
             "uppercase": false,
             "italic": false,
@@ -396,7 +420,9 @@
             "hangingIndentMm": 10,
             "numberPosMm": 20,
             "textWrapMm": 30,
+            "fontSizePt": 10,
             "bold": false,
+            "underline": false,
             "numberBold": true,
             "uppercase": false,
             "italic": false,
@@ -409,7 +435,9 @@
             "hangingIndentMm": 10,
             "numberPosMm": 30,
             "textWrapMm": 40,
+            "fontSizePt": 10,
             "bold": false,
+            "underline": false,
             "numberBold": true,
             "uppercase": false,
             "italic": false,

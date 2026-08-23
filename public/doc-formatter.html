@@ -369,7 +369,7 @@
                             <span class="level-badge l3">Level 3</span>
                             <h4>Sub-clauses (e.g. 3.1.5 [Text])</h4>
                         </div>
-                        <div class="form-grid-3">
+                        <div class="form-grid-4">
                             <div class="form-group">
                                 <label for="l3-num-pos" title="Number Position (mm)">Num Pos (mm)</label>
                                 <input type="number" id="l3-num-pos" class="studio-input" value="10" min="0" max="50">
@@ -382,6 +382,21 @@
                                 <label for="l3-hanging" title="Hanging Indent (mm)">Hanging (mm)</label>
                                 <input type="number" id="l3-hanging" class="studio-input" value="10" min="0" max="50">
                             </div>
+                            <div class="form-group">
+                                <label for="l3-size-input" title="Level 3 Font Size (pt)">Font Size (pt)</label>
+                                <input type="number" id="l3-size-input" class="studio-input" value="10" min="8" max="24">
+                            </div>
+                        </div>
+                        <div class="form-grid-3 mt-2">
+                            <div class="form-group">
+                                <label class="checkbox-label"><input type="checkbox" id="l3-bold"> <span>Bold Text</span></label>
+                            </div>
+                            <div class="form-group">
+                                <label class="checkbox-label"><input type="checkbox" id="l3-underline"> <span>Underline</span></label>
+                            </div>
+                            <div class="form-group">
+                                <label class="checkbox-label"><input type="checkbox" id="l3-uppercase"> <span>UPPERCASE</span></label>
+                            </div>
                         </div>
                     </div>
 
@@ -391,7 +406,7 @@
                             <span class="level-badge l4">Level 4</span>
                             <h4>Items / Sub-sections (e.g. 1.1.1.1 or (a) [Text])</h4>
                         </div>
-                        <div class="form-grid-3">
+                        <div class="form-grid-4">
                             <div class="form-group">
                                 <label for="l4-num-pos" title="Number Position (mm)">Num Pos (mm)</label>
                                 <input type="number" id="l4-num-pos" class="studio-input" value="20" min="0" max="60">
@@ -404,6 +419,21 @@
                                 <label for="l4-hanging" title="Hanging Indent (mm)">Hanging (mm)</label>
                                 <input type="number" id="l4-hanging" class="studio-input" value="10" min="0" max="50">
                             </div>
+                            <div class="form-group">
+                                <label for="l4-size-input" title="Level 4 Font Size (pt)">Font Size (pt)</label>
+                                <input type="number" id="l4-size-input" class="studio-input" value="10" min="8" max="24">
+                            </div>
+                        </div>
+                        <div class="form-grid-3 mt-2">
+                            <div class="form-group">
+                                <label class="checkbox-label"><input type="checkbox" id="l4-bold"> <span>Bold Text</span></label>
+                            </div>
+                            <div class="form-group">
+                                <label class="checkbox-label"><input type="checkbox" id="l4-underline"> <span>Underline</span></label>
+                            </div>
+                            <div class="form-group">
+                                <label class="checkbox-label"><input type="checkbox" id="l4-uppercase"> <span>UPPERCASE</span></label>
+                            </div>
                         </div>
                     </div>
 
@@ -413,7 +443,7 @@
                             <span class="level-badge l5">Level 5</span>
                             <h4>Sub-items (e.g. 1.1.1.1.1 or (i) [Text])</h4>
                         </div>
-                        <div class="form-grid-3">
+                        <div class="form-grid-4">
                             <div class="form-group">
                                 <label for="l5-num-pos" title="Number Position (mm)">Num Pos (mm)</label>
                                 <input type="number" id="l5-num-pos" class="studio-input" value="30" min="0" max="70">
@@ -426,6 +456,21 @@
                                 <label for="l5-hanging" title="Hanging Indent (mm)">Hanging (mm)</label>
                                 <input type="number" id="l5-hanging" class="studio-input" value="10" min="0" max="50">
                             </div>
+                            <div class="form-group">
+                                <label for="l5-size-input" title="Level 5 Font Size (pt)">Font Size (pt)</label>
+                                <input type="number" id="l5-size-input" class="studio-input" value="10" min="8" max="24">
+                            </div>
+                        </div>
+                        <div class="form-grid-3 mt-2">
+                            <div class="form-group">
+                                <label class="checkbox-label"><input type="checkbox" id="l5-bold"> <span>Bold Text</span></label>
+                            </div>
+                            <div class="form-group">
+                                <label class="checkbox-label"><input type="checkbox" id="l5-underline"> <span>Underline</span></label>
+                            </div>
+                            <div class="form-group">
+                                <label class="checkbox-label"><input type="checkbox" id="l5-uppercase"> <span>UPPERCASE</span></label>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -434,7 +479,7 @@
                 <div class="studio-tab-pane" id="pane-typography">
                     <div class="control-card">
                         <h3>Typography &amp; Fonts</h3>
-                        <div class="form-grid-2">
+                        <div class="form-grid-3">
                             <div class="form-group">
                                 <label for="font-family-select">Font Family</label>
                                 <select id="font-family-select" class="studio-select">
@@ -454,6 +499,10 @@
                                     <option value="1.25">Comfortable (1.25)</option>
                                     <option value="1.5">1.5 Lines</option>
                                 </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="para-spacing-input" title="Paragraph Spacing / Space After (pt)">Paragraph Spacing (pt)</label>
+                                <input type="number" id="para-spacing-input" class="studio-input" value="4" min="0" max="36" step="0.5">
                             </div>
                         </div>
 

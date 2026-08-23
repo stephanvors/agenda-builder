@@ -241,8 +241,9 @@ export async function buildFormattedDocx(config, parsedBlocks) {
   const secondaryColor = (typo.secondaryColor || '#A6192E').replace('#', '');
   const textColor = (typo.textColor || '#1A1A1A').replace('#', '');
   const lineSpacing = Math.round((typo.lineSpacing || 1.15) * 240);
-  const spaceBefore = Math.round((typo.spaceBeforePt || 3.5) * 20);
-  const spaceAfter = Math.round((typo.spaceAfterPt || 4.5) * 20);
+  const paraSpacingPt = Number(typo.paragraphSpacingPt !== undefined ? typo.paragraphSpacingPt : (typo.spaceAfterPt !== undefined ? typo.spaceAfterPt : 4));
+  const spaceBefore = Math.round((typo.spaceBeforePt || 0) * 20);
+  const spaceAfter = Math.round(paraSpacingPt * 20);
 
   // Page Setup in Twips
   const paperWidthMm = page.paperSize === 'Letter' ? 215.9 : 210;
@@ -839,6 +840,12 @@ export async function buildFormattedDocx(config, parsedBlocks) {
       const textWrapMm = Number(cfg.textWrapMm) || leftOffsetMm;
       currentBodyIndentMm = textWrapMm;
 
+      const lvlSize = Number(cfg.fontSizePt || cfg.sizePt || typo.bodySizePt || 10);
+      const lvlSizeHps = convertPointToHalfPoint(lvlSize);
+      const lvlUnderline = cfg.underline ? { type: UnderlineType.SINGLE } : undefined;
+      const lvlBold = cfg.bold === true;
+      const lvlText = cfg.uppercase === true ? block.text.toUpperCase() : block.text;
+
       docChildren.push(
         new Paragraph({
           spacing: { before: spaceBefore, after: spaceAfter, line: lineSpacing },
@@ -857,20 +864,21 @@ export async function buildFormattedDocx(config, parsedBlocks) {
             new TextRun({
               text: block.number,
               bold: cfg.numberBold !== false,
-              size: baseSizeHps,
+              size: lvlSizeHps,
               color: (cfg.color || primaryColor).replace('#', ''),
               font: fontFamily,
             }),
             new TextRun({
               text: '\t',
-              size: baseSizeHps,
+              size: lvlSizeHps,
               font: fontFamily,
             }),
             new TextRun({
-              text: block.text,
-              bold: cfg.bold === true,
+              text: lvlText,
+              bold: lvlBold,
+              underline: lvlUnderline,
               italic: cfg.italic === true,
-              size: baseSizeHps,
+              size: lvlSizeHps,
               color: textColor,
               font: fontFamily,
             }),
@@ -1201,10 +1209,26 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
 
   const l3Wrap = l3Cfg.textWrapMm !== undefined ? l3Cfg.textWrapMm : (l3Cfg.textStartWrapMm || 20);
   const l3Num = l3Cfg.numberPosMm !== undefined ? l3Cfg.numberPosMm : (l3Cfg.numberPositionMm || 10);
+  const l3SizePt = Number(l3Cfg.fontSizePt || l3Cfg.sizePt || config.typography?.bodySizePt || 10);
+  const l3Bold = l3Cfg.bold === true;
+  const l3Underline = l3Cfg.underline === true;
+  const l3Upper = l3Cfg.uppercase === true;
+
   const l4Wrap = l4Cfg.textWrapMm !== undefined ? l4Cfg.textWrapMm : (l4Cfg.textStartWrapMm || 30);
   const l4Num = l4Cfg.numberPosMm !== undefined ? l4Cfg.numberPosMm : (l4Cfg.numberPositionMm || 20);
+  const l4SizePt = Number(l4Cfg.fontSizePt || l4Cfg.sizePt || config.typography?.bodySizePt || 10);
+  const l4Bold = l4Cfg.bold === true;
+  const l4Underline = l4Cfg.underline === true;
+  const l4Upper = l4Cfg.uppercase === true;
+
   const l5Wrap = l5Cfg.textWrapMm !== undefined ? l5Cfg.textWrapMm : (l5Cfg.textStartWrapMm || 40);
   const l5Num = l5Cfg.numberPosMm !== undefined ? l5Cfg.numberPosMm : (l5Cfg.numberPositionMm || 30);
+  const l5SizePt = Number(l5Cfg.fontSizePt || l5Cfg.sizePt || config.typography?.bodySizePt || 10);
+  const l5Bold = l5Cfg.bold === true;
+  const l5Underline = l5Cfg.underline === true;
+  const l5Upper = l5Cfg.uppercase === true;
+
+  const paraSpacingPt = Number(config.typography?.paragraphSpacingPt !== undefined ? config.typography.paragraphSpacingPt : (config.typography?.spaceAfterPt !== undefined ? config.typography.spaceAfterPt : 4));
 
   let bodyHtml = '';
   let currentBodyIndentMm = 0;
@@ -1215,8 +1239,9 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
       const headingText = l1Upper ? b.text.toUpperCase() : b.text;
       const textDecor = l1Underline ? 'underline' : 'none';
       const weight = l1Bold ? 'bold' : 'normal';
+      const topMarginPt = Math.round(paraSpacingPt * 1.5);
       bodyHtml += `
-        <div style="font-weight: ${weight}; text-decoration: ${textDecor}; font-size: ${l1SizePt}pt; color: ${primaryColor}; margin: 5mm 0 2mm ${indentL1}mm; page-break-after: avoid;">
+        <div style="font-weight: ${weight}; text-decoration: ${textDecor}; font-size: ${l1SizePt}pt; color: ${primaryColor}; margin: ${topMarginPt}pt 0 ${paraSpacingPt}pt ${indentL1}mm; page-break-after: avoid;">
           ${b.number ? `<span style="display: inline-block; min-width: 10mm; text-decoration: none;">${b.number}</span>` : ''}
           <span>${headingText}</span>
         </div>
@@ -1227,37 +1252,46 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
       const textDecor = l2Underline ? 'underline' : 'none';
       const weight = l2Bold ? 'bold' : 'normal';
       bodyHtml += `
-        <div style="position: relative; padding-left: ${l2Wrap}mm; font-size: ${l2SizePt}pt; font-weight: ${weight}; text-decoration: ${textDecor}; line-height: ${lineSpacing}; margin: 1.5mm 0; text-align: justify;">
+        <div style="position: relative; padding-left: ${l2Wrap}mm; font-size: ${l2SizePt}pt; font-weight: ${weight}; text-decoration: ${textDecor}; line-height: ${lineSpacing}; margin: 0 0 ${paraSpacingPt}pt 0; text-align: justify;">
           <span style="position: absolute; left: ${l2Num}mm; top: 0; font-weight: bold; color: ${primaryColor}; text-decoration: none;">${b.number}</span>
           <span style="color: ${textColor};">${l2Text}</span>
         </div>
       `;
     } else if (b.type === 'level3') {
       currentBodyIndentMm = l3Wrap;
+      const l3Text = l3Upper ? b.text.toUpperCase() : b.text;
+      const textDecor = l3Underline ? 'underline' : 'none';
+      const weight = l3Bold ? 'bold' : 'normal';
       bodyHtml += `
-        <div style="position: relative; padding-left: ${l3Wrap}mm; font-size: ${bodySizePt}pt; line-height: ${lineSpacing}; margin: 1.2mm 0; text-align: justify;">
-          <span style="position: absolute; left: ${l3Num}mm; top: 0; font-weight: bold; color: ${primaryColor};">${b.number}</span>
-          <span style="color: ${textColor};">${b.text}</span>
+        <div style="position: relative; padding-left: ${l3Wrap}mm; font-size: ${l3SizePt}pt; font-weight: ${weight}; text-decoration: ${textDecor}; line-height: ${lineSpacing}; margin: 0 0 ${paraSpacingPt}pt 0; text-align: justify;">
+          <span style="position: absolute; left: ${l3Num}mm; top: 0; font-weight: bold; color: ${primaryColor}; text-decoration: none;">${b.number}</span>
+          <span style="color: ${textColor};">${l3Text}</span>
         </div>
       `;
     } else if (b.type === 'level4') {
       currentBodyIndentMm = l4Wrap;
+      const l4Text = l4Upper ? b.text.toUpperCase() : b.text;
+      const textDecor = l4Underline ? 'underline' : 'none';
+      const weight = l4Bold ? 'bold' : 'normal';
       bodyHtml += `
-        <div style="position: relative; padding-left: ${l4Wrap}mm; font-size: ${bodySizePt}pt; line-height: ${lineSpacing}; margin: 1mm 0; text-align: justify;">
-          <span style="position: absolute; left: ${l4Num}mm; top: 0; font-weight: bold; color: ${primaryColor};">${b.number}</span>
-          <span style="color: ${textColor};">${b.text}</span>
+        <div style="position: relative; padding-left: ${l4Wrap}mm; font-size: ${l4SizePt}pt; font-weight: ${weight}; text-decoration: ${textDecor}; line-height: ${lineSpacing}; margin: 0 0 ${paraSpacingPt}pt 0; text-align: justify;">
+          <span style="position: absolute; left: ${l4Num}mm; top: 0; font-weight: bold; color: ${primaryColor}; text-decoration: none;">${b.number}</span>
+          <span style="color: ${textColor};">${l4Text}</span>
         </div>
       `;
     } else if (b.type === 'level5') {
       currentBodyIndentMm = l5Wrap;
+      const l5Text = l5Upper ? b.text.toUpperCase() : b.text;
+      const textDecor = l5Underline ? 'underline' : 'none';
+      const weight = l5Bold ? 'bold' : 'normal';
       bodyHtml += `
-        <div style="position: relative; padding-left: ${l5Wrap}mm; font-size: ${bodySizePt}pt; line-height: ${lineSpacing}; margin: 1mm 0; text-align: justify;">
-          <span style="position: absolute; left: ${l5Num}mm; top: 0; font-weight: bold; color: ${primaryColor};">${b.number}</span>
-          <span style="color: ${textColor};">${b.text}</span>
+        <div style="position: relative; padding-left: ${l5Wrap}mm; font-size: ${l5SizePt}pt; font-weight: ${weight}; text-decoration: ${textDecor}; line-height: ${lineSpacing}; margin: 0 0 ${paraSpacingPt}pt 0; text-align: justify;">
+          <span style="position: absolute; left: ${l5Num}mm; top: 0; font-weight: bold; color: ${primaryColor}; text-decoration: none;">${b.number}</span>
+          <span style="color: ${textColor};">${l5Text}</span>
         </div>
       `;
     } else {
-      bodyHtml += `<div style="padding-left: ${currentBodyIndentMm}mm; font-size: ${bodySizePt}pt; line-height: ${lineSpacing}; color: ${textColor}; margin: 1.5mm 0; text-align: justify;">${b.text}</div>`;
+      bodyHtml += `<div style="padding-left: ${currentBodyIndentMm}mm; font-size: ${bodySizePt}pt; line-height: ${lineSpacing}; color: ${textColor}; margin: 0 0 ${paraSpacingPt}pt 0; text-align: justify;">${b.text}</div>`;
     }
   });
 
