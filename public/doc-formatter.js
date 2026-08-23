@@ -196,13 +196,22 @@ async function loadPresets() {
                 applyPreset(found, false); // don't overwrite if draft exists
             }
 
-            // Restore any in-progress draft edits (including header, metadata, indents)
+            // Restore any in-progress draft edits (including title, subtitle, header, metadata, indents)
             const rawDraft = localStorage.getItem('sgb_formatter_draft');
             if (rawDraft) {
                 try {
                     const draft = JSON.parse(rawDraft);
                     if (draft.config) {
                         applyPresetConfig(draft.config);
+                    }
+                    if (draft.docTitle !== undefined && document.getElementById('doc-title-input')) {
+                        document.getElementById('doc-title-input').value = draft.docTitle;
+                    }
+                    if (draft.docSubtitle !== undefined && document.getElementById('doc-subtitle-input')) {
+                        document.getElementById('doc-subtitle-input').value = draft.docSubtitle;
+                    }
+                    if (draft.contextKey && document.getElementById('metadata-context-select')) {
+                        document.getElementById('metadata-context-select').value = draft.contextKey;
                     }
                     if (draft.rawText && document.getElementById('raw-text-input')) {
                         document.getElementById('raw-text-input').value = draft.rawText;
@@ -240,6 +249,20 @@ function applyPreset(preset, clearDraft = true) {
 
 function applyPresetConfig(preset) {
     if (!preset) return;
+
+    // Document Identification (Titles)
+    if (preset.documentTitle !== undefined || preset.docTitle !== undefined || preset.title !== undefined) {
+        const dTitle = preset.documentTitle !== undefined ? preset.documentTitle : (preset.docTitle !== undefined ? preset.docTitle : preset.title);
+        if (dTitle !== undefined && dTitle !== null) {
+            setVal('doc-title-input', dTitle);
+        }
+    }
+    if (preset.documentSubtitle !== undefined || preset.docSubtitle !== undefined || preset.subtitle !== undefined) {
+        const dSub = preset.documentSubtitle !== undefined ? preset.documentSubtitle : (preset.docSubtitle !== undefined ? preset.docSubtitle : preset.subtitle);
+        if (dSub !== undefined && dSub !== null) {
+            setVal('doc-subtitle-input', dSub);
+        }
+    }
 
     // Typography
     const typo = preset.typography || {};
@@ -658,10 +681,36 @@ function initEventListeners() {
     document.getElementById('doc-title-input')?.addEventListener('input', () => {
         updateDynamicTitleInSignaturesAndNotice();
         updateAuditFolderHint();
+        applyContextualMetadata('auto', false);
+        parseTextAndUpdatePreview();
+        saveDraftToLocalStorage();
     });
     document.getElementById('doc-title-input')?.addEventListener('change', () => {
         updateDynamicTitleInSignaturesAndNotice();
         updateAuditFolderHint();
+        applyContextualMetadata('auto', false);
+        parseTextAndUpdatePreview();
+        saveDraftToLocalStorage();
+    });
+    document.getElementById('doc-subtitle-input')?.addEventListener('input', () => {
+        parseTextAndUpdatePreview();
+        saveDraftToLocalStorage();
+    });
+    document.getElementById('doc-subtitle-input')?.addEventListener('change', () => {
+        parseTextAndUpdatePreview();
+        saveDraftToLocalStorage();
+    });
+
+    // Contextual Metadata Template selector & Auto-align button
+    document.getElementById('metadata-context-select')?.addEventListener('change', (e) => {
+        applyContextualMetadata(e.target.value, true);
+        const name = e.target.selectedOptions[0]?.text || '';
+        showToast(`Aligned metadata table to ${name}`);
+    });
+    document.getElementById('btn-auto-align-metadata')?.addEventListener('click', () => {
+        const selVal = document.getElementById('metadata-context-select')?.value || 'auto';
+        applyContextualMetadata(selVal, true);
+        showToast('Aligned metadata table to current document context!');
     });
 
     // Spatial Grid toggle
@@ -717,6 +766,221 @@ function updateAuditFolderHint() {
     hintEl.innerHTML = `Target Path (Auto-Detected): <code>SGB_Functionality_Audit_2026/${detected}</code>`;
 }
 
+const CONTEXTUAL_METADATA_PRESETS = {
+    mission: {
+        name: 'School Vision & Mission Statement',
+        col1Title: 'Regulatory Alignment & Authority',
+        col2Title: 'Details & Specifications',
+        rows: [
+            { label: 'National Legislative Basis', value: 'Section 20(1)(c) of South African Schools Act, 1996 (Act No. 84 of 1996)' },
+            { label: 'Provincial Governance Directives', value: 'Eastern Cape Department of Education Curriculum & School Governance Directives' },
+            { label: 'Institutional Juristic Status', value: 'Lady Grey Arts Academy (EMIS: 200600985)' },
+            { label: 'Core Educational Mandate', value: 'Whole School Development, Academic Excellence & Specialized Creative Arts' },
+            { label: 'Adoption & Custodianship', value: 'School Governing Body (SGB) & School Management Team (SMT)' }
+        ],
+        legalNoticePrefix: 'LEGAL NOTICE: ',
+        legalNoticeText: 'This School Mission Statement is an official strategic governance document drafted and adopted by the School Governing Body in terms of the South African Schools Act. All members of the school community, educators, learners, and parents are guided by the vision and values herein.',
+        badgeMain: 'SGB',
+        badgeSub: 'STATEMENT'
+    },
+    constitution: {
+        name: 'SGB Constitution & Governance',
+        col1Title: 'Regulatory Alignment & Authority',
+        col2Title: 'Details & Specifications',
+        rows: [
+            { label: 'National Legislative Basis', value: 'Section 18(1) of South African Schools Act, 1996 (Act No. 84 of 1996)' },
+            { label: 'Provincial Legislative Basis', value: 'Eastern Cape School Education Act, 2000 (Act No. 2 of 2000)' },
+            { label: 'Juristic Person Status', value: 'Lady Grey Arts Academy (EMIS: 200600985)' },
+            { label: 'Financial Year Lifecycle', value: '1 January to 31 December' },
+            { label: 'Governance Oversight', value: 'School Governing Body (SGB) specialized committees' }
+        ],
+        legalNoticePrefix: 'LEGAL NOTICE: ',
+        legalNoticeText: 'This constitution is a legally binding regulatory document drafted and adopted by the School Governing Body in terms of Section 18 of the South African Schools Act. All members of the governing body, learners, parents, educators, and staff are subject to the provisions herein.',
+        badgeMain: 'SGB',
+        badgeSub: 'CONSTITUTION'
+    },
+    admission: {
+        name: 'Admission Policy',
+        col1Title: 'Regulatory Alignment & Authority',
+        col2Title: 'Details & Specifications',
+        rows: [
+            { label: 'National Statutory Authority', value: 'Section 5(5) of South African Schools Act, 1996 (Act No. 84 of 1996)' },
+            { label: 'Provincial Policy Framework', value: 'Eastern Cape Policy for the Management of Admission to Public Schools' },
+            { label: 'Constitutional Principles', value: 'Section 9 (Non-Discrimination) & Section 29 (Right to Basic Education)' },
+            { label: 'School Operational Focus', value: 'Lady Grey Arts Academy (Specialized Arts & General Education, Grade R - 12)' },
+            { label: 'Administration Authority', value: 'School Principal (on behalf of Head of Department) with SGB Oversight' }
+        ],
+        legalNoticePrefix: 'LEGAL NOTICE: ',
+        legalNoticeText: 'This admission policy is a legally binding regulatory document determined by the School Governing Body in terms of Section 5(5) of the South African Schools Act. All admissions to Lady Grey Arts Academy are administered strictly in accordance with these provisions.',
+        badgeMain: 'POLICY',
+        badgeSub: 'ADMISSION'
+    },
+    language: {
+        name: 'Language Policy',
+        col1Title: 'Regulatory Alignment & Authority',
+        col2Title: 'Details & Specifications',
+        rows: [
+            { label: 'National Statutory Authority', value: 'Section 6(2) of South African Schools Act, 1996 (Act No. 84 of 1996)' },
+            { label: 'National Norms & Standards', value: 'Norms and Standards for Language Policy in Public Schools (1997)' },
+            { label: 'Language of Learning & Teaching', value: 'English & Afrikaans (Parallel / Dual Medium)' },
+            { label: 'First Additional Language (FAL)', value: 'isiXhosa / Afrikaans / English' },
+            { label: 'Governance Authority', value: 'School Governing Body (SGB) Policy Oversight' }
+        ],
+        legalNoticePrefix: 'LEGAL NOTICE: ',
+        legalNoticeText: 'This language policy is an official regulatory document determined by the School Governing Body in terms of Section 6(2) of the South African Schools Act. All language offerings and mediums of instruction are governed by these provisions.',
+        badgeMain: 'POLICY',
+        badgeSub: 'LANGUAGE'
+    },
+    religion: {
+        name: 'Religious Observances Policy',
+        col1Title: 'Regulatory Alignment & Authority',
+        col2Title: 'Details & Specifications',
+        rows: [
+            { label: 'National Statutory Authority', value: 'Section 7 of South African Schools Act, 1996 (Act No. 84 of 1996)' },
+            { label: 'Constitutional Foundation', value: 'Section 15 (Freedom of Religion, Belief & Opinion) of Constitution of RSA' },
+            { label: 'National Policy Directive', value: 'National Policy on Religion and Education (Government Gazette No. 25459)' },
+            { label: 'Principle of Equity', value: 'Free, voluntary, and equitable religious observances' },
+            { label: 'Governance Authority', value: 'School Governing Body (SGB)' }
+        ],
+        legalNoticePrefix: 'LEGAL NOTICE: ',
+        legalNoticeText: 'This religious observances policy is determined by the School Governing Body in terms of Section 7 of the South African Schools Act. Religious observances at Lady Grey Arts Academy are conducted on an equitable, free, and voluntary basis.',
+        badgeMain: 'POLICY',
+        badgeSub: 'RELIGIOUS'
+    },
+    conduct: {
+        name: 'Code of Conduct for Learners',
+        col1Title: 'Regulatory Alignment & Authority',
+        col2Title: 'Details & Specifications',
+        rows: [
+            { label: 'National Legislative Basis', value: 'Section 8(1) of South African Schools Act, 1996 (Act No. 84 of 1996)' },
+            { label: 'Constitutional Foundation', value: 'Section 28 (Best Interests of Child) & Section 29 of Constitution of RSA' },
+            { label: 'Provincial Regulations', value: 'Eastern Cape Provincial Regulations Relating to Learner Discipline & Safety' },
+            { label: 'Applicability & Jurisdiction', value: 'All Enrolled Learners of Lady Grey Arts Academy (On and Off Campus)' },
+            { label: 'Disciplinary Authority', value: 'SGB Disciplinary Committee & School Disciplinary Officer' }
+        ],
+        legalNoticePrefix: 'LEGAL NOTICE: ',
+        legalNoticeText: 'This Code of Conduct is a legally binding regulatory document adopted by the School Governing Body in terms of Section 8(1) of the South African Schools Act. Every learner registered at Lady Grey Arts Academy is subject to the rules, expectations, and disciplinary procedures set out herein.',
+        badgeMain: 'POLICY',
+        badgeSub: 'CONDUCT'
+    },
+    finance: {
+        name: 'Financial Management Policy',
+        col1Title: 'Regulatory Alignment & Authority',
+        col2Title: 'Details & Specifications',
+        rows: [
+            { label: 'National Legislative Basis', value: 'Sections 37 & 38 of South African Schools Act, 1996 (Act No. 84 of 1996)' },
+            { label: 'Provincial Financial Directives', value: 'Eastern Cape Financial Management Directives for Public Ordinary Schools' },
+            { label: 'Banking & Signatory Mandate', value: 'Dual-signatory official SGB bank accounts with internal audit controls' },
+            { label: 'Financial Year & Audit', value: '1 January to 31 December (Annual External Registered Audit)' },
+            { label: 'Responsible Portfolios', value: 'SGB Treasurer, Finance Committee & School Principal (Accounting Officer)' }
+        ],
+        legalNoticePrefix: 'LEGAL NOTICE: ',
+        legalNoticeText: 'This Financial Management Policy is an official regulatory document adopted by the School Governing Body in terms of Chapter 4 of the South African Schools Act. All financial transactions, procurement, and asset management at Lady Grey Arts Academy must strictly comply with this policy.',
+        badgeMain: 'POLICY',
+        badgeSub: 'FINANCIAL'
+    },
+    safety: {
+        name: 'Safety & Security Policy',
+        col1Title: 'Regulatory Alignment & Authority',
+        col2Title: 'Details & Specifications',
+        rows: [
+            { label: 'National Legislative Mandate', value: 'Occupational Health and Safety Act, 1993 (Act No. 85 of 1993)' },
+            { label: 'Schools Act Regulations', value: 'Regulations for Safety Measures at Public Schools (Government Notice No. 1040)' },
+            { label: 'Provincial Safety Framework', value: 'Eastern Cape Department of Education School Safety & Security Protocol' },
+            { label: 'Emergency & Access Control', value: 'Designated access control, emergency evacuation plans & first aid stations' },
+            { label: 'Safety Custodians', value: 'SGB Safety Committee, School Safety Officer & Health and Safety Representatives' }
+        ],
+        legalNoticePrefix: 'LEGAL NOTICE: ',
+        legalNoticeText: 'This Safety and Security Policy is an official regulatory protocol adopted by the School Governing Body to safeguard learners, educators, staff, and visitors within the precinct of Lady Grey Arts Academy.',
+        badgeMain: 'POLICY',
+        badgeSub: 'SAFETY'
+    },
+    minutes: {
+        name: 'SGB Meeting Minutes & Resolutions',
+        col1Title: 'Meeting Parameter',
+        col2Title: 'Official Record Details',
+        rows: [
+            { label: 'Statutory Meeting Mandate', value: 'Section 18(2) of South African Schools Act, 1996 (Act No. 84 of 1996)' },
+            { label: 'Quorum & Constitutionality', value: 'Duly constituted meeting with parent majority in attendance' },
+            { label: 'Meeting Custodian', value: 'SGB Secretary & SGB Chairperson' },
+            { label: 'Resolution Binding Status', value: 'Binding upon formal adoption and signature' },
+            { label: 'Record Archival', value: 'Official School Governing Body Governance Vault & Minute Book' }
+        ],
+        legalNoticePrefix: 'RECORD OF RESOLUTION: ',
+        legalNoticeText: 'These meeting minutes constitute the official statutory record of proceedings, deliberations, and resolutions taken by the School Governing Body of Lady Grey Arts Academy.',
+        badgeMain: 'SGB',
+        badgeSub: 'MINUTES'
+    }
+};
+
+function detectContextFromDocument(title, text = '') {
+    const combined = ((title || '') + ' ' + (text || '')).toLowerCase();
+    if (combined.includes('mission') || combined.includes('vision') || combined.includes('creed') || combined.includes('core values') || combined.includes('motto')) {
+        return 'mission';
+    }
+    if (combined.includes('admission') || combined.includes('enrolment') || combined.includes('enrollment') || combined.includes('admit')) {
+        return 'admission';
+    }
+    if (combined.includes('language') || combined.includes('lolt') || combined.includes('medium of instruction')) {
+        return 'language';
+    }
+    if (combined.includes('religion') || combined.includes('religious') || combined.includes('observance')) {
+        return 'religion';
+    }
+    if (combined.includes('conduct') || combined.includes('discipline') || combined.includes('misconduct') || combined.includes('demerit') || combined.includes('rules')) {
+        return 'conduct';
+    }
+    if (combined.includes('finance') || combined.includes('financial') || combined.includes('budget') || combined.includes('procurement') || combined.includes('petty cash') || combined.includes('fee')) {
+        return 'finance';
+    }
+    if (combined.includes('safety') || combined.includes('security') || combined.includes('emergency') || combined.includes('fire evacuation') || combined.includes('disaster')) {
+        return 'safety';
+    }
+    if (combined.includes('minutes') || combined.includes('meeting held on') || combined.includes('attendance register')) {
+        return 'minutes';
+    }
+    if (combined.includes('constitution') || combined.includes('governing body') || combined.includes('term of office')) {
+        return 'constitution';
+    }
+    return 'constitution';
+}
+
+function applyContextualMetadata(contextKey = 'auto', force = false) {
+    let activeKey = contextKey;
+    const title = document.getElementById('doc-title-input')?.value || '';
+    const text = document.getElementById('raw-text-input')?.value || '';
+
+    if (activeKey === 'auto') {
+        activeKey = detectContextFromDocument(title, text);
+    }
+
+    const tpl = CONTEXTUAL_METADATA_PRESETS[activeKey] || CONTEXTUAL_METADATA_PRESETS.constitution;
+
+    // Determine if metadata rows are either empty or default SGB rows
+    const rowEls = document.querySelectorAll('.meta-row-item');
+    let isDefaultOrEmpty = rowEls.length === 0;
+    if (rowEls.length > 0) {
+        const firstLabel = rowEls[0].querySelector('.meta-label-input')?.value?.toLowerCase() || '';
+        if (firstLabel.includes('national legislative basis') || firstLabel.includes('national statutory authority') || firstLabel.includes('statutory meeting')) {
+            isDefaultOrEmpty = true;
+        }
+    }
+
+    if (force || isDefaultOrEmpty) {
+        setVal('meta-col1-title', tpl.col1Title);
+        setVal('meta-col2-title', tpl.col2Title);
+        renderMetaRows(tpl.rows);
+        setVal('legal-notice-prefix', tpl.legalNoticePrefix);
+        setVal('legal-notice-text', tpl.legalNoticeText);
+        setVal('header-badge-text', tpl.badgeMain);
+        setVal('header-badge-subtext', tpl.badgeSub);
+    }
+
+    updateDynamicTitleInSignaturesAndNotice();
+    parseTextAndUpdatePreview();
+    saveDraftToLocalStorage();
+}
+
 function updateDynamicTitleInSignaturesAndNotice() {
     const rawTitle = document.getElementById('doc-title-input')?.value || '';
     if (!rawTitle.trim()) return;
@@ -738,9 +1002,9 @@ function updateDynamicTitleInSignaturesAndNotice() {
     const legalNoticeEl = document.getElementById('legal-notice-text');
     if (legalNoticeEl) {
         const val = legalNoticeEl.value;
-        const match = val.match(/^This\s+(.+?)\s+is a legally binding regulatory document/i);
+        const match = val.match(/^This\s+(.+?)\s+is a/i);
         if (match || val.toLowerCase().includes('this constitution is a legally binding')) {
-            legalNoticeEl.value = `This ${formattedTitle.toLowerCase()} is a legally binding regulatory document drafted and adopted by the School Governing Body in terms of the South African Schools Act. All members of the governing body, learners, parents, educators, and staff are subject to the provisions herein.`;
+            legalNoticeEl.value = `This ${formattedTitle.toLowerCase()} is an official regulatory document drafted and adopted by the School Governing Body in terms of the South African Schools Act. All members of the governing body, learners, parents, educators, and staff are subject to the provisions herein.`;
         }
     }
 }
@@ -1913,6 +2177,8 @@ async function saveCurrentAsPreset() {
         id: targetId,
         name: targetName,
         description: `Preset updated on ${new Date().toLocaleDateString()}`,
+        documentTitle: payload.documentTitle,
+        documentSubtitle: payload.documentSubtitle,
         typography: payload.typography,
         pageSetup: payload.pageSetup,
         hierarchy: payload.hierarchy,
@@ -1960,9 +2226,15 @@ function saveDraftToLocalStorage() {
         const config = collectCurrentConfig();
         const activePresetId = document.getElementById('preset-select')?.value || 'sgb_constitution';
         const rawText = document.getElementById('raw-text-input')?.value || '';
+        const docTitle = document.getElementById('doc-title-input')?.value || '';
+        const docSubtitle = document.getElementById('doc-subtitle-input')?.value || '';
+        const contextKey = document.getElementById('metadata-context-select')?.value || 'auto';
         localStorage.setItem('sgb_formatter_draft', JSON.stringify({
             presetId: activePresetId,
             config,
+            docTitle,
+            docSubtitle,
+            contextKey,
             rawText
         }));
     } catch (e) {}

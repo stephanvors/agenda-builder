@@ -744,14 +744,32 @@
                             <label class="checkbox-label"><input type="checkbox" id="enable-metadata-table" checked> <span>Include Table</span></label>
                         </div>
                         <div id="metadata-table-fields" class="mt-2">
+                            <div class="form-group mb-2">
+                                <label for="metadata-context-select" style="font-weight: 600; color: #38BDF8;">⚡ Document Context / Statutory Template</label>
+                                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                    <select id="metadata-context-select" class="studio-select" style="flex: 1;">
+                                        <option value="auto" selected>✨ Auto-Detect from Document Content</option>
+                                        <option value="mission">School Vision &amp; Mission Statement</option>
+                                        <option value="constitution">SGB Constitution &amp; Governance</option>
+                                        <option value="admission">Admission Policy</option>
+                                        <option value="language">Language Policy</option>
+                                        <option value="conduct">Code of Conduct for Learners</option>
+                                        <option value="religion">Religious Observances Policy</option>
+                                        <option value="finance">Financial Management Policy</option>
+                                        <option value="safety">Safety &amp; Security Policy</option>
+                                        <option value="minutes">SGB Meeting Minutes &amp; Resolutions</option>
+                                    </select>
+                                    <button type="button" class="btn btn-sm btn-outline" id="btn-auto-align-metadata" title="Regenerate table rows based on current document title &amp; text" style="white-space: nowrap; padding: 0.4rem 0.75rem;">⚡ Align Now</button>
+                                </div>
+                            </div>
                             <div class="form-grid-2">
                                 <div class="form-group">
                                     <label for="meta-col1-title">Column 1 Header</label>
-                                    <input type="text" id="meta-col1-title" class="studio-input" value="Regulatory Alignment & Authority">
+                                    <input type="text" id="meta-col1-title" class="studio-input" value="Regulatory Alignment &amp; Authority">
                                 </div>
                                 <div class="form-group">
                                     <label for="meta-col2-title">Column 2 Header</label>
-                                    <input type="text" id="meta-col2-title" class="studio-input" value="Details & Specifications">
+                                    <input type="text" id="meta-col2-title" class="studio-input" value="Details &amp; Specifications">
                                 </div>
                             </div>
                             <div class="meta-rows-list mt-2" id="meta-rows-container">
