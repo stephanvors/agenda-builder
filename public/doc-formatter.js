@@ -472,6 +472,35 @@ function initEventListeners() {
         });
     }
 
+    const directInputIds = [
+        'font-family-select', 'line-spacing-select', 'para-spacing-input',
+        'title-size-input', 'subtitle-size-input', 'body-size-input',
+        'primary-color-input', 'primary-color-picker', 'secondary-color-input', 'secondary-color-picker',
+        'text-color-input', 'text-color-picker',
+        'l1-left-offset', 'l1-size-input', 'l1-bold', 'l1-underline', 'l1-uppercase',
+        'l2-num-pos', 'l2-text-wrap', 'l2-hanging', 'l2-size-input', 'l2-bold', 'l2-underline', 'l2-uppercase',
+        'l3-num-pos', 'l3-text-wrap', 'l3-hanging', 'l3-size-input', 'l3-bold', 'l3-underline', 'l3-uppercase',
+        'l4-num-pos', 'l4-text-wrap', 'l4-hanging', 'l4-size-input', 'l4-bold', 'l4-underline', 'l4-uppercase',
+        'l5-num-pos', 'l5-text-wrap', 'l5-hanging', 'l5-size-input', 'l5-bold', 'l5-underline', 'l5-uppercase',
+        'margin-left-input', 'margin-right-input', 'margin-top-input', 'margin-bottom-input',
+        'paper-size-select', 'border-style-select'
+    ];
+    directInputIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('input', () => {
+                updateSpatialGuides();
+                parseTextAndUpdatePreview();
+                saveDraftToLocalStorage();
+            });
+            el.addEventListener('change', () => {
+                updateSpatialGuides();
+                parseTextAndUpdatePreview();
+                saveDraftToLocalStorage();
+            });
+        }
+    });
+
     // Preset Selection Switcher
     document.getElementById('preset-select')?.addEventListener('change', (e) => {
         const found = state.presets.find(p => p.id === e.target.value);
@@ -1105,7 +1134,10 @@ function renderDocumentPreview() {
     const fontFamily = document.getElementById('font-family-select')?.value || 'Arial';
     const fontCSS = getFontFamilyCSS(fontFamily);
     const lineSpacing = Number(document.getElementById('line-spacing-select')?.value) || 1.15;
-    const paraSpacingPt = Number(document.getElementById('para-spacing-input')?.value) || 4;
+    const rawParaSpacing = document.getElementById('para-spacing-input')?.value;
+    const paraSpacingPt = (rawParaSpacing !== undefined && rawParaSpacing !== '' && !isNaN(Number(rawParaSpacing)))
+        ? Number(rawParaSpacing)
+        : 4;
     const titleSize = Number(document.getElementById('title-size-input')?.value) || 14;
     const subtitleSize = Number(document.getElementById('subtitle-size-input')?.value) || 12;
     const h1Size = Number(document.getElementById('h1-size-input')?.value) || 11;
@@ -1422,6 +1454,7 @@ function renderDocumentPreview() {
         sandbox.style.boxSizing = 'border-box';
         document.body.appendChild(sandbox);
     }
+    sandbox.style.display = 'flow-root';
     sandbox.style.width = `${(210 - marginLeft - marginRight) * MM_TO_PX}px`;
     sandbox.style.fontFamily = fontCSS;
     sandbox.style.fontSize = `${bodySize}pt`;

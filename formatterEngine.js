@@ -724,10 +724,13 @@ export async function buildFormattedDocx(config, parsedBlocks) {
       const l1Underline = cfg.underline ? { type: UnderlineType.SINGLE } : undefined;
       const headingText = cfg.uppercase !== false ? block.text.toUpperCase() : block.text;
 
+      const l1SpaceBefore = Math.round(paraSpacingPt * 1.5 * 20) + 120;
+      const l1SpaceAfter = Math.round(paraSpacingPt * 20);
+
       if (block.number) {
         docChildren.push(
           new Paragraph({
-            spacing: { before: 240, after: 100 },
+            spacing: { before: l1SpaceBefore, after: l1SpaceAfter },
             keepWithNext: true,
             indent: { left: convertMillimetersToTwip(cfg.leftOffsetMm || 0) },
             tabStops: [
@@ -763,7 +766,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
       } else {
         docChildren.push(
           new Paragraph({
-            spacing: { before: 240, after: 100 },
+            spacing: { before: l1SpaceBefore, after: l1SpaceAfter },
             keepWithNext: true,
             indent: { left: convertMillimetersToTwip(cfg.leftOffsetMm || 0) },
             children: [
