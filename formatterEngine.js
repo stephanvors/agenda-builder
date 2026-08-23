@@ -911,8 +911,12 @@ export async function buildFormattedDocx(config, parsedBlocks) {
     }
   });
 
-  // 5. Sign-off Resolution Signature Block (Held together as one single unit)
+  // 5. Sign-off Resolution Signature Block (Held together as one single unit, always starts on new page)
   if (comps.signatures && comps.signatures.enabled && Array.isArray(comps.signatures.signers) && comps.signatures.signers.length) {
+    if (docChildren.length > 0) {
+      docChildren.push(new Paragraph({ pageBreakBefore: true, spacing: { before: 0, after: 0 }, children: [] }));
+    }
+
     const signers = comps.signatures.signers;
     const maxCols = Math.min(3, Math.max(1, signers.length));
     const colWidthMm = bodyWidthMm / maxCols;
@@ -1022,12 +1026,11 @@ export async function buildFormattedDocx(config, parsedBlocks) {
 
         return new TableCell({
           width: { size: convertMillimetersToTwip(colWidthMm), type: WidthType.DXA },
-          shading: { fill: 'F8FAFC', type: ShadingType.CLEAR },
           borders: {
-            top: { style: BorderStyle.SINGLE, size: 4, color: 'E2E8F0' },
-            bottom: { style: BorderStyle.SINGLE, size: 4, color: 'E2E8F0' },
-            left: { style: BorderStyle.SINGLE, size: 4, color: 'E2E8F0' },
-            right: { style: BorderStyle.SINGLE, size: 4, color: 'E2E8F0' },
+            top: { style: BorderStyle.SINGLE, size: 4, color: 'CBD5E1' },
+            bottom: { style: BorderStyle.SINGLE, size: 4, color: 'CBD5E1' },
+            left: { style: BorderStyle.SINGLE, size: 4, color: 'CBD5E1' },
+            right: { style: BorderStyle.SINGLE, size: 4, color: 'CBD5E1' },
           },
           margins: { left: 80, right: 80, top: 60, bottom: 60 },
           children: [
@@ -1421,7 +1424,7 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
     }
 
     sigHtml = `
-      <div style="page-break-inside: avoid; margin-top: 6mm; padding-top: 4mm;">
+      <div style="page-break-before: always; break-before: page; margin-top: 6mm; padding-top: 4mm;">
         <div style="font-weight: 800; font-size: ${h1SizePt}pt; color: ${primaryColor}; margin-bottom: 2mm; letter-spacing: 0.5px;">${config.components.signatures.title || 'ADOPTION AND SIGN-OFF RESOLUTION'}</div>
         <div style="font-size: ${bodySizePt}pt; line-height: 1.35; margin-bottom: 4mm; color: ${textColor}; text-align: justify;">${config.components.signatures.introText || ''}</div>
         <table style="width: 100%; border-collapse: separate; border-spacing: 12px 10px; table-layout: fixed; margin-top: 2mm;">
@@ -1431,7 +1434,7 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
                 let nVal = (s.name || '').replace(/^_+$/, '').trim();
                 let dVal = (s.dateLabel || '').replace(/^_+$/, '').trim();
                 return `
-                  <td style="width: ${100 / maxCols}%; vertical-align: top; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 4px; padding: 10px 12px; box-sizing: border-box;">
+                  <td style="width: ${100 / maxCols}%; vertical-align: top; background: #FFFFFF; border: 1px solid #CBD5E1; border-radius: 4px; padding: 10px 12px; box-sizing: border-box;">
                     <div style="height: 15mm; min-height: 15mm;"></div>
                     <div style="border-bottom: 1.5px solid ${primaryColor}; margin-bottom: 2px;"></div>
                     <div style="font-size: 7pt; text-transform: uppercase; letter-spacing: 0.8px; color: #64748B; font-weight: bold; margin-bottom: 6px;">Signature</div>

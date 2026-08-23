@@ -1793,6 +1793,42 @@ function renderDocumentPreview() {
             continue;
         }
 
+        // Signature Block & Its Heading Always Start on a New Page if preceded by content
+        if (b.isSignatures && pages[curPage].length > 0) {
+            const headingsToMove = [];
+            while (
+                blockMeta[curPage]?.length > 0 &&
+                (
+                    blockMeta[curPage][blockMeta[curPage].length - 1].isHeading ||
+                    blockMeta[curPage][blockMeta[curPage].length - 1].text?.toLowerCase().includes('order of') ||
+                    blockMeta[curPage][blockMeta[curPage].length - 1].text?.toLowerCase().includes('issued on behalf') ||
+                    blockMeta[curPage][blockMeta[curPage].length - 1].text?.toLowerCase().includes('behalf of') ||
+                    blockMeta[curPage][blockMeta[curPage].length - 1].text?.toLowerCase().includes('resolution') ||
+                    (blockMeta[curPage][blockMeta[curPage].length - 1].text?.length || 0) < 130
+                ) &&
+                pages[curPage].length > 1
+            ) {
+                const headingMeta = blockMeta[curPage].pop();
+                const headingHtml = pages[curPage].pop();
+                headingsToMove.unshift({ meta: headingMeta, html: headingHtml });
+            }
+
+            curPage++;
+            curHeight = 0;
+            curMax = maxPageN;
+            pages.push([]);
+            blockMeta.push([]);
+            for (const h of headingsToMove) {
+                pages[curPage].push(h.html);
+                blockMeta[curPage].push(h.meta);
+                curHeight += measureHtml(h.html);
+            }
+            pages[curPage].push(b.html);
+            blockMeta[curPage].push(b);
+            curHeight += bHeight;
+            continue;
+        }
+
         // Fits on current page
         if (curHeight + bHeight <= curMax) {
             pages[curPage].push(b.html);

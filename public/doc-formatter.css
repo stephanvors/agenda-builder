@@ -1188,18 +1188,13 @@ body.formatter-studio-body {
 .prev-signer-card {
     display: flex;
     flex-direction: column;
-    background: #F8FAFC;
-    border: 1px solid #E2E8F0;
+    background: #FFFFFF;
+    border: 1px solid #CBD5E1;
     border-radius: 4px;
     padding: 3mm 3.5mm;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
     box-sizing: border-box;
-}
-
-[data-theme="dark"] .prev-signer-card {
-    background: #1E293B;
-    border-color: #334155;
 }
 
 .prev-signer-card .sig-space-zone {
