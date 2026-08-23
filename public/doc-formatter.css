@@ -1235,6 +1235,7 @@ body.formatter-studio-body {
     font-size: 8.5pt;
     font-weight: 700;
     line-height: 1.2;
+    text-transform: uppercase;
 }
 
 .prev-signer-card .sig-blank-row {

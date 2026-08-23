@@ -729,6 +729,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
           new Paragraph({
             spacing: { before: l1SpaceBefore, after: l1SpaceAfter },
             keepWithNext: true,
+            keepLines: true,
             indent: { left: convertMillimetersToTwip(cfg.leftOffsetMm || 0) },
             tabStops: [
               {
@@ -765,6 +766,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
           new Paragraph({
             spacing: { before: l1SpaceBefore, after: l1SpaceAfter },
             keepWithNext: true,
+            keepLines: true,
             indent: { left: convertMillimetersToTwip(cfg.leftOffsetMm || 0) },
             children: [
               new TextRun({
@@ -798,6 +800,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
           spacing: { before: spaceBefore, after: spaceAfter, line: lineSpacing },
           alignment: AlignmentType.BOTH,
           keepWithNext: true,
+          keepLines: true,
           indent: {
             left: convertMillimetersToTwip(leftOffsetMm),
             hanging: convertMillimetersToTwip(hangingMm),
