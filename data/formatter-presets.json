@@ -8,10 +8,10 @@
       "documentSubtitle": "LADY GREY ARTS ACADEMY",
       "typography": {
         "fontFamily": "Aptos",
-        "lineSpacing": 1.15,
-        "spaceBeforePt": 6,
-        "spaceAfterPt": 1.5,
-        "paragraphSpacingPt": 1.5,
+        "lineSpacing": 1.25,
+        "spaceBeforePt": 5,
+        "spaceAfterPt": 0,
+        "paragraphSpacingPt": 0,
         "titleSizePt": 14,
         "subtitleSizePt": 12,
         "bodySizePt": 10,
@@ -126,7 +126,7 @@
             },
             {
               "label": "Core Educational Mandate",
-              "value": "Whole School Development, Academic Excellence & Specialized Creative Arts"
+              "value": "Whole School Development, Academic Excellence & Specialized Creative and Performing Arts"
             },
             {
               "label": "Adoption & Custodianship",

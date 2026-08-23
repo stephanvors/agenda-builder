@@ -1192,8 +1192,9 @@ body.formatter-studio-body {
 }
 
 .prev-signer-col .sig-line-wrap {
-    width: 100%;
-    border-bottom: 1px solid #64748B;
+    width: 48mm;
+    max-width: 75%;
+    border-bottom: 1.5px solid #64748B;
     height: 3mm;
     margin-bottom: 1mm;
 }

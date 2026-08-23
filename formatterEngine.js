@@ -33,6 +33,8 @@ const {
   UnderlineType,
 } = docx;
 
+const convertPointToHalfPoint = (pt) => Math.round(Number(pt || 10) * 2);
+
 // ── Smart Text Hierarchy Parser ──
 export function parseRawText(rawText) {
   if (!rawText || typeof rawText !== 'string') return [];
@@ -276,6 +278,9 @@ export async function buildFormattedDocx(config, parsedBlocks) {
   function createRunningHeader() {
     if (hdr.frequency !== 'all_pages') return undefined;
 
+    const docTitle = config.documentTitle || '';
+    const headerTitle = docTitle ? `${hdr.title || 'LADY GREY ARTS ACADEMY'} • ${docTitle}` : (hdr.title || 'LADY GREY ARTS ACADEMY');
+
     return new Header({
       children: [
         new Paragraph({
@@ -285,7 +290,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
           },
           children: [
             new TextRun({
-              text: hdr.title || 'LADY GREY ARTS ACADEMY',
+              text: headerTitle.toUpperCase(),
               bold: true,
               size: 16,
               color: primaryColor,
@@ -307,20 +312,15 @@ export async function buildFormattedDocx(config, parsedBlocks) {
     });
   }
 
-  // Helper to create Footer
+  // Helper to create Footer: leave ONLY the page number in the form of X/Y (or specified format)
   function createDocumentFooter() {
     const footerRuns = [];
-    const fmt = ftr.pageNumberFormat || 'page_x_of_y';
+    const fmt = ftr.pageNumberFormat || 'x_slash_y';
 
-    if (ftr.customText) {
-      footerRuns.push(new TextRun({ text: ftr.customText + '   ', size: 17, color: '64748B', font: fontFamily }));
-    }
-
-    if (fmt === 'page_x_of_y') {
+    if (fmt === 'x_slash_y' || fmt === 'page_x_of_y' || !fmt) {
       footerRuns.push(
-        new TextRun({ text: 'Page ', size: 17, color: '64748B', font: fontFamily }),
         new TextRun({ children: [PageNumber.CURRENT], size: 17, color: '64748B', font: fontFamily }),
-        new TextRun({ text: ' of ', size: 17, color: '64748B', font: fontFamily }),
+        new TextRun({ text: ' / ', size: 17, color: '64748B', font: fontFamily }),
         new TextRun({ children: [PageNumber.TOTAL_PAGES], size: 17, color: '64748B', font: fontFamily })
       );
     } else if (fmt === 'page_x') {
@@ -333,12 +333,6 @@ export async function buildFormattedDocx(config, parsedBlocks) {
         new TextRun({ text: '- ', size: 17, color: '64748B', font: fontFamily }),
         new TextRun({ children: [PageNumber.CURRENT], size: 17, color: '64748B', font: fontFamily }),
         new TextRun({ text: ' -', size: 17, color: '64748B', font: fontFamily })
-      );
-    } else if (fmt === 'x_slash_y') {
-      footerRuns.push(
-        new TextRun({ children: [PageNumber.CURRENT], size: 17, color: '64748B', font: fontFamily }),
-        new TextRun({ text: ' / ', size: 17, color: '64748B', font: fontFamily }),
-        new TextRun({ children: [PageNumber.TOTAL_PAGES], size: 17, color: '64748B', font: fontFamily })
       );
     }
 
@@ -918,60 +912,90 @@ export async function buildFormattedDocx(config, parsedBlocks) {
 
   // 5. Sign-off Resolution Signature Block (Held together as one single unit)
   if (comps.signatures && comps.signatures.enabled && Array.isArray(comps.signatures.signers) && comps.signatures.signers.length) {
-    if (comps.signatures.title) {
-      docChildren.push(
-        new Paragraph({
-          spacing: { before: 260, after: 100 },
-          keepWithNext: true,
-          keepLines: true,
-          children: [
-            new TextRun({
-              text: comps.signatures.title.toUpperCase(),
-              bold: true,
-              size: h1SizeHps,
-              color: primaryColor,
-              font: fontFamily,
-            }),
-          ],
-        })
-      );
-    }
-    if (comps.signatures.introText) {
-      let introStr = comps.signatures.introText;
-      const rawTitle = config.documentTitle || '';
-      if (rawTitle) {
-        let formattedTitle = rawTitle.trim();
-        if (formattedTitle === formattedTitle.toUpperCase() && formattedTitle.length > 3) {
-          formattedTitle = formattedTitle.toLowerCase().replace(/(?:^|\s|-)\S/g, c => c.toUpperCase());
-        }
-        if (introStr.includes('{documentTitle}') || introStr.includes('{title}')) {
-          introStr = introStr.replace(/\{documentTitle\}|\{title\}/g, formattedTitle);
-        } else if (introStr.includes('Constitution of the School Governing Body') && !rawTitle.toLowerCase().includes('constitution')) {
-          introStr = introStr.replace(/Constitution of the School Governing Body/gi, formattedTitle);
-        }
-      }
-
-      docChildren.push(
-        new Paragraph({
-          spacing: { before: 60, after: 140, line: lineSpacing },
-          alignment: AlignmentType.BOTH,
-          keepWithNext: true,
-          keepLines: true,
-          children: [
-            new TextRun({
-              text: introStr,
-              size: baseSizeHps,
-              color: textColor,
-              font: fontFamily,
-            }),
-          ],
-        })
-      );
-    }
-
     const signers = comps.signatures.signers;
     const colWidthMm = bodyWidthMm / signers.length;
 
+    let introStr = comps.signatures.introText || '';
+    const rawTitle = config.documentTitle || '';
+    if (rawTitle && introStr) {
+      let formattedTitle = rawTitle.trim();
+      if (formattedTitle === formattedTitle.toUpperCase() && formattedTitle.length > 3) {
+        formattedTitle = formattedTitle.toLowerCase().replace(/(?:^|\s|-)\S/g, c => c.toUpperCase());
+      }
+      if (introStr.includes('{documentTitle}') || introStr.includes('{title}')) {
+        introStr = introStr.replace(/\{documentTitle\}|\{title\}/g, formattedTitle);
+      } else if (introStr.includes('Constitution of the School Governing Body') && !rawTitle.toLowerCase().includes('constitution')) {
+        introStr = introStr.replace(/Constitution of the School Governing Body/gi, formattedTitle);
+      }
+    }
+
+    const tableRows = [];
+
+    // Row 1: Title (if present)
+    if (comps.signatures.title) {
+      tableRows.push(
+        new TableRow({
+          cantSplit: true,
+          children: [
+            new TableCell({
+              columnSpan: signers.length,
+              width: { size: convertMillimetersToTwip(bodyWidthMm), type: WidthType.DXA },
+              margins: { left: 0, right: 0, top: 160, bottom: 40 },
+              children: [
+                new Paragraph({
+                  spacing: { before: 160, after: 40 },
+                  keepWithNext: true,
+                  keepLines: true,
+                  children: [
+                    new TextRun({
+                      text: comps.signatures.title.toUpperCase(),
+                      bold: true,
+                      size: h1SizeHps,
+                      color: primaryColor,
+                      font: fontFamily,
+                    }),
+                  ],
+                }),
+              ],
+            }),
+          ],
+        })
+      );
+    }
+
+    // Row 2: Intro text (if present)
+    if (introStr) {
+      tableRows.push(
+        new TableRow({
+          cantSplit: true,
+          children: [
+            new TableCell({
+              columnSpan: signers.length,
+              width: { size: convertMillimetersToTwip(bodyWidthMm), type: WidthType.DXA },
+              margins: { left: 0, right: 0, top: 20, bottom: 80 },
+              children: [
+                new Paragraph({
+                  spacing: { before: 20, after: 80, line: lineSpacing },
+                  alignment: AlignmentType.BOTH,
+                  keepWithNext: true,
+                  keepLines: true,
+                  children: [
+                    new TextRun({
+                      text: introStr,
+                      size: baseSizeHps,
+                      color: textColor,
+                      font: fontFamily,
+                    }),
+                  ],
+                }),
+              ],
+            }),
+          ],
+        })
+      );
+    }
+
+    // Row 3: Signature columns
     const signatureCells = signers.map(s => {
       let nameVal = s.name ? s.name.trim() : '';
       if (nameVal.toLowerCase().startsWith('name:')) {
@@ -987,25 +1011,29 @@ export async function buildFormattedDocx(config, parsedBlocks) {
 
       return new TableCell({
         width: { size: convertMillimetersToTwip(colWidthMm), type: WidthType.DXA },
-        margins: { left: 40, right: 40, top: 140, bottom: 40 },
+        margins: { left: 20, right: 20, top: 80, bottom: 40 },
         children: [
-          // 1. Signature solid vector line & label
+          // 1. Signature shorter vector line & label
           new Paragraph({
-            spacing: { before: 0, after: 20 },
+            spacing: { before: 0, after: 10 },
             keepWithNext: true,
             keepLines: true,
-            border: {
-              bottom: { style: BorderStyle.SINGLE, size: 6, color: '64748B' }
-            },
-            children: [new TextRun({ text: '', font: fontFamily, size: 2 })],
+            children: [
+              new TextRun({
+                text: '_________________________',
+                color: '64748B',
+                font: fontFamily,
+                size: baseSizeHps,
+              }),
+            ],
           }),
           new Paragraph({
-            spacing: { before: 0, after: 50 },
+            spacing: { before: 0, after: 40 },
             keepWithNext: true,
             keepLines: true,
             children: [new TextRun({ text: 'Signature', italics: true, color: '64748B', font: fontFamily, size: Math.max(7, (baseSizeHps / 2) - 2) * 2 })],
           }),
-          // 2. Name (Direct name without "Surname, Name:" prefix)
+          // 2. Name
           new Paragraph({
             spacing: { before: 0, after: 20 },
             keepWithNext: true,
@@ -1023,7 +1051,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
           }),
           // 4. Date
           new Paragraph({
-            spacing: { before: 40, after: 0 },
+            spacing: { before: 30, after: 0 },
             keepLines: true,
             children: [
               new TextRun({ text: dateVal ? `Date: ${dateVal}` : 'Date: ____________________', color: '64748B', font: fontFamily, size: baseSizeHps - 2 }),
@@ -1033,9 +1061,17 @@ export async function buildFormattedDocx(config, parsedBlocks) {
       });
     });
 
+    tableRows.push(
+      new TableRow({
+        cantSplit: true,
+        children: signatureCells,
+      })
+    );
+
     docChildren.push(
       new Table({
         width: { size: convertMillimetersToTwip(bodyWidthMm), type: WidthType.DXA },
+        cantSplit: true,
         borders: {
           top: { style: BorderStyle.NONE },
           bottom: { style: BorderStyle.NONE },
@@ -1044,7 +1080,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
           insideHorizontal: { style: BorderStyle.NONE },
           insideVertical: { style: BorderStyle.NONE },
         },
-        rows: [new TableRow({ cantSplit: true, children: signatureCells })],
+        rows: tableRows,
       })
     );
   }
@@ -1327,7 +1363,7 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
           <tr>
             ${signers.map(s => `
               <td style="vertical-align: top; padding: 0 8px;">
-                <div style="border-bottom: 1px solid #64748B; height: 16px; margin-bottom: 2px;"></div>
+                <div style="width: 48mm; max-width: 75%; border-bottom: 1.5px solid #64748B; height: 16px; margin-bottom: 3px;"></div>
                 <div style="font-size: 8pt; font-style: italic; color: #64748B; margin-bottom: 6px;">Signature</div>
                 <div style="font-size: 9.5pt; font-weight: bold; color: ${textColor}; margin-bottom: 2px;">${s.name || ''}</div>
                 <div style="font-size: 8.5pt; font-weight: bold; color: ${primaryColor}; margin-bottom: 6px;">${s.role || ''}</div>

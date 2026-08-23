@@ -1498,9 +1498,11 @@ function renderDocumentPreview() {
             `;
 
             if (headerFreq === 'all_pages') {
+                const docTitleVal = document.getElementById('doc-title-input')?.value || '';
+                const runTitle = docTitleVal ? `${hTitle} • ${docTitleVal}` : hTitle;
                 runningHeaderHtml = `
                     <div class="prev-running-header">
-                        <span style="font-weight: 700; color: ${primaryColor};">${escapeHTML(hTitle)}</span>
+                        <span style="font-weight: 700; color: ${primaryColor};">${escapeHTML(runTitle)}</span>
                         <span style="font-size: 7.5pt; text-transform: uppercase;">${escapeHTML(badgeText)}</span>
                     </div>
                 `;
@@ -1801,11 +1803,20 @@ function renderDocumentPreview() {
 
         // If it's signatures or heading or small block that cannot split, or if following a heading:
         if (b.isSignatures || b.isHeading || isUnderHeading || !b.text || b.text.length < 90 || spaceLeft < 55) {
-            // Orphan Heading Prevention: move trailing headings to next page
+            // Orphan Heading / Signature Intro Prevention: move trailing headings or intro paragraphs to next page
             const headingsToMove = [];
             while (
                 blockMeta[curPage]?.length > 0 &&
-                blockMeta[curPage][blockMeta[curPage].length - 1].isHeading &&
+                (
+                    blockMeta[curPage][blockMeta[curPage].length - 1].isHeading ||
+                    (b.isSignatures && (
+                        blockMeta[curPage][blockMeta[curPage].length - 1].text?.toLowerCase().includes('order of') ||
+                        blockMeta[curPage][blockMeta[curPage].length - 1].text?.toLowerCase().includes('issued on behalf') ||
+                        blockMeta[curPage][blockMeta[curPage].length - 1].text?.toLowerCase().includes('behalf of') ||
+                        blockMeta[curPage][blockMeta[curPage].length - 1].text?.toLowerCase().includes('resolution') ||
+                        (blockMeta[curPage][blockMeta[curPage].length - 1].text?.length || 0) < 130
+                    ))
+                ) &&
                 pages[curPage].length > 1
             ) {
                 const headingMeta = blockMeta[curPage].pop();
@@ -1973,9 +1984,9 @@ function renderDocumentPreview() {
                     <div class="doc-page-body">
                         ${pages[p].join('')}
                     </div>
-                    ${pFmt !== 'none' || fText ? `
+                    ${pFmt !== 'none' ? `
                         <div class="prev-footer">
-                            ${fText ? `<span>${escapeHTML(fText)} • </span>` : '<span></span>'}
+                            <span></span>
                             <span>${pageStr}</span>
                         </div>
                     ` : ''}
