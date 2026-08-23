@@ -30,7 +30,9 @@
           {
             "level": 1,
             "leftOffsetMm": 0,
+            "fontSizePt": 11,
             "bold": true,
+            "underline": false,
             "uppercase": true
           },
           {
@@ -38,7 +40,11 @@
             "leftOffsetMm": 10,
             "numberPosMm": 0,
             "textWrapMm": 10,
-            "hangingIndentMm": 10
+            "hangingIndentMm": 10,
+            "fontSizePt": 10,
+            "bold": false,
+            "underline": false,
+            "uppercase": false
           },
           {
             "level": 3,
@@ -179,7 +185,9 @@
             "hangingIndentMm": 0,
             "numberPosMm": 0,
             "textWrapMm": 0,
+            "fontSizePt": 11,
             "bold": true,
+            "underline": false,
             "uppercase": true,
             "italic": false,
             "color": "#0C2340"
@@ -191,7 +199,9 @@
             "hangingIndentMm": 10,
             "numberPosMm": 0,
             "textWrapMm": 10,
+            "fontSizePt": 10,
             "bold": false,
+            "underline": false,
             "numberBold": true,
             "uppercase": false,
             "italic": false,
@@ -344,7 +354,9 @@
             "hangingIndentMm": 0,
             "numberPosMm": 0,
             "textWrapMm": 0,
+            "fontSizePt": 11,
             "bold": true,
+            "underline": false,
             "uppercase": true,
             "italic": false,
             "color": "#0C2340"
@@ -356,7 +368,9 @@
             "hangingIndentMm": 10,
             "numberPosMm": 0,
             "textWrapMm": 10,
+            "fontSizePt": 10,
             "bold": false,
+            "underline": false,
             "numberBold": true,
             "uppercase": false,
             "italic": false,

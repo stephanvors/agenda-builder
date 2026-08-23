@@ -30,6 +30,7 @@ const {
   convertMillimetersToTwip,
   TabStopType,
   ShadingType,
+  UnderlineType,
 } = docx;
 
 // ── Smart Text Hierarchy Parser ──
@@ -716,7 +717,11 @@ export async function buildFormattedDocx(config, parsedBlocks) {
       const l2Cfg = getLevelConfig(2);
       const tabPosMm = Number(l2Cfg.textWrapMm) || Number(l2Cfg.leftOffsetMm) || 10;
       currentBodyIndentMm = tabPosMm; // Subsequent body paragraphs line up under Level 1 text!
-      const headingText = cfg.uppercase ? block.text.toUpperCase() : block.text;
+
+      const l1Size = Number(cfg.fontSizePt || cfg.sizePt || typo.heading1SizePt || 11);
+      const l1SizeHps = convertPointToHalfPoint(l1Size);
+      const l1Underline = cfg.underline ? { type: UnderlineType.SINGLE } : undefined;
+      const headingText = cfg.uppercase !== false ? block.text.toUpperCase() : block.text;
 
       if (block.number) {
         docChildren.push(
@@ -734,19 +739,20 @@ export async function buildFormattedDocx(config, parsedBlocks) {
               new TextRun({
                 text: block.number,
                 bold: cfg.bold !== false,
-                size: h1SizeHps,
+                size: l1SizeHps,
                 color: (cfg.color || primaryColor).replace('#', ''),
                 font: fontFamily,
               }),
               new TextRun({
                 text: '\t',
-                size: h1SizeHps,
+                size: l1SizeHps,
                 font: fontFamily,
               }),
               new TextRun({
                 text: headingText,
                 bold: cfg.bold !== false,
-                size: h1SizeHps,
+                underline: l1Underline,
+                size: l1SizeHps,
                 color: (cfg.color || primaryColor).replace('#', ''),
                 font: fontFamily,
               }),
@@ -763,7 +769,8 @@ export async function buildFormattedDocx(config, parsedBlocks) {
               new TextRun({
                 text: headingText,
                 bold: cfg.bold !== false,
-                size: h1SizeHps,
+                underline: l1Underline,
+                size: l1SizeHps,
                 color: (cfg.color || primaryColor).replace('#', ''),
                 font: fontFamily,
               }),
@@ -771,8 +778,60 @@ export async function buildFormattedDocx(config, parsedBlocks) {
           })
         );
       }
-    } else if (block.type === 'level2' || block.type === 'level3' || block.type === 'level4' || block.type === 'level5') {
-      const lvlNum = block.level || (block.type === 'level2' ? 2 : block.type === 'level3' ? 3 : block.type === 'level4' ? 4 : 5);
+    } else if (block.type === 'level2') {
+      const cfg = getLevelConfig(2);
+      const leftOffsetMm = Number(cfg.leftOffsetMm) || 10;
+      const hangingMm = Number(cfg.hangingIndentMm) || 10;
+      const textWrapMm = Number(cfg.textWrapMm) || leftOffsetMm;
+      currentBodyIndentMm = textWrapMm;
+
+      const l2Size = Number(cfg.fontSizePt || cfg.sizePt || typo.bodySizePt || 10);
+      const l2SizeHps = convertPointToHalfPoint(l2Size);
+      const l2Underline = cfg.underline ? { type: UnderlineType.SINGLE } : undefined;
+      const l2Bold = cfg.bold === true;
+      const l2Text = cfg.uppercase === true ? block.text.toUpperCase() : block.text;
+
+      docChildren.push(
+        new Paragraph({
+          spacing: { before: spaceBefore, after: spaceAfter, line: lineSpacing },
+          alignment: AlignmentType.BOTH,
+          indent: {
+            left: convertMillimetersToTwip(leftOffsetMm),
+            hanging: convertMillimetersToTwip(hangingMm),
+          },
+          tabStops: [
+            {
+              type: TabStopType.LEFT,
+              position: convertMillimetersToTwip(textWrapMm),
+            },
+          ],
+          children: [
+            new TextRun({
+              text: block.number,
+              bold: cfg.numberBold !== false,
+              size: l2SizeHps,
+              color: (cfg.color || primaryColor).replace('#', ''),
+              font: fontFamily,
+            }),
+            new TextRun({
+              text: '\t',
+              size: l2SizeHps,
+              font: fontFamily,
+            }),
+            new TextRun({
+              text: l2Text,
+              bold: l2Bold,
+              underline: l2Underline,
+              italic: cfg.italic === true,
+              size: l2SizeHps,
+              color: textColor,
+              font: fontFamily,
+            }),
+          ],
+        })
+      );
+    } else if (block.type === 'level3' || block.type === 'level4' || block.type === 'level5') {
+      const lvlNum = block.level || (block.type === 'level3' ? 3 : block.type === 'level4' ? 4 : 5);
       const cfg = getLevelConfig(lvlNum);
 
       const leftOffsetMm = Number(cfg.leftOffsetMm) || (lvlNum - 1) * 10;
@@ -1121,15 +1180,31 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
   }
 
   // Clauses
-  const indentL1 = config.indents?.level1?.leftOffsetMm || 0;
-  const l2Wrap = config.indents?.level2?.textStartWrapMm || 10;
-  const l2Num = config.indents?.level2?.numberPositionMm || 0;
-  const l3Wrap = config.indents?.level3?.textStartWrapMm || 20;
-  const l3Num = config.indents?.level3?.numberPositionMm || 10;
-  const l4Wrap = config.indents?.level4?.textStartWrapMm || 30;
-  const l4Num = config.indents?.level4?.numberPositionMm || 20;
-  const l5Wrap = config.indents?.level5?.textStartWrapMm || 40;
-  const l5Num = config.indents?.level5?.numberPositionMm || 30;
+  const l1Cfg = config.hierarchy?.levels?.find(l => l.level === 1) || config.indents?.level1 || {};
+  const l2Cfg = config.hierarchy?.levels?.find(l => l.level === 2) || config.indents?.level2 || {};
+  const l3Cfg = config.hierarchy?.levels?.find(l => l.level === 3) || config.indents?.level3 || {};
+  const l4Cfg = config.hierarchy?.levels?.find(l => l.level === 4) || config.indents?.level4 || {};
+  const l5Cfg = config.hierarchy?.levels?.find(l => l.level === 5) || config.indents?.level5 || {};
+
+  const indentL1 = l1Cfg.leftOffsetMm !== undefined ? l1Cfg.leftOffsetMm : 0;
+  const l1SizePt = Number(l1Cfg.fontSizePt || l1Cfg.sizePt || config.typography?.heading1SizePt || 11);
+  const l1Bold = l1Cfg.bold !== false;
+  const l1Underline = l1Cfg.underline === true;
+  const l1Upper = l1Cfg.uppercase !== false;
+
+  const l2Wrap = l2Cfg.textWrapMm !== undefined ? l2Cfg.textWrapMm : (l2Cfg.textStartWrapMm || 10);
+  const l2Num = l2Cfg.numberPosMm !== undefined ? l2Cfg.numberPosMm : (l2Cfg.numberPositionMm || 0);
+  const l2SizePt = Number(l2Cfg.fontSizePt || l2Cfg.sizePt || config.typography?.bodySizePt || 10);
+  const l2Bold = l2Cfg.bold === true;
+  const l2Underline = l2Cfg.underline === true;
+  const l2Upper = l2Cfg.uppercase === true;
+
+  const l3Wrap = l3Cfg.textWrapMm !== undefined ? l3Cfg.textWrapMm : (l3Cfg.textStartWrapMm || 20);
+  const l3Num = l3Cfg.numberPosMm !== undefined ? l3Cfg.numberPosMm : (l3Cfg.numberPositionMm || 10);
+  const l4Wrap = l4Cfg.textWrapMm !== undefined ? l4Cfg.textWrapMm : (l4Cfg.textStartWrapMm || 30);
+  const l4Num = l4Cfg.numberPosMm !== undefined ? l4Cfg.numberPosMm : (l4Cfg.numberPositionMm || 20);
+  const l5Wrap = l5Cfg.textWrapMm !== undefined ? l5Cfg.textWrapMm : (l5Cfg.textStartWrapMm || 40);
+  const l5Num = l5Cfg.numberPosMm !== undefined ? l5Cfg.numberPosMm : (l5Cfg.numberPositionMm || 30);
 
   let bodyHtml = '';
   let currentBodyIndentMm = 0;
@@ -1137,19 +1212,24 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
   blocks.forEach(b => {
     if (b.type === 'level1') {
       currentBodyIndentMm = l2Wrap; // Subsequent body paragraphs line up under Level 1 text!
-      const headingText = config.indents?.level1?.uppercase !== false ? b.text.toUpperCase() : b.text;
+      const headingText = l1Upper ? b.text.toUpperCase() : b.text;
+      const textDecor = l1Underline ? 'underline' : 'none';
+      const weight = l1Bold ? 'bold' : 'normal';
       bodyHtml += `
-        <div style="font-weight: bold; font-size: ${h1SizePt}pt; color: ${primaryColor}; margin: 5mm 0 2mm ${indentL1}mm; page-break-after: avoid;">
-          ${b.number ? `<span style="display: inline-block; min-width: 10mm;">${b.number}</span>` : ''}
+        <div style="font-weight: ${weight}; text-decoration: ${textDecor}; font-size: ${l1SizePt}pt; color: ${primaryColor}; margin: 5mm 0 2mm ${indentL1}mm; page-break-after: avoid;">
+          ${b.number ? `<span style="display: inline-block; min-width: 10mm; text-decoration: none;">${b.number}</span>` : ''}
           <span>${headingText}</span>
         </div>
       `;
     } else if (b.type === 'level2') {
       currentBodyIndentMm = l2Wrap;
+      const l2Text = l2Upper ? b.text.toUpperCase() : b.text;
+      const textDecor = l2Underline ? 'underline' : 'none';
+      const weight = l2Bold ? 'bold' : 'normal';
       bodyHtml += `
-        <div style="position: relative; padding-left: ${l2Wrap}mm; font-size: ${bodySizePt}pt; line-height: ${lineSpacing}; margin: 1.5mm 0; text-align: justify;">
-          <span style="position: absolute; left: ${l2Num}mm; top: 0; font-weight: bold; color: ${primaryColor};">${b.number}</span>
-          <span style="color: ${textColor};">${b.text}</span>
+        <div style="position: relative; padding-left: ${l2Wrap}mm; font-size: ${l2SizePt}pt; font-weight: ${weight}; text-decoration: ${textDecor}; line-height: ${lineSpacing}; margin: 1.5mm 0; text-align: justify;">
+          <span style="position: absolute; left: ${l2Num}mm; top: 0; font-weight: bold; color: ${primaryColor}; text-decoration: none;">${b.number}</span>
+          <span style="color: ${textColor};">${l2Text}</span>
         </div>
       `;
     } else if (b.type === 'level3') {

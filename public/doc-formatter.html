@@ -303,13 +303,22 @@
                             <span class="level-badge l1">Level 1</span>
                             <h4>Major Headings (e.g. 4. MEMBERSHIP)</h4>
                         </div>
-                        <div class="form-grid-3">
+                        <div class="form-grid-2">
                             <div class="form-group">
                                 <label for="l1-left-offset">Left Offset (mm)</label>
                                 <input type="number" id="l1-left-offset" class="studio-input" value="0" min="0" max="50">
                             </div>
                             <div class="form-group">
+                                <label for="l1-size-input" title="Level 1 Heading Font Size (pt)">Font Size (pt)</label>
+                                <input type="number" id="l1-size-input" class="studio-input" value="11" min="8" max="24">
+                            </div>
+                        </div>
+                        <div class="form-grid-3 mt-2">
+                            <div class="form-group">
                                 <label class="checkbox-label"><input type="checkbox" id="l1-bold" checked> <span>Bold Text</span></label>
+                            </div>
+                            <div class="form-group">
+                                <label class="checkbox-label"><input type="checkbox" id="l1-underline"> <span>Underline</span></label>
                             </div>
                             <div class="form-group">
                                 <label class="checkbox-label"><input type="checkbox" id="l1-uppercase" checked> <span>UPPERCASE</span></label>
@@ -323,7 +332,7 @@
                             <span class="level-badge l2">Level 2</span>
                             <h4>Primary Clauses (e.g. 4.1 [Text])</h4>
                         </div>
-                        <div class="form-grid-3">
+                        <div class="form-grid-4">
                             <div class="form-group">
                                 <label for="l2-num-pos" title="Number Position (mm)">Num Pos (mm)</label>
                                 <input type="number" id="l2-num-pos" class="studio-input" value="0" min="0" max="50">
@@ -335,6 +344,21 @@
                             <div class="form-group">
                                 <label for="l2-hanging" title="Hanging Indent (mm)">Hanging (mm)</label>
                                 <input type="number" id="l2-hanging" class="studio-input" value="10" min="0" max="50">
+                            </div>
+                            <div class="form-group">
+                                <label for="l2-size-input" title="Level 2 Font Size (pt)">Font Size (pt)</label>
+                                <input type="number" id="l2-size-input" class="studio-input" value="10" min="8" max="24">
+                            </div>
+                        </div>
+                        <div class="form-grid-3 mt-2">
+                            <div class="form-group">
+                                <label class="checkbox-label"><input type="checkbox" id="l2-bold"> <span>Bold Text</span></label>
+                            </div>
+                            <div class="form-group">
+                                <label class="checkbox-label"><input type="checkbox" id="l2-underline"> <span>Underline</span></label>
+                            </div>
+                            <div class="form-group">
+                                <label class="checkbox-label"><input type="checkbox" id="l2-uppercase"> <span>UPPERCASE</span></label>
                             </div>
                         </div>
                     </div>
@@ -433,7 +457,7 @@
                             </div>
                         </div>
 
-                        <div class="form-grid-4 mt-2">
+                        <div class="form-grid-3 mt-2">
                             <div class="form-group">
                                 <label for="title-size-input" title="Document Title Font Size (pt)">Title (pt)</label>
                                 <input type="number" id="title-size-input" class="studio-input" value="14" min="10" max="24">
@@ -441,10 +465,6 @@
                             <div class="form-group">
                                 <label for="subtitle-size-input" title="Subtitle Font Size (pt)">Subtitle (pt)</label>
                                 <input type="number" id="subtitle-size-input" class="studio-input" value="12" min="9" max="20">
-                            </div>
-                            <div class="form-group">
-                                <label for="h1-size-input" title="Headings Font Size (pt)">Headings (pt)</label>
-                                <input type="number" id="h1-size-input" class="studio-input" value="11" min="9" max="18">
                             </div>
                             <div class="form-group">
                                 <label for="body-size-input" title="Body Text Font Size (pt)">Body (pt)</label>
