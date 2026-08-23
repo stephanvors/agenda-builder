@@ -1256,26 +1256,35 @@ function renderDocumentPreview() {
             } else {
                 bHtml = `<div class="prev-clause-item prev-clause-level1" style="padding-left: ${l1Offset}mm; font-weight: ${l1Bold ? 'bold' : 'normal'}; text-transform: ${l1Upper ? 'uppercase' : 'none'}; color: ${primaryColor}; font-size: ${h1Size}pt; margin: 4mm 0 2mm 0;">${formattedHeading}</div>`;
             }
-            blocks.push({ type: 'level1', isHeading: true, html: bHtml });
+            blocks.push({ type: 'level1', isHeading: true, html: bHtml, text: b.text });
         } else if (b.type === 'level2') {
             currentBodyIndentMm = l2Wrap;
-            bHtml = `<div class="prev-clause-item" style="position: relative; padding-left: ${l2Wrap}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; margin: 1.5mm 0; text-align: justify;"><span class="prev-num-bold" style="position: absolute; left: ${l2NumPos}mm; top: 0; font-weight: bold; color: ${primaryColor};">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${formatTextWithSpellHighlights(b.text)}</span></div>`;
-            blocks.push({ type: 'level2', isHeading: false, html: bHtml });
+            const makeL2Html = (txt, isCont = false) => isCont ?
+                `<div class="prev-clause-item" style="padding-left: ${l2Wrap}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; margin: 1mm 0; text-align: justify; color: ${textColor};">${formatTextWithSpellHighlights(txt)}</div>` :
+                `<div class="prev-clause-item" style="position: relative; padding-left: ${l2Wrap}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; margin: 1.5mm 0; text-align: justify;"><span class="prev-num-bold" style="position: absolute; left: ${l2NumPos}mm; top: 0; font-weight: bold; color: ${primaryColor};">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${formatTextWithSpellHighlights(txt)}</span></div>`;
+            blocks.push({ type: 'level2', isHeading: false, html: makeL2Html(b.text), text: b.text, renderHtml: makeL2Html, renderContHtml: (t) => makeL2Html(t, true) });
         } else if (b.type === 'level3') {
             currentBodyIndentMm = l3Wrap;
-            bHtml = `<div class="prev-clause-item" style="position: relative; padding-left: ${l3Wrap}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; margin: 1.2mm 0; text-align: justify;"><span class="prev-num-bold" style="position: absolute; left: ${l3NumPos}mm; top: 0; font-weight: bold; color: ${primaryColor};">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${formatTextWithSpellHighlights(b.text)}</span></div>`;
-            blocks.push({ type: 'level3', isHeading: false, html: bHtml });
+            const makeL3Html = (txt, isCont = false) => isCont ?
+                `<div class="prev-clause-item" style="padding-left: ${l3Wrap}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; margin: 1mm 0; text-align: justify; color: ${textColor};">${formatTextWithSpellHighlights(txt)}</div>` :
+                `<div class="prev-clause-item" style="position: relative; padding-left: ${l3Wrap}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; margin: 1.2mm 0; text-align: justify;"><span class="prev-num-bold" style="position: absolute; left: ${l3NumPos}mm; top: 0; font-weight: bold; color: ${primaryColor};">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${formatTextWithSpellHighlights(txt)}</span></div>`;
+            blocks.push({ type: 'level3', isHeading: false, html: makeL3Html(b.text), text: b.text, renderHtml: makeL3Html, renderContHtml: (t) => makeL3Html(t, true) });
         } else if (b.type === 'level4') {
             currentBodyIndentMm = l4Wrap;
-            bHtml = `<div class="prev-clause-item" style="position: relative; padding-left: ${l4Wrap}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; margin: 1mm 0; text-align: justify;"><span class="prev-num-bold" style="position: absolute; left: ${l4NumPos}mm; top: 0; font-weight: bold; color: ${primaryColor};">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${formatTextWithSpellHighlights(b.text)}</span></div>`;
-            blocks.push({ type: 'level4', isHeading: false, html: bHtml });
+            const makeL4Html = (txt, isCont = false) => isCont ?
+                `<div class="prev-clause-item" style="padding-left: ${l4Wrap}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; margin: 1mm 0; text-align: justify; color: ${textColor};">${formatTextWithSpellHighlights(txt)}</div>` :
+                `<div class="prev-clause-item" style="position: relative; padding-left: ${l4Wrap}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; margin: 1mm 0; text-align: justify;"><span class="prev-num-bold" style="position: absolute; left: ${l4NumPos}mm; top: 0; font-weight: bold; color: ${primaryColor};">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${formatTextWithSpellHighlights(txt)}</span></div>`;
+            blocks.push({ type: 'level4', isHeading: false, html: makeL4Html(b.text), text: b.text, renderHtml: makeL4Html, renderContHtml: (t) => makeL4Html(t, true) });
         } else if (b.type === 'level5') {
             currentBodyIndentMm = l5Wrap;
-            bHtml = `<div class="prev-clause-item" style="position: relative; padding-left: ${l5Wrap}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; margin: 1mm 0; text-align: justify;"><span class="prev-num-bold" style="position: absolute; left: ${l5NumPos}mm; top: 0; font-weight: bold; color: ${primaryColor};">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${formatTextWithSpellHighlights(b.text)}</span></div>`;
-            blocks.push({ type: 'level5', isHeading: false, html: bHtml });
+            const makeL5Html = (txt, isCont = false) => isCont ?
+                `<div class="prev-clause-item" style="padding-left: ${l5Wrap}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; margin: 1mm 0; text-align: justify; color: ${textColor};">${formatTextWithSpellHighlights(txt)}</div>` :
+                `<div class="prev-clause-item" style="position: relative; padding-left: ${l5Wrap}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; margin: 1mm 0; text-align: justify;"><span class="prev-num-bold" style="position: absolute; left: ${l5NumPos}mm; top: 0; font-weight: bold; color: ${primaryColor};">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${formatTextWithSpellHighlights(txt)}</span></div>`;
+            blocks.push({ type: 'level5', isHeading: false, html: makeL5Html(b.text), text: b.text, renderHtml: makeL5Html, renderContHtml: (t) => makeL5Html(t, true) });
         } else {
-            bHtml = `<div class="prev-clause-body" style="padding-left: ${currentBodyIndentMm}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; color: ${textColor}; margin: 1.5mm 0; text-align: justify;">${formatTextWithSpellHighlights(b.text)}</div>`;
-            blocks.push({ type: 'body', isHeading: false, html: bHtml });
+            const indentForThis = currentBodyIndentMm;
+            const makeBodyHtml = (txt) => `<div class="prev-clause-body" style="padding-left: ${indentForThis}mm; font-size: ${bodySize}pt; line-height: ${lineSpacing}; color: ${textColor}; margin: 1.5mm 0; text-align: justify;">${formatTextWithSpellHighlights(txt)}</div>`;
+            blocks.push({ type: 'body', isHeading: false, html: makeBodyHtml(b.text), text: b.text, renderHtml: makeBodyHtml });
         }
     });
 
@@ -1336,7 +1345,7 @@ function renderDocumentPreview() {
     // 3. Measurement & Multi-Page Partitioning
     const MM_TO_PX = 3.779527;
     const pageUsableHeight = (297 - marginTop - marginBottom) * MM_TO_PX;
-    const footerHeightPx = 36;
+    const footerHeightPx = 30;
 
     // Measurement Sandbox
     let sandbox = document.getElementById('preview-measure-sandbox');
@@ -1364,45 +1373,117 @@ function renderDocumentPreview() {
     const header1Height = measureHtml(page1HeaderHtml);
     const runHeaderHeight = measureHtml(runningHeaderHtml);
 
-    const maxPage1 = Math.max(100, pageUsableHeight - footerHeightPx - header1Height - 8);
-    const maxPageN = Math.max(100, pageUsableHeight - footerHeightPx - runHeaderHeight - 8);
+    const maxPage1 = Math.max(100, pageUsableHeight - footerHeightPx - header1Height);
+    const maxPageN = Math.max(100, pageUsableHeight - footerHeightPx - runHeaderHeight);
 
     const pages = [ [] ];
+    const blockMeta = [ [] ];
     let curPage = 0;
     let curHeight = 0;
     let curMax = maxPage1;
 
-    blocks.forEach(b => {
-        const bHeight = measureHtml(b.html) + 6;
-        if (b.isSignatures) {
-            if (curHeight + bHeight > curMax && curHeight > 0) {
+    for (let i = 0; i < blocks.length; i++) {
+        const b = blocks[i];
+        const bHeight = measureHtml(b.html);
+
+        // Fits on current page
+        if (curHeight + bHeight <= curMax) {
+            pages[curPage].push(b.html);
+            blockMeta[curPage].push(b);
+            curHeight += bHeight;
+            continue;
+        }
+
+        const spaceLeft = curMax - curHeight;
+
+        // If it's signatures or heading or small block that cannot split
+        if (b.isSignatures || b.isHeading || !b.text || b.text.length < 50 || spaceLeft < 28) {
+            // Orphan Heading Prevention:
+            // If the last item on curPage is a heading and there are other items on curPage, move that heading with this block to the next page!
+            const lastBlockInfo = blockMeta[curPage]?.[blockMeta[curPage].length - 1];
+            if (lastBlockInfo && lastBlockInfo.isHeading && pages[curPage].length > 1) {
+                const orphanedHeadingHtml = pages[curPage].pop();
+                blockMeta[curPage].pop();
                 curPage++;
                 curHeight = 0;
                 curMax = maxPageN;
                 pages.push([]);
+                blockMeta.push([]);
+                pages[curPage].push(orphanedHeadingHtml);
+                blockMeta[curPage].push(lastBlockInfo);
+                curHeight += measureHtml(orphanedHeadingHtml);
+                pages[curPage].push(b.html);
+                blockMeta[curPage].push(b);
+                curHeight += bHeight;
+                continue;
             }
-            pages[curPage].push(b.html);
-            curHeight += bHeight;
-        } else if (b.isHeading) {
-            if (curHeight + bHeight + 40 > curMax && curHeight > 0) {
+
+            if (curHeight > 0) {
                 curPage++;
                 curHeight = 0;
                 curMax = maxPageN;
                 pages.push([]);
+                blockMeta.push([]);
             }
             pages[curPage].push(b.html);
+            blockMeta[curPage].push(b);
             curHeight += bHeight;
+            continue;
+        }
+
+        // Paragraph splitting for long text blocks across the page boundary
+        const words = b.text.split(/\s+/);
+        let fitWords = [];
+        let remainWords = [...words];
+        let bestFitHtml = '';
+        let bestFitHeight = 0;
+
+        while (remainWords.length > 0) {
+            fitWords.push(remainWords.shift());
+            const candidateHtml = b.renderHtml ? b.renderHtml(fitWords.join(' ')) : fitWords.join(' ');
+            const h = measureHtml(candidateHtml);
+            if (h <= spaceLeft) {
+                bestFitHtml = candidateHtml;
+                bestFitHeight = h;
+            } else {
+                remainWords.unshift(fitWords.pop());
+                break;
+            }
+        }
+
+        if (fitWords.length >= 4 && remainWords.length > 0) {
+            // Split successful! Fill the bottom of current page
+            pages[curPage].push(bestFitHtml);
+            blockMeta[curPage].push({ ...b, html: bestFitHtml });
+
+            curPage++;
+            curHeight = 0;
+            curMax = maxPageN;
+            pages.push([]);
+            blockMeta.push([]);
+
+            // Second half continues cleanly on the new page
+            const contRenderHtml = b.renderContHtml || b.renderHtml;
+            const remainingText = remainWords.join(' ');
+            const remainingHtml = contRenderHtml ? contRenderHtml(remainingText) : remainingText;
+            const remH = measureHtml(remainingHtml);
+            pages[curPage].push(remainingHtml);
+            blockMeta[curPage].push({ ...b, html: remainingHtml });
+            curHeight += remH;
         } else {
-            if (curHeight + bHeight > curMax && curHeight > 0) {
+            // Cannot split cleanly, advance page
+            if (curHeight > 0) {
                 curPage++;
                 curHeight = 0;
                 curMax = maxPageN;
                 pages.push([]);
+                blockMeta.push([]);
             }
             pages[curPage].push(b.html);
+            blockMeta[curPage].push(b);
             curHeight += bHeight;
         }
-    });
+    }
 
     // 4. Render All Multi-Page Sheets with Page Breaks
     const totalPages = pages.length;
