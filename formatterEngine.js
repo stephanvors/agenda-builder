@@ -854,6 +854,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
           spacing: { before: spaceBefore, after: spaceAfter, line: lineSpacing },
           alignment: AlignmentType.BOTH,
           keepWithNext: true,
+          keepLines: true,
           indent: {
             left: convertMillimetersToTwip(leftOffsetMm),
             hanging: convertMillimetersToTwip(hangingMm),
@@ -892,11 +893,14 @@ export async function buildFormattedDocx(config, parsedBlocks) {
     } else {
       // General Body text: lines up under the active section/clause header text!
       const topSpace = isFirstParagraphAfterHeading ? 0 : spaceBefore;
+      const isFirst = isFirstParagraphAfterHeading;
       isFirstParagraphAfterHeading = false;
       docChildren.push(
         new Paragraph({
           spacing: { before: topSpace, after: spaceAfter, line: lineSpacing },
           alignment: AlignmentType.BOTH,
+          keepLines: true,
+          keepWithNext: isFirst,
           indent: { left: convertMillimetersToTwip(currentBodyIndentMm) },
           children: [
             new TextRun({
@@ -919,7 +923,10 @@ export async function buildFormattedDocx(config, parsedBlocks) {
 
     const signers = comps.signatures.signers;
     const maxCols = Math.min(3, Math.max(1, signers.length));
-    const colWidthMm = bodyWidthMm / maxCols;
+    const spacerMm = maxCols > 1 ? (maxCols === 3 ? 5 : 6) : 0;
+    const totalSpacerWidthMm = (maxCols - 1) * spacerMm;
+    const boxWidthMm = (bodyWidthMm - totalSpacerWidthMm) / maxCols;
+    const totalTableCols = maxCols + (maxCols > 1 ? maxCols - 1 : 0);
 
     // Chunk signers into rows of at most 3
     const signerChunks = [];
@@ -950,7 +957,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
           cantSplit: true,
           children: [
             new TableCell({
-              columnSpan: maxCols,
+              columnSpan: totalTableCols,
               width: { size: convertMillimetersToTwip(bodyWidthMm), type: WidthType.DXA },
               margins: { left: 0, right: 0, top: 160, bottom: 40 },
               children: [
@@ -982,7 +989,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
           cantSplit: true,
           children: [
             new TableCell({
-              columnSpan: maxCols,
+              columnSpan: totalTableCols,
               width: { size: convertMillimetersToTwip(bodyWidthMm), type: WidthType.DXA },
               margins: { left: 0, right: 0, top: 20, bottom: 80 },
               children: [
@@ -1009,7 +1016,52 @@ export async function buildFormattedDocx(config, parsedBlocks) {
 
     // Signature rows (chunked by max 3)
     signerChunks.forEach((chunk, chunkIdx) => {
-      const signatureCells = chunk.map(s => {
+      // Vertical spacer between signature card rows
+      if (chunkIdx > 0) {
+        tableRows.push(
+          new TableRow({
+            cantSplit: true,
+            children: [
+              new TableCell({
+                columnSpan: totalTableCols,
+                borders: {
+                  top: { style: BorderStyle.NONE },
+                  bottom: { style: BorderStyle.NONE },
+                  left: { style: BorderStyle.NONE },
+                  right: { style: BorderStyle.NONE },
+                },
+                margins: { left: 0, right: 0, top: 0, bottom: 0 },
+                children: [
+                  new Paragraph({
+                    spacing: { before: 140, after: 0 },
+                    children: [],
+                  }),
+                ],
+              }),
+            ],
+          })
+        );
+      }
+
+      const signatureCells = [];
+      chunk.forEach((s, sIdx) => {
+        if (sIdx > 0 && spacerMm > 0) {
+          // Horizontal spacer column between boxes
+          signatureCells.push(
+            new TableCell({
+              width: { size: convertMillimetersToTwip(spacerMm), type: WidthType.DXA },
+              borders: {
+                top: { style: BorderStyle.NONE },
+                bottom: { style: BorderStyle.NONE },
+                left: { style: BorderStyle.NONE },
+                right: { style: BorderStyle.NONE },
+              },
+              margins: { left: 0, right: 0, top: 0, bottom: 0 },
+              children: [new Paragraph({ spacing: { before: 0, after: 0 }, children: [] })],
+            })
+          );
+        }
+
         let nameVal = s.name ? s.name.trim() : '';
         if (nameVal.toLowerCase().startsWith('name:')) {
           nameVal = nameVal.replace(/^name:\s*/i, '');
@@ -1024,92 +1076,109 @@ export async function buildFormattedDocx(config, parsedBlocks) {
         }
         dateVal = dateVal.replace(/^_+$/, '').trim();
 
-        return new TableCell({
-          width: { size: convertMillimetersToTwip(colWidthMm), type: WidthType.DXA },
-          borders: {
-            top: { style: BorderStyle.SINGLE, size: 4, color: 'CBD5E1' },
-            bottom: { style: BorderStyle.SINGLE, size: 4, color: 'CBD5E1' },
-            left: { style: BorderStyle.SINGLE, size: 4, color: 'CBD5E1' },
-            right: { style: BorderStyle.SINGLE, size: 4, color: 'CBD5E1' },
-          },
-          margins: { left: 80, right: 80, top: 60, bottom: 60 },
-          children: [
-            // 1. Generous room for signature
-            new Paragraph({
-              spacing: { before: 200, after: 0 },
-              children: [],
-            }),
-            // 2. Clean baseline rule
-            new Paragraph({
-              spacing: { before: 0, after: 10 },
-              border: {
-                bottom: { style: BorderStyle.SINGLE, size: 8, color: primaryColor }
-              },
-              children: [],
-            }),
-            // 3. Signature label (with blank line spacing after it)
-            new Paragraph({
-              spacing: { before: 0, after: 90 },
-              keepWithNext: true,
-              children: [
-                new TextRun({
-                  text: 'SIGNATURE',
-                  size: 14,
-                  bold: true,
-                  color: '64748B',
-                  font: fontFamily,
-                }),
-              ],
-            }),
-            // 4. Name
-            new Paragraph({
-              spacing: { before: 0, after: 15 },
-              keepWithNext: true,
-              children: nameVal
-                ? [new TextRun({ text: nameVal, bold: true, color: textColor, font: fontFamily, size: baseSizeHps })]
-                : [
-                    new TextRun({ text: 'NAME: ', bold: true, color: '64748B', font: fontFamily, size: baseSizeHps - 2 }),
-                    new TextRun({ text: '______________________', color: '94A3B8', font: fontFamily, size: baseSizeHps - 2 }),
-                  ],
-            }),
-            // 5. Role
-            new Paragraph({
-              spacing: { before: 0, after: 20 },
-              keepWithNext: true,
-              children: [
-                new TextRun({
-                  text: (s.role || 'SIGNATORY').toUpperCase(),
-                  bold: true,
-                  color: primaryColor,
-                  font: fontFamily,
-                  size: baseSizeHps - 1,
-                }),
-              ],
-            }),
-            // 6. Date (Right-Justified)
-            new Paragraph({
-              alignment: AlignmentType.RIGHT,
-              spacing: { before: 40, after: 0 },
-              children: dateVal
-                ? [
-                    new TextRun({ text: 'DATE: ', bold: true, color: '64748B', font: fontFamily, size: baseSizeHps - 2 }),
-                    new TextRun({ text: dateVal, color: textColor, font: fontFamily, size: baseSizeHps - 2 }),
-                  ]
-                : [
-                    new TextRun({ text: 'DATE: ', bold: true, color: '64748B', font: fontFamily, size: baseSizeHps - 2 }),
-                    new TextRun({ text: '__________________', color: '94A3B8', font: fontFamily, size: baseSizeHps - 2 }),
-                  ],
-            }),
-          ],
-        });
+        signatureCells.push(
+          new TableCell({
+            width: { size: convertMillimetersToTwip(boxWidthMm), type: WidthType.DXA },
+            borders: {
+              top: { style: BorderStyle.SINGLE, size: 4, color: 'CBD5E1' },
+              bottom: { style: BorderStyle.SINGLE, size: 4, color: 'CBD5E1' },
+              left: { style: BorderStyle.SINGLE, size: 4, color: 'CBD5E1' },
+              right: { style: BorderStyle.SINGLE, size: 4, color: 'CBD5E1' },
+            },
+            margins: { left: 140, right: 140, top: 120, bottom: 120 },
+            children: [
+              // 1. Generous room for signature
+              new Paragraph({
+                spacing: { before: 200, after: 0 },
+                children: [],
+              }),
+              // 2. Clean baseline rule
+              new Paragraph({
+                spacing: { before: 0, after: 10 },
+                border: {
+                  bottom: { style: BorderStyle.SINGLE, size: 8, color: primaryColor }
+                },
+                children: [],
+              }),
+              // 3. Signature label (with blank line spacing after it)
+              new Paragraph({
+                spacing: { before: 0, after: 90 },
+                keepWithNext: true,
+                children: [
+                  new TextRun({
+                    text: 'SIGNATURE',
+                    size: 14,
+                    bold: true,
+                    color: '64748B',
+                    font: fontFamily,
+                  }),
+                ],
+              }),
+              // 4. Name
+              new Paragraph({
+                spacing: { before: 0, after: 15 },
+                keepWithNext: true,
+                children: nameVal
+                  ? [new TextRun({ text: nameVal, bold: true, color: textColor, font: fontFamily, size: baseSizeHps })]
+                  : [
+                      new TextRun({ text: 'NAME: ', bold: true, color: '64748B', font: fontFamily, size: baseSizeHps - 2 }),
+                      new TextRun({ text: '______________________', color: '94A3B8', font: fontFamily, size: baseSizeHps - 2 }),
+                    ],
+              }),
+              // 5. Role
+              new Paragraph({
+                spacing: { before: 0, after: 20 },
+                keepWithNext: true,
+                children: [
+                  new TextRun({
+                    text: (s.role || 'SIGNATORY').toUpperCase(),
+                    bold: true,
+                    color: primaryColor,
+                    font: fontFamily,
+                    size: baseSizeHps - 1,
+                  }),
+                ],
+              }),
+              // 6. Date (Right-Justified)
+              new Paragraph({
+                alignment: AlignmentType.RIGHT,
+                spacing: { before: 40, after: 0 },
+                children: dateVal
+                  ? [
+                      new TextRun({ text: 'DATE: ', bold: true, color: '64748B', font: fontFamily, size: baseSizeHps - 2 }),
+                      new TextRun({ text: dateVal, color: textColor, font: fontFamily, size: baseSizeHps - 2 }),
+                    ]
+                  : [
+                      new TextRun({ text: 'DATE: ', bold: true, color: '64748B', font: fontFamily, size: baseSizeHps - 2 }),
+                      new TextRun({ text: '__________________', color: '94A3B8', font: fontFamily, size: baseSizeHps - 2 }),
+                    ],
+              }),
+            ],
+          })
+        );
       });
 
-      // Fill remaining columns in the row with empty cells if chunk.length < maxCols
+      // Fill remaining columns in the row with spacer + empty cells if chunk.length < maxCols
       if (chunk.length < maxCols) {
         for (let k = chunk.length; k < maxCols; k++) {
+          if (spacerMm > 0) {
+            signatureCells.push(
+              new TableCell({
+                width: { size: convertMillimetersToTwip(spacerMm), type: WidthType.DXA },
+                borders: {
+                  top: { style: BorderStyle.NONE },
+                  bottom: { style: BorderStyle.NONE },
+                  left: { style: BorderStyle.NONE },
+                  right: { style: BorderStyle.NONE },
+                },
+                margins: { left: 0, right: 0, top: 0, bottom: 0 },
+                children: [new Paragraph({ spacing: { before: 0, after: 0 }, children: [] })],
+              })
+            );
+          }
           signatureCells.push(
             new TableCell({
-              width: { size: convertMillimetersToTwip(colWidthMm), type: WidthType.DXA },
+              width: { size: convertMillimetersToTwip(boxWidthMm), type: WidthType.DXA },
               borders: {
                 top: { style: BorderStyle.NONE },
                 bottom: { style: BorderStyle.NONE },
@@ -1134,15 +1203,8 @@ export async function buildFormattedDocx(config, parsedBlocks) {
     docChildren.push(
       new Table({
         width: { size: convertMillimetersToTwip(bodyWidthMm), type: WidthType.DXA },
+        alignment: AlignmentType.CENTER,
         cantSplit: true,
-        borders: {
-          top: { style: BorderStyle.NONE },
-          bottom: { style: BorderStyle.NONE },
-          left: { style: BorderStyle.NONE },
-          right: { style: BorderStyle.NONE },
-          insideHorizontal: { style: BorderStyle.NONE },
-          insideVertical: { style: BorderStyle.NONE },
-        },
         rows: tableRows,
       })
     );
@@ -1428,14 +1490,14 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
       <div style="page-break-before: always; break-before: page; margin-top: 6mm; padding-top: 4mm;">
         <div style="font-weight: 800; font-size: ${h1SizePt}pt; color: ${primaryColor}; margin-bottom: 2mm; letter-spacing: 0.5px;">${config.components.signatures.title || 'ADOPTION AND SIGN-OFF RESOLUTION'}</div>
         <div style="font-size: ${bodySizePt}pt; line-height: 1.35; margin-bottom: 4mm; color: ${textColor}; text-align: justify;">${config.components.signatures.introText || ''}</div>
-        <table style="width: 100%; border-collapse: separate; border-spacing: 12px 10px; table-layout: fixed; margin-top: 2mm;">
+        <table style="width: 100%; border-collapse: separate; border-spacing: 16px 14px; table-layout: fixed; margin-top: 2mm;">
           ${signerChunks.map(chunk => `
             <tr>
               ${chunk.map(s => {
                 let nVal = (s.name || '').replace(/^_+$/, '').trim();
                 let dVal = (s.dateLabel || '').replace(/^_+$/, '').trim();
                 return `
-                  <td style="width: ${100 / maxCols}%; vertical-align: top; background: #FFFFFF; border: 1px solid #CBD5E1; border-radius: 4px; padding: 10px 12px; box-sizing: border-box;">
+                  <td style="width: ${100 / maxCols}%; vertical-align: top; background: #FFFFFF; border: 1px solid #CBD5E1; border-radius: 4px; padding: 12px 14px; box-sizing: border-box;">
                     <div style="height: 15mm; min-height: 15mm;"></div>
                     <div style="border-bottom: 1.5px solid ${primaryColor}; margin-bottom: 2px;"></div>
                     <div style="font-size: 7pt; text-transform: uppercase; letter-spacing: 0.8px; color: #64748B; font-weight: bold; margin-bottom: 14px;">Signature</div>
@@ -1470,6 +1532,8 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
       margin-right: ${marginRight}mm;
       margin-bottom: ${marginBottom + 6}mm;
       margin-left: ${marginLeft}mm;
+      orphans: 3;
+      widows: 3;
     }
     body {
       font-family: ${fontFamily}, Arial, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -1478,6 +1542,8 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
       color: ${textColor};
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
+      orphans: 3;
+      widows: 3;
     }
   </style>
 </head>

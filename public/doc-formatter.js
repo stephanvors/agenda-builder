@@ -1797,8 +1797,8 @@ function renderDocumentPreview() {
         const b = blocks[i];
         const bHeight = measureHtml(b.html);
 
-        // Heading lookahead: If placing this heading on curPage leaves less than 55px (room for at least 3 lines of body), break to next
-        if (curHeight > 0 && b.isHeading && (curMax - (curHeight + bHeight) < 55)) {
+        // Heading lookahead: If placing this heading on curPage leaves less than 70px (room for at least 3-4 lines of body), break to next
+        if (curHeight > 0 && b.isHeading && (curMax - (curHeight + bHeight) < 70)) {
             curPage++;
             curHeight = 0;
             curMax = maxPageN;
@@ -1859,7 +1859,7 @@ function renderDocumentPreview() {
         const isUnderHeading = lastBlockOnPage && lastBlockOnPage.isHeading;
 
         // If it's signatures or heading or small block that cannot split, or if following a heading:
-        if (b.isSignatures || b.isHeading || isUnderHeading || !b.text || b.text.length < 90 || spaceLeft < 55) {
+        if (b.isSignatures || b.isHeading || isUnderHeading || !b.text || b.text.length < 90 || spaceLeft < 65) {
             // Orphan Heading / Signature Intro Prevention: move trailing headings or intro paragraphs to next page
             const headingsToMove = [];
             while (
