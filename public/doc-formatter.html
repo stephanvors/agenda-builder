@@ -791,7 +791,7 @@
                             </div>
                             <div class="form-group mt-2">
                                 <label for="legal-notice-text">Notice Body</label>
-                                <textarea id="legal-notice-text" class="studio-textarea" rows="3">This school mission statement is an official regulatory and strategic governance document drafted and adopted by the School Governing Body in terms of Section 20(1)(c) of the South African Schools Act, 1996 (Act No. 84 of 1996). All members of the governing body, educators, learners, parents, and administrative staff are subject to the vision, mission, and statutory principles set out herein.</textarea>
+                                <textarea id="legal-notice-text" class="studio-textarea" rows="3">This school mission statement is an official statutory and regulatory instrument drafted, adopted, and promulgated by the School Governing Body in terms of Section 20(1)(c) of the South African Schools Act, 1996 (Act No. 84 of 1996). This document aligns fully with the Constitution of the Republic of South Africa, 1996 (Act No. 108 of 1996), the National Education Policy Act, 1996 (Act No. 27 of 1996), and applicable provincial education legislation and governance directives. All members of the School Governing Body, School Management Team, educators, administrative and support staff, learners, and parents/guardians are legally bound by and subject to the provisions herein.</textarea>
                             </div>
                         </div>
                     </div>
@@ -969,6 +969,10 @@
                         <input type="checkbox" id="toggle-grid-overlay" checked>
                         <span>Show Spatial Grid Lines</span>
                     </label>
+                    <label class="grid-toggle-label ml-3" style="cursor: pointer; display: inline-flex; align-items: center; gap: 6px; margin-left: 0.75rem;">
+                        <input type="checkbox" id="toggle-editable-preview">
+                        <span style="color: #60A5FA; font-weight: 600;">✏️ Editable Preview</span>
+                    </label>
                 </div>
                 <div class="preview-toolbar-right">
                     <button type="button" class="btn btn-sm btn-outline" id="btn-quick-docx" title="Download Word DOCX">
@@ -980,6 +984,44 @@
                         <span>PDF</span>
                     </button>
                 </div>
+            </div>
+
+            <!-- Rich Document Editor Toolbar (Visible when Editable Preview is toggled ON) -->
+            <div id="preview-editor-toolbar" class="preview-editor-toolbar hidden">
+                <div class="editor-tool-group">
+                    <button type="button" class="btn-editor-tool" data-cmd="bold" title="Bold (Ctrl+B)"><b>B</b></button>
+                    <button type="button" class="btn-editor-tool" data-cmd="italic" title="Italic (Ctrl+I)"><i>I</i></button>
+                    <button type="button" class="btn-editor-tool" data-cmd="underline" title="Underline (Ctrl+U)"><u>U</u></button>
+                    <button type="button" class="btn-editor-tool" data-cmd="strikeThrough" title="Strikethrough"><s>S</s></button>
+                </div>
+                <div class="editor-tool-divider"></div>
+                <div class="editor-tool-group">
+                    <button type="button" class="btn-editor-tool" data-cmd="justifyLeft" title="Align Left">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="17" y1="10" x2="3" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="17" y1="18" x2="3" y2="18"></line></svg>
+                    </button>
+                    <button type="button" class="btn-editor-tool" data-cmd="justifyCenter" title="Align Center">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="10" x2="6" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="18" y1="18" x2="6" y2="18"></line></svg>
+                    </button>
+                    <button type="button" class="btn-editor-tool" data-cmd="justifyRight" title="Align Right">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="21" y1="10" x2="7" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="21" y1="18" x2="7" y2="18"></line></svg>
+                    </button>
+                    <button type="button" class="btn-editor-tool" data-cmd="justifyFull" title="Justify">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="21" y1="10" x2="3" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="21" y1="18" x2="3" y2="18"></line></svg>
+                    </button>
+                </div>
+                <div class="editor-tool-divider"></div>
+                <div class="editor-tool-group">
+                    <button type="button" class="btn-editor-tool" data-cmd="undo" title="Undo (Ctrl+Z)">↶</button>
+                    <button type="button" class="btn-editor-tool" data-cmd="redo" title="Redo (Ctrl+Y)">↷</button>
+                    <button type="button" class="btn-editor-tool" data-cmd="removeFormat" title="Clear Formatting">🧹</button>
+                </div>
+                <div class="editor-tool-divider"></div>
+                <div class="editor-tool-group">
+                    <button type="button" class="btn-editor-tool" id="btn-sync-preview-to-source" title="Sync changes from preview back to Raw Text input" style="gap: 4px; padding: 0 8px; background: rgba(59, 130, 246, 0.15); color: #93C5FD; border: 1px solid rgba(59, 130, 246, 0.3);">
+                        <span>💾 Sync Raw Text</span>
+                    </button>
+                </div>
+                <span class="editor-status-indicator">● Editing Mode Active (Click on pages to edit directly)</span>
             </div>
 
             <!-- Multi-Page Canvas Wrapper -->

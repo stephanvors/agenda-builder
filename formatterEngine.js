@@ -799,6 +799,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
         new Paragraph({
           spacing: { before: spaceBefore, after: spaceAfter, line: lineSpacing },
           alignment: AlignmentType.BOTH,
+          keepWithNext: true,
           indent: {
             left: convertMillimetersToTwip(leftOffsetMm),
             hanging: convertMillimetersToTwip(hangingMm),
@@ -853,6 +854,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
         new Paragraph({
           spacing: { before: spaceBefore, after: spaceAfter, line: lineSpacing },
           alignment: AlignmentType.BOTH,
+          keepWithNext: true,
           indent: {
             left: convertMillimetersToTwip(leftOffsetMm),
             hanging: convertMillimetersToTwip(hangingMm),
@@ -1256,7 +1258,7 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
       const textDecor = l2Underline ? 'underline' : 'none';
       const weight = l2Bold ? 'bold' : 'normal';
       bodyHtml += `
-        <div style="position: relative; padding-left: ${l2Wrap}mm; font-size: ${l2SizePt}pt; font-weight: ${weight}; text-decoration: ${textDecor}; line-height: ${lineSpacing}; margin: ${spaceBeforePt}pt 0 ${spaceAfterPt}pt 0; text-align: justify;">
+        <div style="position: relative; padding-left: ${l2Wrap}mm; font-size: ${l2SizePt}pt; font-weight: ${weight}; text-decoration: ${textDecor}; line-height: ${lineSpacing}; margin: ${spaceBeforePt}pt 0 ${spaceAfterPt}pt 0; text-align: justify; page-break-after: avoid; break-after: avoid;">
           <span style="position: absolute; left: ${l2Num}mm; top: 0; font-weight: bold; color: ${primaryColor}; text-decoration: none;">${b.number}</span>
           <span style="color: ${textColor};">${l2Text}</span>
         </div>
@@ -1267,7 +1269,7 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
       const textDecor = l3Underline ? 'underline' : 'none';
       const weight = l3Bold ? 'bold' : 'normal';
       bodyHtml += `
-        <div style="position: relative; padding-left: ${l3Wrap}mm; font-size: ${l3SizePt}pt; font-weight: ${weight}; text-decoration: ${textDecor}; line-height: ${lineSpacing}; margin: ${spaceBeforePt}pt 0 ${spaceAfterPt}pt 0; text-align: justify;">
+        <div style="position: relative; padding-left: ${l3Wrap}mm; font-size: ${l3SizePt}pt; font-weight: ${weight}; text-decoration: ${textDecor}; line-height: ${lineSpacing}; margin: ${spaceBeforePt}pt 0 ${spaceAfterPt}pt 0; text-align: justify; page-break-after: avoid; break-after: avoid;">
           <span style="position: absolute; left: ${l3Num}mm; top: 0; font-weight: bold; color: ${primaryColor}; text-decoration: none;">${b.number}</span>
           <span style="color: ${textColor};">${l3Text}</span>
         </div>
@@ -1278,7 +1280,7 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
       const textDecor = l4Underline ? 'underline' : 'none';
       const weight = l4Bold ? 'bold' : 'normal';
       bodyHtml += `
-        <div style="position: relative; padding-left: ${l4Wrap}mm; font-size: ${l4SizePt}pt; font-weight: ${weight}; text-decoration: ${textDecor}; line-height: ${lineSpacing}; margin: ${spaceBeforePt}pt 0 ${spaceAfterPt}pt 0; text-align: justify;">
+        <div style="position: relative; padding-left: ${l4Wrap}mm; font-size: ${l4SizePt}pt; font-weight: ${weight}; text-decoration: ${textDecor}; line-height: ${lineSpacing}; margin: ${spaceBeforePt}pt 0 ${spaceAfterPt}pt 0; text-align: justify; page-break-after: avoid; break-after: avoid;">
           <span style="position: absolute; left: ${l4Num}mm; top: 0; font-weight: bold; color: ${primaryColor}; text-decoration: none;">${b.number}</span>
           <span style="color: ${textColor};">${l4Text}</span>
         </div>
@@ -1289,7 +1291,7 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
       const textDecor = l5Underline ? 'underline' : 'none';
       const weight = l5Bold ? 'bold' : 'normal';
       bodyHtml += `
-        <div style="position: relative; padding-left: ${l5Wrap}mm; font-size: ${l5SizePt}pt; font-weight: ${weight}; text-decoration: ${textDecor}; line-height: ${lineSpacing}; margin: ${spaceBeforePt}pt 0 ${spaceAfterPt}pt 0; text-align: justify;">
+        <div style="position: relative; padding-left: ${l5Wrap}mm; font-size: ${l5SizePt}pt; font-weight: ${weight}; text-decoration: ${textDecor}; line-height: ${lineSpacing}; margin: ${spaceBeforePt}pt 0 ${spaceAfterPt}pt 0; text-align: justify; page-break-after: avoid; break-after: avoid;">
           <span style="position: absolute; left: ${l5Num}mm; top: 0; font-weight: bold; color: ${primaryColor}; text-decoration: none;">${b.number}</span>
           <span style="color: ${textColor};">${l5Text}</span>
         </div>

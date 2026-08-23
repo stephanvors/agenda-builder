@@ -719,6 +719,9 @@ function initEventListeners() {
         if (overlay) overlay.style.display = e.target.checked ? 'block' : 'none';
     });
 
+    // Editable Preview & Editor Toolbar
+    initEditablePreviewHandlers();
+
     // Preset Save Button
     document.getElementById('btn-save-preset')?.addEventListener('click', saveCurrentAsPreset);
 
@@ -779,7 +782,7 @@ const CONTEXTUAL_METADATA_PRESETS = {
             { label: 'Adoption & Custodianship', value: 'School Governing Body (SGB) & School Management Team (SMT)' }
         ],
         legalNoticePrefix: 'LEGAL NOTICE: ',
-        legalNoticeText: 'This school mission statement is an official regulatory and strategic governance document drafted and adopted by the School Governing Body in terms of Section 20(1)(c) of the South African Schools Act, 1996 (Act No. 84 of 1996). All members of the governing body, educators, learners, parents, and administrative staff are subject to the vision, mission, and statutory principles set out herein.',
+        legalNoticeText: 'This school mission statement is an official statutory and regulatory instrument drafted, adopted, and promulgated by the School Governing Body in terms of Section 20(1)(c) of the South African Schools Act, 1996 (Act No. 84 of 1996). This document aligns fully with the Constitution of the Republic of South Africa, 1996 (Act No. 108 of 1996), the National Education Policy Act, 1996 (Act No. 27 of 1996), and applicable provincial education legislation and governance directives. All members of the School Governing Body, School Management Team, educators, administrative and support staff, learners, and parents/guardians are legally bound by and subject to the provisions herein.',
         badgeMain: 'SGB',
         badgeSub: 'STATEMENT'
     },
@@ -795,7 +798,7 @@ const CONTEXTUAL_METADATA_PRESETS = {
             { label: 'Governance Oversight', value: 'School Governing Body (SGB) specialized committees' }
         ],
         legalNoticePrefix: 'LEGAL NOTICE: ',
-        legalNoticeText: 'This constitution is an official legally binding regulatory document drafted and adopted by the School Governing Body in terms of Section 18(1) of the South African Schools Act, 1996 (Act No. 84 of 1996). All members of the governing body, learners, parents, educators, and staff are subject to the provisions herein.',
+        legalNoticeText: 'This constitution is an official legally binding regulatory instrument drafted, adopted, and promulgated by the School Governing Body in terms of Section 18(1) of the South African Schools Act, 1996 (Act No. 84 of 1996) and the Eastern Cape School Education Act, 2000 (Act No. 2 of 2000). This document aligns fully with the Constitution of the Republic of South Africa, 1996 (Act No. 108 of 1996) and relevant national and provincial statutory frameworks. All members of the School Governing Body, School Management Team, educators, administrative staff, learners, and parents/guardians are subject to the provisions and governance protocols herein.',
         badgeMain: 'SGB',
         badgeSub: 'CONSTITUTION'
     },
@@ -811,7 +814,7 @@ const CONTEXTUAL_METADATA_PRESETS = {
             { label: 'Administration Authority', value: 'School Principal (on behalf of Head of Department) with SGB Oversight' }
         ],
         legalNoticePrefix: 'LEGAL NOTICE: ',
-        legalNoticeText: 'This admission policy is an official regulatory document determined by the School Governing Body in terms of Section 5(5) of the South African Schools Act, 1996 (Act No. 84 of 1996). All admissions to Lady Grey Arts Academy are administered strictly in accordance with these provisions.',
+        legalNoticeText: 'This admission policy is an official statutory and regulatory policy determined and adopted by the School Governing Body in terms of Section 5(5) of the South African Schools Act, 1996 (Act No. 84 of 1996). This policy aligns fully with Section 9 (Equality & Non-Discrimination) and Section 29 (Right to Basic Education) of the Constitution of the Republic of South Africa, 1996 (Act No. 108 of 1996), the National Education Policy Act, 1996, and provincial admission directives. All administrative staff, educators, parents/guardians, and prospective learners are subject to these statutory provisions.',
         badgeMain: 'POLICY',
         badgeSub: 'ADMISSION'
     },
@@ -827,7 +830,7 @@ const CONTEXTUAL_METADATA_PRESETS = {
             { label: 'Governance Authority', value: 'School Governing Body (SGB) Policy Oversight' }
         ],
         legalNoticePrefix: 'LEGAL NOTICE: ',
-        legalNoticeText: 'This language policy is an official regulatory document determined by the School Governing Body in terms of Section 6(2) of the South African Schools Act, 1996 (Act No. 84 of 1996). All language offerings and mediums of instruction are governed by these provisions.',
+        legalNoticeText: 'This language policy is an official statutory and regulatory policy determined and adopted by the School Governing Body in terms of Section 6(2) of the South African Schools Act, 1996 (Act No. 84 of 1996). This policy complies with Section 29(2) and Section 6 of the Constitution of the Republic of South Africa, 1996 (Act No. 108 of 1996), the Norms and Standards for Language Policy in Public Schools, and provincial educational guidelines. All educators, staff, learners, and parents/guardians are bound by these provisions.',
         badgeMain: 'POLICY',
         badgeSub: 'LANGUAGE'
     },
@@ -843,7 +846,7 @@ const CONTEXTUAL_METADATA_PRESETS = {
             { label: 'Governance Authority', value: 'School Governing Body (SGB)' }
         ],
         legalNoticePrefix: 'LEGAL NOTICE: ',
-        legalNoticeText: 'This religious observances policy is determined by the School Governing Body in terms of Section 7 of the South African Schools Act, 1996 (Act No. 84 of 1996). Religious observances at Lady Grey Arts Academy are conducted on an equitable, free, and voluntary basis.',
+        legalNoticeText: 'This religious observances policy is determined and adopted by the School Governing Body in terms of Section 7 of the South African Schools Act, 1996 (Act No. 84 of 1996). This policy aligns strictly with Section 15 (Freedom of Religion, Belief and Opinion) of the Constitution of the Republic of South Africa, 1996 (Act No. 108 of 1996) and the National Policy on Religion and Education. All observances at Lady Grey Arts Academy are conducted equitably and voluntarily across all entities.',
         badgeMain: 'POLICY',
         badgeSub: 'RELIGIOUS'
     },
@@ -859,7 +862,7 @@ const CONTEXTUAL_METADATA_PRESETS = {
             { label: 'Disciplinary Authority', value: 'SGB Disciplinary Committee & School Disciplinary Officer' }
         ],
         legalNoticePrefix: 'LEGAL NOTICE: ',
-        legalNoticeText: 'This Code of Conduct is an official legally binding regulatory document adopted by the School Governing Body in terms of Section 8(1) of the South African Schools Act, 1996 (Act No. 84 of 1996). Every learner registered at Lady Grey Arts Academy is subject to the rules, expectations, and disciplinary procedures set out herein.',
+        legalNoticeText: 'This Code of Conduct is an official legally binding regulatory instrument adopted by the School Governing Body in terms of Section 8(1) of the South African Schools Act, 1996 (Act No. 84 of 1996). This policy aligns directly with Section 28 (Best Interests of the Child) and Section 29 of the Constitution of the Republic of South Africa, 1996 (Act No. 108 of 1996) and provincial learner discipline regulations. All enrolled learners, educators, parents/guardians, and school authorities are subject to the disciplinary rules, procedures, and legal sanctions herein.',
         badgeMain: 'POLICY',
         badgeSub: 'CONDUCT'
     },
@@ -875,7 +878,7 @@ const CONTEXTUAL_METADATA_PRESETS = {
             { label: 'Responsible Portfolios', value: 'SGB Treasurer, Finance Committee & School Principal (Accounting Officer)' }
         ],
         legalNoticePrefix: 'LEGAL NOTICE: ',
-        legalNoticeText: 'This Financial Management Policy is an official regulatory document adopted by the School Governing Body in terms of Section 37 and Section 38 of the South African Schools Act, 1996 (Act No. 84 of 1996). All financial transactions, procurement, and asset management at Lady Grey Arts Academy must strictly comply with this policy.',
+        legalNoticeText: 'This Financial Management Policy is an official regulatory instrument adopted by the School Governing Body in terms of Section 37 and Section 38 of the South African Schools Act, 1996 (Act No. 84 of 1996). This policy aligns with the Constitution of the Republic of South Africa, 1996 (Act No. 108 of 1996), Public Finance principles, and provincial financial directives. The School Governing Body, School Management Team, Finance Committee, Treasurer, and Principal (Accounting Officer) are bound to enforce and adhere to all internal controls and audit requirements herein.',
         badgeMain: 'POLICY',
         badgeSub: 'FINANCIAL'
     },
@@ -891,7 +894,7 @@ const CONTEXTUAL_METADATA_PRESETS = {
             { label: 'Safety Custodians', value: 'SGB Safety Committee, School Safety Officer & Health and Safety Representatives' }
         ],
         legalNoticePrefix: 'LEGAL NOTICE: ',
-        legalNoticeText: 'This Safety and Security Policy is an official regulatory protocol adopted by the School Governing Body in terms of the National Safety Regulations under Section 61 of the South African Schools Act, 1996 (Act No. 84 of 1996) and the Occupational Health and Safety Act, 1993 to safeguard all learners, educators, staff, and visitors.',
+        legalNoticeText: 'This Safety and Security Policy is an official regulatory protocol adopted by the School Governing Body in terms of National Safety Regulations under Section 61 of the South African Schools Act, 1996 (Act No. 84 of 1996) and the Occupational Health and Safety Act, 1993 (Act No. 85 of 1993). This policy aligns with Section 24 (Environmental Safety) of the Constitution of the Republic of South Africa, 1996 (Act No. 108 of 1996). All learners, educators, staff, contractors, and visitors are subject to the safety directives herein.',
         badgeMain: 'POLICY',
         badgeSub: 'SAFETY'
     },
@@ -907,7 +910,7 @@ const CONTEXTUAL_METADATA_PRESETS = {
             { label: 'Record Archival', value: 'Official School Governing Body Governance Vault & Minute Book' }
         ],
         legalNoticePrefix: 'RECORD OF RESOLUTION: ',
-        legalNoticeText: 'These meeting minutes constitute the official statutory record of proceedings, deliberations, and resolutions taken by the School Governing Body in terms of Section 18(2) of the South African Schools Act, 1996 (Act No. 84 of 1996).',
+        legalNoticeText: 'These meeting minutes constitute the official statutory and regulatory record of proceedings, deliberations, and resolutions adopted by the School Governing Body in terms of Section 18(2) of the South African Schools Act, 1996 (Act No. 84 of 1996), in accordance with the SGB Constitution and the Constitution of the Republic of South Africa, 1996 (Act No. 108 of 1996). All adopted resolutions are legally binding on all relevant school governing entities.',
         badgeMain: 'SGB',
         badgeSub: 'MINUTES'
     }
@@ -1613,7 +1616,7 @@ function renderDocumentPreview() {
                     `<div class="prev-clause-item" style="padding-left: ${l2Wrap}mm; padding-top: 0; padding-bottom: ${spaceAfterPt}pt; margin: 0; font-size: ${l2Size}pt; font-weight: ${l2Bold ? 'bold' : 'normal'}; text-decoration: ${textDecor}; text-transform: ${l2Upper ? 'uppercase' : 'none'}; line-height: ${lineSpacing}; text-align: justify; color: ${textColor};">${formatted}</div>` :
                     `<div class="prev-clause-item" style="position: relative; padding-left: ${l2Wrap}mm; padding-top: ${spaceBeforePt}pt; padding-bottom: ${spaceAfterPt}pt; margin: 0; font-size: ${l2Size}pt; font-weight: ${l2Bold ? 'bold' : 'normal'}; text-decoration: ${textDecor}; text-transform: ${l2Upper ? 'uppercase' : 'none'}; line-height: ${lineSpacing}; text-align: justify;"><span class="prev-num-bold" style="position: absolute; left: ${l2NumPos}mm; top: ${spaceBeforePt}pt; font-weight: bold; color: ${primaryColor}; text-decoration: none;">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${formatted}</span></div>`;
             };
-            blocks.push({ type: 'level2', isHeading: false, html: makeL2Html(b.text), text: b.text, renderHtml: makeL2Html, renderContHtml: (t) => makeL2Html(t, true) });
+            blocks.push({ type: 'level2', isHeading: true, html: makeL2Html(b.text), text: b.text, renderHtml: makeL2Html, renderContHtml: (t) => makeL2Html(t, true) });
         } else if (b.type === 'level3') {
             currentBodyIndentMm = l3Wrap;
             const textDecor = l3Underline ? 'underline' : 'none';
@@ -1624,7 +1627,7 @@ function renderDocumentPreview() {
                     `<div class="prev-clause-item" style="padding-left: ${l3Wrap}mm; padding-top: 0; padding-bottom: ${spaceAfterPt}pt; margin: 0; font-size: ${l3Size}pt; font-weight: ${l3Bold ? 'bold' : 'normal'}; text-decoration: ${textDecor}; text-transform: ${l3Upper ? 'uppercase' : 'none'}; line-height: ${lineSpacing}; text-align: justify; color: ${textColor};">${formatted}</div>` :
                     `<div class="prev-clause-item" style="position: relative; padding-left: ${l3Wrap}mm; padding-top: ${spaceBeforePt}pt; padding-bottom: ${spaceAfterPt}pt; margin: 0; font-size: ${l3Size}pt; font-weight: ${l3Bold ? 'bold' : 'normal'}; text-decoration: ${textDecor}; text-transform: ${l3Upper ? 'uppercase' : 'none'}; line-height: ${lineSpacing}; text-align: justify;"><span class="prev-num-bold" style="position: absolute; left: ${l3NumPos}mm; top: ${spaceBeforePt}pt; font-weight: bold; color: ${primaryColor}; text-decoration: none;">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${formatted}</span></div>`;
             };
-            blocks.push({ type: 'level3', isHeading: false, html: makeL3Html(b.text), text: b.text, renderHtml: makeL3Html, renderContHtml: (t) => makeL3Html(t, true) });
+            blocks.push({ type: 'level3', isHeading: true, html: makeL3Html(b.text), text: b.text, renderHtml: makeL3Html, renderContHtml: (t) => makeL3Html(t, true) });
         } else if (b.type === 'level4') {
             currentBodyIndentMm = l4Wrap;
             const textDecor = l4Underline ? 'underline' : 'none';
@@ -1635,7 +1638,7 @@ function renderDocumentPreview() {
                     `<div class="prev-clause-item" style="padding-left: ${l4Wrap}mm; padding-top: 0; padding-bottom: ${spaceAfterPt}pt; margin: 0; font-size: ${l4Size}pt; font-weight: ${l4Bold ? 'bold' : 'normal'}; text-decoration: ${textDecor}; text-transform: ${l4Upper ? 'uppercase' : 'none'}; line-height: ${lineSpacing}; text-align: justify; color: ${textColor};">${formatted}</div>` :
                     `<div class="prev-clause-item" style="position: relative; padding-left: ${l4Wrap}mm; padding-top: ${spaceBeforePt}pt; padding-bottom: ${spaceAfterPt}pt; margin: 0; font-size: ${l4Size}pt; font-weight: ${l4Bold ? 'bold' : 'normal'}; text-decoration: ${textDecor}; text-transform: ${l4Upper ? 'uppercase' : 'none'}; line-height: ${lineSpacing}; text-align: justify;"><span class="prev-num-bold" style="position: absolute; left: ${l4NumPos}mm; top: ${spaceBeforePt}pt; font-weight: bold; color: ${primaryColor}; text-decoration: none;">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${formatted}</span></div>`;
             };
-            blocks.push({ type: 'level4', isHeading: false, html: makeL4Html(b.text), text: b.text, renderHtml: makeL4Html, renderContHtml: (t) => makeL4Html(t, true) });
+            blocks.push({ type: 'level4', isHeading: true, html: makeL4Html(b.text), text: b.text, renderHtml: makeL4Html, renderContHtml: (t) => makeL4Html(t, true) });
         } else if (b.type === 'level5') {
             currentBodyIndentMm = l5Wrap;
             const textDecor = l5Underline ? 'underline' : 'none';
@@ -1646,7 +1649,7 @@ function renderDocumentPreview() {
                     `<div class="prev-clause-item" style="padding-left: ${l5Wrap}mm; padding-top: 0; padding-bottom: ${spaceAfterPt}pt; margin: 0; font-size: ${l5Size}pt; font-weight: ${l5Bold ? 'bold' : 'normal'}; text-decoration: ${textDecor}; text-transform: ${l5Upper ? 'uppercase' : 'none'}; line-height: ${lineSpacing}; text-align: justify; color: ${textColor};">${formatted}</div>` :
                     `<div class="prev-clause-item" style="position: relative; padding-left: ${l5Wrap}mm; padding-top: ${spaceBeforePt}pt; padding-bottom: ${spaceAfterPt}pt; margin: 0; font-size: ${l5Size}pt; font-weight: ${l5Bold ? 'bold' : 'normal'}; text-decoration: ${textDecor}; text-transform: ${l5Upper ? 'uppercase' : 'none'}; line-height: ${lineSpacing}; text-align: justify;"><span class="prev-num-bold" style="position: absolute; left: ${l5NumPos}mm; top: ${spaceBeforePt}pt; font-weight: bold; color: ${primaryColor}; text-decoration: none;">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${formatted}</span></div>`;
             };
-            blocks.push({ type: 'level5', isHeading: false, html: makeL5Html(b.text), text: b.text, renderHtml: makeL5Html, renderContHtml: (t) => makeL5Html(t, true) });
+            blocks.push({ type: 'level5', isHeading: true, html: makeL5Html(b.text), text: b.text, renderHtml: makeL5Html, renderContHtml: (t) => makeL5Html(t, true) });
         } else {
             const indentForThis = currentBodyIndentMm;
             const makeBodyHtml = (txt) => `<div class="prev-clause-body" style="padding-left: ${indentForThis}mm; padding-top: 0; padding-bottom: ${spaceAfterPt}pt; margin: 0; font-size: ${bodySize}pt; line-height: ${lineSpacing}; color: ${textColor}; text-align: justify;">${formatTextWithSpellHighlights(txt)}</div>`;
@@ -1705,7 +1708,7 @@ function renderDocumentPreview() {
         });
 
         sHtml += `</div></div>`;
-        blocks.push({ type: 'signatures', isSignatures: true, html: sHtml });
+        blocks.push({ type: 'signatures', isSignatures: true, isHeading: false, html: sHtml });
     }
 
     // 3. Measurement & Multi-Page Partitioning
@@ -1753,6 +1756,19 @@ function renderDocumentPreview() {
         const b = blocks[i];
         const bHeight = measureHtml(b.html);
 
+        // Heading lookahead: If placing this heading on curPage leaves less than 40px, break to next
+        if (curHeight > 0 && b.isHeading && (curMax - (curHeight + bHeight) < 40)) {
+            curPage++;
+            curHeight = 0;
+            curMax = maxPageN;
+            pages.push([]);
+            blockMeta.push([]);
+            pages[curPage].push(b.html);
+            blockMeta[curPage].push(b);
+            curHeight += bHeight;
+            continue;
+        }
+
         // Fits on current page
         if (curHeight + bHeight <= curMax) {
             pages[curPage].push(b.html);
@@ -1764,21 +1780,30 @@ function renderDocumentPreview() {
         const spaceLeft = curMax - curHeight;
 
         // If it's signatures or heading or small block that cannot split
-        if (b.isSignatures || b.isHeading || !b.text || b.text.length < 50 || spaceLeft < 28) {
-            // Orphan Heading Prevention:
-            // If the last item on curPage is a heading and there are other items on curPage, move that heading with this block to the next page!
-            const lastBlockInfo = blockMeta[curPage]?.[blockMeta[curPage].length - 1];
-            if (lastBlockInfo && lastBlockInfo.isHeading && pages[curPage].length > 1) {
-                const orphanedHeadingHtml = pages[curPage].pop();
-                blockMeta[curPage].pop();
+        if (b.isSignatures || b.isHeading || !b.text || b.text.length < 50 || spaceLeft < 36) {
+            // Orphan Heading Prevention: move trailing headings to next page
+            const headingsToMove = [];
+            while (
+                blockMeta[curPage]?.length > 0 &&
+                blockMeta[curPage][blockMeta[curPage].length - 1].isHeading &&
+                pages[curPage].length > 1
+            ) {
+                const headingMeta = blockMeta[curPage].pop();
+                const headingHtml = pages[curPage].pop();
+                headingsToMove.unshift({ meta: headingMeta, html: headingHtml });
+            }
+
+            if (headingsToMove.length > 0) {
                 curPage++;
                 curHeight = 0;
                 curMax = maxPageN;
                 pages.push([]);
                 blockMeta.push([]);
-                pages[curPage].push(orphanedHeadingHtml);
-                blockMeta[curPage].push(lastBlockInfo);
-                curHeight += measureHtml(orphanedHeadingHtml);
+                for (const h of headingsToMove) {
+                    pages[curPage].push(h.html);
+                    blockMeta[curPage].push(h.meta);
+                    curHeight += measureHtml(h.html);
+                }
                 pages[curPage].push(b.html);
                 blockMeta[curPage].push(b);
                 curHeight += bHeight;
@@ -1798,7 +1823,7 @@ function renderDocumentPreview() {
             continue;
         }
 
-        // Paragraph splitting for long text blocks across the page boundary
+        // Paragraph splitting for long text blocks
         const words = b.text.split(/\s+/);
         let fitWords = [];
         let remainWords = [...words];
@@ -1818,8 +1843,8 @@ function renderDocumentPreview() {
             }
         }
 
-        if (fitWords.length >= 4 && remainWords.length > 0) {
-            // Split successful! Fill the bottom of current page
+        if (fitWords.length >= 10 && remainWords.length >= 6) {
+            // Split successful!
             pages[curPage].push(bestFitHtml);
             blockMeta[curPage].push({ ...b, html: bestFitHtml });
 
@@ -1829,7 +1854,6 @@ function renderDocumentPreview() {
             pages.push([]);
             blockMeta.push([]);
 
-            // Second half continues cleanly on the new page
             const contRenderHtml = b.renderContHtml || b.renderHtml;
             const remainingText = remainWords.join(' ');
             const remainingHtml = contRenderHtml ? contRenderHtml(remainingText) : remainingText;
@@ -1838,7 +1862,35 @@ function renderDocumentPreview() {
             blockMeta[curPage].push({ ...b, html: remainingHtml });
             curHeight += remH;
         } else {
-            // Cannot split cleanly, advance page
+            // Cannot split cleanly, move trailing headings
+            const headingsToMove = [];
+            while (
+                blockMeta[curPage]?.length > 0 &&
+                blockMeta[curPage][blockMeta[curPage].length - 1].isHeading &&
+                pages[curPage].length > 1
+            ) {
+                const headingMeta = blockMeta[curPage].pop();
+                const headingHtml = pages[curPage].pop();
+                headingsToMove.unshift({ meta: headingMeta, html: headingHtml });
+            }
+
+            if (headingsToMove.length > 0) {
+                curPage++;
+                curHeight = 0;
+                curMax = maxPageN;
+                pages.push([]);
+                blockMeta.push([]);
+                for (const h of headingsToMove) {
+                    pages[curPage].push(h.html);
+                    blockMeta[curPage].push(h.meta);
+                    curHeight += measureHtml(h.html);
+                }
+                pages[curPage].push(b.html);
+                blockMeta[curPage].push(b);
+                curHeight += bHeight;
+                continue;
+            }
+
             if (curHeight > 0) {
                 curPage++;
                 curHeight = 0;
@@ -1914,6 +1966,95 @@ function renderDocumentPreview() {
 
     container.innerHTML = fullHtml;
     updateSpatialGuides();
+
+    // Re-apply editable mode if toggled on
+    const isEditable = document.getElementById('toggle-editable-preview')?.checked === true;
+    if (isEditable) {
+        updatePreviewEditableState(true);
+    }
+}
+
+// ── Editable Preview & Document Editor Toolbar Handlers ──
+function initEditablePreviewHandlers() {
+    const toggleEditable = document.getElementById('toggle-editable-preview');
+    const editorToolbar = document.getElementById('preview-editor-toolbar');
+
+    if (toggleEditable) {
+        toggleEditable.addEventListener('change', () => {
+            const isEdit = toggleEditable.checked;
+            if (editorToolbar) {
+                editorToolbar.classList.toggle('hidden', !isEdit);
+            }
+            updatePreviewEditableState(isEdit);
+            if (isEdit) {
+                showToast('✏️ Direct Editing Enabled: Click on any paragraph or heading in the preview to edit.');
+            }
+        });
+    }
+
+    // Editor Tool Commands (Bold, Italic, Underline, Strikethrough, Alignments, Undo/Redo, Clear)
+    document.querySelectorAll('.btn-editor-tool[data-cmd]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const cmd = btn.getAttribute('data-cmd');
+            if (cmd) {
+                document.execCommand(cmd, false, null);
+            }
+        });
+    });
+
+    // Sync Preview changes back to Raw Text input
+    document.getElementById('btn-sync-preview-to-source')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        syncPreviewToRawText();
+    });
+}
+
+function updatePreviewEditableState(isEditable) {
+    const container = document.getElementById('pages-container');
+    if (!container) return;
+
+    const canvases = container.querySelectorAll('.a4-page-canvas');
+    canvases.forEach(canvas => {
+        canvas.classList.toggle('is-editable', isEditable);
+    });
+
+    const editableEls = container.querySelectorAll('.prev-clause-item, .prev-clause-body, .prev-doc-title, .prev-doc-subtitle, .prev-legal-notice span, .prev-signatures-intro');
+    editableEls.forEach(el => {
+        el.contentEditable = isEditable ? 'true' : 'false';
+        el.spellcheck = isEditable;
+    });
+}
+
+function syncPreviewToRawText() {
+    const container = document.getElementById('pages-container');
+    if (!container) return;
+
+    const extracted = [];
+    const elements = container.querySelectorAll('.prev-clause-item, .prev-clause-body');
+    elements.forEach(el => {
+        const clone = el.cloneNode(true);
+        const numSpan = clone.querySelector('.prev-num-bold');
+        let numPrefix = '';
+        if (numSpan) {
+            numPrefix = numSpan.textContent.trim() + ' ';
+            numSpan.remove();
+        }
+        const text = clone.innerText.trim();
+        if (text) {
+            extracted.push((numPrefix + text).trim());
+        }
+    });
+
+    if (extracted.length > 0) {
+        const fullRaw = extracted.join('\n\n');
+        const rawInput = document.getElementById('raw-text-input');
+        if (rawInput) {
+            rawInput.value = fullRaw;
+            saveDraftToLocalStorage();
+            showToast('✅ Preview changes synchronized to Raw Text successfully!');
+        }
+    }
 }
 
 // ── Document Generation & Export API ──
