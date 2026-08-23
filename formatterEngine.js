@@ -892,7 +892,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
       // General Body text: lines up under the active section/clause header text!
       docChildren.push(
         new Paragraph({
-          spacing: { before: spaceBefore, after: spaceAfter, line: lineSpacing },
+          spacing: { before: 0, after: spaceAfter, line: lineSpacing },
           alignment: AlignmentType.BOTH,
           indent: { left: convertMillimetersToTwip(currentBodyIndentMm) },
           children: [
@@ -1295,7 +1295,7 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
         </div>
       `;
     } else {
-      bodyHtml += `<div style="padding-left: ${currentBodyIndentMm}mm; font-size: ${bodySizePt}pt; line-height: ${lineSpacing}; color: ${textColor}; margin: ${spaceBeforePt}pt 0 ${spaceAfterPt}pt 0; text-align: justify;">${b.text}</div>`;
+      bodyHtml += `<div style="padding-left: ${currentBodyIndentMm}mm; font-size: ${bodySizePt}pt; line-height: ${lineSpacing}; color: ${textColor}; margin: 0 0 ${spaceAfterPt}pt 0; text-align: justify;">${b.text}</div>`;
     }
   });
 

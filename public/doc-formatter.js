@@ -1649,7 +1649,7 @@ function renderDocumentPreview() {
             blocks.push({ type: 'level5', isHeading: false, html: makeL5Html(b.text), text: b.text, renderHtml: makeL5Html, renderContHtml: (t) => makeL5Html(t, true) });
         } else {
             const indentForThis = currentBodyIndentMm;
-            const makeBodyHtml = (txt) => `<div class="prev-clause-body" style="padding-left: ${indentForThis}mm; padding-top: ${spaceBeforePt}pt; padding-bottom: ${spaceAfterPt}pt; margin: 0; font-size: ${bodySize}pt; line-height: ${lineSpacing}; color: ${textColor}; text-align: justify;">${formatTextWithSpellHighlights(txt)}</div>`;
+            const makeBodyHtml = (txt) => `<div class="prev-clause-body" style="padding-left: ${indentForThis}mm; padding-top: 0; padding-bottom: ${spaceAfterPt}pt; margin: 0; font-size: ${bodySize}pt; line-height: ${lineSpacing}; color: ${textColor}; text-align: justify;">${formatTextWithSpellHighlights(txt)}</div>`;
             blocks.push({ type: 'body', isHeading: false, html: makeBodyHtml(b.text), text: b.text, renderHtml: makeBodyHtml });
         }
     });
