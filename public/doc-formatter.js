@@ -2527,7 +2527,7 @@ async function saveCurrentDocumentProject() {
     const rawText = document.getElementById('raw-text-input')?.value || '';
 
     const suggestedName = state.currentDocTitle || currentTitle;
-    const docTitle = prompt('Enter a title to save this Document Session:', suggestedName);
+    const docTitle = prompt('Enter a title to save this Document:', suggestedName);
     if (!docTitle || !docTitle.trim()) return;
 
     state.currentDocTitle = docTitle.trim();
@@ -2547,7 +2547,7 @@ async function saveCurrentDocumentProject() {
     };
 
     try {
-        showToast('Saving document session...', false);
+        showToast('Saving document...', false);
         const res = await fetch('/api/doc-formatter/documents', {
             method: 'POST',
             headers: {
