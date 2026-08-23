@@ -1117,7 +1117,7 @@ body.formatter-studio-body {
 
 /* ── PREVIEW CLAUSES WITH DYNAMIC HANGING INDENTS ── */
 .prev-clause-item {
-    margin: 1.5mm 0;
+    margin: 0;
     text-align: justify;
     box-sizing: border-box;
     word-break: break-word;
@@ -1128,7 +1128,7 @@ body.formatter-studio-body {
     font-weight: bold;
     color: #0C2340;
     text-transform: uppercase;
-    margin: 5mm 0 2mm 0;
+    margin: 0;
 }
 
 .prev-num-bold {
@@ -1141,8 +1141,10 @@ body.formatter-studio-body {
 
 .prev-clause-body {
     padding-left: 0;
-    margin: 1.5mm 0;
+    margin: 0;
     text-align: justify;
+    box-sizing: border-box;
+    word-break: break-word;
 }
 
 .prev-signatures-section {

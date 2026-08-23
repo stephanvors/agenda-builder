@@ -2051,8 +2051,20 @@ app.post('/api/doc-formatter/documents', async (req, res) => {
       try { docsData = JSON.parse(raw); } catch (e) {}
     }
 
-    const docId = docPayload.id || 'doc_' + Date.now();
+    const titleNormalized = docPayload.title.trim().toLowerCase();
+
+    // Check if an existing document exists with the same ID OR the same title
+    let existingIdx = -1;
+    if (docPayload.id) {
+      existingIdx = docsData.documents.findIndex(d => d.id === docPayload.id);
+    }
+    if (existingIdx === -1) {
+      existingIdx = docsData.documents.findIndex(d => d.title && d.title.trim().toLowerCase() === titleNormalized);
+    }
+
     const now = new Date().toISOString();
+    const docId = existingIdx >= 0 ? docsData.documents[existingIdx].id : (docPayload.id || 'doc_' + Date.now());
+    const createdAt = existingIdx >= 0 ? (docsData.documents[existingIdx].createdAt || now) : (docPayload.createdAt || now);
 
     const fullDoc = {
       id: docId,
@@ -2062,16 +2074,28 @@ app.post('/api/doc-formatter/documents', async (req, res) => {
       config: docPayload.config || {},
       clauseCount: docPayload.clauseCount || 0,
       previewSnippet: docPayload.rawText ? docPayload.rawText.slice(0, 140).replace(/[\r\n]+/g, ' ') : '',
-      createdAt: docPayload.createdAt || now,
+      createdAt: createdAt,
       updatedAt: now,
     };
 
-    const existingIdx = docsData.documents.findIndex(d => d.id === docId);
     if (existingIdx >= 0) {
+      // Overwrite the existing document in place
       docsData.documents[existingIdx] = fullDoc;
     } else {
       docsData.documents.push(fullDoc);
     }
+
+    // Deduplicate any other documents with the same normalized title (keeping the most recently updated)
+    const seenTitles = new Set();
+    // Sort so newest updated is kept if duplicates exist
+    docsData.documents.sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0));
+    docsData.documents = docsData.documents.filter(d => {
+      const t = (d.title || '').trim().toLowerCase();
+      if (!t) return true;
+      if (seenTitles.has(t)) return false;
+      seenTitles.add(t);
+      return true;
+    });
 
     await fs.writeFile(DOCS_FILE, JSON.stringify(docsData, null, 2), 'utf8');
     res.json({ message: 'Document project saved successfully', document: fullDoc });
