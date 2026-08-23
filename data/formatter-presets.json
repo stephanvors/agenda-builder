@@ -4,12 +4,14 @@
       "id": "sgb_constitution",
       "name": "SGB Legal Constitution (10mm Grid, 10mm Hanging Indents)",
       "description": "Preset updated on 8/23/2026",
+      "documentTitle": "SCHOOL MISSION STATEMENT",
+      "documentSubtitle": "LADY GREY ARTS ACADEMY",
       "typography": {
-        "fontFamily": "Arial",
+        "fontFamily": "Aptos",
         "lineSpacing": 1.15,
-        "paragraphSpacingPt": 4,
-        "spaceAfterPt": 4,
-        "spaceBeforePt": 0,
+        "spaceBeforePt": 6,
+        "spaceAfterPt": 1.5,
+        "paragraphSpacingPt": 1.5,
         "titleSizePt": 14,
         "subtitleSizePt": 12,
         "bodySizePt": 10,
@@ -32,7 +34,7 @@
           {
             "level": 1,
             "leftOffsetMm": 0,
-            "fontSizePt": 12,
+            "fontSizePt": 11,
             "bold": true,
             "underline": false,
             "uppercase": true
@@ -43,21 +45,21 @@
             "numberPosMm": 0,
             "textWrapMm": 10,
             "hangingIndentMm": 10,
-            "fontSizePt": 11,
+            "fontSizePt": 10,
             "bold": true,
             "underline": false,
             "uppercase": true
           },
           {
             "level": 3,
-            "leftOffsetMm": 20,
+            "leftOffsetMm": 22,
             "numberPosMm": 10,
-            "textWrapMm": 20,
-            "hangingIndentMm": 10,
+            "textWrapMm": 22,
+            "hangingIndentMm": 12,
             "fontSizePt": 10,
-            "bold": false,
+            "bold": true,
             "underline": false,
-            "uppercase": false
+            "uppercase": true
           },
           {
             "level": 4,
@@ -93,7 +95,7 @@
         "contact": "18 Brummer Street, Lady Grey, 9755 | Tel: 051 603 0046 | admin@lgaa.co.za",
         "emis": "EMIS: 200600985 | District: Joe Gqabi | Circuit: Ekhephini | CMC: Maletswai",
         "badgeText": "SGB",
-        "badgeSubtext": "Statement",
+        "badgeSubtext": "STATEMENT",
         "imageBanner": "",
         "imageHeightMm": 32,
         "imageFit": "contain"
@@ -112,35 +114,35 @@
           "rows": [
             {
               "label": "National Legislative Basis",
-              "value": "South African Schools Act, 1996 (Act No. 84 of 1996)"
+              "value": "Section 20(1)(c) of South African Schools Act, 1996 (Act No. 84 of 1996)"
             },
             {
-              "label": "Provincial Legislative Basis",
-              "value": "Eastern Cape School Education Act, 2000 (Act No. 2 of 2000)"
+              "label": "Provincial Governance Directives",
+              "value": "Eastern Cape Department of Education Curriculum & School Governance Directives"
             },
             {
-              "label": "Juristic Person Status",
+              "label": "Institutional Juristic Status",
               "value": "Lady Grey Arts Academy (EMIS: 200600985)"
             },
             {
-              "label": "Financial Year Lifecycle",
-              "value": "1 January to 31 December"
+              "label": "Core Educational Mandate",
+              "value": "Whole School Development, Academic Excellence & Specialized Creative Arts"
             },
             {
-              "label": "Governance Oversight",
-              "value": "School Governing Body (SGB) specialized committees"
+              "label": "Adoption & Custodianship",
+              "value": "School Governing Body (SGB) & School Management Team (SMT)"
             }
           ]
         },
         "legalNotice": {
           "enabled": true,
           "prefix": "LEGAL NOTICE: ",
-          "text": "This school vision statement is a legally binding regulatory document drafted and adopted by the School Governing Body in terms of the South African Schools Act. All members of the governing body, learners, parents, educators, and staff are subject to the provisions herein."
+          "text": "This school mission statement is an official regulatory and strategic governance document drafted and adopted by the School Governing Body in terms of Section 20(1)(c) of the South African Schools Act, 1996 (Act No. 84 of 1996). All members of the governing body, educators, learners, parents, and administrative staff are subject to the vision, mission, and statutory principles set out herein."
         },
         "signatures": {
           "enabled": true,
           "title": "ADOPTION AND SIGN-OFF RESOLUTION",
-          "introText": "This School Vision Statement was formally accepted, approved, and signed at a meeting of the Governing Body of the Lady Grey Arts Academy.",
+          "introText": "This School Mission Statement was formally accepted, approved, and signed at a meeting of the Governing Body of the Lady Grey Arts Academy.",
           "signers": [
             {
               "role": "SGB Chairperson",

@@ -779,7 +779,7 @@ const CONTEXTUAL_METADATA_PRESETS = {
             { label: 'Adoption & Custodianship', value: 'School Governing Body (SGB) & School Management Team (SMT)' }
         ],
         legalNoticePrefix: 'LEGAL NOTICE: ',
-        legalNoticeText: 'This School Mission Statement is an official strategic governance document drafted and adopted by the School Governing Body in terms of the South African Schools Act. All members of the school community, educators, learners, and parents are guided by the vision and values herein.',
+        legalNoticeText: 'This school mission statement is an official regulatory and strategic governance document drafted and adopted by the School Governing Body in terms of Section 20(1)(c) of the South African Schools Act, 1996 (Act No. 84 of 1996). All members of the governing body, educators, learners, parents, and administrative staff are subject to the vision, mission, and statutory principles set out herein.',
         badgeMain: 'SGB',
         badgeSub: 'STATEMENT'
     },
@@ -795,7 +795,7 @@ const CONTEXTUAL_METADATA_PRESETS = {
             { label: 'Governance Oversight', value: 'School Governing Body (SGB) specialized committees' }
         ],
         legalNoticePrefix: 'LEGAL NOTICE: ',
-        legalNoticeText: 'This constitution is a legally binding regulatory document drafted and adopted by the School Governing Body in terms of Section 18 of the South African Schools Act. All members of the governing body, learners, parents, educators, and staff are subject to the provisions herein.',
+        legalNoticeText: 'This constitution is an official legally binding regulatory document drafted and adopted by the School Governing Body in terms of Section 18(1) of the South African Schools Act, 1996 (Act No. 84 of 1996). All members of the governing body, learners, parents, educators, and staff are subject to the provisions herein.',
         badgeMain: 'SGB',
         badgeSub: 'CONSTITUTION'
     },
@@ -811,7 +811,7 @@ const CONTEXTUAL_METADATA_PRESETS = {
             { label: 'Administration Authority', value: 'School Principal (on behalf of Head of Department) with SGB Oversight' }
         ],
         legalNoticePrefix: 'LEGAL NOTICE: ',
-        legalNoticeText: 'This admission policy is a legally binding regulatory document determined by the School Governing Body in terms of Section 5(5) of the South African Schools Act. All admissions to Lady Grey Arts Academy are administered strictly in accordance with these provisions.',
+        legalNoticeText: 'This admission policy is an official regulatory document determined by the School Governing Body in terms of Section 5(5) of the South African Schools Act, 1996 (Act No. 84 of 1996). All admissions to Lady Grey Arts Academy are administered strictly in accordance with these provisions.',
         badgeMain: 'POLICY',
         badgeSub: 'ADMISSION'
     },
@@ -827,7 +827,7 @@ const CONTEXTUAL_METADATA_PRESETS = {
             { label: 'Governance Authority', value: 'School Governing Body (SGB) Policy Oversight' }
         ],
         legalNoticePrefix: 'LEGAL NOTICE: ',
-        legalNoticeText: 'This language policy is an official regulatory document determined by the School Governing Body in terms of Section 6(2) of the South African Schools Act. All language offerings and mediums of instruction are governed by these provisions.',
+        legalNoticeText: 'This language policy is an official regulatory document determined by the School Governing Body in terms of Section 6(2) of the South African Schools Act, 1996 (Act No. 84 of 1996). All language offerings and mediums of instruction are governed by these provisions.',
         badgeMain: 'POLICY',
         badgeSub: 'LANGUAGE'
     },
@@ -843,7 +843,7 @@ const CONTEXTUAL_METADATA_PRESETS = {
             { label: 'Governance Authority', value: 'School Governing Body (SGB)' }
         ],
         legalNoticePrefix: 'LEGAL NOTICE: ',
-        legalNoticeText: 'This religious observances policy is determined by the School Governing Body in terms of Section 7 of the South African Schools Act. Religious observances at Lady Grey Arts Academy are conducted on an equitable, free, and voluntary basis.',
+        legalNoticeText: 'This religious observances policy is determined by the School Governing Body in terms of Section 7 of the South African Schools Act, 1996 (Act No. 84 of 1996). Religious observances at Lady Grey Arts Academy are conducted on an equitable, free, and voluntary basis.',
         badgeMain: 'POLICY',
         badgeSub: 'RELIGIOUS'
     },
@@ -859,7 +859,7 @@ const CONTEXTUAL_METADATA_PRESETS = {
             { label: 'Disciplinary Authority', value: 'SGB Disciplinary Committee & School Disciplinary Officer' }
         ],
         legalNoticePrefix: 'LEGAL NOTICE: ',
-        legalNoticeText: 'This Code of Conduct is a legally binding regulatory document adopted by the School Governing Body in terms of Section 8(1) of the South African Schools Act. Every learner registered at Lady Grey Arts Academy is subject to the rules, expectations, and disciplinary procedures set out herein.',
+        legalNoticeText: 'This Code of Conduct is an official legally binding regulatory document adopted by the School Governing Body in terms of Section 8(1) of the South African Schools Act, 1996 (Act No. 84 of 1996). Every learner registered at Lady Grey Arts Academy is subject to the rules, expectations, and disciplinary procedures set out herein.',
         badgeMain: 'POLICY',
         badgeSub: 'CONDUCT'
     },
@@ -875,7 +875,7 @@ const CONTEXTUAL_METADATA_PRESETS = {
             { label: 'Responsible Portfolios', value: 'SGB Treasurer, Finance Committee & School Principal (Accounting Officer)' }
         ],
         legalNoticePrefix: 'LEGAL NOTICE: ',
-        legalNoticeText: 'This Financial Management Policy is an official regulatory document adopted by the School Governing Body in terms of Chapter 4 of the South African Schools Act. All financial transactions, procurement, and asset management at Lady Grey Arts Academy must strictly comply with this policy.',
+        legalNoticeText: 'This Financial Management Policy is an official regulatory document adopted by the School Governing Body in terms of Section 37 and Section 38 of the South African Schools Act, 1996 (Act No. 84 of 1996). All financial transactions, procurement, and asset management at Lady Grey Arts Academy must strictly comply with this policy.',
         badgeMain: 'POLICY',
         badgeSub: 'FINANCIAL'
     },
@@ -885,13 +885,13 @@ const CONTEXTUAL_METADATA_PRESETS = {
         col2Title: 'Details & Specifications',
         rows: [
             { label: 'National Legislative Mandate', value: 'Occupational Health and Safety Act, 1993 (Act No. 85 of 1993)' },
-            { label: 'Schools Act Regulations', value: 'Regulations for Safety Measures at Public Schools (Government Notice No. 1040)' },
+            { label: 'Schools Act Regulations', value: 'Regulations for Safety Measures at Public Schools (promulgated in terms of Section 61 of the South African Schools Act, 1996)' },
             { label: 'Provincial Safety Framework', value: 'Eastern Cape Department of Education School Safety & Security Protocol' },
             { label: 'Emergency & Access Control', value: 'Designated access control, emergency evacuation plans & first aid stations' },
             { label: 'Safety Custodians', value: 'SGB Safety Committee, School Safety Officer & Health and Safety Representatives' }
         ],
         legalNoticePrefix: 'LEGAL NOTICE: ',
-        legalNoticeText: 'This Safety and Security Policy is an official regulatory protocol adopted by the School Governing Body to safeguard learners, educators, staff, and visitors within the precinct of Lady Grey Arts Academy.',
+        legalNoticeText: 'This Safety and Security Policy is an official regulatory protocol adopted by the School Governing Body in terms of the National Safety Regulations under Section 61 of the South African Schools Act, 1996 (Act No. 84 of 1996) and the Occupational Health and Safety Act, 1993 to safeguard all learners, educators, staff, and visitors.',
         badgeMain: 'POLICY',
         badgeSub: 'SAFETY'
     },
@@ -907,7 +907,7 @@ const CONTEXTUAL_METADATA_PRESETS = {
             { label: 'Record Archival', value: 'Official School Governing Body Governance Vault & Minute Book' }
         ],
         legalNoticePrefix: 'RECORD OF RESOLUTION: ',
-        legalNoticeText: 'These meeting minutes constitute the official statutory record of proceedings, deliberations, and resolutions taken by the School Governing Body of Lady Grey Arts Academy.',
+        legalNoticeText: 'These meeting minutes constitute the official statutory record of proceedings, deliberations, and resolutions taken by the School Governing Body in terms of Section 18(2) of the South African Schools Act, 1996 (Act No. 84 of 1996).',
         badgeMain: 'SGB',
         badgeSub: 'MINUTES'
     }
@@ -1002,9 +1002,12 @@ function updateDynamicTitleInSignaturesAndNotice() {
     const legalNoticeEl = document.getElementById('legal-notice-text');
     if (legalNoticeEl) {
         const val = legalNoticeEl.value;
-        const match = val.match(/^This\s+(.+?)\s+is a/i);
-        if (match || val.toLowerCase().includes('this constitution is a legally binding')) {
-            legalNoticeEl.value = `This ${formattedTitle.toLowerCase()} is an official regulatory document drafted and adopted by the School Governing Body in terms of the South African Schools Act. All members of the governing body, learners, parents, educators, and staff are subject to the provisions herein.`;
+        const match = val.match(/^This\s+(.+?)\s+is an?/i);
+        if (match || !val || val.toLowerCase().includes('south african schools act') || val.toLowerCase().includes('this constitution is a legally binding')) {
+            const rawText = document.getElementById('raw-text-input')?.value || '';
+            const contextKey = detectContextFromDocument(rawTitle, rawText);
+            const tpl = CONTEXTUAL_METADATA_PRESETS[contextKey] || CONTEXTUAL_METADATA_PRESETS.mission;
+            legalNoticeEl.value = tpl.legalNoticeText;
         }
     }
 }

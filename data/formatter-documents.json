@@ -11,9 +11,9 @@
         "typography": {
           "fontFamily": "Aptos",
           "lineSpacing": 1.15,
-          "spaceBeforePt": 6,
-          "spaceAfterPt": 1.5,
-          "paragraphSpacingPt": 1.5,
+          "spaceBeforePt": 8.5,
+          "spaceAfterPt": 2.5,
+          "paragraphSpacingPt": 2.5,
           "titleSizePt": 14,
           "subtitleSizePt": 12,
           "bodySizePt": 10,
@@ -128,7 +128,7 @@
               },
               {
                 "label": "Core Educational Mandate",
-                "value": "Whole School Development, Academic Excellence & Specialized Creative Arts"
+                "value": "Whole School Development, Academic Excellence & Specialized Creative and Performing Arts"
               },
               {
                 "label": "Adoption & Custodianship",
@@ -139,7 +139,7 @@
           "legalNotice": {
             "enabled": true,
             "prefix": "LEGAL NOTICE: ",
-            "text": "This school mission statement is an official regulatory document drafted and adopted by the School Governing Body in terms of the South African Schools Act. All members of the governing body, learners, parents, educators, and staff are subject to the provisions herein."
+            "text": "This school mission statement is an official regulatory and strategic governance document drafted and adopted by the School Governing Body in terms of Section 20(1)(c) of the South African Schools Act, 1996 (Act No. 84 of 1996). All members of the governing body, educators, learners, parents, and administrative staff are subject to the vision, mission, and statutory principles set out herein."
           },
           "signatures": {
             "enabled": true,
@@ -168,7 +168,7 @@
       "clauseCount": 56,
       "previewSnippet": "The Lady Grey Arts Academy is a Section 21 Public School, offering specialised education in the performing- and visual arts to students from",
       "createdAt": "2026-08-23T06:37:53.829Z",
-      "updatedAt": "2026-08-23T06:37:53.829Z"
+      "updatedAt": "2026-08-23T07:57:44.817Z"
     },
     {
       "id": "doc_1787449835047",
