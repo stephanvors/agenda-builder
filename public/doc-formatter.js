@@ -1696,11 +1696,12 @@ function renderDocumentPreview() {
         }
         const signerEls = document.querySelectorAll('.signer-row-item');
 
+        const numSigCols = Math.min(3, Math.max(1, signerEls.length));
         let sHtml = `
             <div class="prev-signatures-section">
                 <div class="prev-signatures-title" style="color: ${primaryColor};">${escapeHTML(sigTitle)}</div>
                 <div class="prev-signatures-intro">${escapeHTML(sigIntro)}</div>
-                <div class="prev-signatures-table" style="grid-template-columns: repeat(${Math.max(1, signerEls.length)}, 1fr);">
+                <div class="prev-signatures-table" style="grid-template-columns: repeat(${numSigCols}, 1fr); gap: 6mm 5mm;">
         `;
 
         signerEls.forEach(s => {

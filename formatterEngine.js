@@ -913,7 +913,14 @@ export async function buildFormattedDocx(config, parsedBlocks) {
   // 5. Sign-off Resolution Signature Block (Held together as one single unit)
   if (comps.signatures && comps.signatures.enabled && Array.isArray(comps.signatures.signers) && comps.signatures.signers.length) {
     const signers = comps.signatures.signers;
-    const colWidthMm = bodyWidthMm / signers.length;
+    const maxCols = Math.min(3, Math.max(1, signers.length));
+    const colWidthMm = bodyWidthMm / maxCols;
+
+    // Chunk signers into rows of at most 3
+    const signerChunks = [];
+    for (let i = 0; i < signers.length; i += 3) {
+      signerChunks.push(signers.slice(i, i + 3));
+    }
 
     let introStr = comps.signatures.introText || '';
     const rawTitle = config.documentTitle || '';
@@ -938,7 +945,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
           cantSplit: true,
           children: [
             new TableCell({
-              columnSpan: signers.length,
+              columnSpan: maxCols,
               width: { size: convertMillimetersToTwip(bodyWidthMm), type: WidthType.DXA },
               margins: { left: 0, right: 0, top: 160, bottom: 40 },
               children: [
@@ -970,7 +977,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
           cantSplit: true,
           children: [
             new TableCell({
-              columnSpan: signers.length,
+              columnSpan: maxCols,
               width: { size: convertMillimetersToTwip(bodyWidthMm), type: WidthType.DXA },
               margins: { left: 0, right: 0, top: 20, bottom: 80 },
               children: [
@@ -995,78 +1002,93 @@ export async function buildFormattedDocx(config, parsedBlocks) {
       );
     }
 
-    // Row 3: Signature columns
-    const signatureCells = signers.map(s => {
-      let nameVal = s.name ? s.name.trim() : '';
-      if (nameVal.toLowerCase().startsWith('name:')) {
-        nameVal = nameVal.replace(/^name:\s*/i, '');
-      } else if (nameVal.toLowerCase().startsWith('surname, name:')) {
-        nameVal = nameVal.replace(/^surname,\s*name:\s*/i, '');
-      }
+    // Signature rows (chunked by max 3)
+    signerChunks.forEach((chunk, chunkIdx) => {
+      const signatureCells = chunk.map(s => {
+        let nameVal = s.name ? s.name.trim() : '';
+        if (nameVal.toLowerCase().startsWith('name:')) {
+          nameVal = nameVal.replace(/^name:\s*/i, '');
+        } else if (nameVal.toLowerCase().startsWith('surname, name:')) {
+          nameVal = nameVal.replace(/^surname,\s*name:\s*/i, '');
+        }
 
-      let dateVal = s.dateLabel ? s.dateLabel.trim() : '';
-      if (dateVal.toLowerCase().startsWith('date:')) {
-        dateVal = dateVal.replace(/^date:\s*/i, '');
-      }
+        let dateVal = s.dateLabel ? s.dateLabel.trim() : '';
+        if (dateVal.toLowerCase().startsWith('date:')) {
+          dateVal = dateVal.replace(/^date:\s*/i, '');
+        }
 
-      return new TableCell({
-        width: { size: convertMillimetersToTwip(colWidthMm), type: WidthType.DXA },
-        margins: { left: 20, right: 20, top: 80, bottom: 40 },
-        children: [
-          // 1. Signature shorter vector line & label
-          new Paragraph({
-            spacing: { before: 0, after: 10 },
-            keepWithNext: true,
-            keepLines: true,
-            children: [
-              new TextRun({
-                text: '_________________________',
-                color: '64748B',
-                font: fontFamily,
-                size: baseSizeHps,
-              }),
-            ],
-          }),
-          new Paragraph({
-            spacing: { before: 0, after: 40 },
-            keepWithNext: true,
-            keepLines: true,
-            children: [new TextRun({ text: 'Signature', italics: true, color: '64748B', font: fontFamily, size: Math.max(7, (baseSizeHps / 2) - 2) * 2 })],
-          }),
-          // 2. Name
-          new Paragraph({
-            spacing: { before: 0, after: 20 },
-            keepWithNext: true,
-            keepLines: true,
-            children: [
-              new TextRun({ text: nameVal || '____________________', bold: true, color: textColor, font: fontFamily, size: baseSizeHps }),
-            ],
-          }),
-          // 3. Role
-          new Paragraph({
-            spacing: { before: 0, after: 30 },
-            keepWithNext: true,
-            keepLines: true,
-            children: [new TextRun({ text: s.role || 'Signatory', bold: true, color: primaryColor, font: fontFamily, size: baseSizeHps - 1 })],
-          }),
-          // 4. Date
-          new Paragraph({
-            spacing: { before: 30, after: 0 },
-            keepLines: true,
-            children: [
-              new TextRun({ text: dateVal ? `Date: ${dateVal}` : 'Date: ____________________', color: '64748B', font: fontFamily, size: baseSizeHps - 2 }),
-            ],
-          }),
-        ],
+        return new TableCell({
+          width: { size: convertMillimetersToTwip(colWidthMm), type: WidthType.DXA },
+          margins: { left: 20, right: 20, top: chunkIdx > 0 ? 120 : 80, bottom: 40 },
+          children: [
+            // 1. Signature shorter vector line & label
+            new Paragraph({
+              spacing: { before: 0, after: 10 },
+              keepWithNext: true,
+              keepLines: true,
+              children: [
+                new TextRun({
+                  text: '_________________________',
+                  color: '64748B',
+                  font: fontFamily,
+                  size: baseSizeHps,
+                }),
+              ],
+            }),
+            new Paragraph({
+              spacing: { before: 0, after: 40 },
+              keepWithNext: true,
+              keepLines: true,
+              children: [new TextRun({ text: 'Signature', italics: true, color: '64748B', font: fontFamily, size: Math.max(7, (baseSizeHps / 2) - 2) * 2 })],
+            }),
+            // 2. Name
+            new Paragraph({
+              spacing: { before: 0, after: 20 },
+              keepWithNext: true,
+              keepLines: true,
+              children: [
+                new TextRun({ text: nameVal || '____________________', bold: true, color: textColor, font: fontFamily, size: baseSizeHps }),
+              ],
+            }),
+            // 3. Role
+            new Paragraph({
+              spacing: { before: 0, after: 30 },
+              keepWithNext: true,
+              keepLines: true,
+              children: [new TextRun({ text: s.role || 'Signatory', bold: true, color: primaryColor, font: fontFamily, size: baseSizeHps - 1 })],
+            }),
+            // 4. Date
+            new Paragraph({
+              spacing: { before: 30, after: 0 },
+              keepLines: true,
+              children: [
+                new TextRun({ text: dateVal ? `Date: ${dateVal}` : 'Date: ____________________', color: '64748B', font: fontFamily, size: baseSizeHps - 2 }),
+              ],
+            }),
+          ],
+        });
       });
-    });
 
-    tableRows.push(
-      new TableRow({
-        cantSplit: true,
-        children: signatureCells,
-      })
-    );
+      // Fill remaining columns in the row with empty cells if chunk.length < maxCols
+      if (chunk.length < maxCols) {
+        for (let k = chunk.length; k < maxCols; k++) {
+          signatureCells.push(
+            new TableCell({
+              width: { size: convertMillimetersToTwip(colWidthMm), type: WidthType.DXA },
+              margins: { left: 0, right: 0, top: 0, bottom: 0 },
+              children: [new Paragraph({ spacing: { before: 0, after: 0 }, children: [] })],
+            })
+          );
+        }
+      }
+
+      tableRows.push(
+        new TableRow({
+          cantSplit: true,
+          children: signatureCells,
+        })
+      );
+    });
 
     docChildren.push(
       new Table({
@@ -1355,22 +1377,31 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
   let sigHtml = '';
   if (config.components?.signatures?.enabled && Array.isArray(config.components.signatures.signers)) {
     const signers = config.components.signatures.signers;
+    const maxCols = Math.min(3, Math.max(1, signers.length));
+    const signerChunks = [];
+    for (let i = 0; i < signers.length; i += 3) {
+      signerChunks.push(signers.slice(i, i + 3));
+    }
+
     sigHtml = `
       <div style="page-break-inside: avoid; margin-top: 6mm; padding-top: 4mm;">
         <div style="font-weight: bold; font-size: ${h1SizePt}pt; color: ${primaryColor}; margin-bottom: 2mm;">${config.components.signatures.title || 'ADOPTION AND SIGN-OFF RESOLUTION'}</div>
         <div style="font-size: ${bodySizePt}pt; line-height: 1.25; margin-bottom: 4mm; color: ${textColor};">${config.components.signatures.introText || ''}</div>
         <table style="width: 100%; border-collapse: collapse; table-layout: fixed; margin-top: 3mm;">
-          <tr>
-            ${signers.map(s => `
-              <td style="vertical-align: top; padding: 0 8px;">
-                <div style="width: 48mm; max-width: 75%; border-bottom: 1.5px solid #64748B; height: 16px; margin-bottom: 3px;"></div>
-                <div style="font-size: 8pt; font-style: italic; color: #64748B; margin-bottom: 6px;">Signature</div>
-                <div style="font-size: 9.5pt; font-weight: bold; color: ${textColor}; margin-bottom: 2px;">${s.name || ''}</div>
-                <div style="font-size: 8.5pt; font-weight: bold; color: ${primaryColor}; margin-bottom: 6px;">${s.role || ''}</div>
-                <div style="font-size: 8pt; color: #64748B;">Date: ${s.dateLabel || ''}</div>
-              </td>
-            `).join('')}
-          </tr>
+          ${signerChunks.map(chunk => `
+            <tr>
+              ${chunk.map(s => `
+                <td style="width: ${100 / maxCols}%; vertical-align: top; padding: 6px 8px;">
+                  <div style="width: 48mm; max-width: 75%; border-bottom: 1.5px solid #64748B; height: 16px; margin-bottom: 3px;"></div>
+                  <div style="font-size: 8pt; font-style: italic; color: #64748B; margin-bottom: 6px;">Signature</div>
+                  <div style="font-size: 9.5pt; font-weight: bold; color: ${textColor}; margin-bottom: 2px;">${s.name || ''}</div>
+                  <div style="font-size: 8.5pt; font-weight: bold; color: ${primaryColor}; margin-bottom: 6px;">${s.role || ''}</div>
+                  <div style="font-size: 8pt; color: #64748B;">Date: ${s.dateLabel || ''}</div>
+                </td>
+              `).join('')}
+              ${chunk.length < maxCols ? `<td colspan="${maxCols - chunk.length}"></td>` : ''}
+            </tr>
+          `).join('')}
         </table>
       </div>
     `;
