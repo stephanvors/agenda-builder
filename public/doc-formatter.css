@@ -1184,14 +1184,13 @@ body.formatter-studio-body {
     break-inside: avoid !important;
 }
 
-/* Modern Executive Signer Box */
+/* Modern Executive Signer Column */
 .prev-signer-card {
     display: flex;
     flex-direction: column;
-    background: #FFFFFF;
-    border: 1px solid #CBD5E1;
-    border-radius: 4px;
-    padding: 3mm 3.5mm;
+    background: transparent;
+    border: none;
+    padding: 0 3mm 4mm 0;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
     box-sizing: border-box;
