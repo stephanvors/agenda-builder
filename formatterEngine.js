@@ -1047,9 +1047,9 @@ export async function buildFormattedDocx(config, parsedBlocks) {
               },
               children: [],
             }),
-            // 3. Signature label
+            // 3. Signature label (with blank line spacing after it)
             new Paragraph({
-              spacing: { before: 0, after: 30 },
+              spacing: { before: 0, after: 90 },
               keepWithNext: true,
               children: [
                 new TextRun({
@@ -1068,7 +1068,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
               children: nameVal
                 ? [new TextRun({ text: nameVal, bold: true, color: textColor, font: fontFamily, size: baseSizeHps })]
                 : [
-                    new TextRun({ text: 'Name: ', bold: true, color: '64748B', font: fontFamily, size: baseSizeHps - 2 }),
+                    new TextRun({ text: 'NAME: ', bold: true, color: '64748B', font: fontFamily, size: baseSizeHps - 2 }),
                     new TextRun({ text: '______________________', color: '94A3B8', font: fontFamily, size: baseSizeHps - 2 }),
                   ],
             }),
@@ -1086,17 +1086,18 @@ export async function buildFormattedDocx(config, parsedBlocks) {
                 }),
               ],
             }),
-            // 6. Date
+            // 6. Date (Right-Justified)
             new Paragraph({
-              spacing: { before: 10, after: 0 },
+              alignment: AlignmentType.RIGHT,
+              spacing: { before: 40, after: 0 },
               children: dateVal
                 ? [
-                    new TextRun({ text: 'Date: ', bold: true, color: '64748B', font: fontFamily, size: baseSizeHps - 2 }),
+                    new TextRun({ text: 'DATE: ', bold: true, color: '64748B', font: fontFamily, size: baseSizeHps - 2 }),
                     new TextRun({ text: dateVal, color: textColor, font: fontFamily, size: baseSizeHps - 2 }),
                   ]
                 : [
-                    new TextRun({ text: 'Date: ', bold: true, color: '64748B', font: fontFamily, size: baseSizeHps - 2 }),
-                    new TextRun({ text: '______________________', color: '94A3B8', font: fontFamily, size: baseSizeHps - 2 }),
+                    new TextRun({ text: 'DATE: ', bold: true, color: '64748B', font: fontFamily, size: baseSizeHps - 2 }),
+                    new TextRun({ text: '__________________', color: '94A3B8', font: fontFamily, size: baseSizeHps - 2 }),
                   ],
             }),
           ],
@@ -1437,14 +1438,14 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
                   <td style="width: ${100 / maxCols}%; vertical-align: top; background: #FFFFFF; border: 1px solid #CBD5E1; border-radius: 4px; padding: 10px 12px; box-sizing: border-box;">
                     <div style="height: 15mm; min-height: 15mm;"></div>
                     <div style="border-bottom: 1.5px solid ${primaryColor}; margin-bottom: 2px;"></div>
-                    <div style="font-size: 7pt; text-transform: uppercase; letter-spacing: 0.8px; color: #64748B; font-weight: bold; margin-bottom: 6px;">Signature</div>
+                    <div style="font-size: 7pt; text-transform: uppercase; letter-spacing: 0.8px; color: #64748B; font-weight: bold; margin-bottom: 14px;">Signature</div>
                     <div style="font-size: 9.5pt; font-weight: bold; color: ${textColor}; margin-bottom: 2px; line-height: 1.2;">
                       ${nVal ? escapeHtml(nVal) : `<span style="color: #64748B; font-size: 8pt;">NAME:</span> <span style="display: inline-block; width: 65%; border-bottom: 1px solid #94A3B8;"></span>`}
                     </div>
                     <div style="font-size: 8.5pt; font-weight: bold; color: ${primaryColor}; text-transform: uppercase; margin-bottom: 4px; line-height: 1.2;">${escapeHtml(s.role || 'SIGNATORY')}</div>
-                    <div style="font-size: 8pt; color: #64748B; line-height: 1.2;">
+                    <div style="text-align: right; font-size: 8pt; color: #64748B; line-height: 1.2; margin-top: 6px;">
                       <span style="font-weight: bold;">DATE:</span> 
-                      ${dVal ? `<span style="color: ${textColor}; font-weight: 600;">${escapeHtml(dVal)}</span>` : `<span style="display: inline-block; width: 65%; border-bottom: 1px solid #94A3B8;"></span>`}
+                      ${dVal ? `<span style="color: ${textColor}; font-weight: 600;">${escapeHtml(dVal)}</span>` : `<span style="display: inline-block; width: 28mm; border-bottom: 1px solid #94A3B8;"></span>`}
                     </div>
                   </td>
                 `;
