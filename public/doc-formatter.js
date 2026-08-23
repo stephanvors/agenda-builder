@@ -870,6 +870,7 @@ function parseTextAndUpdatePreview() {
     const rawText = document.getElementById('raw-text-input')?.value || '';
     const lines = rawText.split(/\r?\n/);
     const blocks = [];
+    let autoL1Counter = 1;
 
     for (let i = 0; i < lines.length; i++) {
         const rawLine = lines[i].trim();
@@ -879,10 +880,15 @@ function parseTextAndUpdatePreview() {
         const mdMatch = rawLine.match(/^(#{1,5})\s+(.*)$/);
         if (mdMatch) {
             const lvl = mdMatch[1].length;
+            let num = '';
+            if (lvl === 1) {
+                num = autoL1Counter + '.';
+                autoL1Counter++;
+            }
             blocks.push({
                 type: lvl === 1 ? 'level1' : `level${lvl}`,
                 level: lvl,
-                number: '',
+                number: num,
                 text: mdMatch[2].trim()
             });
             continue;
@@ -949,6 +955,10 @@ function parseTextAndUpdatePreview() {
         // Level 1: 1-level numbering (e.g. 1. [Text] or 1. NAME or 1. Our Vision)
         const l1Match = rawLine.match(/^(\d+)\.\s+(.*)$/);
         if (l1Match) {
+            const explicitNum = parseInt(l1Match[1], 10);
+            if (!isNaN(explicitNum)) {
+                autoL1Counter = explicitNum + 1;
+            }
             blocks.push({
                 type: 'level1',
                 level: 1,
@@ -984,10 +994,12 @@ function parseTextAndUpdatePreview() {
 
         // Level 1: Standalone All-Caps Lines (e.g. 'OUR VISION', 'CODE OF CONDUCT')
         if (/^[A-Z0-9\s\&\,\-\(\)\:\/\|]{3,65}$/.test(rawLine) && !rawLine.startsWith('http') && !rawLine.includes('EMIS:') && !rawLine.endsWith('.')) {
+            const num = autoL1Counter + '.';
+            autoL1Counter++;
             blocks.push({
                 type: 'level1',
                 level: 1,
-                number: '',
+                number: num,
                 text: rawLine.trim()
             });
             continue;
@@ -1007,10 +1019,12 @@ function parseTextAndUpdatePreview() {
             (isNamedHeading || rawLine.startsWith('Our ') || rawLine.endsWith(' Statement') || rawLine.endsWith(' Values') || rawLine.endsWith(' Policy'));
 
         if (isNamedHeading || isShortHeading) {
+            const num = autoL1Counter + '.';
+            autoL1Counter++;
             blocks.push({
                 type: 'level1',
                 level: 1,
-                number: '',
+                number: num,
                 text: rawLine.replace(/[\:\-\–\—]+$/, '').trim()
             });
             continue;
