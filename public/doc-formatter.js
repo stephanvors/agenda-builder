@@ -1701,7 +1701,7 @@ function renderDocumentPreview() {
             <div class="prev-signatures-section">
                 <div class="prev-signatures-title" style="color: ${primaryColor};">${escapeHTML(sigTitle)}</div>
                 <div class="prev-signatures-intro">${escapeHTML(sigIntro)}</div>
-                <div class="prev-signatures-table" style="grid-template-columns: repeat(${numSigCols}, 1fr); gap: 6mm 5mm;">
+                <div class="prev-signatures-table" style="grid-template-columns: repeat(${numSigCols}, 1fr);">
         `;
 
         signerEls.forEach(s => {
@@ -1713,16 +1713,19 @@ function renderDocumentPreview() {
             const displayDate = date.replace(/^_+$/, '').trim();
 
             sHtml += `
-                <div class="prev-signer-col">
-                    <div class="sig-line-wrap"></div>
+                <div class="prev-signer-card">
+                    <div class="sig-space-zone"></div>
+                    <div class="sig-baseline-rule" style="border-bottom: 1.5px solid ${primaryColor};"></div>
                     <div class="sig-label">Signature</div>
-                    <div class="sig-name-row" style="font-weight: 700; color: ${textColor}; margin-bottom: 2px;">
-                        ${escapeHTML(displayName || '____________________')}
-                    </div>
-                    <div class="role" style="color: ${primaryColor}; font-weight: bold;">${escapeHTML(role)}</div>
-                    <div class="sig-field-row date-field-row">
-                        <span class="sig-field-label">Date:</span>
-                        <span class="sig-field-underline">${escapeHTML(displayDate)}</span>
+                    <div class="sig-details-body">
+                        <div class="sig-name-row">
+                            ${displayName ? `<span class="sig-person-name" style="color: ${textColor};">${escapeHTML(displayName)}</span>` : `<div class="sig-blank-row"><span class="sig-field-prefix">Name:</span><span class="sig-field-line"></span></div>`}
+                        </div>
+                        <div class="sig-role-row" style="color: ${primaryColor};">${escapeHTML(role)}</div>
+                        <div class="sig-date-row">
+                            <span class="sig-field-prefix">Date:</span>
+                            ${displayDate ? `<span class="sig-date-val">${escapeHTML(displayDate)}</span>` : `<span class="sig-field-line"></span>`}
+                        </div>
                     </div>
                 </div>
             `;

@@ -34,6 +34,7 @@ const {
 } = docx;
 
 const convertPointToHalfPoint = (pt) => Math.round(Number(pt || 10) * 2);
+const escapeHtml = (str) => !str ? '' : String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 // ── Smart Text Hierarchy Parser ──
 export function parseRawText(rawText) {
@@ -1011,59 +1012,89 @@ export async function buildFormattedDocx(config, parsedBlocks) {
         } else if (nameVal.toLowerCase().startsWith('surname, name:')) {
           nameVal = nameVal.replace(/^surname,\s*name:\s*/i, '');
         }
+        nameVal = nameVal.replace(/^_+$/, '').trim();
 
         let dateVal = s.dateLabel ? s.dateLabel.trim() : '';
         if (dateVal.toLowerCase().startsWith('date:')) {
           dateVal = dateVal.replace(/^date:\s*/i, '');
         }
+        dateVal = dateVal.replace(/^_+$/, '').trim();
 
         return new TableCell({
           width: { size: convertMillimetersToTwip(colWidthMm), type: WidthType.DXA },
-          margins: { left: 20, right: 20, top: chunkIdx > 0 ? 120 : 80, bottom: 40 },
+          shading: { fill: 'F8FAFC', type: ShadingType.CLEAR },
+          borders: {
+            top: { style: BorderStyle.SINGLE, size: 4, color: 'E2E8F0' },
+            bottom: { style: BorderStyle.SINGLE, size: 4, color: 'E2E8F0' },
+            left: { style: BorderStyle.SINGLE, size: 4, color: 'E2E8F0' },
+            right: { style: BorderStyle.SINGLE, size: 4, color: 'E2E8F0' },
+          },
+          margins: { left: 80, right: 80, top: 60, bottom: 60 },
           children: [
-            // 1. Signature shorter vector line & label
+            // 1. Generous room for signature
+            new Paragraph({
+              spacing: { before: 200, after: 0 },
+              children: [],
+            }),
+            // 2. Clean baseline rule
             new Paragraph({
               spacing: { before: 0, after: 10 },
-              keepWithNext: true,
-              keepLines: true,
-              children: [
-                new TextRun({
-                  text: '_________________________',
-                  color: '64748B',
-                  font: fontFamily,
-                  size: baseSizeHps,
-                }),
-              ],
+              border: {
+                bottom: { style: BorderStyle.SINGLE, size: 8, color: primaryColor }
+              },
+              children: [],
             }),
-            new Paragraph({
-              spacing: { before: 0, after: 40 },
-              keepWithNext: true,
-              keepLines: true,
-              children: [new TextRun({ text: 'Signature', italics: true, color: '64748B', font: fontFamily, size: Math.max(7, (baseSizeHps / 2) - 2) * 2 })],
-            }),
-            // 2. Name
-            new Paragraph({
-              spacing: { before: 0, after: 20 },
-              keepWithNext: true,
-              keepLines: true,
-              children: [
-                new TextRun({ text: nameVal || '____________________', bold: true, color: textColor, font: fontFamily, size: baseSizeHps }),
-              ],
-            }),
-            // 3. Role
+            // 3. Signature label
             new Paragraph({
               spacing: { before: 0, after: 30 },
               keepWithNext: true,
-              keepLines: true,
-              children: [new TextRun({ text: s.role || 'Signatory', bold: true, color: primaryColor, font: fontFamily, size: baseSizeHps - 1 })],
-            }),
-            // 4. Date
-            new Paragraph({
-              spacing: { before: 30, after: 0 },
-              keepLines: true,
               children: [
-                new TextRun({ text: dateVal ? `Date: ${dateVal}` : 'Date: ____________________', color: '64748B', font: fontFamily, size: baseSizeHps - 2 }),
+                new TextRun({
+                  text: 'SIGNATURE',
+                  size: 14,
+                  bold: true,
+                  color: '64748B',
+                  font: fontFamily,
+                }),
               ],
+            }),
+            // 4. Name
+            new Paragraph({
+              spacing: { before: 0, after: 15 },
+              keepWithNext: true,
+              children: nameVal
+                ? [new TextRun({ text: nameVal, bold: true, color: textColor, font: fontFamily, size: baseSizeHps })]
+                : [
+                    new TextRun({ text: 'Name: ', bold: true, color: '64748B', font: fontFamily, size: baseSizeHps - 2 }),
+                    new TextRun({ text: '______________________', color: '94A3B8', font: fontFamily, size: baseSizeHps - 2 }),
+                  ],
+            }),
+            // 5. Role
+            new Paragraph({
+              spacing: { before: 0, after: 20 },
+              keepWithNext: true,
+              children: [
+                new TextRun({
+                  text: (s.role || 'SIGNATORY').toUpperCase(),
+                  bold: true,
+                  color: primaryColor,
+                  font: fontFamily,
+                  size: baseSizeHps - 1,
+                }),
+              ],
+            }),
+            // 6. Date
+            new Paragraph({
+              spacing: { before: 10, after: 0 },
+              children: dateVal
+                ? [
+                    new TextRun({ text: 'Date: ', bold: true, color: '64748B', font: fontFamily, size: baseSizeHps - 2 }),
+                    new TextRun({ text: dateVal, color: textColor, font: fontFamily, size: baseSizeHps - 2 }),
+                  ]
+                : [
+                    new TextRun({ text: 'Date: ', bold: true, color: '64748B', font: fontFamily, size: baseSizeHps - 2 }),
+                    new TextRun({ text: '______________________', color: '94A3B8', font: fontFamily, size: baseSizeHps - 2 }),
+                  ],
             }),
           ],
         });
@@ -1075,6 +1106,12 @@ export async function buildFormattedDocx(config, parsedBlocks) {
           signatureCells.push(
             new TableCell({
               width: { size: convertMillimetersToTwip(colWidthMm), type: WidthType.DXA },
+              borders: {
+                top: { style: BorderStyle.NONE },
+                bottom: { style: BorderStyle.NONE },
+                left: { style: BorderStyle.NONE },
+                right: { style: BorderStyle.NONE },
+              },
               margins: { left: 0, right: 0, top: 0, bottom: 0 },
               children: [new Paragraph({ spacing: { before: 0, after: 0 }, children: [] })],
             })
@@ -1385,21 +1422,31 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
 
     sigHtml = `
       <div style="page-break-inside: avoid; margin-top: 6mm; padding-top: 4mm;">
-        <div style="font-weight: bold; font-size: ${h1SizePt}pt; color: ${primaryColor}; margin-bottom: 2mm;">${config.components.signatures.title || 'ADOPTION AND SIGN-OFF RESOLUTION'}</div>
-        <div style="font-size: ${bodySizePt}pt; line-height: 1.25; margin-bottom: 4mm; color: ${textColor};">${config.components.signatures.introText || ''}</div>
-        <table style="width: 100%; border-collapse: collapse; table-layout: fixed; margin-top: 3mm;">
+        <div style="font-weight: 800; font-size: ${h1SizePt}pt; color: ${primaryColor}; margin-bottom: 2mm; letter-spacing: 0.5px;">${config.components.signatures.title || 'ADOPTION AND SIGN-OFF RESOLUTION'}</div>
+        <div style="font-size: ${bodySizePt}pt; line-height: 1.35; margin-bottom: 4mm; color: ${textColor}; text-align: justify;">${config.components.signatures.introText || ''}</div>
+        <table style="width: 100%; border-collapse: separate; border-spacing: 12px 10px; table-layout: fixed; margin-top: 2mm;">
           ${signerChunks.map(chunk => `
             <tr>
-              ${chunk.map(s => `
-                <td style="width: ${100 / maxCols}%; vertical-align: top; padding: 6px 8px;">
-                  <div style="width: 48mm; max-width: 75%; border-bottom: 1.5px solid #64748B; height: 16px; margin-bottom: 3px;"></div>
-                  <div style="font-size: 8pt; font-style: italic; color: #64748B; margin-bottom: 6px;">Signature</div>
-                  <div style="font-size: 9.5pt; font-weight: bold; color: ${textColor}; margin-bottom: 2px;">${s.name || ''}</div>
-                  <div style="font-size: 8.5pt; font-weight: bold; color: ${primaryColor}; margin-bottom: 6px;">${s.role || ''}</div>
-                  <div style="font-size: 8pt; color: #64748B;">Date: ${s.dateLabel || ''}</div>
-                </td>
-              `).join('')}
-              ${chunk.length < maxCols ? `<td colspan="${maxCols - chunk.length}"></td>` : ''}
+              ${chunk.map(s => {
+                let nVal = (s.name || '').replace(/^_+$/, '').trim();
+                let dVal = (s.dateLabel || '').replace(/^_+$/, '').trim();
+                return `
+                  <td style="width: ${100 / maxCols}%; vertical-align: top; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 4px; padding: 10px 12px; box-sizing: border-box;">
+                    <div style="height: 15mm; min-height: 15mm;"></div>
+                    <div style="border-bottom: 1.5px solid ${primaryColor}; margin-bottom: 2px;"></div>
+                    <div style="font-size: 7pt; text-transform: uppercase; letter-spacing: 0.8px; color: #64748B; font-weight: bold; margin-bottom: 6px;">Signature</div>
+                    <div style="font-size: 9.5pt; font-weight: bold; color: ${textColor}; margin-bottom: 2px; line-height: 1.2;">
+                      ${nVal ? escapeHtml(nVal) : `<span style="color: #64748B; font-size: 8pt;">NAME:</span> <span style="display: inline-block; width: 65%; border-bottom: 1px solid #94A3B8;"></span>`}
+                    </div>
+                    <div style="font-size: 8.5pt; font-weight: bold; color: ${primaryColor}; text-transform: uppercase; margin-bottom: 4px; line-height: 1.2;">${escapeHtml(s.role || 'SIGNATORY')}</div>
+                    <div style="font-size: 8pt; color: #64748B; line-height: 1.2;">
+                      <span style="font-weight: bold;">DATE:</span> 
+                      ${dVal ? `<span style="color: ${textColor}; font-weight: 600;">${escapeHtml(dVal)}</span>` : `<span style="display: inline-block; width: 65%; border-bottom: 1px solid #94A3B8;"></span>`}
+                    </div>
+                  </td>
+                `;
+              }).join('')}
+              ${chunk.length < maxCols ? `<td colspan="${maxCols - chunk.length}" style="border: none; background: transparent;"></td>` : ''}
             </tr>
           `).join('')}
         </table>

@@ -1158,16 +1158,17 @@ body.formatter-studio-body {
 
 .prev-signatures-title {
     font-size: 11pt;
-    font-weight: bold;
-    color: #0C2340;
+    font-weight: 800;
+    letter-spacing: 0.5px;
     margin-bottom: 2mm;
     page-break-after: avoid;
     break-after: avoid;
 }
 
 .prev-signatures-intro {
-    font-size: 10pt;
+    font-size: 9.5pt;
     margin-bottom: 4mm;
+    line-height: 1.35;
     text-align: justify;
     page-break-after: avoid;
     break-after: avoid;
@@ -1177,73 +1178,101 @@ body.formatter-studio-body {
     width: 100%;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 5mm;
-    margin-top: 5mm;
+    gap: 4mm 4.5mm;
+    margin-top: 3mm;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
 }
 
-.prev-signer-col {
+/* Modern Executive Signer Box */
+.prev-signer-card {
     display: flex;
     flex-direction: column;
-    gap: 0.8mm;
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 4px;
+    padding: 3mm 3.5mm;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
+    box-sizing: border-box;
 }
 
-.prev-signer-col .sig-line-wrap {
-    width: 48mm;
-    max-width: 75%;
-    border-bottom: 1.5px solid #64748B;
-    height: 3mm;
+[data-theme="dark"] .prev-signer-card {
+    background: #1E293B;
+    border-color: #334155;
+}
+
+.prev-signer-card .sig-space-zone {
+    height: 15mm;
+    min-height: 15mm;
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-start;
+}
+
+.prev-signer-card .sig-baseline-rule {
+    width: 100%;
+    border-bottom: 1.5px solid #0C2340;
     margin-bottom: 1mm;
 }
 
-.prev-signer-col .sig-label {
-    font-size: 7.5pt;
-    font-style: italic;
+.prev-signer-card .sig-label {
+    font-size: 7pt;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
     color: #64748B;
-    margin-top: -0.5mm;
+    font-weight: 600;
     margin-bottom: 2mm;
 }
 
-.prev-signer-col .sig-field-row {
-    width: 100%;
+.prev-signer-card .sig-details-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2mm;
+}
+
+.prev-signer-card .sig-person-name {
+    font-size: 9.5pt;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.prev-signer-card .sig-role-row {
+    font-size: 8.5pt;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.prev-signer-card .sig-blank-row,
+.prev-signer-card .sig-date-row {
     display: flex;
     align-items: flex-end;
     gap: 1.5mm;
-    font-size: 8.8pt;
-    color: #1E293B;
-    margin-bottom: 1mm;
-}
-
-.prev-signer-col .sig-field-label {
-    font-weight: 500;
-    white-space: nowrap;
-    color: #334155;
     font-size: 8.5pt;
+    color: #475569;
 }
 
-.prev-signer-col .sig-field-underline {
-    flex: 1;
-    border-bottom: 1px solid #64748B;
-    min-height: 3.5mm;
-    font-size: 8.8pt;
-    color: #1E293B;
+.prev-signer-card .sig-field-prefix {
+    font-weight: 600;
+    color: #64748B;
+    font-size: 8pt;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
-.prev-signer-col .role {
-    font-weight: bold;
-    color: #0C2340;
-    font-size: 9.5pt;
-    margin-top: 0.5mm;
+.prev-signer-card .sig-field-line {
+    flex: 1;
+    border-bottom: 1px solid #94A3B8;
+    height: 1px;
+    margin-bottom: 1px;
+    min-height: 1px;
 }
 
-.prev-signer-col .date-field-row {
-    margin-top: 3.5mm; /* Line spacing before date fields */
+.prev-signer-card .sig-date-val {
+    font-weight: 600;
+    color: #1E293B;
+    font-size: 8.5pt;
 }
 
 .prev-footer {
