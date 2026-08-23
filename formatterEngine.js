@@ -988,11 +988,53 @@ export async function buildFormattedDocx(config, parsedBlocks) {
       );
     }
 
-    // 3. Frameless Signature Table (no cell borders, no empty cells, no divider lines)
+    // 3. Bordered Signature Cards Table (thicker cell borders, spacer columns for gaps)
+    const spacerMm = maxCols > 1 ? (maxCols === 3 ? 5 : 6) : 0;
+    const totalSpacerWidthMm = (maxCols - 1) * spacerMm;
+    const boxWidthMm = (bodyWidthMm - totalSpacerWidthMm) / maxCols;
+    const totalTableCols = maxCols + (maxCols > 1 ? maxCols - 1 : 0);
     const tableRows = [];
 
     signerChunks.forEach((chunk, chunkIdx) => {
-      const signatureCells = chunk.map(s => {
+      // Vertical spacer row between signature card rows
+      if (chunkIdx > 0) {
+        const spacerCells = [];
+        for (let c = 0; c < totalTableCols; c++) {
+          spacerCells.push(
+            new TableCell({
+              borders: {
+                top: { style: BorderStyle.NONE },
+                bottom: { style: BorderStyle.NONE },
+                left: { style: BorderStyle.NONE },
+                right: { style: BorderStyle.NONE },
+              },
+              margins: { left: 0, right: 0, top: 0, bottom: 0 },
+              children: [new Paragraph({ spacing: { before: 160, after: 0 }, children: [] })],
+            })
+          );
+        }
+        tableRows.push(new TableRow({ cantSplit: true, children: spacerCells }));
+      }
+
+      const signatureCells = [];
+      chunk.forEach((s, sIdx) => {
+        // Horizontal spacer column between boxes
+        if (sIdx > 0 && spacerMm > 0) {
+          signatureCells.push(
+            new TableCell({
+              width: { size: convertMillimetersToTwip(spacerMm), type: WidthType.DXA },
+              borders: {
+                top: { style: BorderStyle.NONE },
+                bottom: { style: BorderStyle.NONE },
+                left: { style: BorderStyle.NONE },
+                right: { style: BorderStyle.NONE },
+              },
+              margins: { left: 0, right: 0, top: 0, bottom: 0 },
+              children: [new Paragraph({ spacing: { before: 0, after: 0 }, children: [] })],
+            })
+          );
+        }
+
         let nameVal = s.name ? s.name.trim() : '';
         if (nameVal.toLowerCase().startsWith('name:')) {
           nameVal = nameVal.replace(/^name:\s*/i, '');
@@ -1007,85 +1049,121 @@ export async function buildFormattedDocx(config, parsedBlocks) {
         }
         dateVal = dateVal.replace(/^_+$/, '').trim();
 
-        return new TableCell({
-          width: { size: convertMillimetersToTwip(colWidthMm), type: WidthType.DXA },
-          borders: {
-            top: { style: BorderStyle.NONE },
-            bottom: { style: BorderStyle.NONE },
-            left: { style: BorderStyle.NONE },
-            right: { style: BorderStyle.NONE },
-          },
-          margins: { left: 140, right: 140, top: 40, bottom: 80 },
-          children: [
-            // 1. Generous room for signature
-            new Paragraph({
-              spacing: { before: chunkIdx > 0 ? 100 : 180, after: 0 },
-              children: [],
-            }),
-            // 2. Clean baseline rule
-            new Paragraph({
-              spacing: { before: 0, after: 10 },
-              border: {
-                bottom: { style: BorderStyle.SINGLE, size: 8, color: primaryColor }
-              },
-              children: [],
-            }),
-            // 3. Signature label (with blank line spacing after it)
-            new Paragraph({
-              spacing: { before: 0, after: 90 },
-              keepWithNext: true,
-              children: [
-                new TextRun({
-                  text: 'SIGNATURE',
-                  size: 14,
-                  bold: true,
-                  color: '64748B',
-                  font: fontFamily,
-                }),
-              ],
-            }),
-            // 4. Name
-            new Paragraph({
-              spacing: { before: 0, after: 15 },
-              keepWithNext: true,
-              children: nameVal
-                ? [new TextRun({ text: nameVal, bold: true, color: textColor, font: fontFamily, size: baseSizeHps })]
-                : [
-                    new TextRun({ text: 'NAME: ', bold: true, color: '64748B', font: fontFamily, size: baseSizeHps - 2 }),
-                    new TextRun({ text: '______________________', color: '94A3B8', font: fontFamily, size: baseSizeHps - 2 }),
-                  ],
-            }),
-            // 5. Role
-            new Paragraph({
-              spacing: { before: 0, after: 20 },
-              keepWithNext: true,
-              children: [
-                new TextRun({
-                  text: (s.role || 'SIGNATORY').toUpperCase(),
-                  bold: true,
-                  color: primaryColor,
-                  font: fontFamily,
-                  size: baseSizeHps - 1,
-                }),
-              ],
-            }),
-            // 6. Date (Right-Justified)
-            new Paragraph({
-              alignment: AlignmentType.RIGHT,
-              spacing: { before: 40, after: 0 },
-              children: dateVal
-                ? [
-                    new TextRun({ text: 'DATE: ', bold: true, color: '64748B', font: fontFamily, size: baseSizeHps - 2 }),
-                    new TextRun({ text: dateVal, color: textColor, font: fontFamily, size: baseSizeHps - 2 }),
-                  ]
-                : [
-                    new TextRun({ text: 'DATE: ', bold: true, color: '64748B', font: fontFamily, size: baseSizeHps - 2 }),
-                    new TextRun({ text: '__________________', color: '94A3B8', font: fontFamily, size: baseSizeHps - 2 }),
-                  ],
-            }),
-          ],
-        });
+        signatureCells.push(
+          new TableCell({
+            width: { size: convertMillimetersToTwip(boxWidthMm), type: WidthType.DXA },
+            borders: {
+              top: { style: BorderStyle.SINGLE, size: 6, color: '94A3B8' },
+              bottom: { style: BorderStyle.SINGLE, size: 6, color: '94A3B8' },
+              left: { style: BorderStyle.SINGLE, size: 6, color: '94A3B8' },
+              right: { style: BorderStyle.SINGLE, size: 6, color: '94A3B8' },
+            },
+            margins: { left: 160, right: 160, top: 100, bottom: 100 },
+            children: [
+              // 1. Generous room for signature
+              new Paragraph({
+                spacing: { before: 180, after: 0 },
+                children: [],
+              }),
+              // 2. Clean baseline rule
+              new Paragraph({
+                spacing: { before: 0, after: 10 },
+                border: {
+                  bottom: { style: BorderStyle.SINGLE, size: 8, color: primaryColor }
+                },
+                children: [],
+              }),
+              // 3. Signature label (with blank line spacing after it)
+              new Paragraph({
+                spacing: { before: 0, after: 90 },
+                keepWithNext: true,
+                children: [
+                  new TextRun({
+                    text: 'SIGNATURE',
+                    size: 14,
+                    bold: true,
+                    color: '64748B',
+                    font: fontFamily,
+                  }),
+                ],
+              }),
+              // 4. Name
+              new Paragraph({
+                spacing: { before: 0, after: 15 },
+                keepWithNext: true,
+                children: nameVal
+                  ? [new TextRun({ text: nameVal, bold: true, color: textColor, font: fontFamily, size: baseSizeHps })]
+                  : [
+                      new TextRun({ text: 'NAME: ', bold: true, color: '64748B', font: fontFamily, size: baseSizeHps - 2 }),
+                      new TextRun({ text: '______________________', color: '94A3B8', font: fontFamily, size: baseSizeHps - 2 }),
+                    ],
+              }),
+              // 5. Role
+              new Paragraph({
+                spacing: { before: 0, after: 20 },
+                keepWithNext: true,
+                children: [
+                  new TextRun({
+                    text: (s.role || 'SIGNATORY').toUpperCase(),
+                    bold: true,
+                    color: primaryColor,
+                    font: fontFamily,
+                    size: baseSizeHps - 1,
+                  }),
+                ],
+              }),
+              // 6. Date (Right-Justified)
+              new Paragraph({
+                alignment: AlignmentType.RIGHT,
+                spacing: { before: 40, after: 0 },
+                children: dateVal
+                  ? [
+                      new TextRun({ text: 'DATE: ', bold: true, color: '64748B', font: fontFamily, size: baseSizeHps - 2 }),
+                      new TextRun({ text: dateVal, color: textColor, font: fontFamily, size: baseSizeHps - 2 }),
+                    ]
+                  : [
+                      new TextRun({ text: 'DATE: ', bold: true, color: '64748B', font: fontFamily, size: baseSizeHps - 2 }),
+                      new TextRun({ text: '__________________', color: '94A3B8', font: fontFamily, size: baseSizeHps - 2 }),
+                    ],
+              }),
+            ],
+          })
+        );
       });
+
+      // Fill remaining columns with invisible spacer + empty cells if chunk is short
+      if (chunk.length < maxCols) {
+        for (let k = chunk.length; k < maxCols; k++) {
+          if (spacerMm > 0) {
+            signatureCells.push(
+              new TableCell({
+                width: { size: convertMillimetersToTwip(spacerMm), type: WidthType.DXA },
+                borders: {
+                  top: { style: BorderStyle.NONE },
+                  bottom: { style: BorderStyle.NONE },
+                  left: { style: BorderStyle.NONE },
+                  right: { style: BorderStyle.NONE },
+                },
+                margins: { left: 0, right: 0, top: 0, bottom: 0 },
+                children: [new Paragraph({ spacing: { before: 0, after: 0 }, children: [] })],
+              })
+            );
+          }
+          signatureCells.push(
+            new TableCell({
+              width: { size: convertMillimetersToTwip(boxWidthMm), type: WidthType.DXA },
+              borders: {
+                top: { style: BorderStyle.NONE },
+                bottom: { style: BorderStyle.NONE },
+                left: { style: BorderStyle.NONE },
+                right: { style: BorderStyle.NONE },
+              },
+              margins: { left: 0, right: 0, top: 0, bottom: 0 },
+              children: [new Paragraph({ spacing: { before: 0, after: 0 }, children: [] })],
+            })
+          );
+        }
+      }
 
       tableRows.push(
         new TableRow({
@@ -1393,14 +1471,14 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
       <div style="page-break-before: always; break-before: page; margin-top: 6mm; padding-top: 4mm;">
         <div style="font-weight: 800; font-size: ${h1SizePt}pt; color: ${primaryColor}; margin-bottom: 2mm; letter-spacing: 0.5px;">${config.components.signatures.title || 'ADOPTION AND SIGN-OFF RESOLUTION'}</div>
         <div style="font-size: ${bodySizePt}pt; line-height: 1.35; margin-bottom: 4mm; color: ${textColor}; text-align: justify;">${config.components.signatures.introText || ''}</div>
-        <table style="width: 100%; border-collapse: collapse; border: none; table-layout: fixed; margin-top: 2mm;">
+        <table style="width: 100%; border-collapse: separate; border-spacing: 5mm 4mm; table-layout: fixed; margin-top: 2mm;">
           ${signerChunks.map(chunk => `
             <tr>
               ${chunk.map(s => {
                 let nVal = (s.name || '').replace(/^_+$/, '').trim();
                 let dVal = (s.dateLabel || '').replace(/^_+$/, '').trim();
                 return `
-                  <td style="width: ${100 / maxCols}%; vertical-align: top; background: transparent; border: none; padding: 0 16px 20px 0; box-sizing: border-box;">
+                  <td style="width: ${100 / maxCols}%; vertical-align: top; background: #FFFFFF; border: 1.5px solid #94A3B8; border-radius: 3px; padding: 12px 14px; box-sizing: border-box;">
                     <div style="height: 15mm; min-height: 15mm;"></div>
                     <div style="border-bottom: 1.5px solid ${primaryColor}; margin-bottom: 2px;"></div>
                     <div style="font-size: 7pt; text-transform: uppercase; letter-spacing: 0.8px; color: #64748B; font-weight: bold; margin-bottom: 14px;">Signature</div>
@@ -1415,6 +1493,7 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
                   </td>
                 `;
               }).join('')}
+              ${chunk.length < maxCols ? `<td colspan="${maxCols - chunk.length}" style="border: none; background: transparent;"></td>` : ''}
             </tr>
           `).join('')}
         </table>
