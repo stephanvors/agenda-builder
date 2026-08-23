@@ -1594,7 +1594,7 @@ function renderDocumentPreview() {
             const headingText = l1Upper ? b.text.toUpperCase() : b.text;
             const formattedHeading = formatTextWithSpellHighlights(headingText);
             const textDecor = l1Underline ? 'underline' : 'none';
-            const topMarginPt = Math.max(spaceBeforePt, Math.round(spaceBeforePt + 8));
+            const topMarginPt = spaceBeforePt;
             if (b.number) {
                 bHtml = `<div class="prev-clause-item prev-clause-level1" style="position: relative; padding-left: ${l2Wrap}mm; font-weight: ${l1Bold ? 'bold' : 'normal'}; text-decoration: ${textDecor}; text-transform: ${l1Upper ? 'uppercase' : 'none'}; color: ${primaryColor}; font-size: ${l1Size}pt; margin: ${topMarginPt}pt 0 ${spaceAfterPt}pt 0;"><span class="prev-num-bold" style="position: absolute; left: ${l1Offset}mm; top: 0; font-weight: bold; color: ${primaryColor}; text-decoration: none;">${escapeHTML(b.number)}</span><span class="prev-heading-text">${formattedHeading}</span></div>`;
             } else {

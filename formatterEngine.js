@@ -724,7 +724,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
       const l1SizeHps = convertPointToHalfPoint(l1Size);
       const l1Underline = cfg.underline ? { type: UnderlineType.SINGLE } : undefined;
       const headingText = cfg.uppercase !== false ? block.text.toUpperCase() : block.text;
-      const l1SpaceBefore = Math.round(spaceBeforePt * 20) + 160;
+      const l1SpaceBefore = Math.round(spaceBeforePt * 20);
       const l1SpaceAfter = Math.round(spaceAfterPt * 20);
 
       if (block.number) {
@@ -1243,7 +1243,7 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
       const headingText = l1Upper ? b.text.toUpperCase() : b.text;
       const textDecor = l1Underline ? 'underline' : 'none';
       const weight = l1Bold ? 'bold' : 'normal';
-      const topMarginPt = Math.max(spaceBeforePt, Math.round(spaceBeforePt + 8));
+      const topMarginPt = spaceBeforePt;
       bodyHtml += `
         <div style="font-weight: ${weight}; text-decoration: ${textDecor}; font-size: ${l1SizePt}pt; color: ${primaryColor}; margin: ${topMarginPt}pt 0 ${spaceAfterPt}pt ${indentL1}mm; page-break-after: avoid;">
           ${b.number ? `<span style="display: inline-block; min-width: 10mm; text-decoration: none;">${b.number}</span>` : ''}
