@@ -2175,11 +2175,11 @@ function renderDocumentPreview() {
                             <div class="sig-label">Signature</div>
                             <div class="sig-details-body">
                                 <div class="sig-name-row">
-                                    <div class="sig-blank-row"><span class="sig-field-prefix">Name:</span><span class="sig-field-line"></span></div>
+                                    <div class="sig-blank-row"><span class="sig-field-prefix">NAME:</span><span class="sig-field-line"></span></div>
                                 </div>
                                 <div class="sig-role-row" style="color: ${primaryColor};">${escapeHTML(districtRole.toUpperCase())}</div>
                                 <div class="sig-date-row">
-                                    <span class="sig-field-prefix">Date:</span>
+                                    <span class="sig-field-prefix">DATE:</span>
                                     <span class="sig-field-line"></span>
                                 </div>
                             </div>

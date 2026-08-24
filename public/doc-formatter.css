@@ -1493,13 +1493,13 @@ input[id$="-uppercase"]:not(:checked) + span {
     letter-spacing: 0.8px;
     color: #64748B;
     font-weight: 600;
-    margin-bottom: 4.5mm; /* Blank line spacing after signature */
+    margin-bottom: 3.5mm; /* Blank line spacing after signature */
 }
 
 .prev-signer-card .sig-details-body {
     display: flex;
     flex-direction: column;
-    gap: 1.5mm;
+    gap: 2.5mm;
 }
 
 .prev-signer-card .sig-person-name {
@@ -1530,8 +1530,34 @@ input[id$="-uppercase"]:not(:checked) + span {
     gap: 1.5mm;
     font-size: 8.5pt;
     color: #475569;
-    margin-top: 0;
+    margin-top: 1.5mm;
     text-align: left;
+}
+
+.prev-district-grid .prev-signer-card {
+    height: 52mm;
+    min-height: 52mm;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.prev-district-grid .prev-signer-card .sig-details-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding-top: 1.5mm;
+}
+
+.prev-district-grid .prev-signer-card .sig-role-row {
+    margin-top: 1mm;
+    margin-bottom: 3.5mm;
+}
+
+.prev-district-grid .prev-signer-card .sig-date-row {
+    margin-top: 4mm;
 }
 
 .prev-signer-card .sig-date-row .sig-field-line {
