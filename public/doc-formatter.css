@@ -1300,21 +1300,24 @@ input[id$="-uppercase"]:not(:checked) + span {
 
 .prev-header-badge {
     border-left: 2.5px solid #0C2340;
-    padding-left: 3mm;
+    padding-left: 4.5mm;
+    padding-right: 0;
     margin-left: auto;
+    margin-right: 0;
     flex-shrink: 0;
     text-align: left;
     white-space: nowrap;
     display: flex;
     flex-direction: column;
     justify-content: center;
+    gap: 3.5px;
 }
 
 .prev-header-badge .badge-main {
     font-size: 9.5pt;
     font-weight: 800;
     color: #0C2340;
-    line-height: 1.1;
+    line-height: 1.15;
     letter-spacing: 0.03em;
     text-transform: uppercase;
 }
@@ -1323,7 +1326,7 @@ input[id$="-uppercase"]:not(:checked) + span {
     font-size: 7.5pt;
     font-weight: 600;
     color: #64748B;
-    line-height: 1.1;
+    line-height: 1.15;
     letter-spacing: 0.04em;
     text-transform: uppercase;
 }

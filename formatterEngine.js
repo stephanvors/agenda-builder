@@ -531,14 +531,14 @@ export async function buildFormattedDocx(config, parsedBlocks) {
             right: { style: BorderStyle.NONE },
             bottom: { style: BorderStyle.NONE },
           },
-          margins: { top: 10, bottom: 10, left: 40, right: 0 },
+          margins: { top: 10, bottom: 10, left: 90, right: 0 },
           children: [
             new Paragraph({
-              spacing: { before: 0, after: 2, line: 200 },
+              spacing: { before: 0, after: 30, line: 220 },
               children: [new TextRun({ text: hdr.badgeText || 'OFFICIAL', bold: true, size: 19, color: primaryColor, font: fontFamily })],
             }),
             new Paragraph({
-              spacing: { before: 0, after: 0, line: 180 },
+              spacing: { before: 20, after: 0, line: 200 },
               children: [new TextRun({ text: hdr.badgeSubtext || 'CORRESPONDENCE', size: 14, color: '64748B', font: fontFamily })],
             }),
           ],
@@ -1550,9 +1550,9 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
               <div style="font-size: 7pt; color: #475569; line-height: 1.2;">${header.emis || 'EMIS: 200600985 | District: Joe Gqabi | Circuit: Ekhephini | CMC: Maletswai'}</div>
             </td>
             ${header.showBadge !== false ? `
-              <td style="width: 36mm; vertical-align: middle; border-left: 2.5px solid ${primaryColor}; padding-left: 3mm;">
-                <div style="font-size: 9.5pt; font-weight: bold; color: ${primaryColor}; line-height: 1.1;">${header.badgeText || 'OFFICIAL'}</div>
-                <div style="font-size: 7.5pt; color: #64748B; line-height: 1.1;">${header.badgeSubtext || 'CORRESPONDENCE'}</div>
+              <td style="width: 36mm; vertical-align: middle; border-left: 2.5px solid ${primaryColor}; padding-left: 4.5mm; padding-right: 0;">
+                <div style="font-size: 9.5pt; font-weight: bold; color: ${primaryColor}; line-height: 1.2; margin-bottom: 2px; text-transform: uppercase;">${header.badgeText || 'OFFICIAL'}</div>
+                <div style="font-size: 7.5pt; color: #64748B; line-height: 1.2; text-transform: uppercase;">${header.badgeSubtext || 'CORRESPONDENCE'}</div>
               </td>
             ` : ''}
           </tr>
