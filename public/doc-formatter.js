@@ -197,9 +197,9 @@ async function loadPresets() {
             }
 
             // ── Draft version cache-busting ──
-            // Bump this version string whenever the legal notice generator changes.
-            // Any stored draft from a previous version is discarded so stale notice text never survives.
-            const DRAFT_VERSION = '2026-08-23-v3';
+            // Bump this version string whenever preset or hierarchy settings change.
+            // Any stored draft from a previous version is discarded so stale bold or notice settings never survive.
+            const DRAFT_VERSION = '2026-08-24-v5';
             const storedDraftVersion = localStorage.getItem('sgb_formatter_draft_version');
             if (storedDraftVersion !== DRAFT_VERSION) {
                 localStorage.removeItem('sgb_formatter_draft');

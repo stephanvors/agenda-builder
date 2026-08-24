@@ -46,9 +46,9 @@
             "textWrapMm": 10,
             "hangingIndentMm": 10,
             "fontSizePt": 10,
-            "bold": true,
+            "bold": false,
             "underline": false,
-            "uppercase": true
+            "uppercase": false
           },
           {
             "level": 3,
@@ -57,9 +57,9 @@
             "textWrapMm": 22,
             "hangingIndentMm": 12,
             "fontSizePt": 10,
-            "bold": true,
+            "bold": false,
             "underline": false,
-            "uppercase": true
+            "uppercase": false
           },
           {
             "level": 4,
@@ -209,9 +209,9 @@
             "textWrapMm": 10,
             "hangingIndentMm": 10,
             "fontSizePt": 10,
-            "bold": true,
+            "bold": false,
             "underline": false,
-            "uppercase": true
+            "uppercase": false
           },
           {
             "level": 3,
@@ -220,9 +220,9 @@
             "textWrapMm": 22,
             "hangingIndentMm": 12,
             "fontSizePt": 10,
-            "bold": true,
+            "bold": false,
             "underline": false,
-            "uppercase": true
+            "uppercase": false
           },
           {
             "level": 4,
