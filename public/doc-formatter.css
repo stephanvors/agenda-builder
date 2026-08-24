@@ -522,15 +522,32 @@ body.formatter-studio-body {
 /* Form Elements */
 .form-row {
     display: flex;
-    gap: 0.65rem;
+    gap: 0.5rem;
     width: 100%;
     box-sizing: border-box;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 0.2rem;
+    line-height: 1.2;
+    white-space: normal;
+    word-break: break-word;
 }
 
 .form-grid-2 {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.65rem;
+    gap: 0.5rem;
     align-items: end;
     width: 100%;
     box-sizing: border-box;
@@ -539,7 +556,7 @@ body.formatter-studio-body {
 .form-grid-3 {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.55rem;
+    gap: 0.45rem;
     align-items: end;
     width: 100%;
     box-sizing: border-box;
@@ -548,18 +565,10 @@ body.formatter-studio-body {
 .form-grid-4 {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 0.5rem;
+    gap: 0.4rem;
     align-items: end;
     width: 100%;
     box-sizing: border-box;
-}
-
-.form-grid-4 .form-group label,
-.form-grid-3 .form-group label,
-.form-grid-2 .form-group label {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 .studio-input,
@@ -568,11 +577,11 @@ body.formatter-studio-body {
     width: 100%;
     min-width: 0;
     max-width: 100%;
-    padding: 0.45rem 0.6rem;
-    font-size: 0.82rem;
+    padding: 0.32rem 0.45rem;
+    font-size: 0.75rem;
     background: var(--bg-subtle);
     border: 1px solid var(--border);
-    border-radius: 6px;
+    border-radius: 5px;
     color: var(--text-main);
     box-sizing: border-box;
     font-family: inherit;
@@ -583,12 +592,16 @@ body.formatter-studio-body {
     appearance: none;
     -webkit-appearance: none;
     -moz-appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
     background-repeat: no-repeat !important;
-    background-position: right 0.75rem center !important;
-    background-size: 12px 12px !important;
-    padding-right: 2.2rem !important;
+    background-position: right 0.4rem center !important;
+    background-size: 10px 10px !important;
+    padding-right: 1.35rem !important;
     cursor: pointer;
+    font-size: 0.74rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
 }
 
 .studio-input:focus,
@@ -606,13 +619,13 @@ body.formatter-studio-body {
 }
 
 .input-with-unit input {
-    padding-right: 2.2rem;
+    padding-right: 1.8rem;
 }
 
 .input-with-unit .unit {
     position: absolute;
-    right: 0.65rem;
-    font-size: 0.75rem;
+    right: 0.5rem;
+    font-size: 0.7rem;
     color: var(--text-muted);
     pointer-events: none;
 }
@@ -620,17 +633,29 @@ body.formatter-studio-body {
 .color-picker-row {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
+    gap: 0.3rem;
+    width: 100%;
+    min-width: 0;
 }
 
 .color-swatch {
-    width: 34px;
-    height: 32px;
+    width: 22px;
+    height: 26px;
     padding: 0;
     border: 1px solid var(--border);
-    border-radius: 6px;
+    border-radius: 4px;
     cursor: pointer;
     background: transparent;
+    flex-shrink: 0;
+}
+
+.color-picker-row .studio-input {
+    padding: 0.25rem 0.25rem;
+    font-size: 0.72rem;
+    font-family: monospace;
+    letter-spacing: -0.4px;
+    text-align: center;
+    min-width: 0;
 }
 
 .checkbox-label {

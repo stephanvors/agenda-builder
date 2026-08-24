@@ -7,8 +7,8 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Admin Legal & Multi-Level Document Formatter Studio — LGAA</title>
-    <link rel="stylesheet" href="/style.css?v=20260824-09">
-    <link rel="stylesheet" href="/doc-formatter.css?v=20260824-09">
+    <link rel="stylesheet" href="/style.css?v=20260824-10">
+    <link rel="stylesheet" href="/doc-formatter.css?v=20260824-10">
     <link rel="icon" href="/logo.svg" type="image/svg+xml">
     <script>
         (function() {
@@ -487,32 +487,32 @@
                             <div class="form-group">
                                 <label for="font-family-select">Font Family</label>
                                 <select id="font-family-select" class="studio-select">
-                                    <option value="Arial" selected>Arial (Clean &amp; Legal Standard)</option>
+                                    <option value="Arial" selected>Arial</option>
                                     <option value="Calibri">Calibri</option>
                                     <option value="Times New Roman">Times New Roman</option>
                                     <option value="Segoe UI">Segoe UI</option>
-                                    <option value="Aptos">Aptos (Modern MS Office)</option>
+                                    <option value="Aptos">Aptos</option>
                                     <option value="Georgia">Georgia</option>
                                 </select>
                             </div>
                             <div class="form-group">
                                 <label for="line-spacing-select">Line Spacing</label>
                                 <select id="line-spacing-select" class="studio-select">
-                                    <option value="1.0">Single (1.0)</option>
-                                    <option value="1.15" selected>Tight Legal (1.15)</option>
-                                    <option value="1.25">Comfortable (1.25)</option>
-                                    <option value="1.5">1.5 Lines</option>
+                                    <option value="1.0">1.0 (Single)</option>
+                                    <option value="1.15" selected>1.15 (Tight)</option>
+                                    <option value="1.25">1.25 (Normal)</option>
+                                    <option value="1.5">1.50 (Loose)</option>
                                 </select>
                             </div>
                         </div>
 
                         <div class="form-grid-2 mt-2">
                             <div class="form-group">
-                                <label for="space-before-input" title="Space Before Paragraph (pt)">Space Before (pt)</label>
+                                <label for="space-before-input" title="Space Before Paragraph (pt)">Before (pt)</label>
                                 <input type="number" id="space-before-input" class="studio-input" value="0" min="0" max="36" step="0.5">
                             </div>
                             <div class="form-group">
-                                <label for="space-after-input" title="Space After Paragraph (pt)">Space After (pt)</label>
+                                <label for="space-after-input" title="Space After Paragraph (pt)">After (pt)</label>
                                 <input type="number" id="space-after-input" class="studio-input" value="4" min="0" max="36" step="0.5">
                             </div>
                         </div>
@@ -534,21 +534,21 @@
 
                         <div class="form-grid-3 mt-2">
                             <div class="form-group">
-                                <label for="primary-color-input">Primary / Navy Accent</label>
+                                <label for="primary-color-input" title="Primary Accent Color">Primary</label>
                                 <div class="color-picker-row">
                                     <input type="color" id="primary-color-picker" value="#0C2340" class="color-swatch">
                                     <input type="text" id="primary-color-input" class="studio-input" value="#0C2340">
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label for="secondary-color-input">Secondary / Burgundy</label>
+                                <label for="secondary-color-input" title="Secondary Accent Color">Secondary</label>
                                 <div class="color-picker-row">
                                     <input type="color" id="secondary-color-picker" value="#A6192E" class="color-swatch">
                                     <input type="text" id="secondary-color-input" class="studio-input" value="#A6192E">
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label for="text-color-input">Body Text Color</label>
+                                <label for="text-color-input" title="Body Text Color">Body Text</label>
                                 <div class="color-picker-row">
                                     <input type="color" id="text-color-picker" value="#1A1A1A" class="color-swatch">
                                     <input type="text" id="text-color-input" class="studio-input" value="#1A1A1A">
@@ -563,15 +563,15 @@
                             <div class="form-group">
                                 <label for="paper-size-select">Paper Size</label>
                                 <select id="paper-size-select" class="studio-select">
-                                    <option value="A4" selected>A4 (210 × 297 mm)</option>
-                                    <option value="Letter">Letter (8.5 × 11 in)</option>
+                                    <option value="A4" selected>A4 (210×297)</option>
+                                    <option value="Letter">Letter (8.5×11)</option>
                                 </select>
                             </div>
                             <div class="form-group">
                                 <label for="border-style-select">Page Border</label>
                                 <select id="border-style-select" class="studio-select">
                                     <option value="none" selected>None</option>
-                                    <option value="single">Single Line Box</option>
+                                    <option value="single">Single Line</option>
                                     <option value="double">Double Line</option>
                                 </select>
                             </div>
@@ -579,19 +579,19 @@
 
                         <div class="form-grid-4 mt-2">
                             <div class="form-group">
-                                <label for="margin-left-input">Left Margin (mm)</label>
+                                <label for="margin-left-input">Left (mm)</label>
                                 <input type="number" id="margin-left-input" class="studio-input" value="10" min="5" max="40">
                             </div>
                             <div class="form-group">
-                                <label for="margin-right-input">Right Margin (mm)</label>
+                                <label for="margin-right-input">Right (mm)</label>
                                 <input type="number" id="margin-right-input" class="studio-input" value="10" min="5" max="40">
                             </div>
                             <div class="form-group">
-                                <label for="margin-top-input">Top Margin (mm)</label>
+                                <label for="margin-top-input">Top (mm)</label>
                                 <input type="number" id="margin-top-input" class="studio-input" value="10" min="5" max="40">
                             </div>
                             <div class="form-group">
-                                <label for="margin-bottom-input">Bottom Margin (mm)</label>
+                                <label for="margin-bottom-input">Bottom (mm)</label>
                                 <input type="number" id="margin-bottom-input" class="studio-input" value="10" min="5" max="40">
                             </div>
                         </div>
@@ -605,17 +605,17 @@
                         
                         <div class="form-grid-2">
                             <div class="form-group">
-                                <label for="header-frequency-select">Header Display Frequency</label>
+                                <label for="header-frequency-select">Display Frequency</label>
                                 <select id="header-frequency-select" class="studio-select">
-                                    <option value="first_page_only" selected>First Page Only (Standard for Official Documents)</option>
-                                    <option value="all_pages">All Pages (Repeated Running Header)</option>
+                                    <option value="first_page_only" selected>First Page Only</option>
+                                    <option value="all_pages">All Pages</option>
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label for="header-source-mode-select">Header Type / Source</label>
+                                <label for="header-source-mode-select">Header Type</label>
                                 <select id="header-source-mode-select" class="studio-select">
-                                    <option value="structured" selected>Official Structured Letterhead (Live Layout)</option>
-                                    <option value="image_banner">Custom Header Image Banner (Upload Image)</option>
+                                    <option value="structured" selected>Structured Letterhead</option>
+                                    <option value="image_banner">Image Banner</option>
                                     <option value="none">No Header</option>
                                 </select>
                             </div>
@@ -643,17 +643,17 @@
 
                             <div class="form-grid-2 mt-2">
                                 <div class="form-group">
-                                    <label for="header-image-height">Banner Height in Document</label>
+                                    <label for="header-image-height">Height (mm)</label>
                                     <div class="input-with-unit">
                                         <input type="number" id="header-image-height" class="studio-input" min="15" max="70" step="1" value="32">
                                         <span class="unit">mm</span>
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label for="header-image-fit">Fit &amp; Alignment</label>
+                                    <label for="header-image-fit">Alignment</label>
                                     <select id="header-image-fit" class="studio-select">
-                                        <option value="contain" selected>Fit Inside Margins (Contain)</option>
-                                        <option value="cover">Full Width Margin-to-Margin</option>
+                                        <option value="contain" selected>Fit Inside Margins</option>
+                                        <option value="cover">Full Width</option>
                                     </select>
                                 </div>
                             </div>
@@ -663,14 +663,14 @@
                         <div id="header-structured-settings" class="mt-2">
                             <div class="form-grid-2">
                                 <div class="form-group">
-                                    <label for="header-layout-select">Letterhead Layout Preset</label>
+                                    <label for="header-layout-select">Layout Preset</label>
                                     <select id="header-layout-select" class="studio-select">
-                                        <option value="lgaa_official" selected>Official LGAA School Letterhead</option>
+                                        <option value="lgaa_official" selected>Official LGAA Letterhead</option>
                                         <option value="standard">Standard Legal Header</option>
                                     </select>
                                 </div>
                                 <div class="form-group">
-                                    <label class="checkbox-label mt-4"><input type="checkbox" id="header-color-bar" checked> <span>Include Top Two-Tone Colored Stripe</span></label>
+                                    <label class="checkbox-label mt-4"><input type="checkbox" id="header-color-bar" checked> <span>Include Top Two-Tone Stripe</span></label>
                                 </div>
                             </div>
 
@@ -1084,6 +1084,6 @@
 
     <div id="toast-container" class="toast-container"></div>
 
-    <script src="/doc-formatter.js?v=20260824-09"></script>
+    <script src="/doc-formatter.js?v=20260824-10"></script>
 </body>
 </html>
