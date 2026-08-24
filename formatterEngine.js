@@ -1090,14 +1090,14 @@ export async function buildFormattedDocx(config, parsedBlocks) {
             },
             margins: { left: 160, right: 160, top: 120, bottom: 120 },
             children: [
-              // 1. Generous 16mm signature signing space
+              // 1. Signature signing space
               new Paragraph({
-                spacing: { before: 0, after: 600 },
+                spacing: { before: 0, after: 240 },
                 children: [],
               }),
               // 2. Clean baseline rule
               new Paragraph({
-                spacing: { before: 0, after: 15 },
+                spacing: { before: 0, after: 30 },
                 border: {
                   bottom: { style: BorderStyle.SINGLE, size: 10, color: primaryColor }
                 },
@@ -1105,7 +1105,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
               }),
               // 3. Signature sub-label
               new Paragraph({
-                spacing: { before: 0, after: 60 },
+                spacing: { before: 0, after: 120 },
                 keepWithNext: true,
                 children: [
                   new TextRun({
@@ -1117,23 +1117,23 @@ export async function buildFormattedDocx(config, parsedBlocks) {
                   }),
                 ],
               }),
-              // 4. NAME row (with underline extending across the card)
+              // 4. NAME row (evenly spaced with underline extending across the card)
               new Paragraph({
-                spacing: { before: 0, after: 20 },
+                spacing: { before: 0, after: 120 },
                 keepWithNext: true,
-                tabStops: nameVal ? [] : [{ type: TabStopType.RIGHT, position: boxInnerWidthTwip, leader: LeaderType.UNDERSCORE }],
                 children: nameVal
                   ? [
                       new TextRun({ text: 'NAME: ', bold: true, color: '64748B', font: fontFamily, size: 15 }),
                       new TextRun({ text: nameVal, bold: true, color: textColor, font: fontFamily, size: 16 }),
                     ]
                   : [
-                      new TextRun({ text: 'NAME:\t', bold: true, color: '64748B', font: fontFamily, size: 15 }),
+                      new TextRun({ text: 'NAME: ', bold: true, color: '64748B', font: fontFamily, size: 15 }),
+                      new TextRun({ text: '____________________________________', color: '94A3B8', font: fontFamily, size: 14 }),
                     ],
               }),
-              // 5. Role row
+              // 5. Role row (evenly spaced)
               new Paragraph({
-                spacing: { before: 0, after: 20 },
+                spacing: { before: 0, after: 120 },
                 keepWithNext: true,
                 children: [
                   new TextRun({
@@ -1145,17 +1145,17 @@ export async function buildFormattedDocx(config, parsedBlocks) {
                   }),
                 ],
               }),
-              // 6. DATE row (with underline extending across the card)
+              // 6. DATE row (evenly spaced with underline extending across the card)
               new Paragraph({
-                spacing: { before: 0, after: 0 },
-                tabStops: dateVal ? [] : [{ type: TabStopType.RIGHT, position: boxInnerWidthTwip, leader: LeaderType.UNDERSCORE }],
+                spacing: { before: 0, after: 40 },
                 children: dateVal
                   ? [
                       new TextRun({ text: 'DATE: ', bold: true, color: '64748B', font: fontFamily, size: 15 }),
                       new TextRun({ text: dateVal, color: textColor, font: fontFamily, size: 15 }),
                     ]
                   : [
-                      new TextRun({ text: 'DATE:\t', bold: true, color: '64748B', font: fontFamily, size: 15 }),
+                      new TextRun({ text: 'DATE: ', bold: true, color: '64748B', font: fontFamily, size: 15 }),
+                      new TextRun({ text: '____________________________________', color: '94A3B8', font: fontFamily, size: 14 }),
                     ],
               }),
             ],
@@ -1398,18 +1398,18 @@ export async function buildFormattedDocx(config, parsedBlocks) {
                   margins: { left: 160, right: 160, top: 120, bottom: 120 },
                   children: [
                     new Paragraph({
-                      spacing: { before: 0, after: 600 },
+                      spacing: { before: 0, after: 240 },
                       children: [],
                     }),
                     new Paragraph({
-                      spacing: { before: 0, after: 15 },
+                      spacing: { before: 0, after: 30 },
                       border: {
                         bottom: { style: BorderStyle.SINGLE, size: 10, color: primaryColor }
                       },
                       children: [],
                     }),
                     new Paragraph({
-                      spacing: { before: 0, after: 60 },
+                      spacing: { before: 0, after: 120 },
                       keepWithNext: true,
                       children: [
                         new TextRun({
@@ -1422,15 +1422,15 @@ export async function buildFormattedDocx(config, parsedBlocks) {
                       ],
                     }),
                     new Paragraph({
-                      spacing: { before: 0, after: 20 },
+                      spacing: { before: 0, after: 120 },
                       keepWithNext: true,
-                      tabStops: [{ type: TabStopType.RIGHT, position: districtBoxInnerTwip, leader: LeaderType.UNDERSCORE }],
                       children: [
-                        new TextRun({ text: 'NAME:\t', bold: true, color: '64748B', font: fontFamily, size: 15 }),
+                        new TextRun({ text: 'NAME: ', bold: true, color: '64748B', font: fontFamily, size: 15 }),
+                        new TextRun({ text: '____________________________________', color: '94A3B8', font: fontFamily, size: 14 }),
                       ],
                     }),
                     new Paragraph({
-                      spacing: { before: 0, after: 20 },
+                      spacing: { before: 0, after: 120 },
                       keepWithNext: true,
                       children: [
                         new TextRun({
@@ -1443,10 +1443,10 @@ export async function buildFormattedDocx(config, parsedBlocks) {
                       ],
                     }),
                     new Paragraph({
-                      spacing: { before: 0, after: 0 },
-                      tabStops: [{ type: TabStopType.RIGHT, position: districtBoxInnerTwip, leader: LeaderType.UNDERSCORE }],
+                      spacing: { before: 0, after: 40 },
                       children: [
-                        new TextRun({ text: 'DATE:\t', bold: true, color: '64748B', font: fontFamily, size: 15 }),
+                        new TextRun({ text: 'DATE: ', bold: true, color: '64748B', font: fontFamily, size: 15 }),
+                        new TextRun({ text: '____________________________________', color: '94A3B8', font: fontFamily, size: 14 }),
                       ],
                     }),
                   ],
