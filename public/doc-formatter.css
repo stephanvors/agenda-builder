@@ -1562,9 +1562,7 @@ body.formatter-studio-body {
     font-weight: 700;
     color: var(--text-main);
     line-height: 1.25;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: normal;
 }
 
 .spellcheck-flag {
@@ -1647,13 +1645,13 @@ body.formatter-studio-body {
 }
 
 .spellcheck-issues-list {
-    max-height: 280px;
+    max-height: 320px;
     overflow-y: auto;
     overflow-x: hidden;
     padding: 0.55rem 0.65rem;
     display: flex;
     flex-direction: column;
-    gap: 0.45rem;
+    gap: 0.55rem;
     box-sizing: border-box;
     width: 100%;
 }
@@ -1670,20 +1668,19 @@ body.formatter-studio-body {
     gap: 0.5rem;
 }
 
+/* 1-Column Card Layout */
 .spellcheck-card {
     background: var(--bg-subtle);
     border: 1px solid var(--border);
     border-left: 3.5px solid var(--primary);
     border-radius: 6px;
-    padding: 0.5rem 0.65rem;
+    padding: 0.6rem 0.75rem;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 0.5rem;
+    flex-direction: column;
+    gap: 0.35rem;
     transition: var(--transition);
     box-sizing: border-box;
     width: 100%;
-    min-width: 0;
 }
 
 .spellcheck-card:hover {
@@ -1707,21 +1704,17 @@ body.formatter-studio-body {
     border-left-color: #8B5CF6;
 }
 
-.spellcheck-card-content {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
-    overflow: hidden;
-}
-
 .spellcheck-meta-line {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    width: 100%;
+}
+
+.spellcheck-meta-right {
+    display: flex;
+    align-items: center;
     gap: 0.4rem;
-    flex-wrap: wrap;
 }
 
 .spellcheck-tag {
@@ -1751,19 +1744,31 @@ body.formatter-studio-body {
 }
 
 .spellcheck-line-indicator {
-    font-size: 0.66rem;
+    font-size: 0.68rem;
     color: var(--text-muted);
     white-space: nowrap;
+}
+
+.btn-dismiss-issue {
+    padding: 0.1rem 0.3rem !important;
+    font-size: 0.75rem !important;
+    line-height: 1;
+    border-radius: 3px;
+}
+
+.btn-dismiss-issue:hover {
+    background: rgba(239, 68, 68, 0.15);
+    color: #EF4444 !important;
 }
 
 .spellcheck-word-diff {
     display: flex;
     align-items: center;
-    gap: 0.35rem;
-    font-size: 0.8rem;
+    gap: 0.45rem;
+    font-size: 0.85rem;
     font-family: monospace;
     flex-wrap: wrap;
-    word-break: break-all;
+    padding: 0.1rem 0;
 }
 
 .spell-original {
@@ -1783,29 +1788,31 @@ body.formatter-studio-body {
 }
 
 .spell-reason {
-    font-size: 0.68rem;
+    font-size: 0.73rem;
     color: var(--text-muted);
-    line-height: 1.25;
+    line-height: 1.35;
     word-break: break-word;
 }
 
 .spellcheck-card-actions {
     display: flex;
+    justify-content: flex-end;
     align-items: center;
-    gap: 0.25rem;
-    flex-shrink: 0;
+    margin-top: 0.2rem;
+    width: 100%;
 }
 
 .btn-apply-fix {
-    background: rgba(16, 185, 129, 0.12);
+    background: rgba(16, 185, 129, 0.14);
     color: #059669;
-    border: 1px solid rgba(16, 185, 129, 0.3);
-    padding: 0.2rem 0.45rem;
-    font-size: 0.72rem;
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
     font-weight: 700;
     border-radius: 4px;
     cursor: pointer;
     white-space: nowrap;
+    transition: var(--transition);
 }
 
 .btn-apply-fix:hover {

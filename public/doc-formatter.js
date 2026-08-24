@@ -2938,21 +2938,21 @@ function renderSpellcheckDrawer() {
         const shortCat = (iss.category || 'EN-ZA').replace(/English \(South Africa\)/gi, 'EN-ZA').trim();
         html += `
             <div class="spellcheck-card type-${iss.type}" id="card-${iss.id}">
-                <div class="spellcheck-card-content">
-                    <div class="spellcheck-meta-line">
-                        <span class="spellcheck-tag ${tagClass}">${escapeHTML(shortCat)}</span>
+                <div class="spellcheck-meta-line">
+                    <span class="spellcheck-tag ${tagClass}">${escapeHTML(shortCat)}</span>
+                    <div class="spellcheck-meta-right">
                         <span class="spellcheck-line-indicator">Line ${iss.line}</span>
+                        <button type="button" class="btn-sm btn-icon btn-dismiss-issue" onclick="dismissSpellIssue('${iss.id}')" title="Ignore this issue">✕</button>
                     </div>
-                    <div class="spellcheck-word-diff">
-                        <span class="spell-original">${escapeHTML(iss.original)}</span>
-                        <span class="spell-arrow">➜</span>
-                        <span class="spell-suggestion">${escapeHTML(iss.suggestion)}</span>
-                    </div>
-                    <div class="spell-reason">${escapeHTML(iss.message)}</div>
                 </div>
+                <div class="spellcheck-word-diff">
+                    <span class="spell-original">${escapeHTML(iss.original)}</span>
+                    <span class="spell-arrow">➜</span>
+                    <span class="spell-suggestion">${escapeHTML(iss.suggestion)}</span>
+                </div>
+                <div class="spell-reason">${escapeHTML(iss.message)}</div>
                 <div class="spellcheck-card-actions">
-                    <button type="button" class="btn-sm btn-apply-fix" onclick="applySpellFix('${iss.id}')">Apply Fix</button>
-                    <button type="button" class="btn-sm btn-icon" onclick="dismissSpellIssue('${iss.id}')" title="Ignore">✕</button>
+                    <button type="button" class="btn-sm btn-apply-fix" onclick="applySpellFix('${iss.id}')">✓ Apply Fix</button>
                 </div>
             </div>
         `;
