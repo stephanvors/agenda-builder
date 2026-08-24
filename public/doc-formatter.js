@@ -2843,24 +2843,7 @@ let spellcheckState = {
 
 function formatTextWithSpellHighlights(text) {
     if (!text) return '';
-    let escaped = escapeHTML(text);
-    if (!spellcheckState.issues || spellcheckState.issues.length === 0) {
-        return escaped;
-    }
-
-    // Sort issues by length descending so longer phrases match first
-    const activeIssues = [...spellcheckState.issues].sort((a, b) => (b.original || '').length - (a.original || '').length);
-
-    activeIssues.forEach(iss => {
-        if (!iss.original) return;
-        const origEscaped = escapeHTML(iss.original);
-        const regex = new RegExp(`\\b${escapeRegExp(origEscaped)}\\b`, 'gi');
-        escaped = escaped.replace(regex, (match) => {
-            return `<mark class="prev-spell-issue" data-issue-id="${iss.id}" title="Issue: ${escapeHTML(iss.message)} &#10;Click to fix: &#34;${escapeHTML(iss.suggestion)}&#34;" onclick="applySpellFix('${iss.id}')">${match}</mark>`;
-        });
-    });
-
-    return escaped;
+    return escapeHTML(text);
 }
 
 async function runSpellCheck(isSilentParam = false) {
