@@ -2150,7 +2150,7 @@ function renderDocumentPreview() {
         if (showSchoolStamp) {
             sHtml += `
                 <div class="prev-stamp-section">
-                    <div class="prev-stamp-card" style="max-width: 75mm; min-height: 42mm;">
+                    <div class="prev-stamp-card" style="max-width: 80mm; min-height: 52mm;">
                         <div class="stamp-title">OFFICIAL SCHOOL STAMP</div>
                         <div class="stamp-hint">(Place Official School Date Stamp Here)</div>
                     </div>
@@ -2165,7 +2165,7 @@ function renderDocumentPreview() {
                     <div class="prev-district-title" style="color: ${primaryColor};">DISTRICT ENDORSEMENT &amp; RECORD OF RECEIPT</div>
                     <div class="prev-district-intro">Received, verified, and endorsed for departmental records by the District Office:</div>
                     <div class="prev-district-grid">
-                        <div class="prev-stamp-card" style="min-height: 42mm;">
+                        <div class="prev-stamp-card" style="min-height: 52mm;">
                             <div class="stamp-title">OFFICIAL DISTRICT / CIRCUIT STAMP</div>
                             <div class="stamp-hint">(Place District Registry / Circuit Office Date Stamp Here)</div>
                         </div>

@@ -1246,21 +1246,26 @@ input[id$="-uppercase"]:not(:checked) + span {
 .prev-header-table {
     display: flex;
     align-items: center;
+    justify-content: space-between;
+    width: 100%;
     border-bottom: 1.5px solid #CBD5E1;
     padding-bottom: 3mm;
     margin-bottom: 5mm;
+    box-sizing: border-box;
 }
 
 .prev-header-logo {
     width: 14mm;
     height: 14mm;
     object-fit: contain;
-    margin-right: 3mm;
+    margin-right: 3.5mm;
     flex-shrink: 0;
 }
 
 .prev-header-text {
     flex: 1;
+    min-width: 0;
+    padding-right: 3mm;
 }
 
 .prev-header-text .title {
@@ -1268,6 +1273,9 @@ input[id$="-uppercase"]:not(:checked) + span {
     font-weight: bold;
     color: #0C2340;
     line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .prev-header-text .subtitle {
@@ -1275,6 +1283,9 @@ input[id$="-uppercase"]:not(:checked) + span {
     font-weight: bold;
     color: #A6192E;
     line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .prev-header-text .contact,
@@ -1282,26 +1293,39 @@ input[id$="-uppercase"]:not(:checked) + span {
     font-size: 7pt;
     color: #555555;
     line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .prev-header-badge {
     border-left: 2.5px solid #0C2340;
     padding-left: 3mm;
-    margin-left: 3mm;
+    margin-left: auto;
     flex-shrink: 0;
+    text-align: left;
+    white-space: nowrap;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .prev-header-badge .badge-main {
     font-size: 9.5pt;
-    font-weight: bold;
+    font-weight: 800;
     color: #0C2340;
     line-height: 1.1;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
 }
 
 .prev-header-badge .badge-sub {
     font-size: 7.5pt;
+    font-weight: 600;
     color: #64748B;
     line-height: 1.1;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
 }
 
 .prev-doc-title {
@@ -1552,8 +1576,9 @@ input[id$="-uppercase"]:not(:checked) + span {
     background: #F8FAFC;
     border: 1.5px dashed #94A3B8;
     border-radius: 3px;
-    padding: 3mm 3.5mm;
-    min-height: 42mm;
+    padding: 4mm 4mm;
+    min-height: 52mm;
+    height: 52mm;
     box-sizing: border-box;
     text-align: center;
     page-break-inside: avoid !important;
@@ -1566,7 +1591,7 @@ input[id$="-uppercase"]:not(:checked) + span {
     text-transform: uppercase;
     letter-spacing: 0.8px;
     color: #475569;
-    margin-top: 1mm;
+    margin-top: 1.5mm;
     margin-bottom: auto;
 }
 
@@ -1575,7 +1600,7 @@ input[id$="-uppercase"]:not(:checked) + span {
     color: #94A3B8;
     font-style: italic;
     margin-top: auto;
-    margin-bottom: 1mm;
+    margin-bottom: 1.5mm;
 }
 
 .prev-district-section {
