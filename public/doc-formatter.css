@@ -1502,9 +1502,9 @@ body.formatter-studio-body {
 
 .prev-footer {
     border-top: 1px solid #CBD5E1;
-    padding-top: 1.5mm;
-    margin-top: 0;
-    text-align: center;
+    padding-top: 2mm;
+    padding-bottom: 0.5mm;
+    margin-top: auto;
     font-size: 8.5pt;
     color: #64748B;
     display: flex;
@@ -1512,6 +1512,28 @@ body.formatter-studio-body {
     align-items: center;
     line-height: 1.2;
     flex-shrink: 0;
+    width: 100%;
+    box-sizing: border-box;
+    position: relative;
+    min-height: 5.5mm;
+}
+
+.footer-pagenum {
+    color: #64748B;
+    font-weight: 600;
+    font-size: 8.5pt;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+
+.footer-custom-text {
+    color: #94A3B8;
+    font-size: 7.8pt;
+    font-style: italic;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 60%;
 }
 
 /* ── English (South Africa) Quality Inspector & Spellcheck Drawer ── */

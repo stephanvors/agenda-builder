@@ -543,6 +543,10 @@ function initEventListeners() {
         'l5-num-pos', 'l5-text-wrap', 'l5-hanging', 'l5-size-input', 'l5-bold', 'l5-underline', 'l5-uppercase',
         'margin-left-input', 'margin-right-input', 'margin-top-input', 'margin-bottom-input',
         'paper-size-select', 'border-style-select',
+        'header-frequency-select', 'header-source-mode-select', 'header-layout-select', 'header-color-bar',
+        'header-title-input', 'header-subtitle-input', 'header-contact-input', 'header-emis-input',
+        'header-badge-text', 'header-badge-subtext', 'header-image-height', 'header-image-fit',
+        'footer-pagenum-format', 'footer-alignment', 'footer-top-divider', 'footer-custom-text',
         'signatures-school-stamp', 'signatures-district-endorsement', 'signatures-district-role'
     ];
     directInputIds.forEach(id => {
@@ -2125,7 +2129,8 @@ function renderDocumentPreview() {
     // 3. Measurement & Multi-Page Partitioning
     const MM_TO_PX = 3.779527;
     const pageUsableHeight = (297 - marginTop - marginBottom) * MM_TO_PX;
-    const footerHeightPx = 30;
+    const isFooterActive = (document.getElementById('footer-pagenum-format')?.value !== 'none') || Boolean(document.getElementById('footer-custom-text')?.value);
+    const footerHeightPx = isFooterActive ? 42 : 0;
 
     // Measurement Sandbox
     let sandbox = document.getElementById('preview-measure-sandbox');
@@ -2365,6 +2370,8 @@ function renderDocumentPreview() {
     // 4. Render All Multi-Page Sheets with Page Breaks
     const totalPages = pages.length;
     const pFmt = document.getElementById('footer-pagenum-format')?.value || 'page_x_of_y';
+    const fAlignment = document.getElementById('footer-alignment')?.value || 'center';
+    const fDivider = document.getElementById('footer-top-divider')?.checked !== false;
     const fText = document.getElementById('footer-custom-text')?.value || '';
 
     const l1Pos = marginLeft + l1Offset;
@@ -2384,6 +2391,34 @@ function renderDocumentPreview() {
         if (pFmt === 'none') pageStr = '';
 
         const headerSnippet = p === 0 ? page1HeaderHtml : (headerFreq === 'all_pages' ? runningHeaderHtml : '');
+
+        let footerHtml = '';
+        if (pFmt !== 'none' || fText) {
+            const borderStyle = fDivider ? 'border-top: 1px solid #CBD5E1;' : 'border-top: none;';
+            let justifyStyle = 'justify-content: space-between;';
+            let pNumStyle = 'font-weight: 600; color: #64748B; font-size: 8.5pt;';
+
+            if (fAlignment === 'center') {
+                if (fText) {
+                    pNumStyle += ' position: absolute; left: 50%; transform: translateX(-50%);';
+                } else {
+                    justifyStyle = 'justify-content: center;';
+                    pNumStyle += ' text-align: center;';
+                }
+            } else if (fAlignment === 'right') {
+                pNumStyle += ' margin-left: auto;';
+            } else if (fAlignment === 'left') {
+                pNumStyle += ' margin-right: auto;';
+            }
+
+            footerHtml = `
+                <div class="prev-footer" style="${borderStyle} ${justifyStyle}">
+                    ${fText && fAlignment !== 'left' ? `<span class="footer-custom-text">${escapeHTML(fText)}</span>` : ''}
+                    ${pageStr ? `<span class="footer-pagenum" style="${pNumStyle}">${escapeHTML(pageStr)}</span>` : ''}
+                    ${fText && fAlignment === 'left' ? `<span class="footer-custom-text" style="margin-left: auto;">${escapeHTML(fText)}</span>` : ''}
+                </div>
+            `;
+        }
 
         if (p > 0) {
             fullHtml += `
@@ -2414,12 +2449,7 @@ function renderDocumentPreview() {
                     <div class="doc-page-body">
                         ${pages[p].join('')}
                     </div>
-                    ${pFmt !== 'none' ? `
-                        <div class="prev-footer">
-                            <span>${escapeHTML(fText)}</span>
-                            <span>${pageStr}</span>
-                        </div>
-                    ` : ''}
+                    ${footerHtml}
                 </div>
             </div>
         `;
