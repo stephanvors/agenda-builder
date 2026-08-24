@@ -1259,7 +1259,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
                     }),
                     new Paragraph({
                       alignment: AlignmentType.CENTER,
-                      spacing: { before: 80, after: 80 },
+                      spacing: { before: 450, after: 80 },
                       children: [
                         new TextRun({
                           text: '(Place Official School Date Stamp Here)',
@@ -1777,9 +1777,9 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
 
         ${config.components.signatures.showSchoolStamp !== false ? `
           <div style="margin-top: 4mm;">
-            <div style="max-width: 65mm; background: #F8FAFC; border: 1.5px dashed #94A3B8; border-radius: 3px; padding: 10px 12px; text-align: center; box-sizing: border-box;">
-              <div style="font-size: 7.5pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.8px; color: #475569; margin-bottom: 6px;">OFFICIAL SCHOOL STAMP</div>
-              <div style="font-size: 7pt; color: #94A3B8; font-style: italic; margin-top: 10px;">(Place Official School Date Stamp Here)</div>
+            <div style="max-width: 75mm; min-height: 42mm; background: #F8FAFC; border: 1.5px dashed #94A3B8; border-radius: 3px; padding: 12px 14px; text-align: center; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between;">
+              <div style="font-size: 7.8pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.8px; color: #475569; margin-bottom: auto;">OFFICIAL SCHOOL STAMP</div>
+              <div style="font-size: 7.2pt; color: #94A3B8; font-style: italic; margin-top: auto;">(Place Official School Date Stamp Here)</div>
             </div>
           </div>
         ` : ''}
@@ -1790,9 +1790,9 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
             <div style="font-size: 8pt; color: #475569; margin-bottom: 3mm;">Received, verified, and endorsed for departmental records by the District Office:</div>
             <table style="width: 100%; border-collapse: separate; border-spacing: 5mm 0; table-layout: fixed;">
               <tr>
-                <td style="width: 50%; vertical-align: top; background: #F8FAFC; border: 1.5px dashed #94A3B8; border-radius: 3px; padding: 12px 14px; text-align: center; box-sizing: border-box;">
-                  <div style="font-size: 7.5pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.8px; color: #475569; margin-bottom: 6px;">OFFICIAL DISTRICT / CIRCUIT STAMP</div>
-                  <div style="font-size: 7pt; color: #94A3B8; font-style: italic; margin-top: 24px;">(Place District Registry / Circuit Office Date Stamp Here)</div>
+                <td style="width: 50%; vertical-align: top; background: #F8FAFC; border: 1.5px dashed #94A3B8; border-radius: 3px; padding: 12px 14px; text-align: center; box-sizing: border-box; height: 42mm;">
+                  <div style="font-size: 7.8pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.8px; color: #475569; margin-bottom: 6px;">OFFICIAL DISTRICT / CIRCUIT STAMP</div>
+                  <div style="font-size: 7.2pt; color: #94A3B8; font-style: italic; margin-top: 50px;">(Place District Registry / Circuit Office Date Stamp Here)</div>
                 </td>
                 <td style="width: 50%; vertical-align: top; background: #FFFFFF; border: 1.5px solid #94A3B8; border-radius: 3px; padding: 12px 14px; box-sizing: border-box;">
                   <div style="height: 15mm; min-height: 15mm;"></div>

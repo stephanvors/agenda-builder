@@ -1522,37 +1522,34 @@ input[id$="-uppercase"]:not(:checked) + span {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
     background: #F8FAFC;
     border: 1.5px dashed #94A3B8;
     border-radius: 3px;
-    padding: 3.5mm;
-    min-height: 28mm;
+    padding: 3mm 3.5mm;
+    min-height: 42mm;
     box-sizing: border-box;
     text-align: center;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
 }
 
-.prev-stamp-card .stamp-icon {
-    font-size: 13pt;
-    margin-bottom: 1.5mm;
-    opacity: 0.75;
-}
-
 .prev-stamp-card .stamp-title {
-    font-size: 7.5pt;
+    font-size: 8pt;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.8px;
     color: #475569;
-    margin-bottom: 1mm;
+    margin-top: 1mm;
+    margin-bottom: auto;
 }
 
 .prev-stamp-card .stamp-hint {
-    font-size: 7pt;
+    font-size: 7.2pt;
     color: #94A3B8;
     font-style: italic;
+    margin-top: auto;
+    margin-bottom: 1mm;
 }
 
 .prev-district-section {
