@@ -1105,7 +1105,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
               }),
               // 3. Signature sub-label
               new Paragraph({
-                spacing: { before: 0, after: 120 },
+                spacing: { before: 0, after: 180 },
                 keepWithNext: true,
                 children: [
                   new TextRun({
@@ -1119,7 +1119,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
               }),
               // 4. NAME row (evenly spaced with underline extending across the card)
               new Paragraph({
-                spacing: { before: 0, after: 120 },
+                spacing: { before: 0, after: 160 },
                 keepWithNext: true,
                 children: nameVal
                   ? [
@@ -1128,12 +1128,12 @@ export async function buildFormattedDocx(config, parsedBlocks) {
                     ]
                   : [
                       new TextRun({ text: 'NAME: ', bold: true, color: '64748B', font: fontFamily, size: 15 }),
-                      new TextRun({ text: '____________________________________', color: '94A3B8', font: fontFamily, size: 14 }),
+                      new TextRun({ text: '________________________________________________', color: '94A3B8', font: fontFamily, size: 14 }),
                     ],
               }),
               // 5. Role row (evenly spaced)
               new Paragraph({
-                spacing: { before: 0, after: 120 },
+                spacing: { before: 0, after: 180 },
                 keepWithNext: true,
                 children: [
                   new TextRun({
@@ -1147,7 +1147,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
               }),
               // 6. DATE row (evenly spaced with underline extending across the card)
               new Paragraph({
-                spacing: { before: 0, after: 40 },
+                spacing: { before: 0, after: 60 },
                 children: dateVal
                   ? [
                       new TextRun({ text: 'DATE: ', bold: true, color: '64748B', font: fontFamily, size: 15 }),
@@ -1155,7 +1155,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
                     ]
                   : [
                       new TextRun({ text: 'DATE: ', bold: true, color: '64748B', font: fontFamily, size: 15 }),
-                      new TextRun({ text: '____________________________________', color: '94A3B8', font: fontFamily, size: 14 }),
+                      new TextRun({ text: '________________________________________________', color: '94A3B8', font: fontFamily, size: 14 }),
                     ],
               }),
             ],
@@ -1245,7 +1245,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
                 new TableCell({
                   width: { size: convertMillimetersToTwip(schoolStampWidthMm), type: WidthType.DXA },
                   shading: { fill: 'F8FAFC', type: ShadingType.CLEAR },
-                  margins: { left: 140, right: 140, top: 100, bottom: 100 },
+                  margins: { left: 140, right: 140, top: 100, bottom: 80 },
                   children: [
                     new Paragraph({
                       alignment: AlignmentType.CENTER,
@@ -1262,7 +1262,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
                     }),
                     new Paragraph({
                       alignment: AlignmentType.CENTER,
-                      spacing: { before: 1800, after: 80 },
+                      spacing: { before: 2450, after: 40 },
                       children: [
                         new TextRun({
                           text: '(Place Official School Date Stamp Here)',
@@ -1344,7 +1344,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
                     right: { style: BorderStyle.DASHED, size: 6, color: '94A3B8' },
                   },
                   shading: { fill: 'F8FAFC', type: ShadingType.CLEAR },
-                  margins: { left: 160, right: 160, top: 120, bottom: 120 },
+                  margins: { left: 160, right: 160, top: 120, bottom: 80 },
                   children: [
                     new Paragraph({
                       alignment: AlignmentType.CENTER,
@@ -1361,7 +1361,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
                     }),
                     new Paragraph({
                       alignment: AlignmentType.CENTER,
-                      spacing: { before: 1800, after: 80 },
+                      spacing: { before: 2450, after: 40 },
                       children: [
                         new TextRun({
                           text: '(Place District Registry / Circuit Office Date Stamp Here)',
@@ -1386,7 +1386,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
                   margins: { left: 0, right: 0, top: 0, bottom: 0 },
                   children: [new Paragraph({ spacing: { before: 0, after: 0 }, children: [] })],
                 }),
-                // Right Cell: Circuit Manager Signature Box
+                // Right Cell: Circuit Manager Signature Box (Comfortably spaced for handwriting)
                 new TableCell({
                   width: { size: convertMillimetersToTwip(districtColWidthMm), type: WidthType.DXA },
                   borders: {
@@ -1398,7 +1398,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
                   margins: { left: 160, right: 160, top: 120, bottom: 120 },
                   children: [
                     new Paragraph({
-                      spacing: { before: 0, after: 240 },
+                      spacing: { before: 0, after: 300 },
                       children: [],
                     }),
                     new Paragraph({
@@ -1409,7 +1409,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
                       children: [],
                     }),
                     new Paragraph({
-                      spacing: { before: 0, after: 120 },
+                      spacing: { before: 0, after: 300 },
                       keepWithNext: true,
                       children: [
                         new TextRun({
@@ -1422,15 +1422,15 @@ export async function buildFormattedDocx(config, parsedBlocks) {
                       ],
                     }),
                     new Paragraph({
-                      spacing: { before: 0, after: 120 },
+                      spacing: { before: 0, after: 240 },
                       keepWithNext: true,
                       children: [
                         new TextRun({ text: 'NAME: ', bold: true, color: '64748B', font: fontFamily, size: 15 }),
-                        new TextRun({ text: '____________________________________', color: '94A3B8', font: fontFamily, size: 14 }),
+                        new TextRun({ text: '__________________________________________________________', color: '94A3B8', font: fontFamily, size: 14 }),
                       ],
                     }),
                     new Paragraph({
-                      spacing: { before: 0, after: 120 },
+                      spacing: { before: 0, after: 300 },
                       keepWithNext: true,
                       children: [
                         new TextRun({
@@ -1443,10 +1443,10 @@ export async function buildFormattedDocx(config, parsedBlocks) {
                       ],
                     }),
                     new Paragraph({
-                      spacing: { before: 0, after: 40 },
+                      spacing: { before: 0, after: 120 },
                       children: [
                         new TextRun({ text: 'DATE: ', bold: true, color: '64748B', font: fontFamily, size: 15 }),
-                        new TextRun({ text: '____________________________________', color: '94A3B8', font: fontFamily, size: 14 }),
+                        new TextRun({ text: '__________________________________________________________', color: '94A3B8', font: fontFamily, size: 14 }),
                       ],
                     }),
                   ],
