@@ -2438,11 +2438,11 @@ function renderDocumentPreview() {
                     <div class="guide-line guide-margin-right" style="right: ${marginRight}mm;" title="Right Margin: ${marginRight}mm"><span class="guide-tag guide-tag-margin-right">Right (${marginRight}mm)</span></div>
                     <div class="guide-line guide-margin-top" style="top: ${marginTop}mm;" title="Top Margin: ${marginTop}mm"><span class="guide-tag guide-tag-margin-top">Top (${marginTop}mm)</span></div>
                     <div class="guide-line guide-margin-bottom" style="bottom: ${marginBottom}mm;" title="Bottom Margin: ${marginBottom}mm"><span class="guide-tag guide-tag-margin-bottom">Bottom (${marginBottom}mm)</span></div>
-                    <div class="guide-line guide-level-1" style="left: ${l1Pos}mm;" title="Level 1 Line"><span class="guide-tag guide-tag-level">L1</span></div>
-                    <div class="guide-line guide-level-2" style="left: ${l2Pos}mm;" title="Level 2 Line"><span class="guide-tag guide-tag-level">L2</span></div>
-                    <div class="guide-line guide-level-3" style="left: ${l3Pos}mm;" title="Level 3 Line"><span class="guide-tag guide-tag-level">L3</span></div>
-                    <div class="guide-line guide-level-4" style="left: ${l4Pos}mm;" title="Level 4 Line"><span class="guide-tag guide-tag-level">L4</span></div>
-                    <div class="guide-line guide-level-5" style="left: ${l5Pos}mm;" title="Level 5 Line"><span class="guide-tag guide-tag-level">L5</span></div>
+                    <div class="guide-line guide-level-1" style="left: ${l1Pos}mm;" title="Level 1 Line"><span class="guide-tag guide-tag-level guide-tag-l1">L1</span></div>
+                    <div class="guide-line guide-level-2" style="left: ${l2Pos}mm;" title="Level 2 Line"><span class="guide-tag guide-tag-level guide-tag-l2">L2</span></div>
+                    <div class="guide-line guide-level-3" style="left: ${l3Pos}mm;" title="Level 3 Line"><span class="guide-tag guide-tag-level guide-tag-l3">L3</span></div>
+                    <div class="guide-line guide-level-4" style="left: ${l4Pos}mm;" title="Level 4 Line"><span class="guide-tag guide-tag-level guide-tag-l4">L4</span></div>
+                    <div class="guide-line guide-level-5" style="left: ${l5Pos}mm;" title="Level 5 Line"><span class="guide-tag guide-tag-level guide-tag-l5">L5</span></div>
                 </div>
                 <div class="doc-page-inner">
                     ${headerSnippet ? `<div class="doc-page-header">${headerSnippet}</div>` : ''}

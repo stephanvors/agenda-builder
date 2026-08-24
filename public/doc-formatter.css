@@ -1075,27 +1075,58 @@ body.formatter-studio-body {
     border-top: 1.5px dashed rgba(239, 68, 68, 0.7);
 }
 
-.guide-line.guide-level-1 { border-left-color: rgba(59, 130, 246, 0.6); }
-.guide-line.guide-level-2 { border-left-color: rgba(16, 185, 129, 0.6); }
-.guide-line.guide-level-3 { border-left-color: rgba(245, 158, 11, 0.6); }
-.guide-line.guide-level-4 { border-left-color: rgba(236, 72, 153, 0.6); }
-.guide-line.guide-level-5 { border-left-color: rgba(139, 92, 246, 0.6); }
+.guide-line.guide-level-1 { border-left-color: rgba(37, 99, 235, 0.75); }
+.guide-line.guide-level-2 { border-left-color: rgba(5, 150, 105, 0.75); }
+.guide-line.guide-level-3 { border-left-color: rgba(217, 119, 6, 0.75); }
+.guide-line.guide-level-4 { border-left-color: rgba(225, 29, 72, 0.75); }
+.guide-line.guide-level-5 { border-left-color: rgba(124, 58, 237, 0.75); }
 
 .guide-tag {
     position: absolute;
     font-size: 7.5px;
-    font-weight: 700;
-    background: rgba(15, 23, 42, 0.85);
+    font-weight: 800;
+    background: rgba(15, 23, 42, 0.9);
     color: #FFFFFF;
-    padding: 1px 3px;
+    padding: 1px 3.5px;
     border-radius: 2px;
     white-space: nowrap;
     line-height: 1;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .guide-tag.guide-tag-level {
     top: 2px;
     left: 2px;
+}
+
+.guide-tag.guide-tag-l1 {
+    background: #2563EB;
+    color: #FFFFFF;
+    border: 1px solid #1D4ED8;
+}
+
+.guide-tag.guide-tag-l2 {
+    background: #059669;
+    color: #FFFFFF;
+    border: 1px solid #047857;
+}
+
+.guide-tag.guide-tag-l3 {
+    background: #D97706;
+    color: #FFFFFF;
+    border: 1px solid #B45309;
+}
+
+.guide-tag.guide-tag-l4 {
+    background: #E11D48;
+    color: #FFFFFF;
+    border: 1px solid #BE123C;
+}
+
+.guide-tag.guide-tag-l5 {
+    background: #7C3AED;
+    color: #FFFFFF;
+    border: 1px solid #6D28D9;
 }
 
 .guide-tag.guide-tag-margin-left {
