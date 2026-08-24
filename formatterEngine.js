@@ -1222,7 +1222,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
 
     // 4. Official School Stamp Space (Institutional verification)
     if (comps.signatures.showSchoolStamp !== false) {
-      const schoolStampWidthMm = Math.min(65, Math.max(50, bodyWidthMm / 3));
+      const schoolStampWidthMm = 80;
       docChildren.push(
         new Paragraph({ spacing: { before: 140, after: 0 }, keepWithNext: true, children: [] }),
         new Table({
@@ -1238,6 +1238,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
           rows: [
             new TableRow({
               cantSplit: true,
+              height: { value: convertMillimetersToTwip(52), rule: HeightRule.ATLEAST },
               children: [
                 new TableCell({
                   width: { size: convertMillimetersToTwip(schoolStampWidthMm), type: WidthType.DXA },
@@ -1251,7 +1252,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
                         new TextRun({
                           text: 'OFFICIAL SCHOOL STAMP',
                           bold: true,
-                          size: 15,
+                          size: 16,
                           color: '475569',
                           font: fontFamily,
                         }),
@@ -1259,7 +1260,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
                     }),
                     new Paragraph({
                       alignment: AlignmentType.CENTER,
-                      spacing: { before: 900, after: 120 },
+                      spacing: { before: 1800, after: 80 },
                       children: [
                         new TextRun({
                           text: '(Place Official School Date Stamp Here)',
@@ -1329,6 +1330,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
           rows: [
             new TableRow({
               cantSplit: true,
+              height: { value: convertMillimetersToTwip(52), rule: HeightRule.ATLEAST },
               children: [
                 // Left Cell: Official District Stamp Box
                 new TableCell({
@@ -1344,12 +1346,12 @@ export async function buildFormattedDocx(config, parsedBlocks) {
                   children: [
                     new Paragraph({
                       alignment: AlignmentType.CENTER,
-                      spacing: { before: 80, after: 40 },
+                      spacing: { before: 80, after: 30 },
                       children: [
                         new TextRun({
                           text: 'OFFICIAL DISTRICT / CIRCUIT STAMP',
                           bold: true,
-                          size: 15,
+                          size: 16,
                           color: '475569',
                           font: fontFamily,
                         }),
@@ -1357,7 +1359,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
                     }),
                     new Paragraph({
                       alignment: AlignmentType.CENTER,
-                      spacing: { before: 180, after: 160 },
+                      spacing: { before: 1800, after: 80 },
                       children: [
                         new TextRun({
                           text: '(Place District Registry / Circuit Office Date Stamp Here)',
@@ -1394,7 +1396,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
                   margins: { left: 160, right: 160, top: 100, bottom: 100 },
                   children: [
                     new Paragraph({
-                      spacing: { before: 180, after: 0 },
+                      spacing: { before: 500, after: 0 },
                       children: [],
                     }),
                     new Paragraph({
@@ -1405,7 +1407,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
                       children: [],
                     }),
                     new Paragraph({
-                      spacing: { before: 0, after: 90 },
+                      spacing: { before: 0, after: 60 },
                       keepWithNext: true,
                       children: [
                         new TextRun({
@@ -1777,9 +1779,9 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
 
         ${config.components.signatures.showSchoolStamp !== false ? `
           <div style="margin-top: 4mm;">
-            <div style="max-width: 80mm; min-height: 52mm; height: 52mm; background: #F8FAFC; border: 1.5px dashed #94A3B8; border-radius: 3px; padding: 14px 16px; text-align: center; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between;">
-              <div style="font-size: 7.8pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.8px; color: #475569; margin-bottom: auto;">OFFICIAL SCHOOL STAMP</div>
-              <div style="font-size: 7.2pt; color: #94A3B8; font-style: italic; margin-top: auto;">(Place Official School Date Stamp Here)</div>
+            <div style="width: 80mm; max-width: 80mm; min-height: 52mm; height: 52mm; background: #F8FAFC; border: 1.5px dashed #94A3B8; border-radius: 3px; padding: 4.5mm 4mm; text-align: center; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between;">
+              <div style="font-size: 8pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.8px; color: #475569; margin-top: 1.5mm; margin-bottom: auto;">OFFICIAL SCHOOL STAMP</div>
+              <div style="font-size: 7.2pt; color: #94A3B8; font-style: italic; margin-top: auto; margin-bottom: 1.5mm;">(Place Official School Date Stamp Here)</div>
             </div>
           </div>
         ` : ''}
@@ -1790,14 +1792,16 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
             <div style="font-size: 8pt; color: #475569; margin-bottom: 3mm;">Received, verified, and endorsed for departmental records by the District Office:</div>
             <table style="width: 100%; border-collapse: separate; border-spacing: 5mm 0; table-layout: fixed;">
               <tr>
-                <td style="width: 50%; vertical-align: top; background: #F8FAFC; border: 1.5px dashed #94A3B8; border-radius: 3px; padding: 14px 16px; text-align: center; box-sizing: border-box; height: 52mm;">
-                  <div style="font-size: 7.8pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.8px; color: #475569; margin-bottom: 6px;">OFFICIAL DISTRICT / CIRCUIT STAMP</div>
-                  <div style="font-size: 7.2pt; color: #94A3B8; font-style: italic; margin-top: 75px;">(Place District Registry / Circuit Office Date Stamp Here)</div>
+                <td style="width: 50%; vertical-align: top; background: #F8FAFC; border: 1.5px dashed #94A3B8; border-radius: 3px; padding: 4.5mm 4mm; text-align: center; box-sizing: border-box; height: 52mm; min-height: 52mm;">
+                  <div style="display: flex; flex-direction: column; justify-content: space-between; height: 100%; min-height: 43mm;">
+                    <div style="font-size: 8pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.8px; color: #475569; margin-top: 1.5mm; margin-bottom: auto;">OFFICIAL DISTRICT / CIRCUIT STAMP</div>
+                    <div style="font-size: 7.2pt; color: #94A3B8; font-style: italic; margin-top: auto; margin-bottom: 1.5mm;">(Place District Registry / Circuit Office Date Stamp Here)</div>
+                  </div>
                 </td>
-                <td style="width: 50%; vertical-align: top; background: #FFFFFF; border: 1.5px solid #94A3B8; border-radius: 3px; padding: 12px 14px; box-sizing: border-box;">
-                  <div style="height: 15mm; min-height: 15mm;"></div>
+                <td style="width: 50%; vertical-align: top; background: #FFFFFF; border: 1.5px solid #94A3B8; border-radius: 3px; padding: 4.5mm 4mm; box-sizing: border-box; height: 52mm; min-height: 52mm;">
+                  <div style="height: 18mm; min-height: 18mm;"></div>
                   <div style="border-bottom: 1.5px solid ${primaryColor}; margin-bottom: 2px;"></div>
-                  <div style="font-size: 7pt; text-transform: uppercase; letter-spacing: 0.8px; color: #64748B; font-weight: bold; margin-bottom: 14px;">Signature</div>
+                  <div style="font-size: 7pt; text-transform: uppercase; letter-spacing: 0.8px; color: #64748B; font-weight: bold; margin-bottom: 10px;">Signature</div>
                   <div style="font-size: 9.5pt; font-weight: bold; color: ${textColor}; margin-bottom: 2px; line-height: 1.2;">
                     <div style="display: flex; align-items: flex-end; gap: 4px;"><span style="color: #64748B; font-size: 8pt; font-weight: 600; white-space: nowrap;">NAME:</span> <span style="flex: 1; border-bottom: 1px solid #94A3B8; min-height: 1px; margin-bottom: 2px;"></span></div>
                   </div>
