@@ -1967,7 +1967,7 @@ function renderDocumentPreview() {
                     `<div class="prev-clause-item" style="padding-left: ${l2Wrap}mm; padding-top: 0; padding-bottom: ${spaceAfterPt}pt; margin: 0; font-size: ${l2Size}pt; font-weight: ${l2Bold ? 'bold' : 'normal'}; text-decoration: ${textDecor}; text-transform: ${l2Upper ? 'uppercase' : 'none'}; line-height: ${lineSpacing}; text-align: justify; color: ${textColor};">${formatted}</div>` :
                     `<div class="prev-clause-item" style="position: relative; padding-left: ${l2Wrap}mm; padding-top: ${spaceBeforePt}pt; padding-bottom: ${spaceAfterPt}pt; margin: 0; font-size: ${l2Size}pt; font-weight: ${l2Bold ? 'bold' : 'normal'}; text-decoration: ${textDecor}; text-transform: ${l2Upper ? 'uppercase' : 'none'}; line-height: ${lineSpacing}; text-align: justify;"><span class="prev-num-bold" style="position: absolute; left: ${l2NumPos}mm; top: ${spaceBeforePt}pt; font-weight: bold; color: ${primaryColor}; text-decoration: none;">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${formatted}</span></div>`;
             };
-            blocks.push({ type: 'level2', isHeading: true, html: makeL2Html(b.text), text: b.text, renderHtml: makeL2Html, renderContHtml: (t) => makeL2Html(t, true) });
+            blocks.push({ type: 'level2', isHeading: false, isClause: true, html: makeL2Html(b.text), text: b.text, renderHtml: makeL2Html, renderContHtml: (t) => makeL2Html(t, true) });
         } else if (b.type === 'level3') {
             isFirstParagraphAfterHeading = true;
             currentBodyIndentMm = l3Wrap;
@@ -1979,7 +1979,7 @@ function renderDocumentPreview() {
                     `<div class="prev-clause-item" style="padding-left: ${l3Wrap}mm; padding-top: 0; padding-bottom: ${spaceAfterPt}pt; margin: 0; font-size: ${l3Size}pt; font-weight: ${l3Bold ? 'bold' : 'normal'}; text-decoration: ${textDecor}; text-transform: ${l3Upper ? 'uppercase' : 'none'}; line-height: ${lineSpacing}; text-align: justify; color: ${textColor};">${formatted}</div>` :
                     `<div class="prev-clause-item" style="position: relative; padding-left: ${l3Wrap}mm; padding-top: ${spaceBeforePt}pt; padding-bottom: ${spaceAfterPt}pt; margin: 0; font-size: ${l3Size}pt; font-weight: ${l3Bold ? 'bold' : 'normal'}; text-decoration: ${textDecor}; text-transform: ${l3Upper ? 'uppercase' : 'none'}; line-height: ${lineSpacing}; text-align: justify;"><span class="prev-num-bold" style="position: absolute; left: ${l3NumPos}mm; top: ${spaceBeforePt}pt; font-weight: bold; color: ${primaryColor}; text-decoration: none;">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${formatted}</span></div>`;
             };
-            blocks.push({ type: 'level3', isHeading: true, html: makeL3Html(b.text), text: b.text, renderHtml: makeL3Html, renderContHtml: (t) => makeL3Html(t, true) });
+            blocks.push({ type: 'level3', isHeading: false, isClause: true, html: makeL3Html(b.text), text: b.text, renderHtml: makeL3Html, renderContHtml: (t) => makeL3Html(t, true) });
         } else if (b.type === 'level4') {
             isFirstParagraphAfterHeading = true;
             currentBodyIndentMm = l4Wrap;
@@ -1991,7 +1991,7 @@ function renderDocumentPreview() {
                     `<div class="prev-clause-item" style="padding-left: ${l4Wrap}mm; padding-top: 0; padding-bottom: ${spaceAfterPt}pt; margin: 0; font-size: ${l4Size}pt; font-weight: ${l4Bold ? 'bold' : 'normal'}; text-decoration: ${textDecor}; text-transform: ${l4Upper ? 'uppercase' : 'none'}; line-height: ${lineSpacing}; text-align: justify; color: ${textColor};">${formatted}</div>` :
                     `<div class="prev-clause-item" style="position: relative; padding-left: ${l4Wrap}mm; padding-top: ${spaceBeforePt}pt; padding-bottom: ${spaceAfterPt}pt; margin: 0; font-size: ${l4Size}pt; font-weight: ${l4Bold ? 'bold' : 'normal'}; text-decoration: ${textDecor}; text-transform: ${l4Upper ? 'uppercase' : 'none'}; line-height: ${lineSpacing}; text-align: justify;"><span class="prev-num-bold" style="position: absolute; left: ${l4NumPos}mm; top: ${spaceBeforePt}pt; font-weight: bold; color: ${primaryColor}; text-decoration: none;">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${formatted}</span></div>`;
             };
-            blocks.push({ type: 'level4', isHeading: true, html: makeL4Html(b.text), text: b.text, renderHtml: makeL4Html, renderContHtml: (t) => makeL4Html(t, true) });
+            blocks.push({ type: 'level4', isHeading: false, isClause: true, html: makeL4Html(b.text), text: b.text, renderHtml: makeL4Html, renderContHtml: (t) => makeL4Html(t, true) });
         } else if (b.type === 'level5') {
             isFirstParagraphAfterHeading = true;
             currentBodyIndentMm = l5Wrap;
@@ -2003,7 +2003,7 @@ function renderDocumentPreview() {
                     `<div class="prev-clause-item" style="padding-left: ${l5Wrap}mm; padding-top: 0; padding-bottom: ${spaceAfterPt}pt; margin: 0; font-size: ${l5Size}pt; font-weight: ${l5Bold ? 'bold' : 'normal'}; text-decoration: ${textDecor}; text-transform: ${l5Upper ? 'uppercase' : 'none'}; line-height: ${lineSpacing}; text-align: justify; color: ${textColor};">${formatted}</div>` :
                     `<div class="prev-clause-item" style="position: relative; padding-left: ${l5Wrap}mm; padding-top: ${spaceBeforePt}pt; padding-bottom: ${spaceAfterPt}pt; margin: 0; font-size: ${l5Size}pt; font-weight: ${l5Bold ? 'bold' : 'normal'}; text-decoration: ${textDecor}; text-transform: ${l5Upper ? 'uppercase' : 'none'}; line-height: ${lineSpacing}; text-align: justify;"><span class="prev-num-bold" style="position: absolute; left: ${l5NumPos}mm; top: ${spaceBeforePt}pt; font-weight: bold; color: ${primaryColor}; text-decoration: none;">${escapeHTML(b.number)}</span><span class="prev-clause-text" style="color: ${textColor};">${formatted}</span></div>`;
             };
-            blocks.push({ type: 'level5', isHeading: true, html: makeL5Html(b.text), text: b.text, renderHtml: makeL5Html, renderContHtml: (t) => makeL5Html(t, true) });
+            blocks.push({ type: 'level5', isHeading: false, isClause: true, html: makeL5Html(b.text), text: b.text, renderHtml: makeL5Html, renderContHtml: (t) => makeL5Html(t, true) });
         } else {
             const indentForThis = currentBodyIndentMm;
             const topPad = isFirstParagraphAfterHeading ? 0 : spaceBeforePt;
