@@ -145,6 +145,9 @@
             "enabled": true,
             "title": "ADOPTION AND SIGN-OFF RESOLUTION",
             "introText": "This School Mission Statement was formally accepted, approved, and signed at a meeting of the Governing Body of the Lady Grey Arts Academy.",
+            "showSchoolStamp": true,
+            "showDistrictStamp": true,
+            "districtRole": "Circuit Manager",
             "signers": [
               {
                 "role": "SGB Chairperson",
@@ -173,7 +176,7 @@
       "clauseCount": 56,
       "previewSnippet": "The Lady Grey Arts Academy is a Section 21 Public School, offering specialised education in the performing- and visual arts to students from",
       "createdAt": "2026-08-23T06:37:53.829Z",
-      "updatedAt": "2026-08-23T14:08:35.114Z"
+      "updatedAt": "2026-08-23T17:07:14.273Z"
     },
     {
       "id": "doc_1787449835047",
@@ -294,12 +297,12 @@
           "legalNotice": {
             "enabled": true,
             "prefix": "LEGAL NOTICE: ",
-            "text": "This school mission statement is a legally binding regulatory document drafted and adopted by the School Governing Body in terms of the South African Schools Act. All members of the governing body, learners, parents, educators, and staff are subject to the provisions herein."
+            "text": "This Constitution of the School Governing Body is an official legally binding regulatory instrument drafted, adopted, and promulgated by the School Governing Body in terms of Section 18(1) of the South African Schools Act, 1996 (Act No. 84 of 1996) and the Eastern Cape School Education Act, 2000 (Act No. 2 of 2000). This document aligns fully with the Constitution of the Republic of South Africa, 1996 (Act No. 108 of 1996) and relevant national and provincial statutory frameworks. All members of the School Governing Body, School Management Team, educators, administrative staff, learners, and parents/guardians are subject to the provisions and governance protocols herein."
           },
           "signatures": {
             "enabled": true,
             "title": "ADOPTION AND SIGN-OFF RESOLUTION",
-            "introText": "This School Mission Statement was formally accepted, approved, and signed at a meeting of the Governing Body of the Lady Grey Arts Academy.",
+            "introText": "This Constitution of the School Governing Body was formally accepted, approved, and signed at a meeting of the Governing Body of the Lady Grey Arts Academy.",
             "signers": [
               {
                 "role": "SGB Chairperson",

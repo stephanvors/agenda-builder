@@ -69,7 +69,7 @@ export function parseRawText(rawText) {
     }
 
     // 1. Level 5: 5-level numbering (e.g. 1.1.1.1.1 [Text])
-    const l5Match = rawLine.match(/^(\d+\.\d+\.\d+\.\d+\.\d+)\.?\s+(.*)$/);
+    const l5Match = rawLine.match(/^(\d+\.\d+\.\d+\.\d+\.\d+)\.?[\s\t\u00A0]*(.*)$/);
     if (l5Match) {
       blocks.push({
         type: 'level5',
@@ -82,7 +82,7 @@ export function parseRawText(rawText) {
     }
 
     // 2. Level 4: 4-level numbering (e.g. 1.1.1.1 [Text]) or Bullets
-    const l4Match = rawLine.match(/^(\d+\.\d+\.\d+\.\d+)\.?\s+(.*)$/);
+    const l4Match = rawLine.match(/^(\d+\.\d+\.\d+\.\d+)\.?[\s\t\u00A0]*(.*)$/);
     if (l4Match) {
       blocks.push({
         type: 'level4',
@@ -93,7 +93,7 @@ export function parseRawText(rawText) {
       });
       continue;
     }
-    const bulletMatch = rawLine.match(/^([•\-\*\u2022\u2023\u25E6\u2043\u2219])\s+(.*)$/);
+    const bulletMatch = rawLine.match(/^([•\-\*\u2022\u2023\u25E6\u2043\u2219])[\s\t\u00A0]+(.*)$/);
     if (bulletMatch) {
       blocks.push({
         type: 'level4',
@@ -106,7 +106,7 @@ export function parseRawText(rawText) {
     }
 
     // 3. Level 3: 3-level numbering (e.g. 1.1.1 [Text])
-    const l3Match = rawLine.match(/^(\d+\.\d+\.\d+)\.?\s+(.*)$/);
+    const l3Match = rawLine.match(/^(\d+\.\d+\.\d+)\.?[\s\t\u00A0]*(.*)$/);
     if (l3Match) {
       blocks.push({
         type: 'level3',
@@ -119,7 +119,7 @@ export function parseRawText(rawText) {
     }
 
     // 4. Level 2: 2-level numbering (e.g. 1.1 [Text])
-    const l2Match = rawLine.match(/^(\d+\.\d+)\.?\s+(.*)$/);
+    const l2Match = rawLine.match(/^(\d+\.\d+)\.?[\s\t\u00A0]*(.*)$/);
     if (l2Match) {
       blocks.push({
         type: 'level2',
@@ -132,7 +132,7 @@ export function parseRawText(rawText) {
     }
 
     // 5. Level 1: 1-level explicit numbering (e.g. 1. [Text] or 1. NAME or 1. Our Vision)
-    const l1Match = rawLine.match(/^(\d+)\.\s+(.*)$/);
+    const l1Match = rawLine.match(/^(\d+)\.[\s\t\u00A0]*(.*)$/);
     if (l1Match) {
       const explicitNum = parseInt(l1Match[1], 10);
       if (!isNaN(explicitNum)) {
@@ -462,8 +462,20 @@ export async function buildFormattedDocx(config, parsedBlocks) {
       );
     }
 
-    // Text Cell
-    const textWidthMm = hdr.showBadge !== false ? bodyWidthMm - 16 - 36 : bodyWidthMm - 16;
+    // Text & Badge Cell Width Calculations
+    const showBadge = hdr.showBadge !== false && (hdr.badgeText || hdr.badgeSubtext);
+    let badgeWidthMm = 0;
+    if (showBadge) {
+      const maxBadgeChars = Math.max(
+        (hdr.badgeText || 'OFFICIAL').trim().length,
+        (hdr.badgeSubtext || 'CORRESPONDENCE').trim().length
+      );
+      // Average 1.65mm per char + 4mm for left border & padding
+      badgeWidthMm = Math.max(20, Math.min(36, Math.round(maxBadgeChars * 1.65 + 4)));
+    }
+
+    const logoWidthMm = (hdr.showLogo !== false && emblemData) ? 16 : 0;
+    const textWidthMm = bodyWidthMm - logoWidthMm - badgeWidthMm;
     const detailParagraphs = [];
     if (hdr.title) {
       detailParagraphs.push(
@@ -507,11 +519,11 @@ export async function buildFormattedDocx(config, parsedBlocks) {
       })
     );
 
-    // Badge Cell
-    if (hdr.showBadge !== false && (hdr.badgeText || hdr.badgeSubtext)) {
+    // Badge Cell (snug to right margin with vertical dividing line)
+    if (showBadge) {
       tableCells.push(
         new TableCell({
-          width: { size: convertMillimetersToTwip(36), type: WidthType.DXA },
+          width: { size: convertMillimetersToTwip(badgeWidthMm), type: WidthType.DXA },
           verticalAlign: VerticalAlign.CENTER,
           borders: {
             left: { style: BorderStyle.SINGLE, size: 20, color: primaryColor },
@@ -519,7 +531,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
             right: { style: BorderStyle.NONE },
             bottom: { style: BorderStyle.NONE },
           },
-          margins: { top: 10, bottom: 10, left: 60, right: 0 },
+          margins: { top: 10, bottom: 10, left: 40, right: 0 },
           children: [
             new Paragraph({
               spacing: { before: 0, after: 2, line: 200 },
@@ -666,6 +678,18 @@ export async function buildFormattedDocx(config, parsedBlocks) {
 
   // 3. Legal Notice Callout Box
   if (comps.legalNotice && comps.legalNotice.enabled && comps.legalNotice.text) {
+    let noticeText = comps.legalNotice.text;
+    const rawTitle = config.documentTitle || '';
+    if (rawTitle && noticeText) {
+      let formattedTitle = rawTitle.trim();
+      if (formattedTitle === formattedTitle.toUpperCase() && formattedTitle.length > 3) {
+        formattedTitle = formattedTitle.toLowerCase().replace(/(?:^|\s|-|\()\S/g, c => c.toUpperCase());
+      }
+      if (noticeText.includes('{documentTitle}') || noticeText.includes('{title}')) {
+        noticeText = noticeText.replace(/\{documentTitle\}|\{title\}/g, formattedTitle);
+      }
+    }
+
     docChildren.push(
       new Table({
         width: { size: convertMillimetersToTwip(bodyWidthMm), type: WidthType.DXA },
@@ -695,7 +719,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
                         font: fontFamily,
                       }),
                       new TextRun({
-                        text: comps.legalNotice.text,
+                        text: noticeText,
                         size: baseSizeHps - 2,
                         color: textColor,
                         font: fontFamily,
@@ -1573,10 +1597,22 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
   // Legal Notice
   let noticeHtml = '';
   if (config.components?.legalNotice?.enabled) {
+    let noticeText = config.components.legalNotice.text || '';
+    const rawTitle = config.documentTitle || '';
+    if (rawTitle && noticeText) {
+      let formattedTitle = rawTitle.trim();
+      if (formattedTitle === formattedTitle.toUpperCase() && formattedTitle.length > 3) {
+        formattedTitle = formattedTitle.toLowerCase().replace(/(?:^|\s|-|\()\S/g, c => c.toUpperCase());
+      }
+      if (noticeText.includes('{documentTitle}') || noticeText.includes('{title}')) {
+        noticeText = noticeText.replace(/\{documentTitle\}|\{title\}/g, formattedTitle);
+      }
+    }
+
     noticeHtml = `
       <div style="border-left: 3.5px solid ${primaryColor}; background: #F8FAFC; padding: 6px 10px; margin: 4mm 0 6mm 0; font-size: 8.5pt; color: ${textColor};">
         <strong style="color: ${primaryColor};">${config.components.legalNotice.prefix || 'LEGAL NOTICE: '}</strong>
-        <span>${config.components.legalNotice.text || ''}</span>
+        <span>${noticeText}</span>
       </div>
     `;
   }

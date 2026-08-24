@@ -327,7 +327,7 @@ body.formatter-studio-body {
 .studio-workspace {
     flex: 1;
     display: grid;
-    grid-template-columns: 480px 1fr;
+    grid-template-columns: 375px 1fr;
     overflow: hidden;
     height: calc(100vh - 96px);
 }
@@ -795,13 +795,16 @@ body.formatter-studio-body {
 
 .preview-toolbar {
     height: 48px;
+    min-height: 48px;
     background: var(--bg-card);
     border-bottom: 1px solid var(--border);
-    padding: 0 1.25rem;
+    padding: 0 1rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 0.75rem;
     flex-shrink: 0;
+    box-sizing: border-box;
 }
 
 [data-theme="dark"] .preview-toolbar {
@@ -809,10 +812,29 @@ body.formatter-studio-body {
     border-bottom: 1px solid #1E293B;
 }
 
+.preview-toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    flex-wrap: nowrap;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.preview-toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+    flex-wrap: nowrap;
+}
+
 .preview-label {
     font-size: 0.82rem;
     font-weight: 700;
     color: var(--text-main);
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 [data-theme="dark"] .preview-label {
@@ -820,13 +842,14 @@ body.formatter-studio-body {
 }
 
 .grid-toggle-label {
-    margin-left: 1rem;
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
     font-size: 0.76rem;
     color: var(--text-muted);
     cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 [data-theme="dark"] .grid-toggle-label {
@@ -849,8 +872,9 @@ body.formatter-studio-body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1.5rem;
+    gap: 0.55rem;
     width: 100%;
+    padding-top: 22px;
 }
 
 /* Realistic Multi-Sheet A4 Page Canvas */
@@ -880,6 +904,28 @@ body.formatter-studio-body {
     box-shadow: 0 14px 45px rgba(0,0,0,0.7);
 }
 
+/* Floating Page-Header Badge (Outside printable flow) */
+.page-corner-indicator {
+    position: absolute;
+    top: -20px;
+    right: 0;
+    font-size: 6.8pt;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #64748B;
+    background: var(--bg-card, #FFFFFF);
+    border: 1px solid var(--border, #CBD5E1);
+    padding: 1px 7px;
+    border-radius: 3px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    pointer-events: none;
+    z-index: 20;
+}
+
 .doc-page-inner {
     display: flex;
     flex-direction: column;
@@ -899,33 +945,33 @@ body.formatter-studio-body {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 1rem;
+    gap: 0.65rem;
     width: 210mm;
-    margin: 0.25rem 0;
+    margin: 0;
     user-select: none;
     flex-shrink: 0;
+    height: 16px;
 }
 
 .preview-page-break-divider .page-break-line {
     flex: 1;
     height: 1px;
-    border-top: 1.5px dashed var(--border);
+    border-top: 1px dashed var(--border, #CBD5E1);
 }
 
 .preview-page-break-divider .page-break-badge {
-    font-size: 0.74rem;
-    font-weight: 700;
-    color: var(--primary);
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    padding: 0.25rem 0.85rem;
+    font-size: 0.64rem;
+    font-weight: 600;
+    color: var(--text-muted, #64748B);
+    background: var(--bg-card, #FFFFFF);
+    border: 1px solid var(--border, #CBD5E1);
+    padding: 0.1rem 0.55rem;
     border-radius: 9999px;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.02em;
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
-    box-shadow: var(--shadow-sm);
+    gap: 0.3rem;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
 }
 
 /* ── Running Header on Page 2+ ── */
@@ -961,7 +1007,27 @@ body.formatter-studio-body {
 
 .guide-line.guide-margin-left,
 .guide-line.guide-margin-right {
-    border-left: 1.5px dashed rgba(239, 68, 68, 0.5);
+    border-left: 1.5px dashed rgba(239, 68, 68, 0.7);
+}
+
+.guide-line.guide-margin-top {
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 1px;
+    bottom: auto;
+    border-left: none;
+    border-top: 1.5px dashed rgba(239, 68, 68, 0.7);
+}
+
+.guide-line.guide-margin-bottom {
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 1px;
+    top: auto;
+    border-left: none;
+    border-top: 1.5px dashed rgba(239, 68, 68, 0.7);
 }
 
 .guide-line.guide-level-1 { border-left-color: rgba(59, 130, 246, 0.6); }
@@ -972,9 +1038,7 @@ body.formatter-studio-body {
 
 .guide-tag {
     position: absolute;
-    top: 2px;
-    left: 2px;
-    font-size: 8px;
+    font-size: 7.5px;
     font-weight: 700;
     background: rgba(15, 23, 42, 0.85);
     color: #FFFFFF;
@@ -982,6 +1046,39 @@ body.formatter-studio-body {
     border-radius: 2px;
     white-space: nowrap;
     line-height: 1;
+}
+
+.guide-tag.guide-tag-level {
+    top: 2px;
+    left: 2px;
+}
+
+.guide-tag.guide-tag-margin-left {
+    top: -15px;
+    left: 0;
+    background: #EF4444;
+}
+
+.guide-tag.guide-tag-margin-right {
+    top: -15px;
+    right: 0;
+    left: auto;
+    background: #EF4444;
+}
+
+.guide-tag.guide-tag-margin-top {
+    top: 2px;
+    right: 2px;
+    left: auto;
+    background: #EF4444;
+}
+
+.guide-tag.guide-tag-margin-bottom {
+    bottom: 2px;
+    right: 2px;
+    left: auto;
+    top: auto;
+    background: #EF4444;
 }
 
 /* ── Rendered Preview Document Elements ── */
@@ -1360,11 +1457,16 @@ body.formatter-studio-body {
 
 .prev-footer {
     border-top: 1px solid #CBD5E1;
-    padding-top: 2mm;
-    margin-top: 10mm;
+    padding-top: 1.5mm;
+    margin-top: 0;
     text-align: center;
     font-size: 8.5pt;
     color: #64748B;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    line-height: 1.2;
+    flex-shrink: 0;
 }
 
 /* ── English (South Africa) Quality Inspector & Spellcheck Drawer ── */

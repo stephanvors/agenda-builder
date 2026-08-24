@@ -196,14 +196,21 @@ async function loadPresets() {
                 applyPreset(found, false); // don't overwrite if draft exists
             }
 
+            // ── Draft version cache-busting ──
+            // Bump this version string whenever the legal notice generator changes.
+            // Any stored draft from a previous version is discarded so stale notice text never survives.
+            const DRAFT_VERSION = '2026-08-23-v3';
+            const storedDraftVersion = localStorage.getItem('sgb_formatter_draft_version');
+            if (storedDraftVersion !== DRAFT_VERSION) {
+                localStorage.removeItem('sgb_formatter_draft');
+                localStorage.setItem('sgb_formatter_draft_version', DRAFT_VERSION);
+            }
+
             // Restore any in-progress draft edits (including title, subtitle, header, metadata, indents)
             const rawDraft = localStorage.getItem('sgb_formatter_draft');
             if (rawDraft) {
                 try {
                     const draft = JSON.parse(rawDraft);
-                    if (draft.config) {
-                        applyPresetConfig(draft.config);
-                    }
                     if (draft.docTitle !== undefined && document.getElementById('doc-title-input')) {
                         document.getElementById('doc-title-input').value = draft.docTitle;
                     }
@@ -216,9 +223,17 @@ async function loadPresets() {
                     if (draft.rawText && document.getElementById('raw-text-input')) {
                         document.getElementById('raw-text-input').value = draft.rawText;
                     }
+                    if (draft.config) {
+                        applyPresetConfig(draft.config);
+                    }
                 } catch(e) {}
             }
+
+            // ── Always regenerate legal notice & signatures from the actual document title ──
+            // This runs unconditionally after all draft restoration so stale cached text
+            // (from a different document context) can never survive a page load.
             updateDynamicTitleInSignaturesAndNotice();
+
             parseTextAndUpdatePreview();
             saveDraftToLocalStorage();
         }
@@ -383,21 +398,28 @@ function applyPresetConfig(preset) {
 
     const legalNotice = comps.legalNotice || preset.tables?.legalNotice || {};
     setCheck('enable-legal-notice', legalNotice.enabled !== false);
-    setVal('legal-notice-prefix', legalNotice.prefix !== undefined ? legalNotice.prefix : 'LEGAL NOTICE: ');
-    let noticeText = legalNotice.text !== undefined ? legalNotice.text : '';
-    if (noticeText && (!noticeText.includes('Constitution of the Republic of South Africa') || noticeText.includes('terms of the South African Schools Act.'))) {
-        const rawTitle = document.getElementById('doc-title-input')?.value || preset.documentTitle || '';
-        const rawText = document.getElementById('raw-text-input')?.value || '';
-        const contextKey = detectContextFromDocument(rawTitle, rawText);
-        const tpl = CONTEXTUAL_METADATA_PRESETS[contextKey] || CONTEXTUAL_METADATA_PRESETS.mission;
-        noticeText = tpl.legalNoticeText;
+    const rawTitle = document.getElementById('doc-title-input')?.value || preset.documentTitle || '';
+    const rawText = document.getElementById('raw-text-input')?.value || '';
+    const contextKey = detectContextFromDocument(rawTitle, rawText);
+    const tpl = CONTEXTUAL_METADATA_PRESETS[contextKey] || CONTEXTUAL_METADATA_PRESETS.constitution;
+
+    // Always set the prefix from the detected context, not from the stale draft
+    setVal('legal-notice-prefix', tpl.legalNoticePrefix || 'LEGAL NOTICE: ');
+
+    // Always regenerate the legal notice text from the actual document title.
+    // Never trust cached/stored text — it may have come from a different document context.
+    setVal('legal-notice-text', generateLegalNoticeForDoc(rawTitle, contextKey));
+
+    if (contextKey === 'constitution') {
+        setVal('header-badge-text', 'SGB');
+        setVal('header-badge-subtext', 'CONSTITUTION');
     }
-    setVal('legal-notice-text', noticeText);
 
     const signatures = comps.signatures || preset.signatures || {};
     setCheck('enable-signatures', signatures.enabled !== false);
     setVal('signatures-title', signatures.title !== undefined ? signatures.title : 'ADOPTION AND SIGN-OFF RESOLUTION');
-    setVal('signatures-intro', signatures.introText !== undefined ? signatures.introText : '');
+    // Always regenerate the intro from the actual document title (never trust cached intro text)
+    setVal('signatures-intro', generateSignaturesIntroForDoc(rawTitle, contextKey));
     setCheck('signatures-school-stamp', signatures.showSchoolStamp !== false);
     setCheck('signatures-district-endorsement', signatures.showDistrictStamp !== false);
     setVal('signatures-district-role', signatures.districtRole || 'Circuit Manager');
@@ -735,14 +757,81 @@ function initEventListeners() {
     // Contextual Metadata Template selector & Auto-align button
     document.getElementById('metadata-context-select')?.addEventListener('change', (e) => {
         applyContextualMetadata(e.target.value, true);
-        const name = e.target.selectedOptions[0]?.text || '';
-        showToast(`Aligned metadata table to ${name}`);
+        const title = document.getElementById('doc-title-input')?.value || '';
+        const text = document.getElementById('raw-text-input')?.value || '';
+        const activeKey = e.target.value === 'auto' ? detectContextFromDocument(title, text) : e.target.value;
+        const presetName = CONTEXTUAL_METADATA_PRESETS[activeKey]?.name || 'Document Context';
+        showToast(`Aligned metadata table & legal notice to ${presetName}`);
     });
     document.getElementById('btn-auto-align-metadata')?.addEventListener('click', () => {
         const selVal = document.getElementById('metadata-context-select')?.value || 'auto';
         applyContextualMetadata(selVal, true);
-        showToast('Aligned metadata table to current document context!');
+        const title = document.getElementById('doc-title-input')?.value || '';
+        const text = document.getElementById('raw-text-input')?.value || '';
+        const activeKey = selVal === 'auto' ? detectContextFromDocument(title, text) : selVal;
+        const presetName = CONTEXTUAL_METADATA_PRESETS[activeKey]?.name || 'Document Context';
+        showToast(`Aligned metadata table & legal notice to ${presetName}!`);
     });
+
+    // Legal Notice Card "Align Now" and "Regenerate from Title" buttons
+    const alignNoticeHandler = () => {
+        const selVal = document.getElementById('metadata-context-select')?.value || 'auto';
+        applyContextualMetadata(selVal, true);
+        const title = document.getElementById('doc-title-input')?.value || '';
+        const text = document.getElementById('raw-text-input')?.value || '';
+        const activeKey = selVal === 'auto' ? detectContextFromDocument(title, text) : selVal;
+        const presetName = CONTEXTUAL_METADATA_PRESETS[activeKey]?.name || 'Document Context';
+        showToast(`Aligned Legal Notice & Metadata to ${presetName}!`);
+    };
+
+    // Self-healing: Ensure Align Now buttons exist even if the HTML was cached
+    const ensureLegalNoticeAlignButtons = () => {
+        const noticeFields = document.getElementById('legal-notice-fields');
+        const legalNoticeCard = noticeFields?.closest('.control-card');
+        if (legalNoticeCard) {
+            const cardHeader = legalNoticeCard.querySelector('.card-header-flex');
+            if (cardHeader && !document.getElementById('btn-align-legal-notice')) {
+                const alignBtn = document.createElement('button');
+                alignBtn.type = 'button';
+                alignBtn.className = 'btn btn-sm btn-primary';
+                alignBtn.id = 'btn-align-legal-notice';
+                alignBtn.title = 'Align Legal Notice with current document title and statutory template';
+                alignBtn.style.cssText = 'background: #0284C7; color: #FFFFFF; border: none; font-weight: 700; padding: 0.35rem 0.85rem; font-size: 0.82rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; box-shadow: 0 1px 3px rgba(0,0,0,0.3);';
+                alignBtn.innerHTML = '⚡ Align Now';
+                alignBtn.addEventListener('click', alignNoticeHandler);
+
+                const checkboxLabel = cardHeader.querySelector('.checkbox-label');
+                if (checkboxLabel) {
+                    const wrapper = document.createElement('div');
+                    wrapper.style.cssText = 'display: flex; gap: 0.6rem; align-items: center;';
+                    checkboxLabel.parentNode.insertBefore(wrapper, checkboxLabel);
+                    wrapper.appendChild(alignBtn);
+                    wrapper.appendChild(checkboxLabel);
+                } else {
+                    cardHeader.appendChild(alignBtn);
+                }
+            }
+
+            if (!document.getElementById('btn-align-legal-notice-inline')) {
+                const noticeLabel = noticeFields.querySelector('label[for="legal-notice-text"]');
+                if (noticeLabel && noticeLabel.parentElement) {
+                    const inlineBtn = document.createElement('button');
+                    inlineBtn.type = 'button';
+                    inlineBtn.className = 'btn btn-sm btn-outline';
+                    inlineBtn.id = 'btn-align-legal-notice-inline';
+                    inlineBtn.title = 'Regenerate legal notice text based on current document title';
+                    inlineBtn.style.cssText = 'background: rgba(56, 189, 248, 0.15); border: 1px solid #38BDF8; color: #38BDF8; padding: 0.2rem 0.6rem; font-size: 0.75rem; font-weight: 700; border-radius: 4px; cursor: pointer; float: right;';
+                    inlineBtn.innerHTML = '⚡ Align to Document Title';
+                    inlineBtn.addEventListener('click', alignNoticeHandler);
+                    noticeLabel.parentNode.insertBefore(inlineBtn, noticeLabel.nextSibling);
+                }
+            }
+        }
+    };
+    ensureLegalNoticeAlignButtons();
+
+    document.getElementById('btn-align-legal-notice')?.addEventListener('click', alignNoticeHandler);
+    document.getElementById('btn-align-legal-notice-inline')?.addEventListener('click', alignNoticeHandler);
 
     // Spatial Grid toggle
     document.getElementById('toggle-grid-overlay')?.addEventListener('change', (e) => {
@@ -801,22 +890,6 @@ function updateAuditFolderHint() {
 }
 
 const CONTEXTUAL_METADATA_PRESETS = {
-    mission: {
-        name: 'School Vision & Mission Statement',
-        col1Title: 'Regulatory Alignment & Authority',
-        col2Title: 'Details & Specifications',
-        rows: [
-            { label: 'National Legislative Basis', value: 'Section 20(1)(c) of South African Schools Act, 1996 (Act No. 84 of 1996)' },
-            { label: 'Provincial Governance Directives', value: 'Eastern Cape Department of Education Curriculum & School Governance Directives' },
-            { label: 'Institutional Juristic Status', value: 'Lady Grey Arts Academy (EMIS: 200600985)' },
-            { label: 'Core Educational Mandate', value: 'Whole School Development, Academic Excellence & Specialized Creative Arts' },
-            { label: 'Adoption & Custodianship', value: 'School Governing Body (SGB) & School Management Team (SMT)' }
-        ],
-        legalNoticePrefix: 'LEGAL NOTICE: ',
-        legalNoticeText: 'This school mission statement is an official statutory and regulatory instrument drafted, adopted, and promulgated by the School Governing Body in terms of Section 20(1)(c) of the South African Schools Act, 1996 (Act No. 84 of 1996). This document aligns fully with the Constitution of the Republic of South Africa, 1996 (Act No. 108 of 1996), the National Education Policy Act, 1996 (Act No. 27 of 1996), and applicable provincial education legislation and governance directives. All members of the School Governing Body, School Management Team, educators, administrative and support staff, learners, and parents/guardians are legally bound by and subject to the provisions herein.',
-        badgeMain: 'SGB',
-        badgeSub: 'STATEMENT'
-    },
     constitution: {
         name: 'SGB Constitution & Governance',
         col1Title: 'Regulatory Alignment & Authority',
@@ -829,9 +902,25 @@ const CONTEXTUAL_METADATA_PRESETS = {
             { label: 'Governance Oversight', value: 'School Governing Body (SGB) specialized committees' }
         ],
         legalNoticePrefix: 'LEGAL NOTICE: ',
-        legalNoticeText: 'This constitution is an official legally binding regulatory instrument drafted, adopted, and promulgated by the School Governing Body in terms of Section 18(1) of the South African Schools Act, 1996 (Act No. 84 of 1996) and the Eastern Cape School Education Act, 2000 (Act No. 2 of 2000). This document aligns fully with the Constitution of the Republic of South Africa, 1996 (Act No. 108 of 1996) and relevant national and provincial statutory frameworks. All members of the School Governing Body, School Management Team, educators, administrative staff, learners, and parents/guardians are subject to the provisions and governance protocols herein.',
+        legalNoticeText: 'This Constitution of the School Governing Body is an official legally binding regulatory instrument drafted, adopted, and promulgated by the School Governing Body in terms of Section 18(1) of the South African Schools Act, 1996 (Act No. 84 of 1996) and the Eastern Cape School Education Act, 2000 (Act No. 2 of 2000). This document aligns fully with the Constitution of the Republic of South Africa, 1996 (Act No. 108 of 1996) and relevant national and provincial statutory frameworks. All members of the School Governing Body, School Management Team, educators, administrative staff, learners, and parents/guardians are subject to the provisions and governance protocols herein.',
         badgeMain: 'SGB',
         badgeSub: 'CONSTITUTION'
+    },
+    mission: {
+        name: 'School Vision & Mission Statement',
+        col1Title: 'Regulatory Alignment & Authority',
+        col2Title: 'Details & Specifications',
+        rows: [
+            { label: 'National Legislative Basis', value: 'Section 20(1)(c) of South African Schools Act, 1996 (Act No. 84 of 1996)' },
+            { label: 'Provincial Governance Directives', value: 'Eastern Cape Department of Education Curriculum & School Governance Directives' },
+            { label: 'Institutional Juristic Status', value: 'Lady Grey Arts Academy (EMIS: 200600985)' },
+            { label: 'Core Educational Mandate', value: 'Whole School Development, Academic Excellence & Specialized Creative Arts' },
+            { label: 'Adoption & Custodianship', value: 'School Governing Body (SGB) & School Management Team (SMT)' }
+        ],
+        legalNoticePrefix: 'LEGAL NOTICE: ',
+        legalNoticeText: 'This School Mission Statement is an official statutory and regulatory instrument drafted, adopted, and promulgated by the School Governing Body in terms of Section 20(1)(c) of the South African Schools Act, 1996 (Act No. 84 of 1996). This document aligns fully with the Constitution of the Republic of South Africa, 1996 (Act No. 108 of 1996), the National Education Policy Act, 1996 (Act No. 27 of 1996), and applicable provincial education legislation and governance directives. All members of the School Governing Body, School Management Team, educators, administrative and support staff, learners, and parents/guardians are legally bound by and subject to the provisions herein.',
+        badgeMain: 'SGB',
+        badgeSub: 'STATEMENT'
     },
     admission: {
         name: 'Admission Policy',
@@ -845,7 +934,7 @@ const CONTEXTUAL_METADATA_PRESETS = {
             { label: 'Administration Authority', value: 'School Principal (on behalf of Head of Department) with SGB Oversight' }
         ],
         legalNoticePrefix: 'LEGAL NOTICE: ',
-        legalNoticeText: 'This admission policy is an official statutory and regulatory policy determined and adopted by the School Governing Body in terms of Section 5(5) of the South African Schools Act, 1996 (Act No. 84 of 1996). This policy aligns fully with Section 9 (Equality & Non-Discrimination) and Section 29 (Right to Basic Education) of the Constitution of the Republic of South Africa, 1996 (Act No. 108 of 1996), the National Education Policy Act, 1996, and provincial admission directives. All administrative staff, educators, parents/guardians, and prospective learners are subject to these statutory provisions.',
+        legalNoticeText: 'This Admission Policy is an official statutory and regulatory policy determined and adopted by the School Governing Body in terms of Section 5(5) of the South African Schools Act, 1996 (Act No. 84 of 1996). This policy aligns fully with Section 9 (Equality & Non-Discrimination) and Section 29 (Right to Basic Education) of the Constitution of the Republic of South Africa, 1996 (Act No. 108 of 1996), the National Education Policy Act, 1996, and provincial admission directives. All administrative staff, educators, parents/guardians, and prospective learners are subject to these statutory provisions.',
         badgeMain: 'POLICY',
         badgeSub: 'ADMISSION'
     },
@@ -861,7 +950,7 @@ const CONTEXTUAL_METADATA_PRESETS = {
             { label: 'Governance Authority', value: 'School Governing Body (SGB) Policy Oversight' }
         ],
         legalNoticePrefix: 'LEGAL NOTICE: ',
-        legalNoticeText: 'This language policy is an official statutory and regulatory policy determined and adopted by the School Governing Body in terms of Section 6(2) of the South African Schools Act, 1996 (Act No. 84 of 1996). This policy complies with Section 29(2) and Section 6 of the Constitution of the Republic of South Africa, 1996 (Act No. 108 of 1996), the Norms and Standards for Language Policy in Public Schools, and provincial educational guidelines. All educators, staff, learners, and parents/guardians are bound by these provisions.',
+        legalNoticeText: 'This Language Policy is an official statutory and regulatory policy determined and adopted by the School Governing Body in terms of Section 6(2) of the South African Schools Act, 1996 (Act No. 84 of 1996). This policy complies with Section 29(2) and Section 6 of the Constitution of the Republic of South Africa, 1996 (Act No. 108 of 1996), the Norms and Standards for Language Policy in Public Schools, and provincial educational guidelines. All educators, staff, learners, and parents/guardians are bound by these provisions.',
         badgeMain: 'POLICY',
         badgeSub: 'LANGUAGE'
     },
@@ -877,7 +966,7 @@ const CONTEXTUAL_METADATA_PRESETS = {
             { label: 'Governance Authority', value: 'School Governing Body (SGB)' }
         ],
         legalNoticePrefix: 'LEGAL NOTICE: ',
-        legalNoticeText: 'This religious observances policy is determined and adopted by the School Governing Body in terms of Section 7 of the South African Schools Act, 1996 (Act No. 84 of 1996). This policy aligns strictly with Section 15 (Freedom of Religion, Belief and Opinion) of the Constitution of the Republic of South Africa, 1996 (Act No. 108 of 1996) and the National Policy on Religion and Education. All observances at Lady Grey Arts Academy are conducted equitably and voluntarily across all entities.',
+        legalNoticeText: 'This Religious Observances Policy is determined and adopted by the School Governing Body in terms of Section 7 of the South African Schools Act, 1996 (Act No. 84 of 1996). This policy aligns strictly with Section 15 (Freedom of Religion, Belief and Opinion) of the Constitution of the Republic of South Africa, 1996 (Act No. 108 of 1996) and the National Policy on Religion and Education. All observances at Lady Grey Arts Academy are conducted equitably and voluntarily across all entities.',
         badgeMain: 'POLICY',
         badgeSub: 'RELIGIOUS'
     },
@@ -929,6 +1018,22 @@ const CONTEXTUAL_METADATA_PRESETS = {
         badgeMain: 'POLICY',
         badgeSub: 'SAFETY'
     },
+    assessment: {
+        name: 'Assessment & Academic Policy',
+        col1Title: 'Regulatory Alignment & Authority',
+        col2Title: 'Details & Specifications',
+        rows: [
+            { label: 'National Legislative Basis', value: 'Section 6A of South African Schools Act, 1996 (Act No. 84 of 1996)' },
+            { label: 'Curriculum Standards', value: 'National Curriculum Statement & Curriculum Assessment Policy Statements (CAPS)' },
+            { label: 'Provincial Policy Framework', value: 'Eastern Cape Assessment Directives & Moderation Protocols' },
+            { label: 'Academic Jurisdiction', value: 'Lady Grey Arts Academy (General & Specialized Arts Streams, Grade R - 12)' },
+            { label: 'Academic Governance', value: 'School Management Team (SMT), HODs & SGB Academic Committee' }
+        ],
+        legalNoticePrefix: 'LEGAL NOTICE: ',
+        legalNoticeText: 'This Assessment and Academic Policy is an official regulatory instrument adopted by the School Governing Body in terms of Section 6A of the South African Schools Act, 1996 (Act No. 84 of 1996) and national Curriculum and Assessment Policy Statement (CAPS) frameworks. All educators, academic heads, learners, and parents/guardians are bound by the assessment, examination, and moderation standards herein.',
+        badgeMain: 'POLICY',
+        badgeSub: 'ACADEMIC'
+    },
     minutes: {
         name: 'SGB Meeting Minutes & Resolutions',
         col1Title: 'Meeting Parameter',
@@ -944,39 +1049,212 @@ const CONTEXTUAL_METADATA_PRESETS = {
         legalNoticeText: 'These meeting minutes constitute the official statutory and regulatory record of proceedings, deliberations, and resolutions adopted by the School Governing Body in terms of Section 18(2) of the South African Schools Act, 1996 (Act No. 84 of 1996), in accordance with the SGB Constitution and the Constitution of the Republic of South Africa, 1996 (Act No. 108 of 1996). All adopted resolutions are legally binding on all relevant school governing entities.',
         badgeMain: 'SGB',
         badgeSub: 'MINUTES'
+    },
+    general: {
+        name: 'General School Policy & Governance Instrument',
+        col1Title: 'Regulatory Alignment & Authority',
+        col2Title: 'Details & Specifications',
+        rows: [
+            { label: 'National Legislative Basis', value: 'South African Schools Act, 1996 (Act No. 84 of 1996)' },
+            { label: 'Provincial Legislative Basis', value: 'Eastern Cape School Education Act, 2000 (Act No. 2 of 2000)' },
+            { label: 'Institutional Juristic Status', value: 'Lady Grey Arts Academy (EMIS: 200600985)' },
+            { label: 'Applicability & Scope', value: 'School Governing Body, Educators, Administrative Staff, Parents & Learners' },
+            { label: 'Governance Custodian', value: 'School Governing Body (SGB) Governance & Policy Committee' }
+        ],
+        legalNoticePrefix: 'LEGAL NOTICE: ',
+        legalNoticeText: 'This official document is an official statutory and regulatory instrument drafted, adopted, and promulgated by the School Governing Body in terms of the South African Schools Act, 1996 (Act No. 84 of 1996) and the Eastern Cape School Education Act, 2000 (Act No. 2 of 2000). This document aligns fully with the Constitution of the Republic of South Africa, 1996 (Act No. 108 of 1996), the National Education Policy Act, 1996 (Act No. 27 of 1996), and applicable provincial education legislation and governance directives. All members of the School Governing Body, School Management Team, educators, administrative and support staff, learners, and parents/guardians are legally bound by and subject to the provisions herein.',
+        badgeMain: 'POLICY',
+        badgeSub: 'OFFICIAL'
     }
 };
 
-function detectContextFromDocument(title, text = '') {
-    const combined = ((title || '') + ' ' + (text || '')).toLowerCase();
-    if (combined.includes('mission') || combined.includes('vision') || combined.includes('creed') || combined.includes('core values') || combined.includes('motto')) {
-        return 'mission';
+function formatTitleForProse(rawTitle) {
+    if (!rawTitle || !rawTitle.trim()) return '';
+    let formatted = rawTitle.trim();
+    // Convert ALL CAPS titles to natural Title Case for natural prose integration
+    if (formatted === formatted.toUpperCase() && formatted.length > 3) {
+        const minorWords = new Set(['of', 'the', 'and', 'for', 'in', 'to', 'a', 'an', 'at', 'by', 'with', 'on']);
+        const acronyms = new Set(['sgb', 'smt', 'emis', 'rsa', 'caps', 'ohs', 'lsm', 'lolt', 'fal', 'hl', 'hod', 'agm', 'cmc']);
+        formatted = formatted.toLowerCase().split(/\s+/).map((word, idx) => {
+            if (acronyms.has(word)) {
+                return word.toUpperCase();
+            }
+            if (idx > 0 && minorWords.has(word)) {
+                return word;
+            }
+            return word.charAt(0).toUpperCase() + word.slice(1);
+        }).join(' ');
     }
-    if (combined.includes('admission') || combined.includes('enrolment') || combined.includes('enrollment') || combined.includes('admit')) {
-        return 'admission';
+    return formatted;
+}
+
+function getContextDefaultTitle(contextKey) {
+    const map = {
+        constitution: 'Constitution of the School Governing Body',
+        mission: 'School Vision & Mission Statement',
+        admission: 'Admission Policy',
+        language: 'Language Policy',
+        religion: 'Religious Observances Policy',
+        conduct: 'Code of Conduct for Learners',
+        finance: 'Financial Management Policy',
+        safety: 'Safety & Security Policy',
+        assessment: 'Assessment & Academic Policy',
+        minutes: 'SGB Meeting Minutes & Resolutions',
+        general: 'School Policy & Governance Instrument'
+    };
+    return map[contextKey] || 'regulatory instrument';
+}
+
+function generateLegalNoticeForDoc(title, contextKey) {
+    const rawTitle = (title || '').trim();
+    const docName = formatTitleForProse(rawTitle) || getContextDefaultTitle(contextKey);
+
+    switch (contextKey) {
+        case 'constitution': {
+            return `This ${docName} is an official legally binding regulatory instrument drafted, adopted, and promulgated by the School Governing Body in terms of Section 18(1) of the South African Schools Act, 1996 (Act No. 84 of 1996) and the Eastern Cape School Education Act, 2000 (Act No. 2 of 2000). This document aligns fully with the Constitution of the Republic of South Africa, 1996 (Act No. 108 of 1996) and relevant national and provincial statutory frameworks. All members of the School Governing Body, School Management Team, educators, administrative staff, learners, and parents/guardians are subject to the provisions and governance protocols herein.`;
+        }
+        case 'mission': {
+            return `This ${docName} is an official statutory and regulatory instrument drafted, adopted, and promulgated by the School Governing Body in terms of Section 20(1)(c) of the South African Schools Act, 1996 (Act No. 84 of 1996). This document aligns fully with the Constitution of the Republic of South Africa, 1996 (Act No. 108 of 1996), the National Education Policy Act, 1996 (Act No. 27 of 1996), and applicable provincial education legislation and governance directives. All members of the School Governing Body, School Management Team, educators, administrative and support staff, learners, and parents/guardians are legally bound by and subject to the provisions herein.`;
+        }
+        case 'admission': {
+            return `This ${docName} is an official statutory and regulatory policy determined and adopted by the School Governing Body in terms of Section 5(5) of the South African Schools Act, 1996 (Act No. 84 of 1996). This policy aligns fully with Section 9 (Equality & Non-Discrimination) and Section 29 (Right to Basic Education) of the Constitution of the Republic of South Africa, 1996 (Act No. 108 of 1996), the National Education Policy Act, 1996, and provincial admission directives. All administrative staff, educators, parents/guardians, and prospective learners are subject to these statutory provisions.`;
+        }
+        case 'language': {
+            return `This ${docName} is an official statutory and regulatory policy determined and adopted by the School Governing Body in terms of Section 6(2) of the South African Schools Act, 1996 (Act No. 84 of 1996). This policy complies with Section 29(2) and Section 6 of the Constitution of the Republic of South Africa, 1996 (Act No. 108 of 1996), the Norms and Standards for Language Policy in Public Schools, and provincial educational guidelines. All educators, staff, learners, and parents/guardians are bound by these provisions.`;
+        }
+        case 'religion': {
+            return `This ${docName} is determined and adopted by the School Governing Body in terms of Section 7 of the South African Schools Act, 1996 (Act No. 84 of 1996). This policy aligns strictly with Section 15 (Freedom of Religion, Belief and Opinion) of the Constitution of the Republic of South Africa, 1996 (Act No. 108 of 1996) and the National Policy on Religion and Education. All observances at Lady Grey Arts Academy are conducted equitably and voluntarily across all entities.`;
+        }
+        case 'conduct': {
+            return `This ${docName} is an official legally binding regulatory instrument adopted by the School Governing Body in terms of Section 8(1) of the South African Schools Act, 1996 (Act No. 84 of 1996). This policy aligns directly with Section 28 (Best Interests of the Child) and Section 29 of the Constitution of the Republic of South Africa, 1996 (Act No. 108 of 1996) and provincial learner discipline regulations. All enrolled learners, educators, parents/guardians, and school authorities are subject to the disciplinary rules, procedures, and legal sanctions herein.`;
+        }
+        case 'finance': {
+            return `This ${docName} is an official regulatory instrument adopted by the School Governing Body in terms of Section 37 and Section 38 of the South African Schools Act, 1996 (Act No. 84 of 1996). This policy aligns with the Constitution of the Republic of South Africa, 1996 (Act No. 108 of 1996), Public Finance principles, and provincial financial directives. The School Governing Body, School Management Team, Finance Committee, Treasurer, and Principal (Accounting Officer) are bound to enforce and adhere to all internal controls and audit requirements herein.`;
+        }
+        case 'safety': {
+            return `This ${docName} is an official regulatory protocol adopted by the School Governing Body in terms of National Safety Regulations under Section 61 of the South African Schools Act, 1996 (Act No. 84 of 1996) and the Occupational Health and Safety Act, 1993 (Act No. 85 of 1993). This policy aligns with Section 24 (Environmental Safety) of the Constitution of the Republic of South Africa, 1996 (Act No. 108 of 1996). All learners, educators, staff, contractors, and visitors are subject to the safety directives herein.`;
+        }
+        case 'assessment': {
+            return `This ${docName} is an official regulatory instrument adopted by the School Governing Body in terms of Section 6A of the South African Schools Act, 1996 (Act No. 84 of 1996) and national Curriculum and Assessment Policy Statement (CAPS) frameworks. All educators, academic heads, learners, and parents/guardians are bound by the assessment, examination, and moderation standards herein.`;
+        }
+        case 'minutes': {
+            const minutesLabel = docName.toLowerCase().includes('minute') || docName.toLowerCase().includes('resolution') ? docName : docName + ' meeting minutes';
+            return `These ${minutesLabel} constitute the official statutory and regulatory record of proceedings, deliberations, and resolutions adopted by the School Governing Body in terms of Section 18(2) of the South African Schools Act, 1996 (Act No. 84 of 1996), in accordance with the SGB Constitution and the Constitution of the Republic of South Africa, 1996 (Act No. 108 of 1996). All adopted resolutions are legally binding on all relevant school governing entities.`;
+        }
+        default: {
+            return `This ${docName} is an official statutory and regulatory instrument drafted, adopted, and promulgated by the School Governing Body in terms of the South African Schools Act, 1996 (Act No. 84 of 1996) and the Eastern Cape School Education Act, 2000 (Act No. 2 of 2000). This document aligns fully with the Constitution of the Republic of South Africa, 1996 (Act No. 108 of 1996), the National Education Policy Act, 1996 (Act No. 27 of 1996), and applicable provincial education legislation and governance directives. All members of the School Governing Body, School Management Team, educators, administrative and support staff, learners, and parents/guardians are legally bound by and subject to the provisions herein.`;
+        }
     }
-    if (combined.includes('language') || combined.includes('lolt') || combined.includes('medium of instruction')) {
-        return 'language';
+}
+
+function generateSignaturesIntroForDoc(title, contextKey) {
+    const rawTitle = (title || '').trim();
+    const docName = formatTitleForProse(rawTitle) || getContextDefaultTitle(contextKey);
+    if (contextKey === 'minutes') {
+        const minutesLabel = docName.toLowerCase().includes('minute') || docName.toLowerCase().includes('resolution') ? docName : docName + ' meeting minutes';
+        return `These ${minutesLabel} were formally accepted, approved, and signed at a meeting of the Governing Body of the Lady Grey Arts Academy.`;
     }
-    if (combined.includes('religion') || combined.includes('religious') || combined.includes('observance')) {
-        return 'religion';
+    return `This ${docName} was formally accepted, approved, and signed at a meeting of the Governing Body of the Lady Grey Arts Academy.`;
+}
+
+function detectContextFromDocument(title = '', text = '') {
+    const cleanTitle = (title || '').trim().toLowerCase();
+    const cleanText = (text || '').slice(0, 8000).toLowerCase();
+
+    const matchTerm = (src, term) => {
+        if (!src || !term) return false;
+        if (term.includes(' ') || term.includes('&') || term.includes('-')) {
+            return src.includes(term);
+        }
+        return new RegExp(`\\b${term}\\b`, 'i').test(src);
+    };
+
+    const contexts = [
+        {
+            key: 'constitution',
+            titleTerms: ['constitution', 'grondwet', 'governing body constitution', 'sgb constitution', 'governing body', 'sgb'],
+            bodyTerms: [
+                'constitution of the', 'governing body of the', 'governing body', 'term of office', 'office bearers',
+                'powers and responsibilities', 'functions of the governing body', 'juristic person', 'eastern cape school education act',
+                'south african schools act', 'statutory meetings', 'quorum', 'chairperson', 'treasurer', 'secretary'
+            ]
+        },
+        {
+            key: 'mission',
+            titleTerms: ['mission', 'vision', 'creed', 'core values', 'motto', 'visie', 'missie'],
+            bodyTerms: ['our vision', 'our mission', 'vision statement', 'mission statement', 'core values', 'whole school development', 'academic excellence', 'aims and objectives']
+        },
+        {
+            key: 'admission',
+            titleTerms: ['admission', 'enrolment', 'enrollment', 'toelating', 'admit'],
+            bodyTerms: ['admission policy', 'application for admission', 'admission requirements', 'feeder zone', 'admissions register', 'admission of learners', 'criteria for admission']
+        },
+        {
+            key: 'language',
+            titleTerms: ['language', 'taal', 'lolt', 'medium of instruction'],
+            bodyTerms: ['language policy', 'medium of instruction', 'language of learning and teaching', 'first additional language', 'home language', 'parallel medium']
+        },
+        {
+            key: 'religion',
+            titleTerms: ['religion', 'religious', 'godsdiens', 'observance'],
+            bodyTerms: ['religious observances', 'religion policy', 'freedom of religion', 'religious education', 'school assembly devotions', 'voluntary religious']
+        },
+        {
+            key: 'conduct',
+            titleTerms: ['conduct', 'discipline', 'misconduct', 'demerit', 'gedrag', 'disciplinary'],
+            bodyTerms: ['code of conduct', 'serious misconduct', 'disciplinary hearing', 'rules of conduct', 'disciplinary committee', 'learner conduct', 'disciplinary code']
+        },
+        {
+            key: 'finance',
+            titleTerms: ['finance', 'financial', 'budget', 'procurement', 'finansie', 'petty cash', 'fees', 'fee policy'],
+            bodyTerms: ['financial policy', 'financial management', 'school fee exemption', 'annual budget', 'audited financial', 'fincom', 'finance committee', 'bank account signatories']
+        },
+        {
+            key: 'safety',
+            titleTerms: ['safety', 'security', 'emergency', 'fire evacuation', 'disaster', 'veiligheid', 'ohs', 'occupational health'],
+            bodyTerms: ['safety policy', 'occupational health and safety', 'evacuation plan', 'safety measures at public schools', 'access control', 'emergency protocols', 'health and safety']
+        },
+        {
+            key: 'assessment',
+            titleTerms: ['assessment', 'curriculum', 'caps', 'examination', 'assesser', 'academic'],
+            bodyTerms: ['assessment policy', 'academic policy', 'moderation protocol', 'curriculum assessment', 'examination rules', 'formal assessment task', 'promotion requirements']
+        },
+        {
+            key: 'minutes',
+            titleTerms: ['minute', 'notule', 'proceedings', 'resolution', 'attendance register'],
+            bodyTerms: ['meeting minutes', 'minutes of the meeting', 'meeting held on', 'members present:', 'matters arising from the minutes', 'resolutions adopted', 'ordinary meeting']
+        }
+    ];
+
+    // Primary: Document Title defines the context if it contains a domain term
+    if (cleanTitle) {
+        for (const ctx of contexts) {
+            for (const term of ctx.titleTerms) {
+                if (matchTerm(cleanTitle, term)) {
+                    return ctx.key;
+                }
+            }
+        }
     }
-    if (combined.includes('conduct') || combined.includes('discipline') || combined.includes('misconduct') || combined.includes('demerit') || combined.includes('rules')) {
-        return 'conduct';
+
+    // Secondary: Scan body text if title was generic or empty
+    let bestKey = 'constitution';
+    let maxScore = -1;
+
+    for (const ctx of contexts) {
+        let score = 0;
+        for (const term of ctx.bodyTerms) {
+            if (matchTerm(cleanText, term)) {
+                score += 15;
+            }
+        }
+        if (score > maxScore) {
+            maxScore = score;
+            bestKey = ctx.key;
+        }
     }
-    if (combined.includes('finance') || combined.includes('financial') || combined.includes('budget') || combined.includes('procurement') || combined.includes('petty cash') || combined.includes('fee')) {
-        return 'finance';
-    }
-    if (combined.includes('safety') || combined.includes('security') || combined.includes('emergency') || combined.includes('fire evacuation') || combined.includes('disaster')) {
-        return 'safety';
-    }
-    if (combined.includes('minutes') || combined.includes('meeting held on') || combined.includes('attendance register')) {
-        return 'minutes';
-    }
-    if (combined.includes('constitution') || combined.includes('governing body') || combined.includes('term of office')) {
-        return 'constitution';
-    }
-    return 'constitution';
+
+    return maxScore > 0 ? bestKey : 'constitution';
 }
 
 function applyContextualMetadata(contextKey = 'auto', force = false) {
@@ -990,60 +1268,52 @@ function applyContextualMetadata(contextKey = 'auto', force = false) {
 
     const tpl = CONTEXTUAL_METADATA_PRESETS[activeKey] || CONTEXTUAL_METADATA_PRESETS.constitution;
 
-    // Determine if metadata rows are either empty or default SGB rows
-    const rowEls = document.querySelectorAll('.meta-row-item');
-    let isDefaultOrEmpty = rowEls.length === 0;
-    if (rowEls.length > 0) {
-        const firstLabel = rowEls[0].querySelector('.meta-label-input')?.value?.toLowerCase() || '';
-        if (firstLabel.includes('national legislative basis') || firstLabel.includes('national statutory authority') || firstLabel.includes('statutory meeting')) {
-            isDefaultOrEmpty = true;
-        }
+    // Synchronize select dropdown
+    const selectEl = document.getElementById('metadata-context-select');
+    if (selectEl) {
+        selectEl.value = (contextKey === 'auto') ? 'auto' : activeKey;
     }
 
-    if (force || isDefaultOrEmpty) {
-        setVal('meta-col1-title', tpl.col1Title);
-        setVal('meta-col2-title', tpl.col2Title);
-        renderMetaRows(tpl.rows);
-        setVal('legal-notice-prefix', tpl.legalNoticePrefix);
-        setVal('legal-notice-text', tpl.legalNoticeText);
-        setVal('header-badge-text', tpl.badgeMain);
-        setVal('header-badge-subtext', tpl.badgeSub);
+    state.lastAppliedContext = activeKey;
+    setVal('meta-col1-title', tpl.col1Title);
+    setVal('meta-col2-title', tpl.col2Title);
+    renderMetaRows(tpl.rows);
+    setCheck('enable-legal-notice', true);
+    setVal('legal-notice-prefix', tpl.legalNoticePrefix || 'LEGAL NOTICE: ');
+    setVal('legal-notice-text', generateLegalNoticeForDoc(title, activeKey));
+    setVal('header-badge-text', tpl.badgeMain);
+    setVal('header-badge-subtext', tpl.badgeSub);
+
+    const sigIntroEl = document.getElementById('signatures-intro');
+    if (sigIntroEl) {
+        sigIntroEl.value = generateSignaturesIntroForDoc(title, activeKey);
     }
 
-    updateDynamicTitleInSignaturesAndNotice();
     parseTextAndUpdatePreview();
     saveDraftToLocalStorage();
 }
 
 function updateDynamicTitleInSignaturesAndNotice() {
     const rawTitle = document.getElementById('doc-title-input')?.value || '';
-    if (!rawTitle.trim()) return;
+    const rawText = document.getElementById('raw-text-input')?.value || '';
+    const userSel = document.getElementById('metadata-context-select')?.value;
+    const contextKey = (userSel && userSel !== 'auto') ? userSel : detectContextFromDocument(rawTitle, rawText);
 
-    let formattedTitle = rawTitle.trim();
-    if (formattedTitle === formattedTitle.toUpperCase() && formattedTitle.length > 3) {
-        formattedTitle = formattedTitle.toLowerCase().replace(/(?:^|\s|-)\S/g, c => c.toUpperCase());
-    }
-
+    // Always regenerate signatures intro from current title + context
     const sigIntroEl = document.getElementById('signatures-intro');
     if (sigIntroEl) {
-        const val = sigIntroEl.value;
-        const match = val.match(/^This\s+(.+?)\s+was formally accepted,\s*approved,\s*and signed at a meeting of the Governing Body/i);
-        if (match || val.includes('Constitution of the School Governing Body') || val.includes('{documentTitle}') || val.includes('{title}')) {
-            sigIntroEl.value = `This ${formattedTitle} was formally accepted, approved, and signed at a meeting of the Governing Body of the Lady Grey Arts Academy.`;
-        }
+        sigIntroEl.value = generateSignaturesIntroForDoc(rawTitle, contextKey);
     }
 
+    // Always regenerate legal notice text from current title + context
     const legalNoticeEl = document.getElementById('legal-notice-text');
     if (legalNoticeEl) {
-        const val = legalNoticeEl.value;
-        const match = val.match(/^This\s+(.+?)\s+is an?/i);
-        if (match || !val || val.toLowerCase().includes('south african schools act') || val.toLowerCase().includes('this constitution is a legally binding')) {
-            const rawText = document.getElementById('raw-text-input')?.value || '';
-            const contextKey = detectContextFromDocument(rawTitle, rawText);
-            const tpl = CONTEXTUAL_METADATA_PRESETS[contextKey] || CONTEXTUAL_METADATA_PRESETS.mission;
-            legalNoticeEl.value = tpl.legalNoticeText;
-        }
+        legalNoticeEl.value = generateLegalNoticeForDoc(rawTitle, contextKey);
     }
+
+    // Update prefix from detected context template
+    const tpl = CONTEXTUAL_METADATA_PRESETS[contextKey] || CONTEXTUAL_METADATA_PRESETS.constitution;
+    setVal('legal-notice-prefix', tpl.legalNoticePrefix || 'LEGAL NOTICE: ');
 }
 
 function syncColorPair(pickerId, inputId) {
@@ -1068,11 +1338,30 @@ function handleUploadedFile(file) {
     if (!file) return;
 
     const ext = file.name.split('.').pop().toLowerCase();
+    const updateAfterExtract = (extractedText) => {
+        document.getElementById('raw-text-input').value = extractedText;
+
+        // Auto-detect title from document text or file name if default/generic
+        const titleEl = document.getElementById('doc-title-input');
+        const currentTitle = titleEl?.value?.trim() || '';
+        const isGenericTitle = !currentTitle || currentTitle === 'NEW REGULATORY DOCUMENT' || currentTitle === 'CONSTITUTION OF THE SCHOOL GOVERNING BODY' || currentTitle === 'UNTITLED DOCUMENT';
+
+        if (isGenericTitle) {
+            const cleanBase = file.name.replace(/\.[^/.]+$/, '').replace(/^[0-9]+[_\-\s]+/, '').replace(/[_\-]+/g, ' ').trim();
+            if (cleanBase && cleanBase.length > 3) {
+                if (titleEl) titleEl.value = cleanBase.toUpperCase();
+            }
+        }
+
+        applyContextualMetadata('auto', true);
+        parseTextAndUpdatePreview();
+        saveDraftToLocalStorage();
+    };
+
     if (ext === 'txt' || ext === 'md') {
         const reader = new FileReader();
         reader.onload = (e) => {
-            document.getElementById('raw-text-input').value = e.target.result;
-            parseTextAndUpdatePreview();
+            updateAfterExtract(e.target.result || '');
             showToast('Uploaded ' + file.name + ' successfully.');
         };
         reader.readAsText(file);
@@ -1090,9 +1379,8 @@ function handleUploadedFile(file) {
         .then(res => res.json())
         .then(data => {
             if (data.rawText) {
-                document.getElementById('raw-text-input').value = data.rawText;
-                parseTextAndUpdatePreview();
-                showToast('Extracted document text.');
+                updateAfterExtract(data.rawText);
+                showToast('Extracted document text & aligned statutory framework.');
             } else if (data.error) {
                 showToast(data.error, true);
             }
@@ -1181,6 +1469,8 @@ function addSignerRow(role = 'SGB Chairperson', name = '', dateLabel = '') {
 function updateSpatialGuides() {
     const leftMargin = Number(document.getElementById('margin-left-input')?.value) || 10;
     const rightMargin = Number(document.getElementById('margin-right-input')?.value) || 10;
+    const topMargin = Number(document.getElementById('margin-top-input')?.value) || 10;
+    const bottomMargin = Number(document.getElementById('margin-bottom-input')?.value) || 10;
 
     const l1Pos = leftMargin + (Number(document.getElementById('l1-left-offset')?.value) || 0);
     const l2Pos = leftMargin + (Number(document.getElementById('l2-text-wrap')?.value) || 10);
@@ -1196,6 +1486,9 @@ function updateSpatialGuides() {
     setGuidePos('.guide-level-4', l4Pos + 'mm');
     setGuidePos('.guide-level-5', l5Pos + 'mm');
 
+    setGuidePosH('.guide-margin-top', topMargin + 'mm');
+    setGuidePosH('.guide-margin-bottom', bottomMargin + 'mm', true);
+
     const showGrid = document.getElementById('toggle-grid-overlay')?.checked ?? true;
     document.querySelectorAll('.spatial-grid-overlay').forEach(el => {
         el.style.display = showGrid ? 'block' : 'none';
@@ -1210,6 +1503,18 @@ function setGuidePos(selector, posStr, isRight = false) {
         } else {
             el.style.left = posStr;
             el.style.right = 'auto';
+        }
+    });
+}
+
+function setGuidePosH(selector, posStr, isBottom = false) {
+    document.querySelectorAll(selector).forEach(el => {
+        if (isBottom) {
+            el.style.bottom = posStr;
+            el.style.top = 'auto';
+        } else {
+            el.style.top = posStr;
+            el.style.bottom = 'auto';
         }
     });
 }
@@ -1244,7 +1549,7 @@ function parseTextAndUpdatePreview() {
         }
 
         // Level 5: 5-level numbering (e.g. 1.1.1.1.1 [Text])
-        const l5Match = rawLine.match(/^(\d+\.\d+\.\d+\.\d+\.\d+)\.?\s+(.*)$/);
+        const l5Match = rawLine.match(/^(\d+\.\d+\.\d+\.\d+\.\d+)\.?[\s\t\u00A0]*(.*)$/);
         if (l5Match) {
             blocks.push({
                 type: 'level5',
@@ -1256,7 +1561,7 @@ function parseTextAndUpdatePreview() {
         }
 
         // Level 4: 4-level numbering (e.g. 1.1.1.1 [Text]) or Bullets
-        const l4Match = rawLine.match(/^(\d+\.\d+\.\d+\.\d+)\.?\s+(.*)$/);
+        const l4Match = rawLine.match(/^(\d+\.\d+\.\d+\.\d+)\.?[\s\t\u00A0]*(.*)$/);
         if (l4Match) {
             blocks.push({
                 type: 'level4',
@@ -1266,7 +1571,7 @@ function parseTextAndUpdatePreview() {
             });
             continue;
         }
-        const bulletMatch = rawLine.match(/^([•\-\*\u2022\u2023\u25E6\u2043\u2219])\s+(.*)$/);
+        const bulletMatch = rawLine.match(/^([•\-\*\u2022\u2023\u25E6\u2043\u2219])[\s\t\u00A0]+(.*)$/);
         if (bulletMatch) {
             blocks.push({
                 type: 'level4',
@@ -1278,7 +1583,7 @@ function parseTextAndUpdatePreview() {
         }
 
         // Level 3: 3-level numbering (e.g. 1.1.1 [Text])
-        const l3Match = rawLine.match(/^(\d+\.\d+\.\d+)\.?\s+(.*)$/);
+        const l3Match = rawLine.match(/^(\d+\.\d+\.\d+)\.?[\s\t\u00A0]*(.*)$/);
         if (l3Match) {
             blocks.push({
                 type: 'level3',
@@ -1290,7 +1595,7 @@ function parseTextAndUpdatePreview() {
         }
 
         // Level 2: 2-level numbering (e.g. 1.1 [Text])
-        const l2Match = rawLine.match(/^(\d+\.\d+)\.?\s+(.*)$/);
+        const l2Match = rawLine.match(/^(\d+\.\d+)\.?[\s\t\u00A0]*(.*)$/);
         if (l2Match) {
             blocks.push({
                 type: 'level2',
@@ -1302,7 +1607,7 @@ function parseTextAndUpdatePreview() {
         }
 
         // Level 1: 1-level numbering (e.g. 1. [Text] or 1. NAME or 1. Our Vision)
-        const l1Match = rawLine.match(/^(\d+)\.\s+(.*)$/);
+        const l1Match = rawLine.match(/^(\d+)\.[\s\t\u00A0]*(.*)$/);
         if (l1Match) {
             const explicitNum = parseInt(l1Match[1], 10);
             if (!isNaN(explicitNum)) {
@@ -1459,17 +1764,16 @@ function renderDocumentPreview() {
     const headerFreq = document.getElementById('header-frequency-select')?.value || 'first_page_only';
     let page1HeaderHtml = '';
     let runningHeaderHtml = '';
+    let pageCornerBadgeHtml = '';
 
     if (headerMode !== 'none') {
-        const freqPill = headerFreq === 'first_page_only' 
-            ? `<div class="prev-header-frequency-indicator" title="This header will appear exclusively on Page 1 in Word and PDF export"><span>📄</span> First Page Header Only</div>` 
-            : `<div class="prev-header-frequency-indicator" title="This header will repeat on all pages in Word and PDF export"><span>📑</span> All Pages Running Header</div>`;
+        const isFirstOnly = headerFreq === 'first_page_only';
+        pageCornerBadgeHtml = `<div class="page-corner-indicator" title="${isFirstOnly ? 'Header appears on Page 1 only' : 'Running header repeats on all pages'}"><span>${isFirstOnly ? '📄' : '📑'}</span> ${isFirstOnly ? 'First Page Header Only' : 'All Pages Running Header'}</div>`;
 
         if (headerMode === 'image_banner' && state.headerImageBase64) {
             const imgHeightMm = Number(document.getElementById('header-image-height')?.value) || 32;
             const imgFit = document.getElementById('header-image-fit')?.value || 'contain';
             page1HeaderHtml = `
-                ${freqPill}
                 <div class="prev-header-image-banner">
                     <img src="${escapeHTML(state.headerImageBase64)}" style="max-height: ${imgHeightMm}mm; object-fit: ${imgFit};" alt="Header Banner" />
                 </div>
@@ -1501,7 +1805,6 @@ function renderDocumentPreview() {
             const badgeSub = document.getElementById('header-badge-subtext')?.value || 'CORRESPONDENCE';
 
             page1HeaderHtml = `
-                ${freqPill}
                 ${barHtml}
                 <div class="prev-header-table">
                     <img src="/emblem.png" alt="Logo" class="prev-header-logo">
@@ -1839,8 +2142,8 @@ function renderDocumentPreview() {
     const header1Height = measureHtml(page1HeaderHtml);
     const runHeaderHeight = measureHtml(runningHeaderHtml);
 
-    const maxPage1 = Math.max(100, pageUsableHeight - footerHeightPx - header1Height - 16);
-    const maxPageN = Math.max(100, pageUsableHeight - footerHeightPx - runHeaderHeight - 16);
+    const maxPage1 = Math.max(100, pageUsableHeight - footerHeightPx - header1Height);
+    const maxPageN = Math.max(100, pageUsableHeight - footerHeightPx - runHeaderHeight);
 
     const pages = [ [] ];
     const blockMeta = [ [] ];
@@ -2074,7 +2377,7 @@ function renderDocumentPreview() {
             fullHtml += `
                 <div class="preview-page-break-divider">
                     <div class="page-break-line"></div>
-                    <span class="page-break-badge">✂️ Page Break — Page ${pageNum}</span>
+                    <span class="page-break-badge">✂️ Page Break • Page ${pageNum}</span>
                     <div class="page-break-line"></div>
                 </div>
             `;
@@ -2082,14 +2385,17 @@ function renderDocumentPreview() {
 
         fullHtml += `
             <div class="a4-page-canvas a4-sheet" data-page="${pageNum}" style="font-family: ${fontCSS}; line-height: ${lineSpacing}; color: ${textColor}; padding: ${marginTop}mm ${marginRight}mm ${marginBottom}mm ${marginLeft}mm;">
+                ${p === 0 && pageCornerBadgeHtml ? pageCornerBadgeHtml : ''}
                 <div class="spatial-grid-overlay">
-                    <div class="guide-line guide-margin-left" style="left: ${marginLeft}mm;" title="Left Margin: ${marginLeft}mm"><span class="guide-tag">Margin (${marginLeft}mm)</span></div>
-                    <div class="guide-line guide-level-1" style="left: ${l1Pos}mm;" title="Level 1 Line"><span class="guide-tag">L1</span></div>
-                    <div class="guide-line guide-level-2" style="left: ${l2Pos}mm;" title="Level 2 Line"><span class="guide-tag">L2</span></div>
-                    <div class="guide-line guide-level-3" style="left: ${l3Pos}mm;" title="Level 3 Line"><span class="guide-tag">L3</span></div>
-                    <div class="guide-line guide-level-4" style="left: ${l4Pos}mm;" title="Level 4 Line"><span class="guide-tag">L4</span></div>
-                    <div class="guide-line guide-level-5" style="left: ${l5Pos}mm;" title="Level 5 Line"><span class="guide-tag">L5</span></div>
-                    <div class="guide-line guide-margin-right" style="right: ${marginRight}mm;" title="Right Margin: ${marginRight}mm"><span class="guide-tag">Right (${marginRight}mm)</span></div>
+                    <div class="guide-line guide-margin-left" style="left: ${marginLeft}mm;" title="Left Margin: ${marginLeft}mm"><span class="guide-tag guide-tag-margin-left">Left (${marginLeft}mm)</span></div>
+                    <div class="guide-line guide-margin-right" style="right: ${marginRight}mm;" title="Right Margin: ${marginRight}mm"><span class="guide-tag guide-tag-margin-right">Right (${marginRight}mm)</span></div>
+                    <div class="guide-line guide-margin-top" style="top: ${marginTop}mm;" title="Top Margin: ${marginTop}mm"><span class="guide-tag guide-tag-margin-top">Top (${marginTop}mm)</span></div>
+                    <div class="guide-line guide-margin-bottom" style="bottom: ${marginBottom}mm;" title="Bottom Margin: ${marginBottom}mm"><span class="guide-tag guide-tag-margin-bottom">Bottom (${marginBottom}mm)</span></div>
+                    <div class="guide-line guide-level-1" style="left: ${l1Pos}mm;" title="Level 1 Line"><span class="guide-tag guide-tag-level">L1</span></div>
+                    <div class="guide-line guide-level-2" style="left: ${l2Pos}mm;" title="Level 2 Line"><span class="guide-tag guide-tag-level">L2</span></div>
+                    <div class="guide-line guide-level-3" style="left: ${l3Pos}mm;" title="Level 3 Line"><span class="guide-tag guide-tag-level">L3</span></div>
+                    <div class="guide-line guide-level-4" style="left: ${l4Pos}mm;" title="Level 4 Line"><span class="guide-tag guide-tag-level">L4</span></div>
+                    <div class="guide-line guide-level-5" style="left: ${l5Pos}mm;" title="Level 5 Line"><span class="guide-tag guide-tag-level">L5</span></div>
                 </div>
                 <div class="doc-page-inner">
                     ${headerSnippet ? `<div class="doc-page-header">${headerSnippet}</div>` : ''}
@@ -2098,7 +2404,7 @@ function renderDocumentPreview() {
                     </div>
                     ${pFmt !== 'none' ? `
                         <div class="prev-footer">
-                            <span></span>
+                            <span>${escapeHTML(fText)}</span>
                             <span>${pageStr}</span>
                         </div>
                     ` : ''}

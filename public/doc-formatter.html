@@ -3,9 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Admin Legal & Multi-Level Document Formatter Studio — LGAA</title>
-    <link rel="stylesheet" href="/style.css?v=20260822-02">
-    <link rel="stylesheet" href="/doc-formatter.css?v=20260822-02">
+    <link rel="stylesheet" href="/style.css?v=20260824-04-force">
+    <link rel="stylesheet" href="/doc-formatter.css?v=20260824-04-force">
     <link rel="icon" href="/logo.svg" type="image/svg+xml">
     <script>
         (function() {
@@ -749,17 +752,19 @@
                                 <div style="display: flex; gap: 0.5rem; align-items: center;">
                                     <select id="metadata-context-select" class="studio-select" style="flex: 1;">
                                         <option value="auto" selected>✨ Auto-Detect from Document Content</option>
-                                        <option value="mission">School Vision &amp; Mission Statement</option>
                                         <option value="constitution">SGB Constitution &amp; Governance</option>
+                                        <option value="mission">School Vision &amp; Mission Statement</option>
                                         <option value="admission">Admission Policy</option>
                                         <option value="language">Language Policy</option>
                                         <option value="conduct">Code of Conduct for Learners</option>
                                         <option value="religion">Religious Observances Policy</option>
                                         <option value="finance">Financial Management Policy</option>
                                         <option value="safety">Safety &amp; Security Policy</option>
+                                        <option value="assessment">Assessment &amp; Academic Policy</option>
                                         <option value="minutes">SGB Meeting Minutes &amp; Resolutions</option>
+                                        <option value="general">General School Policy</option>
                                     </select>
-                                    <button type="button" class="btn btn-sm btn-outline" id="btn-auto-align-metadata" title="Regenerate table rows based on current document title &amp; text" style="white-space: nowrap; padding: 0.4rem 0.75rem;">⚡ Align Now</button>
+                                    <button type="button" class="btn btn-sm btn-outline" id="btn-auto-align-metadata" title="Regenerate metadata table and legal notice based on current document context" style="white-space: nowrap; padding: 0.4rem 0.75rem;">⚡ Align Now</button>
                                 </div>
                             </div>
                             <div class="form-grid-2">
@@ -782,7 +787,10 @@
                     <div class="control-card">
                         <div class="card-header-flex">
                             <h3>Legal Notice Callout Box</h3>
-                            <label class="checkbox-label"><input type="checkbox" id="enable-legal-notice" checked> <span>Include Box</span></label>
+                            <div style="display: flex; gap: 0.6rem; align-items: center;">
+                                <button type="button" class="btn btn-sm btn-primary" id="btn-align-legal-notice" title="Align Legal Notice with current document title and statutory template" style="background: #0284C7; color: #FFFFFF; border: none; font-weight: 700; padding: 0.35rem 0.85rem; font-size: 0.82rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; box-shadow: 0 1px 3px rgba(0,0,0,0.3);">⚡ Align Now</button>
+                                <label class="checkbox-label"><input type="checkbox" id="enable-legal-notice" checked> <span>Include Box</span></label>
+                            </div>
                         </div>
                         <div id="legal-notice-fields" class="mt-2">
                             <div class="form-group">
@@ -790,8 +798,11 @@
                                 <input type="text" id="legal-notice-prefix" class="studio-input" value="LEGAL NOTICE: ">
                             </div>
                             <div class="form-group mt-2">
-                                <label for="legal-notice-text">Notice Body</label>
-                                <textarea id="legal-notice-text" class="studio-textarea" rows="3">This school mission statement is an official statutory and regulatory instrument drafted, adopted, and promulgated by the School Governing Body in terms of Section 20(1)(c) of the South African Schools Act, 1996 (Act No. 84 of 1996). This document aligns fully with the Constitution of the Republic of South Africa, 1996 (Act No. 108 of 1996), the National Education Policy Act, 1996 (Act No. 27 of 1996), and applicable provincial education legislation and governance directives. All members of the School Governing Body, School Management Team, educators, administrative and support staff, learners, and parents/guardians are legally bound by and subject to the provisions herein.</textarea>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem;">
+                                    <label for="legal-notice-text" style="margin-bottom: 0;">Notice Body</label>
+                                    <button type="button" class="btn btn-sm btn-outline" id="btn-align-legal-notice-inline" title="Regenerate legal notice text based on current document title" style="background: rgba(56, 189, 248, 0.15); border: 1px solid #38BDF8; color: #38BDF8; padding: 0.2rem 0.6rem; font-size: 0.75rem; font-weight: 700; border-radius: 4px; cursor: pointer;">⚡ Align to Document Title</button>
+                                </div>
+                                <textarea id="legal-notice-text" class="studio-textarea" rows="3">This Constitution of the School Governing Body is an official legally binding regulatory instrument drafted, adopted, and promulgated by the School Governing Body in terms of Section 18(1) of the South African Schools Act, 1996 (Act No. 84 of 1996) and the Eastern Cape School Education Act, 2000 (Act No. 2 of 2000). This document aligns fully with the Constitution of the Republic of South Africa, 1996 (Act No. 108 of 1996) and relevant national and provincial statutory frameworks. All members of the School Governing Body, School Management Team, educators, administrative staff, learners, and parents/guardians are subject to the provisions and governance protocols herein.</textarea>
                             </div>
                         </div>
                     </div>
@@ -979,19 +990,19 @@
                     <span class="preview-label">Live Spatial Preview (A4 Scale)</span>
                     <label class="grid-toggle-label">
                         <input type="checkbox" id="toggle-grid-overlay" checked>
-                        <span>Show Spatial Grid Lines</span>
+                        <span>Spatial Grid</span>
                     </label>
-                    <label class="grid-toggle-label ml-3" style="cursor: pointer; display: inline-flex; align-items: center; gap: 6px; margin-left: 0.75rem;">
+                    <label class="grid-toggle-label">
                         <input type="checkbox" id="toggle-editable-preview">
-                        <span style="color: #60A5FA; font-weight: 600;">✏️ Editable Preview</span>
+                        <span style="color: #60A5FA; font-weight: 600;">✏️ Editable</span>
                     </label>
                 </div>
                 <div class="preview-toolbar-right">
-                    <button type="button" class="btn btn-sm btn-outline" id="btn-quick-docx" title="Download Word DOCX">
+                    <button type="button" class="btn btn-sm" id="btn-quick-docx" title="Download Word DOCX">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                         <span>DOCX</span>
                     </button>
-                    <button type="button" class="btn btn-sm btn-outline" id="btn-quick-pdf" title="Download PDF">
+                    <button type="button" class="btn btn-sm" id="btn-quick-pdf" title="Download PDF">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
                         <span>PDF</span>
                     </button>
@@ -1072,6 +1083,6 @@
 
     <div id="toast-container" class="toast-container"></div>
 
-    <script src="/doc-formatter.js?v=20260822-03"></script>
+    <script src="/doc-formatter.js?v=20260824-04-force"></script>
 </body>
 </html>

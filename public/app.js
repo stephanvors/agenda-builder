@@ -1117,7 +1117,8 @@ function setupEventListeners() {
 
     const openDocFormatter = () => {
         const token = encodeURIComponent(state.token || '');
-        window.open(`/doc-formatter.html?token=${token}`, '_blank');
+        const timestamp = Date.now();
+        window.open(`/doc-formatter.html?token=${token}&_v=${timestamp}`, '_blank');
     };
     const btnOpenDocFormatter = document.getElementById('btn-open-doc-formatter');
     if (btnOpenDocFormatter) {

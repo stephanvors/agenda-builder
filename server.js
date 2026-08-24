@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url';
 import { createRequire } from 'module';
 import { exec } from 'child_process';
 import util from 'util';
+import os from 'os';
 import XLSX from 'xlsx';
 import pg from 'pg';
 import multer from 'multer';
@@ -503,6 +504,15 @@ function determineStatus(voteCount) {
 // ── Express App ──
 const app = express();
 app.use(express.json());
+// ── Direct Zero-Cache Route for Doc Formatter ──
+app.get(['/doc-formatter', '/doc-formatter.html'], (req, res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.setHeader('Surrogate-Control', 'no-store');
+  res.sendFile(path.join(__dirname, 'public', 'doc-formatter.html'));
+});
+
 app.use(express.static(path.join(__dirname, 'public'), {
   setHeaders: (res) => {
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
@@ -2123,6 +2133,107 @@ app.delete('/api/doc-formatter/documents/:id', async (req, res) => {
   }
 });
 
+// ── OOXML numbering-aware DOCX text extractor ──
+// Reads document.xml + numbering.xml from the DOCX zip and reconstructs
+// list number prefixes (e.g. "3.", "3.1", "3.1.1") for all numbered paragraphs.
+async function extractDocxWithNumbering(docxBuf) {
+  const AdmZip = (await import('adm-zip')).default;
+  const zip = new AdmZip(docxBuf);
+
+  // Parse numbering.xml to build abstractNum → level format map
+  const numXmlEntry = zip.getEntry('word/numbering.xml');
+  const docXmlEntry = zip.getEntry('word/document.xml');
+  if (!docXmlEntry) throw new Error('No document.xml found');
+
+  // ── Parse numbering definitions ──
+  const abstractNums = {};   // abstractNumId → { lvl: { numFmt, lvlText, start } }
+  const numIdMap = {};       // numId → abstractNumId
+
+  if (numXmlEntry) {
+    const numXml = numXmlEntry.getData().toString('utf8');
+    // abstractNum blocks
+    const abstractBlocks = [...numXml.matchAll(/<w:abstractNum\s+[^>]*w:abstractNumId="(\d+)"[^>]*>([\s\S]*?)<\/w:abstractNum>/g)];
+    for (const [, id, body] of abstractBlocks) {
+      abstractNums[id] = {};
+      const lvlBlocks = [...body.matchAll(/<w:lvl\s+[^>]*w:ilvl="(\d+)"[^>]*>([\s\S]*?)<\/w:lvl>/g)];
+      for (const [, ilvl, lvlBody] of lvlBlocks) {
+        const fmtM = lvlBody.match(/<w:numFmt\s+[^>]*w:val="([^"]+)"/);
+        const txtM = lvlBody.match(/<w:lvlText\s+[^>]*w:val="([^"]*?)"/);
+        const startM = lvlBody.match(/<w:start\s+[^>]*w:val="(\d+)"/);
+        abstractNums[id][ilvl] = {
+          numFmt: fmtM ? fmtM[1] : 'decimal',
+          lvlText: txtM ? txtM[1] : `%${Number(ilvl)+1}.`,
+          start: startM ? parseInt(startM[1]) : 1
+        };
+      }
+    }
+    // num blocks (numId → abstractNumId)
+    const numBlocks = [...numXml.matchAll(/<w:num\s+[^>]*w:numId="(\d+)"[^>]*>([\s\S]*?)<\/w:num>/g)];
+    for (const [, nid, nbody] of numBlocks) {
+      const abM = nbody.match(/<w:abstractNumId\s+[^>]*w:val="(\d+)"/);
+      if (abM) numIdMap[nid] = abM[1];
+    }
+  }
+
+  // ── Parse document.xml paragraphs ──
+  const docXml = docXmlEntry.getData().toString('utf8');
+  const paragraphs = [...docXml.matchAll(/<w:p[\s>]([\s\S]*?)<\/w:p>/g)];
+
+  // Track current count per numId+ilvl
+  const counters = {};  // `${numId}_${ilvl}` → current value
+
+  const lines = [];
+  for (const [, pBody] of paragraphs) {
+    // Preserve XML tabs and breaks as whitespace/newlines
+    const cleanBody = pBody.replace(/<w:tab\s*\/?>/g, ' ').replace(/<w:br\s*\/?>/g, '\n');
+    const runs = [...cleanBody.matchAll(/<w:t(?:\s[^>]*)?>([^<]*)<\/w:t>/g)];
+    const text = runs.map(r => r[1]).join('').replace(/\u0007/g, '').replace(/[\t ]+/g, ' ').trim();
+
+    // Extract numPr
+    const numIdM = pBody.match(/<w:numId\s+[^>]*w:val="(\d+)"/);
+    const ilvlM = pBody.match(/<w:ilvl\s+[^>]*w:val="(\d+)"/);
+
+    if (numIdM && ilvlM && numIdM[1] !== '0') {
+      const numId = numIdM[1];
+      const ilvl = ilvlM[1];
+      const absId = numIdMap[numId];
+      const lvlDef = absId && abstractNums[absId] && abstractNums[absId][ilvl];
+
+      if (lvlDef) {
+        const key = `${numId}_${ilvl}`;
+        if (counters[key] === undefined) counters[key] = lvlDef.start;
+        else counters[key]++;
+
+        // Reset deeper levels when a shallower level increments
+        const ilvlInt = parseInt(ilvl);
+        for (const k of Object.keys(counters)) {
+          const [kNumId, kIlvl] = k.split('_');
+          if (kNumId === numId && parseInt(kIlvl) > ilvlInt) {
+            const deeperDef = abstractNums[numIdMap[numId]]?.[kIlvl];
+            counters[k] = deeperDef ? deeperDef.start - 1 : 0;
+          }
+        }
+
+        // Build the numeric prefix from lvlText pattern (e.g. "%1.%2.%3")
+        let prefix = lvlDef.lvlText;
+        prefix = prefix.replace(/%(\d+)/g, (_, n) => {
+          const lKey = `${numId}_${parseInt(n)-1}`;
+          return counters[lKey] !== undefined ? counters[lKey] : n;
+        });
+
+        if (text) lines.push(`${prefix} ${text}`);
+        else lines.push(prefix);
+      } else {
+        if (text) lines.push(text);
+      }
+    } else {
+      if (text) lines.push(text);
+    }
+  }
+
+  return lines.join('\n');
+}
+
 // Helper function to extract clean plain text from .docx, .doc, .pdf, .txt, .md
 async function extractTextFromDocument(filePath, originalFilename) {
   const ext = path.extname(originalFilename || filePath).toLowerCase();
@@ -2132,19 +2243,59 @@ async function extractTextFromDocument(filePath, originalFilename) {
   }
 
   if (ext === '.docx' || ext === '.doc') {
-    // 1. Try Word COM via PowerShell to preserve Word automatic list numbers (ListFormat.ListString)
+    // 1. Try Word COM via a temp PowerShell script file (avoids all inline escaping issues)
     try {
-      const escapedPath = filePath.replace(/\\/g, '\\\\');
-      const psCommand = `powershell -NoProfile -ExecutionPolicy Bypass -Command "$word = New-Object -ComObject Word.Application; $word.Visible = $false; $word.DisplayAlerts = 0; try { $doc = $word.Documents.Open('${escapedPath}', $false, $true); $lines = @(); foreach ($p in $doc.Paragraphs) { $rawText = $p.Range.Text; if ($rawText) { $rawText = $rawText.TrimEnd(\`"\`r\`\", \`"\`n\`\", [char]7, [char]12) }; $listStr = $p.Range.ListFormat.ListString; if ($listStr -and $listStr.Trim()) { $line = \`"$($listStr.Trim()) $rawText\`" } else { $line = $rawText }; if ($line -and $line.Trim()) { $lines += $line.Trim() } }; $doc.Close([ref]0); $lines -join \`"\`r\`n\`\" } finally { $word.Quit([ref]0); [System.Runtime.InteropServices.Marshal]::ReleaseComObject($word) | Out-Null }"`;
-      const { stdout } = await execPromise(psCommand);
-      if (stdout && stdout.trim()) {
-        return stdout.trim();
+      const psScript = `
+$ErrorActionPreference = 'Stop'
+$word = New-Object -ComObject Word.Application
+$word.Visible = $false
+$word.DisplayAlerts = 0
+try {
+  $doc = $word.Documents.Open('${filePath.replace(/\\/g, '\\\\')}', $false, $true)
+  $lines = [System.Collections.Generic.List[string]]::new()
+  foreach ($p in $doc.Paragraphs) {
+    $raw = $p.Range.Text
+    if ($raw) { $raw = $raw.TrimEnd([char]13, [char]10, [char]7, [char]12) }
+    $listStr = ''
+    try { $listStr = $p.Range.ListFormat.ListString } catch {}
+    if ($listStr -and $listStr.Trim()) {
+      $line = ($listStr.Trim() + ' ' + $raw).Trim()
+    } else {
+      $line = if ($raw) { $raw.Trim() } else { '' }
+    }
+    if ($line) { $lines.Add($line) }
+  }
+  $doc.Close([ref]0)
+  $lines -join [System.Environment]::NewLine
+} finally {
+  try { $word.Quit([ref]0) } catch {}
+  [System.Runtime.InteropServices.Marshal]::ReleaseComObject($word) | Out-Null
+}
+`;
+      const tmpScript = path.join(os.tmpdir(), `docx_extract_${Date.now()}.ps1`);
+      await fs.writeFile(tmpScript, psScript, 'utf8');
+      try {
+        const { stdout } = await execPromise(`powershell -NoProfile -ExecutionPolicy Bypass -File "${tmpScript}"`);
+        if (stdout && stdout.trim()) {
+          return stdout.trim();
+        }
+      } finally {
+        try { await fs.unlink(tmpScript); } catch {}
       }
     } catch (wordComErr) {
-      console.warn('Word COM extraction failed, falling back to mammoth:', wordComErr.message);
+      console.warn('Word COM extraction failed, falling back to OOXML+mammoth:', wordComErr.message);
     }
 
-    // 2. Fallback to mammoth
+    // 2. OOXML numbering-aware extraction (reads document.xml + numbering.xml from the zip)
+    try {
+      const docxBuf = await fs.readFile(filePath);
+      const text = await extractDocxWithNumbering(docxBuf);
+      if (text && text.trim()) return text.trim();
+    } catch (ooxmlErr) {
+      console.warn('OOXML numbering extraction failed, falling back to bare mammoth:', ooxmlErr.message);
+    }
+
+    // 3. Last-resort: bare mammoth (no numbering)
     try {
       const docxBuf = await fs.readFile(filePath);
       const res = await mammoth.extractRawText({ buffer: docxBuf });

@@ -9,6 +9,7 @@
     "dev": "node --watch server.js"
   },
   "dependencies": {
+    "adm-zip": "^0.6.0",
     "docx": "^9.7.1",
     "express": "^4.21.0",
     "mammoth": "^1.12.1",
