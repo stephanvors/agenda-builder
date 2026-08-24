@@ -2935,11 +2935,12 @@ function renderSpellcheckDrawer() {
     let html = '';
     issues.forEach(iss => {
         const tagClass = iss.type === 'legal_term' ? 'tag-legal' : '';
+        const shortCat = (iss.category || 'EN-ZA').replace(/English \(South Africa\)/gi, 'EN-ZA').trim();
         html += `
             <div class="spellcheck-card type-${iss.type}" id="card-${iss.id}">
                 <div class="spellcheck-card-content">
                     <div class="spellcheck-meta-line">
-                        <span class="spellcheck-tag ${tagClass}">${escapeHTML(iss.category)}</span>
+                        <span class="spellcheck-tag ${tagClass}">${escapeHTML(shortCat)}</span>
                         <span class="spellcheck-line-indicator">Line ${iss.line}</span>
                     </div>
                     <div class="spellcheck-word-diff">
