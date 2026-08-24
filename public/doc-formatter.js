@@ -1543,7 +1543,8 @@ function parseTextAndUpdatePreview() {
                 type: lvl === 1 ? 'level1' : `level${lvl}`,
                 level: lvl,
                 number: num,
-                text: mdMatch[2].trim()
+                text: mdMatch[2].trim(),
+                lineNum: i + 1
             });
             continue;
         }
@@ -1555,7 +1556,8 @@ function parseTextAndUpdatePreview() {
                 type: 'level5',
                 level: 5,
                 number: l5Match[1],
-                text: l5Match[2].trim()
+                text: l5Match[2].trim(),
+                lineNum: i + 1
             });
             continue;
         }
@@ -1567,7 +1569,8 @@ function parseTextAndUpdatePreview() {
                 type: 'level4',
                 level: 4,
                 number: l4Match[1],
-                text: l4Match[2].trim()
+                text: l4Match[2].trim(),
+                lineNum: i + 1
             });
             continue;
         }
@@ -1577,7 +1580,8 @@ function parseTextAndUpdatePreview() {
                 type: 'level4',
                 level: 4,
                 number: '•',
-                text: bulletMatch[2].trim()
+                text: bulletMatch[2].trim(),
+                lineNum: i + 1
             });
             continue;
         }
@@ -1589,7 +1593,8 @@ function parseTextAndUpdatePreview() {
                 type: 'level3',
                 level: 3,
                 number: l3Match[1],
-                text: l3Match[2].trim()
+                text: l3Match[2].trim(),
+                lineNum: i + 1
             });
             continue;
         }
@@ -1601,7 +1606,8 @@ function parseTextAndUpdatePreview() {
                 type: 'level2',
                 level: 2,
                 number: l2Match[1],
-                text: l2Match[2].trim()
+                text: l2Match[2].trim(),
+                lineNum: i + 1
             });
             continue;
         }
@@ -1617,7 +1623,8 @@ function parseTextAndUpdatePreview() {
                 type: 'level1',
                 level: 1,
                 number: l1Match[1] + '.',
-                text: l1Match[2].trim()
+                text: l1Match[2].trim(),
+                lineNum: i + 1
             });
             continue;
         }
@@ -1630,7 +1637,8 @@ function parseTextAndUpdatePreview() {
                 type: 'level1',
                 level: 1,
                 number: `${secMatch[1]} ${secMatch[2]}`,
-                text: title
+                text: title,
+                lineNum: i + 1
             });
             continue;
         }
@@ -1641,7 +1649,8 @@ function parseTextAndUpdatePreview() {
                 type: 'level1',
                 level: 1,
                 number: romanL1[1] + '.',
-                text: romanL1[2].trim()
+                text: romanL1[2].trim(),
+                lineNum: i + 1
             });
             continue;
         }
@@ -1654,7 +1663,8 @@ function parseTextAndUpdatePreview() {
                 type: 'level1',
                 level: 1,
                 number: num,
-                text: rawLine.trim()
+                text: rawLine.trim(),
+                lineNum: i + 1
             });
             continue;
         }
@@ -1679,7 +1689,8 @@ function parseTextAndUpdatePreview() {
                 type: 'level1',
                 level: 1,
                 number: num,
-                text: rawLine.replace(/[\:\-\–\—]+$/, '').trim()
+                text: rawLine.replace(/[\:\-\–\—]+$/, '').trim(),
+                lineNum: i + 1
             });
             continue;
         }
@@ -1689,7 +1700,8 @@ function parseTextAndUpdatePreview() {
             type: 'body',
             level: 0,
             number: '',
-            text: rawLine
+            text: rawLine,
+            lineNum: i + 1
         });
     }
 
@@ -2843,8 +2855,53 @@ let spellcheckState = {
 
 function formatTextWithSpellHighlights(text) {
     if (!text) return '';
-    return escapeHTML(text);
+    if (!spellcheckState.issues || spellcheckState.issues.length === 0) {
+        return escapeHTML(text);
+    }
+
+    // Collect unique original error words/phrases
+    const origWords = Array.from(new Set(spellcheckState.issues.map(i => (i.original || '').trim()).filter(Boolean)));
+    if (origWords.length === 0) return escapeHTML(text);
+    origWords.sort((a, b) => b.length - a.length);
+
+    const combinedRegex = new RegExp('\\b(' + origWords.map(w => escapeRegExp(w)).join('|') + ')\\b', 'gi');
+    const parts = text.split(combinedRegex);
+    let result = '';
+    for (let i = 0; i < parts.length; i++) {
+        const part = parts[i];
+        if (!part) continue;
+        if (i % 2 === 1) {
+            const matchedIss = spellcheckState.issues.find(iss => iss.original && iss.original.toLowerCase() === part.toLowerCase());
+            const issId = matchedIss ? matchedIss.id : '';
+            result += `<span class="spell-error-highlight" data-issue-id="${escapeHTML(issId)}" onclick="event.stopPropagation(); highlightIssueInDrawer('${escapeHTML(issId)}')" title="en-ZA Spell/Grammar Issue • Click to view in Inspector">${escapeHTML(part)}</span>`;
+        } else {
+            result += escapeHTML(part);
+        }
+    }
+    return result;
 }
+
+window.focusSpellIssue = function(issueId) {
+    const highlight = document.querySelector(`.spell-error-highlight[data-issue-id="${issueId}"]`);
+    if (highlight) {
+        highlight.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        highlight.classList.add('active-target');
+        setTimeout(() => highlight.classList.remove('active-target'), 2200);
+    }
+};
+
+window.highlightIssueInDrawer = function(issueId) {
+    const drawer = document.getElementById('spellcheck-drawer');
+    if (drawer && drawer.classList.contains('hidden')) {
+        drawer.classList.remove('hidden');
+    }
+    const card = document.getElementById('card-' + issueId);
+    if (card) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        card.classList.add('active-target');
+        setTimeout(() => card.classList.remove('active-target'), 2200);
+    }
+};
 
 async function runSpellCheck(isSilentParam = false) {
     const silent = (isSilentParam === true);
@@ -2885,7 +2942,7 @@ async function runSpellCheck(isSilentParam = false) {
         }
 
         renderSpellcheckDrawer();
-        renderDocumentPreview(); // Re-render preview with red highlights!
+        renderDocumentPreview(); // Re-render preview with wavy red highlights!
     } catch (err) {
         console.error('Spellcheck error:', err);
         if (!silent && list) list.innerHTML = `<div style="padding: 1rem; color: #EF4444;">Spellcheck failed: ${escapeHTML(err.message)}</div>`;
@@ -2919,13 +2976,27 @@ function renderSpellcheckDrawer() {
     issues.forEach(iss => {
         const tagClass = iss.type === 'legal_term' ? 'tag-legal' : '';
         const shortCat = (iss.category || 'EN-ZA').replace(/English \(South Africa\)/gi, 'EN-ZA').trim();
+        
+        // Find which clause or section in parsedBlocks contains this issue line
+        let locationLabel = `Line ${iss.line}`;
+        const block = (state.parsedBlocks || []).find(b => b.lineNum === iss.line || (b.text && iss.original && b.text.includes(iss.original)));
+        if (block) {
+            if (block.number) {
+                locationLabel = block.type === 'level1' ? `Section ${block.number}` : `Clause ${block.number}`;
+            } else if (block.type === 'level1') {
+                locationLabel = `Heading`;
+            } else {
+                locationLabel = `Line ${iss.line}`;
+            }
+        }
+
         html += `
-            <div class="spellcheck-card type-${iss.type}" id="card-${iss.id}">
+            <div class="spellcheck-card type-${iss.type}" id="card-${iss.id}" onclick="focusSpellIssue('${iss.id}')" title="Click to locate in document preview">
                 <div class="spellcheck-meta-line">
                     <span class="spellcheck-tag ${tagClass}">${escapeHTML(shortCat)}</span>
                     <div class="spellcheck-meta-right">
-                        <span class="spellcheck-line-indicator">Line ${iss.line}</span>
-                        <button type="button" class="btn-sm btn-icon btn-dismiss-issue" onclick="dismissSpellIssue('${iss.id}')" title="Ignore this issue">✕</button>
+                        <span class="spellcheck-line-indicator" title="Editor Line ${iss.line}">${escapeHTML(locationLabel)}</span>
+                        <button type="button" class="btn-sm btn-icon btn-dismiss-issue" onclick="event.stopPropagation(); dismissSpellIssue('${iss.id}')" title="Ignore this issue">✕</button>
                     </div>
                 </div>
                 <div class="spellcheck-word-diff">
@@ -2934,8 +3005,8 @@ function renderSpellcheckDrawer() {
                     <span class="spell-suggestion">${escapeHTML(iss.suggestion)}</span>
                 </div>
                 <div class="spell-reason">${escapeHTML(iss.message)}</div>
-                <div class="spellcheck-card-actions">
-                    <button type="button" class="btn-sm btn-apply-fix" onclick="applySpellFix('${iss.id}')">✓ Apply Fix</button>
+                <div class="spellcheck-card-actions" onclick="event.stopPropagation()">
+                    <button type="button" class="btn-sm btn-apply-fix" onclick="event.stopPropagation(); applySpellFix('${iss.id}')">✓ Apply Fix</button>
                 </div>
             </div>
         `;

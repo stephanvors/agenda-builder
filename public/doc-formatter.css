@@ -1850,6 +1850,32 @@ body.formatter-studio-body {
     color: #34D399;
 }
 
+/* Document Preview Spell Highlight & Focus Target */
+.spell-error-highlight {
+    text-decoration: underline wavy #EF4444 1.5px;
+    text-underline-offset: 3px;
+    background: rgba(239, 68, 68, 0.09);
+    border-radius: 2px;
+    cursor: pointer;
+    transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.spell-error-highlight:hover {
+    background: rgba(239, 68, 68, 0.24);
+}
+
+.spell-error-highlight.active-target {
+    background: rgba(245, 158, 11, 0.38) !important;
+    box-shadow: 0 0 0 2.5px #F59E0B;
+    border-radius: 3px;
+}
+
+.spellcheck-card.active-target {
+    box-shadow: 0 0 0 2px #3B82F6, 0 4px 14px rgba(59, 130, 246, 0.25) !important;
+    border-color: #3B82F6 !important;
+    background: var(--bg-card) !important;
+}
+
 /* ── Custom Header Image Banner UI & Preview ── */
 .header-image-preview-box {
     background: var(--bg-subtle);
