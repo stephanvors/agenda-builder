@@ -1526,19 +1526,20 @@ input[id$="-uppercase"]:not(:checked) + span {
 .prev-signer-card .sig-date-row {
     display: flex;
     align-items: flex-end;
-    justify-content: flex-end;
+    justify-content: flex-start;
     gap: 1.5mm;
     font-size: 8.5pt;
     color: #475569;
-    margin-top: 2.5mm;
-    text-align: right;
+    margin-top: 0;
+    text-align: left;
 }
 
 .prev-signer-card .sig-date-row .sig-field-line {
-    flex: 0 0 28mm;
+    flex: 1;
     border-bottom: 1px solid #94A3B8;
     height: 1px;
     margin-bottom: 1px;
+    min-height: 1px;
 }
 
 .prev-signer-card .sig-field-prefix {

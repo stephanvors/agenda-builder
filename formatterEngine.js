@@ -1088,47 +1088,50 @@ export async function buildFormattedDocx(config, parsedBlocks) {
               left: { style: BorderStyle.SINGLE, size: 6, color: '94A3B8' },
               right: { style: BorderStyle.SINGLE, size: 6, color: '94A3B8' },
             },
-            margins: { left: 160, right: 160, top: 100, bottom: 100 },
+            margins: { left: 160, right: 160, top: 120, bottom: 120 },
             children: [
-              // 1. Generous room for signature
+              // 1. Generous 16mm signature signing space
               new Paragraph({
-                spacing: { before: 180, after: 0 },
+                spacing: { before: 0, after: 600 },
                 children: [],
               }),
               // 2. Clean baseline rule
               new Paragraph({
-                spacing: { before: 0, after: 10 },
+                spacing: { before: 0, after: 15 },
                 border: {
-                  bottom: { style: BorderStyle.SINGLE, size: 8, color: primaryColor }
+                  bottom: { style: BorderStyle.SINGLE, size: 10, color: primaryColor }
                 },
                 children: [],
               }),
-              // 3. Signature label (with blank line spacing after it)
+              // 3. Signature sub-label
               new Paragraph({
-                spacing: { before: 0, after: 90 },
+                spacing: { before: 0, after: 60 },
                 keepWithNext: true,
                 children: [
                   new TextRun({
                     text: 'SIGNATURE',
-                    size: 14,
+                    size: 13,
                     bold: true,
                     color: '64748B',
                     font: fontFamily,
                   }),
                 ],
               }),
-              // 4. Name (extended underline to right edge)
+              // 4. NAME row (with underline extending across the card)
               new Paragraph({
-                spacing: { before: 0, after: 15 },
+                spacing: { before: 0, after: 20 },
                 keepWithNext: true,
                 tabStops: nameVal ? [] : [{ type: TabStopType.RIGHT, position: boxInnerWidthTwip, leader: LeaderType.UNDERSCORE }],
                 children: nameVal
-                  ? [new TextRun({ text: nameVal, bold: true, color: textColor, font: fontFamily, size: baseSizeHps })]
+                  ? [
+                      new TextRun({ text: 'NAME: ', bold: true, color: '64748B', font: fontFamily, size: 15 }),
+                      new TextRun({ text: nameVal, bold: true, color: textColor, font: fontFamily, size: 16 }),
+                    ]
                   : [
-                      new TextRun({ text: 'NAME:\t', bold: true, color: '64748B', font: fontFamily, size: baseSizeHps - 2 }),
+                      new TextRun({ text: 'NAME:\t', bold: true, color: '64748B', font: fontFamily, size: 15 }),
                     ],
               }),
-              // 5. Role
+              // 5. Role row
               new Paragraph({
                 spacing: { before: 0, after: 20 },
                 keepWithNext: true,
@@ -1138,22 +1141,21 @@ export async function buildFormattedDocx(config, parsedBlocks) {
                     bold: true,
                     color: primaryColor,
                     font: fontFamily,
-                    size: baseSizeHps - 1,
+                    size: 16,
                   }),
                 ],
               }),
-              // 6. Date (Right-Justified and flush with right margin)
+              // 6. DATE row (with underline extending across the card)
               new Paragraph({
-                alignment: AlignmentType.RIGHT,
-                spacing: { before: 40, after: 0 },
+                spacing: { before: 0, after: 0 },
+                tabStops: dateVal ? [] : [{ type: TabStopType.RIGHT, position: boxInnerWidthTwip, leader: LeaderType.UNDERSCORE }],
                 children: dateVal
                   ? [
-                      new TextRun({ text: 'DATE: ', bold: true, color: '64748B', font: fontFamily, size: baseSizeHps - 2 }),
-                      new TextRun({ text: dateVal, color: textColor, font: fontFamily, size: baseSizeHps - 2 }),
+                      new TextRun({ text: 'DATE: ', bold: true, color: '64748B', font: fontFamily, size: 15 }),
+                      new TextRun({ text: dateVal, color: textColor, font: fontFamily, size: 15 }),
                     ]
                   : [
-                      new TextRun({ text: 'DATE: ', bold: true, color: '64748B', font: fontFamily, size: baseSizeHps - 2 }),
-                      new TextRun({ text: '________________________', color: '94A3B8', font: fontFamily, size: baseSizeHps - 2 }),
+                      new TextRun({ text: 'DATE:\t', bold: true, color: '64748B', font: fontFamily, size: 15 }),
                     ],
               }),
             ],
@@ -1393,16 +1395,16 @@ export async function buildFormattedDocx(config, parsedBlocks) {
                     left: { style: BorderStyle.SINGLE, size: 6, color: '94A3B8' },
                     right: { style: BorderStyle.SINGLE, size: 6, color: '94A3B8' },
                   },
-                  margins: { left: 160, right: 160, top: 100, bottom: 100 },
+                  margins: { left: 160, right: 160, top: 120, bottom: 120 },
                   children: [
                     new Paragraph({
-                      spacing: { before: 500, after: 0 },
+                      spacing: { before: 0, after: 600 },
                       children: [],
                     }),
                     new Paragraph({
-                      spacing: { before: 0, after: 10 },
+                      spacing: { before: 0, after: 15 },
                       border: {
-                        bottom: { style: BorderStyle.SINGLE, size: 8, color: primaryColor }
+                        bottom: { style: BorderStyle.SINGLE, size: 10, color: primaryColor }
                       },
                       children: [],
                     }),
@@ -1412,7 +1414,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
                       children: [
                         new TextRun({
                           text: 'SIGNATURE',
-                          size: 14,
+                          size: 13,
                           bold: true,
                           color: '64748B',
                           font: fontFamily,
@@ -1420,11 +1422,11 @@ export async function buildFormattedDocx(config, parsedBlocks) {
                       ],
                     }),
                     new Paragraph({
-                      spacing: { before: 0, after: 15 },
+                      spacing: { before: 0, after: 20 },
                       keepWithNext: true,
                       tabStops: [{ type: TabStopType.RIGHT, position: districtBoxInnerTwip, leader: LeaderType.UNDERSCORE }],
                       children: [
-                        new TextRun({ text: 'NAME:\t', bold: true, color: '64748B', font: fontFamily, size: baseSizeHps - 2 }),
+                        new TextRun({ text: 'NAME:\t', bold: true, color: '64748B', font: fontFamily, size: 15 }),
                       ],
                     }),
                     new Paragraph({
@@ -1436,16 +1438,15 @@ export async function buildFormattedDocx(config, parsedBlocks) {
                           bold: true,
                           color: primaryColor,
                           font: fontFamily,
-                          size: baseSizeHps - 1,
+                          size: 16,
                         }),
                       ],
                     }),
                     new Paragraph({
-                      alignment: AlignmentType.RIGHT,
-                      spacing: { before: 40, after: 0 },
+                      spacing: { before: 0, after: 0 },
+                      tabStops: [{ type: TabStopType.RIGHT, position: districtBoxInnerTwip, leader: LeaderType.UNDERSCORE }],
                       children: [
-                        new TextRun({ text: 'DATE: ', bold: true, color: '64748B', font: fontFamily, size: baseSizeHps - 2 }),
-                        new TextRun({ text: '________________________', color: '94A3B8', font: fontFamily, size: baseSizeHps - 2 }),
+                        new TextRun({ text: 'DATE:\t', bold: true, color: '64748B', font: fontFamily, size: 15 }),
                       ],
                     }),
                   ],
@@ -1757,17 +1758,20 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
                 let nVal = (s.name || '').replace(/^_+$/, '').trim();
                 let dVal = (s.dateLabel || '').replace(/^_+$/, '').trim();
                 return `
-                  <td style="width: ${100 / maxCols}%; vertical-align: top; background: #FFFFFF; border: 1.5px solid #94A3B8; border-radius: 3px; padding: 12px 14px; box-sizing: border-box;">
-                    <div style="height: 15mm; min-height: 15mm;"></div>
-                    <div style="border-bottom: 1.5px solid ${primaryColor}; margin-bottom: 2px;"></div>
-                    <div style="font-size: 7pt; text-transform: uppercase; letter-spacing: 0.8px; color: #64748B; font-weight: bold; margin-bottom: 14px;">Signature</div>
-                    <div style="font-size: 9.5pt; font-weight: bold; color: ${textColor}; margin-bottom: 2px; line-height: 1.2;">
-                      ${nVal ? escapeHtml(nVal) : `<div style="display: flex; align-items: flex-end; gap: 4px;"><span style="color: #64748B; font-size: 8pt; font-weight: 600; white-space: nowrap;">NAME:</span> <span style="flex: 1; border-bottom: 1px solid #94A3B8; min-height: 1px; margin-bottom: 2px;"></span></div>`}
-                    </div>
-                    <div style="font-size: 8.5pt; font-weight: bold; color: ${primaryColor}; text-transform: uppercase; margin-bottom: 4px; line-height: 1.2;">${escapeHtml(s.role || 'SIGNATORY')}</div>
-                    <div style="text-align: right; font-size: 8pt; color: #64748B; line-height: 1.2; margin-top: 6px;">
-                      <span style="font-weight: bold;">DATE:</span> 
-                      ${dVal ? `<span style="color: ${textColor}; font-weight: 600;">${escapeHtml(dVal)}</span>` : `<span style="display: inline-block; width: 28mm; border-bottom: 1px solid #94A3B8; margin-bottom: 2px;"></span>`}
+                  <td style="width: ${100 / maxCols}%; vertical-align: top; background: #FFFFFF; border: 1.5px solid #94A3B8; border-radius: 3px; padding: 3.5mm 4mm; box-sizing: border-box;">
+                    <div style="height: 16mm; min-height: 16mm;"></div>
+                    <div style="border-bottom: 1.5px solid ${primaryColor}; margin-bottom: 1mm;"></div>
+                    <div style="font-size: 7pt; text-transform: uppercase; letter-spacing: 0.8px; color: #64748B; font-weight: 600; margin-bottom: 4.5mm;">Signature</div>
+                    <div style="display: flex; flex-direction: column; gap: 1.5mm;">
+                      <div style="display: flex; align-items: flex-end; gap: 1.5mm; font-size: 8.5pt; color: #475569;">
+                        <span style="font-weight: 600; color: #64748B; font-size: 8pt; text-transform: uppercase; white-space: nowrap;">NAME:</span> 
+                        ${nVal ? `<span style="font-size: 9.5pt; font-weight: 700; color: ${textColor}; padding-left: 2px;">${escapeHtml(nVal)}</span>` : `<span style="flex: 1; border-bottom: 1px solid #94A3B8; min-height: 1px; margin-bottom: 1px;"></span>`}
+                      </div>
+                      <div style="font-size: 8.5pt; font-weight: 700; color: ${primaryColor}; text-transform: uppercase; line-height: 1.2;">${escapeHtml((s.role || 'SIGNATORY').toUpperCase())}</div>
+                      <div style="display: flex; align-items: flex-end; gap: 1.5mm; font-size: 8.5pt; color: #475569;">
+                        <span style="font-weight: 600; color: #64748B; font-size: 8pt; text-transform: uppercase; white-space: nowrap;">DATE:</span> 
+                        ${dVal ? `<span style="font-weight: 600; color: ${textColor}; font-size: 8.5pt; padding-left: 2px;">${escapeHtml(dVal)}</span>` : `<span style="flex: 1; border-bottom: 1px solid #94A3B8; min-height: 1px; margin-bottom: 1px;"></span>`}
+                      </div>
                     </div>
                   </td>
                 `;
@@ -1798,17 +1802,20 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
                     <div style="font-size: 7.2pt; color: #94A3B8; font-style: italic; margin-top: auto; margin-bottom: 1.5mm;">(Place District Registry / Circuit Office Date Stamp Here)</div>
                   </div>
                 </td>
-                <td style="width: 50%; vertical-align: top; background: #FFFFFF; border: 1.5px solid #94A3B8; border-radius: 3px; padding: 4.5mm 4mm; box-sizing: border-box; height: 52mm; min-height: 52mm;">
-                  <div style="height: 18mm; min-height: 18mm;"></div>
-                  <div style="border-bottom: 1.5px solid ${primaryColor}; margin-bottom: 2px;"></div>
-                  <div style="font-size: 7pt; text-transform: uppercase; letter-spacing: 0.8px; color: #64748B; font-weight: bold; margin-bottom: 10px;">Signature</div>
-                  <div style="font-size: 9.5pt; font-weight: bold; color: ${textColor}; margin-bottom: 2px; line-height: 1.2;">
-                    <div style="display: flex; align-items: flex-end; gap: 4px;"><span style="color: #64748B; font-size: 8pt; font-weight: 600; white-space: nowrap;">NAME:</span> <span style="flex: 1; border-bottom: 1px solid #94A3B8; min-height: 1px; margin-bottom: 2px;"></span></div>
-                  </div>
-                  <div style="font-size: 8.5pt; font-weight: bold; color: ${primaryColor}; text-transform: uppercase; margin-bottom: 4px; line-height: 1.2;">${escapeHtml((config.components.signatures.districtRole || 'Circuit Manager').toUpperCase())}</div>
-                  <div style="text-align: right; font-size: 8pt; color: #64748B; line-height: 1.2; margin-top: 6px;">
-                    <span style="font-weight: bold;">DATE:</span> 
-                    <span style="display: inline-block; width: 28mm; border-bottom: 1px solid #94A3B8; margin-bottom: 2px;"></span>
+                <td style="width: 50%; vertical-align: top; background: #FFFFFF; border: 1.5px solid #94A3B8; border-radius: 3px; padding: 3.5mm 4mm; box-sizing: border-box; height: 52mm; min-height: 52mm;">
+                  <div style="height: 16mm; min-height: 16mm;"></div>
+                  <div style="border-bottom: 1.5px solid ${primaryColor}; margin-bottom: 1mm;"></div>
+                  <div style="font-size: 7pt; text-transform: uppercase; letter-spacing: 0.8px; color: #64748B; font-weight: 600; margin-bottom: 4.5mm;">Signature</div>
+                  <div style="display: flex; flex-direction: column; gap: 1.5mm;">
+                    <div style="display: flex; align-items: flex-end; gap: 1.5mm; font-size: 8.5pt; color: #475569;">
+                      <span style="font-weight: 600; color: #64748B; font-size: 8pt; text-transform: uppercase; white-space: nowrap;">NAME:</span> 
+                      <span style="flex: 1; border-bottom: 1px solid #94A3B8; min-height: 1px; margin-bottom: 1px;"></span>
+                    </div>
+                    <div style="font-size: 8.5pt; font-weight: 700; color: ${primaryColor}; text-transform: uppercase; line-height: 1.2;">${escapeHtml((config.components.signatures.districtRole || 'Circuit Manager').toUpperCase())}</div>
+                    <div style="display: flex; align-items: flex-end; gap: 1.5mm; font-size: 8.5pt; color: #475569;">
+                      <span style="font-weight: 600; color: #64748B; font-size: 8pt; text-transform: uppercase; white-space: nowrap;">DATE:</span> 
+                      <span style="flex: 1; border-bottom: 1px solid #94A3B8; min-height: 1px; margin-bottom: 1px;"></span>
+                    </div>
                   </div>
                 </td>
               </tr>

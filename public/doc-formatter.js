@@ -2132,11 +2132,11 @@ function renderDocumentPreview() {
                     <div class="sig-label">Signature</div>
                     <div class="sig-details-body">
                         <div class="sig-name-row">
-                            ${displayName ? `<span class="sig-person-name" style="color: ${textColor};">${escapeHTML(displayName)}</span>` : `<div class="sig-blank-row"><span class="sig-field-prefix">Name:</span><span class="sig-field-line"></span></div>`}
+                            ${displayName ? `<div class="sig-blank-row"><span class="sig-field-prefix">NAME:</span> <span class="sig-person-name" style="color: ${textColor};">${escapeHTML(displayName)}</span></div>` : `<div class="sig-blank-row"><span class="sig-field-prefix">NAME:</span><span class="sig-field-line"></span></div>`}
                         </div>
-                        <div class="sig-role-row" style="color: ${primaryColor};">${escapeHTML(role)}</div>
+                        <div class="sig-role-row" style="color: ${primaryColor};">${escapeHTML(role.toUpperCase())}</div>
                         <div class="sig-date-row">
-                            <span class="sig-field-prefix">Date:</span>
+                            <span class="sig-field-prefix">DATE:</span>
                             ${displayDate ? `<span class="sig-date-val">${escapeHTML(displayDate)}</span>` : `<span class="sig-field-line"></span>`}
                         </div>
                     </div>
