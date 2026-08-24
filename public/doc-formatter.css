@@ -796,6 +796,12 @@ input[id$="-uppercase"]:not(:checked) + span {
     border-color: var(--primary);
 }
 
+.radio-card:has(input:checked),
+.checkbox-card:has(input:checked) {
+    border-color: var(--primary);
+    background: rgba(37, 99, 235, 0.08);
+}
+
 .radio-card input {
     margin-top: 0.2rem;
 }
@@ -814,6 +820,26 @@ input[id$="-uppercase"]:not(:checked) + span {
 .radio-card-body span {
     font-size: 0.74rem;
     color: var(--text-muted);
+}
+
+.audit-folders-checklist {
+    scrollbar-width: thin;
+}
+
+.audit-folder-item {
+    font-size: 0.74rem !important;
+    padding: 0.2rem 0.35rem;
+    border-radius: 4px;
+    transition: background 0.12s ease;
+}
+
+.audit-folder-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.audit-folder-item input:checked + span {
+    color: var(--text-main);
+    font-weight: 700;
 }
 
 .export-action-box {

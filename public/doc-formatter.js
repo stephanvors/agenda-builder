@@ -721,20 +721,41 @@ function initEventListeners() {
         saveDraftToLocalStorage();
     });
 
-    // Save Target radio switcher
-    document.querySelectorAll('input[name="save-target"]').forEach(radio => {
-        radio.addEventListener('change', (e) => {
-            const auditOpts = document.getElementById('audit-folder-options');
-            const vaultOpts = document.getElementById('vault-options');
-            const serverOpts = document.getElementById('server-path-options');
-            if (auditOpts) auditOpts.classList.toggle('hidden', e.target.value !== 'audit_folder');
-            if (vaultOpts) vaultOpts.classList.toggle('hidden', e.target.value !== 'vault');
-            if (serverOpts) serverOpts.classList.toggle('hidden', e.target.value !== 'server_path');
+    // Save Destinations & Multi-Folder Switchers
+    document.querySelectorAll('.save-dest-checkbox').forEach(chk => {
+        chk.addEventListener('change', () => {
+            updateDestinationUI();
+            updateAuditFolderHint();
         });
     });
 
-    // Audit Folder Selector change & Title change
-    document.getElementById('audit-folder-select')?.addEventListener('change', updateAuditFolderHint);
+    // Audit Folder checklist buttons and checkboxes
+    document.getElementById('audit-folder-auto')?.addEventListener('change', () => {
+        updateAuditFolderHint();
+        updateDestinationUI();
+    });
+    document.querySelectorAll('.audit-folder-chk').forEach(chk => {
+        chk.addEventListener('change', () => {
+            updateAuditFolderHint();
+            updateDestinationUI();
+        });
+    });
+    document.getElementById('btn-select-all-folders')?.addEventListener('click', () => {
+        document.querySelectorAll('.audit-folder-chk').forEach(chk => chk.checked = true);
+        const auto = document.getElementById('audit-folder-auto');
+        if (auto) auto.checked = false;
+        updateAuditFolderHint();
+        updateDestinationUI();
+    });
+    document.getElementById('btn-clear-folders')?.addEventListener('click', () => {
+        document.querySelectorAll('.audit-folder-chk').forEach(chk => chk.checked = false);
+        const auto = document.getElementById('audit-folder-auto');
+        if (auto) auto.checked = true;
+        updateAuditFolderHint();
+        updateDestinationUI();
+    });
+
+    // Audit Folder Hint & Title change
     document.getElementById('doc-title-input')?.addEventListener('input', () => {
         updateDynamicTitleInSignaturesAndNotice();
         updateAuditFolderHint();
@@ -863,34 +884,82 @@ function initEventListeners() {
     });
 }
 
+function getSelectedAuditFolders() {
+    const autoChk = document.getElementById('audit-folder-auto')?.checked;
+    const manualChk = Array.from(document.querySelectorAll('.audit-folder-chk:checked')).map(c => c.value);
+    
+    const folders = [];
+    if (autoChk) {
+        const title = (document.getElementById('doc-title-input')?.value || '').toLowerCase();
+        let detected = '01_SGB_Constitution';
+        if (title.includes('mission') || title.includes('vision') || title.includes('creed')) detected = '02_School_Mission_Statement';
+        else if (title.includes('admission')) detected = '03_Admission_Policy';
+        else if (title.includes('language')) detected = '04_Language_Policy';
+        else if (title.includes('religious') || title.includes('religion')) detected = '05_Religious_Observances_Policy';
+        else if (title.includes('conduct') || title.includes('discipline')) detected = '06_Code_of_Conduct_for_Learners';
+        else if (title.includes('constituted') || title.includes('election') || title.includes('component')) detected = '07_SGB_Correctly_Constituted';
+        else if (title.includes('bearer') || title.includes('handover') || title.includes('portfolio')) detected = '08_Office_Bearers_Elections_and_Portfolios';
+        else if (title.includes('schedule') || title.includes('record') || title.includes('minutes') || title.includes('notice')) detected = '09_SGB_Meetings_Schedule_and_Records';
+        else if (title.includes('finance policy') || title.includes('procurement')) detected = '10_Finance_Policy';
+        else if (title.includes('fincom') || title.includes('finance committee')) detected = '11_Finance_Committee_FinCom';
+        else if (title.includes('budget') || title.includes('agm')) detected = '12_School_Budget_and_AGM_Approval';
+        else if (title.includes('audit') || title.includes('afs') || title.includes('financial')) detected = '13_Financial_Records_and_Audit';
+        else if (title.includes('lsm') || title.includes('support material') || title.includes('textbook')) detected = '14_Learner_Support_Material_LSM';
+        else if (title.includes('property') || title.includes('building') || title.includes('grounds')) detected = '15_School_Property_Buildings_and_Grounds';
+        else if (title.includes('safety') || title.includes('emergency') || title.includes('disaster')) detected = '16_Safety_Policy_and_Emergency_Protocols';
+        folders.push(detected);
+    }
+    
+    manualChk.forEach(f => {
+        if (!folders.includes(f)) folders.push(f);
+    });
+
+    if (folders.length === 0) folders.push('01_SGB_Constitution');
+    return folders;
+}
+
+function updateDestinationUI() {
+    const checkedDest = Array.from(document.querySelectorAll('.save-dest-checkbox:checked')).map(c => c.value);
+    
+    const auditOpts = document.getElementById('audit-folder-options');
+    const vaultOpts = document.getElementById('vault-options');
+    const serverOpts = document.getElementById('server-path-options');
+
+    if (auditOpts) auditOpts.classList.toggle('hidden', !checkedDest.includes('audit_folder'));
+    if (vaultOpts) vaultOpts.classList.toggle('hidden', !checkedDest.includes('vault'));
+    if (serverOpts) serverOpts.classList.toggle('hidden', !checkedDest.includes('server_path'));
+
+    const countPill = document.getElementById('destinations-count-pill');
+    if (countPill) {
+        countPill.textContent = `${checkedDest.length} Destination${checkedDest.length === 1 ? '' : 's'} Selected`;
+    }
+
+    const btnText = document.getElementById('btn-generate-text');
+    if (btnText) {
+        const checkedFolders = getSelectedAuditFolders();
+        const totalTargets = checkedDest.length;
+        const totalFolders = checkedFolders.length;
+
+        if (totalFolders > 1 && checkedDest.includes('audit_folder')) {
+            btnText.textContent = `Generate Formatted Documents (${totalFolders} Audit Folders)`;
+        } else if (totalTargets > 1) {
+            btnText.textContent = `Generate Formatted Documents (${totalTargets} Destinations)`;
+        } else {
+            btnText.textContent = `Generate Formatted Document`;
+        }
+    }
+}
+
 function updateAuditFolderHint() {
     const hintEl = document.getElementById('audit-folder-resolved-hint');
     if (!hintEl) return;
-    const select = document.getElementById('audit-folder-select');
-    const selectedVal = select?.value || 'auto';
-    if (selectedVal !== 'auto') {
-        hintEl.innerHTML = `Target Path: <code>SGB_Functionality_Audit_2026/${escapeHTML(selectedVal)}</code>`;
-        return;
+    const folders = getSelectedAuditFolders();
+    if (folders.length === 1) {
+        hintEl.innerHTML = `Target Path: <code>SGB_Functionality_Audit_2026/${escapeHTML(folders[0])}</code>`;
+    } else {
+        hintEl.innerHTML = `Target Paths (${folders.length} Folders): <code>${folders.map(f => 'SGB_Functionality_Audit_2026/' + escapeHTML(f)).join(', ')}</code>`;
     }
-    const title = (document.getElementById('doc-title-input')?.value || '').toLowerCase();
-    let detected = '01_SGB_Constitution';
-    if (title.includes('mission') || title.includes('vision') || title.includes('creed')) detected = '02_School_Mission_Statement';
-    else if (title.includes('admission')) detected = '03_Admission_Policy';
-    else if (title.includes('language')) detected = '04_Language_Policy';
-    else if (title.includes('religious') || title.includes('religion')) detected = '05_Religious_Observances_Policy';
-    else if (title.includes('conduct') || title.includes('discipline')) detected = '06_Code_of_Conduct_for_Learners';
-    else if (title.includes('constituted') || title.includes('election') || title.includes('component')) detected = '07_SGB_Correctly_Constituted';
-    else if (title.includes('bearer') || title.includes('handover') || title.includes('portfolio')) detected = '08_Office_Bearers_Elections_and_Portfolios';
-    else if (title.includes('schedule') || title.includes('record') || title.includes('minutes') || title.includes('notice')) detected = '09_SGB_Meetings_Schedule_and_Records';
-    else if (title.includes('finance policy') || title.includes('procurement')) detected = '10_Finance_Policy';
-    else if (title.includes('fincom') || title.includes('finance committee')) detected = '11_Finance_Committee_FinCom';
-    else if (title.includes('budget') || title.includes('agm')) detected = '12_School_Budget_and_AGM_Approval';
-    else if (title.includes('audit') || title.includes('afs') || title.includes('financial')) detected = '13_Financial_Records_and_Audit';
-    else if (title.includes('lsm') || title.includes('support material') || title.includes('textbook')) detected = '14_Learner_Support_Material_LSM';
-    else if (title.includes('property') || title.includes('building') || title.includes('grounds')) detected = '15_School_Property_Buildings_and_Grounds';
-    else if (title.includes('safety') || title.includes('emergency') || title.includes('disaster')) detected = '16_Safety_Policy_and_Emergency_Protocols';
-
-    hintEl.innerHTML = `Target Path (Auto-Detected): <code>SGB_Functionality_Audit_2026/${detected}</code>`;
+    updateDestinationUI();
 }
 
 const CONTEXTUAL_METADATA_PRESETS = {
@@ -2547,13 +2616,34 @@ function syncPreviewToRawText() {
 }
 
 // ── Document Generation & Export API ──
+function base64ToBlob(base64, mimeType) {
+    const byteChars = atob(base64);
+    const byteNumbers = new Array(byteChars.length);
+    for (let i = 0; i < byteChars.length; i++) {
+        byteNumbers[i] = byteChars.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    return new Blob([byteArray], { type: mimeType });
+}
+
+function triggerBrowserDownload(blob, filename) {
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => window.URL.revokeObjectURL(url), 2000);
+}
+
 async function generateAndExportDocument(formatOverride = null) {
     const statusBox = document.getElementById('generation-status');
     const genBtn = document.getElementById('btn-generate-doc');
 
     if (statusBox) {
         statusBox.classList.remove('hidden');
-        statusBox.innerHTML = `<div class="spinner-row"><span>Compiling formatted document...</span></div>`;
+        statusBox.innerHTML = `<div class="spinner-row"><span>Compiling formatted document(s)...</span></div>`;
     }
     if (genBtn) genBtn.disabled = true;
 
@@ -2561,8 +2651,11 @@ async function generateAndExportDocument(formatOverride = null) {
         const config = collectCurrentConfig();
         const rawText = document.getElementById('raw-text-input')?.value || '';
         const outputFormat = formatOverride || document.querySelector('input[name="output-format"]:checked')?.value || 'docx';
-        const saveTarget = document.querySelector('input[name="save-target"]:checked')?.value || 'audit_folder';
-        const auditFolder = document.getElementById('audit-folder-select')?.value || 'auto';
+        
+        let saveTargets = Array.from(document.querySelectorAll('.save-dest-checkbox:checked')).map(c => c.value);
+        if (saveTargets.length === 0) saveTargets = ['audit_folder', 'download'];
+        
+        const auditFolders = getSelectedAuditFolders();
         const serverPath = document.getElementById('custom-server-path')?.value || '';
         const vaultCategory = document.getElementById('vault-category-select')?.value || 'Governance & Policy';
         const vaultTag = document.getElementById('vault-tag-select')?.value || 'Policies';
@@ -2571,8 +2664,8 @@ async function generateAndExportDocument(formatOverride = null) {
             config,
             rawText,
             outputFormat,
-            saveTarget,
-            auditFolder,
+            saveTargets,
+            auditFolders,
             serverPath,
             vaultCategory,
             vaultTag
@@ -2592,45 +2685,68 @@ async function generateAndExportDocument(formatOverride = null) {
             throw new Error(err.error || 'Failed to generate document');
         }
 
-        // Check if response is JSON (vault/audit_folder save) or Blob download
-        const contentType = res.headers.get('Content-Type') || '';
-        if (contentType.includes('application/json')) {
-            const result = await res.json();
-            const folderId = result.auditFolder || '01_SGB_Constitution';
-            statusBox.innerHTML = `
-                <div style="color: #10B981; font-weight: bold; margin-bottom: 4px;">✅ Document Generated &amp; Saved!</div>
-                <div style="font-size: 9.5pt; color: #E2E8F0; margin-bottom: 4px;">${escapeHTML(result.message || 'Saved successfully.')}</div>
-                ${result.auditFolderPath ? `<div style="font-size: 8.5pt; color: #94A3B8; margin-bottom: 8px;">Target Directory: <code>${escapeHTML(result.auditFolderPath)}</code></div>` : ''}
-                <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px;">
-                    <button type="button" class="btn btn-sm btn-primary" onclick="openAuditFolderInExplorer('${escapeHTML(folderId)}')">📂 Open Folder in File Explorer</button>
-                    ${result.docxUrl ? `<a href="${result.docxUrl}" class="btn btn-sm btn-outline" download>📥 Download DOCX</a> ` : ''}
-                    ${result.pdfUrl ? `<a href="${result.pdfUrl}" class="btn btn-sm btn-outline" download>📥 Download PDF</a> ` : ''}
+        const result = await res.json();
+
+        // 1. If Direct Download is checked or formatOverride, automatically trigger client browser download
+        if (result.docxBase64 && (result.autoDownload || formatOverride)) {
+            const docxBlob = base64ToBlob(result.docxBase64, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+            triggerBrowserDownload(docxBlob, result.docxFilename || 'LGAA_Document.docx');
+
+            if (result.pdfBase64 && (outputFormat === 'pdf' || outputFormat === 'both' || formatOverride === 'pdf')) {
+                const pdfBlob = base64ToBlob(result.pdfBase64, 'application/pdf');
+                setTimeout(() => triggerBrowserDownload(pdfBlob, result.pdfFilename || 'LGAA_Document.pdf'), 350);
+            }
+        }
+
+        // 2. Render Rich Success Summary
+        const savedFolders = result.savedFolders || [];
+        const isMulti = savedFolders.length > 1 || (result.savedFolders?.length && result.vaultSaved);
+        const headingText = isMulti ? '✅ Documents Generated &amp; Saved!' : '✅ Document Generated &amp; Saved!';
+
+        let foldersHtml = '';
+        if (savedFolders.length > 0) {
+            foldersHtml = `
+                <div style="margin-top: 6px; display: flex; flex-direction: column; gap: 6px;">
+                    ${savedFolders.map(f => `
+                        <div style="background: rgba(0,0,0,0.18); border: 1px solid var(--border); border-radius: 4px; padding: 6px 8px;">
+                            <div style="font-weight: 600; font-size: 8.5pt; color: #38BDF8;">📁 ${escapeHTML(f.id)}</div>
+                            <div style="font-size: 7.8pt; color: #94A3B8; margin-top: 2px;">Path: <code>${escapeHTML(f.path)}</code></div>
+                            <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 5px;">
+                                <button type="button" class="btn btn-sm btn-primary" onclick="openAuditFolderInExplorer('${escapeHTML(f.id)}')">📂 Open Folder in Explorer</button>
+                                ${f.docxUrl ? `<a href="${f.docxUrl}" class="btn btn-sm btn-outline" download>📥 Download DOCX</a>` : ''}
+                                ${f.pdfUrl ? `<a href="${f.pdfUrl}" class="btn btn-sm btn-outline" download>📥 Download PDF</a>` : ''}
+                            </div>
+                        </div>
+                    `).join('')}
                 </div>
             `;
-            showToast(result.message || 'Document generated and saved!');
-        } else {
-            // Blob file download
-            const blob = await res.blob();
-            const disposition = res.headers.get('Content-Disposition') || '';
-            let filename = 'LGAA_Formatted_Document.' + (outputFormat === 'pdf' ? 'pdf' : 'docx');
-            const match = disposition.match(/filename="?([^";]+)"?/);
-            if (match && match[1]) filename = match[1];
-
-            const downloadUrl = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = downloadUrl;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            window.URL.revokeObjectURL(downloadUrl);
-
-            statusBox.innerHTML = `
-                <div style="color: #10B981; font-weight: bold;">✅ Download Started!</div>
-                <div>File <strong>${escapeHTML(filename)}</strong> has been downloaded to your computer.</div>
-            `;
-            showToast('Document downloaded!');
         }
+
+        let vaultHtml = '';
+        if (result.vaultSaved) {
+            vaultHtml = `
+                <div style="margin-top: 6px; background: rgba(0,0,0,0.18); border: 1px solid var(--border); border-radius: 4px; padding: 6px 8px;">
+                    <div style="font-weight: 600; font-size: 8.5pt; color: #A78BFA;">🏛️ Saved to Document Vault</div>
+                    <div style="font-size: 7.8pt; color: #94A3B8; margin-top: 2px;">Published to Vault Category: <code>${escapeHTML(vaultCategory)}</code></div>
+                </div>
+            `;
+        }
+
+        let downloadNotice = '';
+        if (result.autoDownload) {
+            downloadNotice = `<div style="font-size: 8pt; color: #34D399; margin-top: 4px;">📥 Automatically downloaded to your computer's Downloads folder!</div>`;
+        }
+
+        if (statusBox) {
+            statusBox.innerHTML = `
+                <div style="color: #10B981; font-weight: bold; font-size: 9.5pt; margin-bottom: 4px;">${headingText}</div>
+                <div style="font-size: 9pt; color: #E2E8F0; margin-bottom: 6px;">${escapeHTML(result.message)}</div>
+                ${downloadNotice}
+                ${foldersHtml}
+                ${vaultHtml}
+            `;
+        }
+        showToast(result.message || 'Saved successfully!');
     } catch (e) {
         console.error(e);
         if (statusBox) {

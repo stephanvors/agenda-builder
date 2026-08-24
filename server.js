@@ -2402,11 +2402,33 @@ app.post('/api/doc-formatter/generate', async (req, res) => {
       rawText = '',
       outputFormat = 'docx',
       saveTarget = 'audit_folder',
+      saveTargets: rawSaveTargets,
       auditFolder = 'auto',
+      auditFolders: rawAuditFolders,
       serverPath = '',
       vaultCategory = 'Governance & Policy',
       vaultTag = 'Policies'
     } = req.body;
+
+    // Normalize saveTargets to Array
+    let saveTargets = [];
+    if (Array.isArray(rawSaveTargets) && rawSaveTargets.length > 0) {
+      saveTargets = rawSaveTargets;
+    } else if (saveTarget) {
+      saveTargets = [saveTarget];
+    } else {
+      saveTargets = ['audit_folder'];
+    }
+
+    // Normalize auditFolders to Array
+    let targetFolderIds = [];
+    if (Array.isArray(rawAuditFolders) && rawAuditFolders.length > 0) {
+      targetFolderIds = rawAuditFolders.map(f => resolveAuditFolder(f, config.documentTitle, rawText));
+    } else {
+      targetFolderIds = [resolveAuditFolder(auditFolder, config.documentTitle, rawText)];
+    }
+    targetFolderIds = Array.from(new Set(targetFolderIds.filter(Boolean)));
+    if (targetFolderIds.length === 0) targetFolderIds = ['01_SGB_Constitution'];
 
     const parsedBlocks = parseRawText(rawText);
     const docxBuffer = await buildFormattedDocx(config, parsedBlocks);
@@ -2423,76 +2445,55 @@ app.post('/api/doc-formatter/generate', async (req, res) => {
 
     await fs.writeFile(docxFilePath, docxBuffer);
 
-    let pdfFilename = null;
-    let pdfFilePath = null;
+    let pdfFilename = `${baseTitle}_${timestamp}.pdf`;
+    let pdfFilePath = path.join(UPLOADS_DIR, pdfFilename);
     let pdfBuffer = null;
 
-    if (outputFormat === 'pdf' || outputFormat === 'both' || saveTarget === 'audit_folder' || saveTarget === 'vault') {
-      pdfFilename = `${baseTitle}_${timestamp}.pdf`;
-      pdfFilePath = path.join(UPLOADS_DIR, pdfFilename);
-      try {
-        await convertDocxToPdf(docxFilePath, pdfFilePath, config, parsedBlocks);
-        if (fsSync.existsSync(pdfFilePath)) {
-          pdfBuffer = await fs.readFile(pdfFilePath);
-        }
-      } catch (pdfErr) {
-        console.error('PDF conversion error:', pdfErr);
-        if (outputFormat === 'pdf' && saveTarget === 'download') {
-          return res.status(500).json({ error: `PDF conversion failed: ${pdfErr.message || pdfErr}` });
-        }
+    try {
+      await convertDocxToPdf(docxFilePath, pdfFilePath, config, parsedBlocks);
+      if (fsSync.existsSync(pdfFilePath)) {
+        pdfBuffer = await fs.readFile(pdfFilePath);
       }
+    } catch (pdfErr) {
+      console.error('PDF conversion error:', pdfErr);
     }
-
-    // Always mirror saved file(s) to the corresponding SGB Functionality Audit folder
-    const targetFolderId = resolveAuditFolder(auditFolder, config.documentTitle, rawText);
-    const auditFolderPath = path.join(SGB_AUDIT_BASE_DIR, targetFolderId);
-    await fs.mkdir(auditFolderPath, { recursive: true });
 
     const cleanDocxName = `${baseTitle}.docx`;
     const cleanPdfName = `${baseTitle}.pdf`;
-    const auditDocxPath = path.join(auditFolderPath, cleanDocxName);
-    await fs.writeFile(auditDocxPath, docxBuffer);
 
-    if (pdfBuffer) {
-      const auditPdfPath = path.join(auditFolderPath, cleanPdfName);
-      await fs.writeFile(auditPdfPath, pdfBuffer);
-    }
+    const savedFolders = [];
 
-    // 1. Audit Folder Destination
-    if (saveTarget === 'audit_folder') {
-      return res.json({
-        success: true,
-        message: `Saved into SGB Audit Folder: SGB_Functionality_Audit_2026/${targetFolderId}`,
-        auditFolder: targetFolderId,
-        auditFolderPath: `SGB_Functionality_Audit_2026/${targetFolderId}`,
-        docxFilename: cleanDocxName,
-        pdfFilename: cleanPdfName,
-        docxUrl: `/api/doc-formatter/download-audit?folder=${encodeURIComponent(targetFolderId)}&file=${encodeURIComponent(cleanDocxName)}`,
-        pdfUrl: pdfBuffer ? `/api/doc-formatter/download-audit?folder=${encodeURIComponent(targetFolderId)}&file=${encodeURIComponent(cleanPdfName)}` : null
-      });
-    }
+    // 1. Save to all selected SGB Audit Folders
+    if (saveTargets.includes('audit_folder')) {
+      for (const fId of targetFolderIds) {
+        const auditFolderPath = path.join(SGB_AUDIT_BASE_DIR, fId);
+        await fs.mkdir(auditFolderPath, { recursive: true });
 
-    // 2. Direct Download
-    if (saveTarget === 'download') {
-      if (outputFormat === 'pdf') {
-        if (!pdfBuffer) {
-          return res.status(500).json({ error: 'PDF file could not be generated' });
+        const auditDocxPath = path.join(auditFolderPath, cleanDocxName);
+        await fs.writeFile(auditDocxPath, docxBuffer);
+
+        if (pdfBuffer) {
+          const auditPdfPath = path.join(auditFolderPath, cleanPdfName);
+          await fs.writeFile(auditPdfPath, pdfBuffer);
         }
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename="${cleanPdfName}"`);
-        return res.send(pdfBuffer);
-      } else {
-        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-        res.setHeader('Content-Disposition', `attachment; filename="${cleanDocxName}"`);
-        return res.send(docxBuffer);
+
+        savedFolders.push({
+          id: fId,
+          path: `SGB_Functionality_Audit_2026/${fId}`,
+          docxName: cleanDocxName,
+          pdfName: cleanPdfName,
+          docxUrl: `/api/doc-formatter/download-audit?folder=${encodeURIComponent(fId)}&file=${encodeURIComponent(cleanDocxName)}`,
+          pdfUrl: pdfBuffer ? `/api/doc-formatter/download-audit?folder=${encodeURIComponent(fId)}&file=${encodeURIComponent(cleanPdfName)}` : null
+        });
       }
     }
 
-    // 3. Save to Document Vault
-    if (saveTarget === 'vault') {
+    // 2. Save to Document Vault
+    let vaultSaved = false;
+    let vaultDocId = null;
+    if (saveTargets.includes('vault')) {
       const store = await storeHelper.read();
       if (!Array.isArray(store.documents)) store.documents = [];
-
       const member = req.member || { id: 'admin', name: 'Stephen Vorster', role: 'SGB Admin' };
 
       const docRecord = {
@@ -2501,71 +2502,81 @@ app.post('/api/doc-formatter/generate', async (req, res) => {
         filename: docxFilename,
         originalName: cleanDocxName,
         category: vaultCategory,
-        tags: [vaultTag, 'Formatted', member.name, targetFolderId].filter(Boolean),
-        description: `Formatted hierarchical document saved into ${targetFolderId}.`,
+        tags: [vaultTag, 'Formatted', member.name, ...targetFolderIds].filter(Boolean),
+        description: `Formatted hierarchical document saved across ${targetFolderIds.join(', ')}.`,
         mimetype: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         size: docxBuffer.length,
-        uploadedBy: {
-          memberId: member.id,
-          memberName: member.name
-        },
+        uploadedBy: { memberId: member.id, memberName: member.name },
         uploadedAt: new Date().toISOString()
       };
-
       store.documents.unshift(docRecord);
+      vaultDocId = docRecord.id;
 
-      let pdfDocRecord = null;
       if (pdfBuffer && pdfFilename) {
-        pdfDocRecord = {
+        const pdfDocRecord = {
           id: uuidv4(),
           title: `${config.documentTitle || 'Formatted Legal Document'} (PDF)`,
           filename: pdfFilename,
           originalName: cleanPdfName,
           category: vaultCategory,
-          tags: [vaultTag, 'PDF', 'Formatted', member.name, targetFolderId].filter(Boolean),
-          description: `Compiled PDF format saved into ${targetFolderId}.`,
+          tags: [vaultTag, 'PDF', 'Formatted', member.name, ...targetFolderIds].filter(Boolean),
+          description: `Compiled PDF format saved across ${targetFolderIds.join(', ')}.`,
           mimetype: 'application/pdf',
           size: pdfBuffer.length,
-          uploadedBy: {
-            memberId: member.id,
-            memberName: member.name
-          },
+          uploadedBy: { memberId: member.id, memberName: member.name },
           uploadedAt: new Date().toISOString()
         };
         store.documents.unshift(pdfDocRecord);
       }
-
       await storeHelper.write(store);
-
-      return res.json({
-        success: true,
-        message: `Saved into Document Vault (${vaultCategory}) and SGB Audit Folder (${targetFolderId}).`,
-        auditFolder: targetFolderId,
-        auditFolderPath: `SGB_Functionality_Audit_2026/${targetFolderId}`,
-        docxUrl: `/api/documents/${docRecord.id}/download`,
-        pdfUrl: pdfDocRecord ? `/api/documents/${pdfDocRecord.id}/download` : null
-      });
+      vaultSaved = true;
     }
 
-    // 4. Custom Server Path
-    if (saveTarget === 'server_path') {
-      if (serverPath && fsSync.existsSync(serverPath)) {
-        const destDocx = path.join(serverPath, cleanDocxName);
-        await fs.writeFile(destDocx, docxBuffer);
+    // 3. Custom Server Path
+    let serverPathSaved = null;
+    if (saveTargets.includes('server_path') && serverPath) {
+      if (fsSync.existsSync(serverPath)) {
+        await fs.writeFile(path.join(serverPath, cleanDocxName), docxBuffer);
         if (pdfBuffer) {
-          const destPdf = path.join(serverPath, cleanPdfName);
-          await fs.writeFile(destPdf, pdfBuffer);
+          await fs.writeFile(path.join(serverPath, cleanPdfName), pdfBuffer);
         }
-        return res.json({
-          success: true,
-          message: `Saved file(s) to server directory: ${serverPath}`
-        });
-      } else {
-        return res.status(400).json({ error: `Server directory not found: ${serverPath}` });
+        serverPathSaved = serverPath;
       }
     }
 
-    res.json({ success: true, message: 'Document generated successfully.' });
+    // Build friendly summary message
+    const msgParts = [];
+    if (savedFolders.length > 0) {
+      msgParts.push(`${savedFolders.length} SGB Audit Folder${savedFolders.length === 1 ? '' : 's'}`);
+    }
+    if (vaultSaved) {
+      msgParts.push('Document Vault');
+    }
+    if (serverPathSaved) {
+      msgParts.push('Custom Server Location');
+    }
+    if (saveTargets.includes('download')) {
+      msgParts.push('Direct Download');
+    }
+
+    const docWord = (savedFolders.length > 1 || saveTargets.length > 1) ? 'Documents' : 'Document';
+    const message = `Saved Formatted ${docWord} into ${msgParts.join(' + ') || 'selected destination'}.`;
+
+    return res.json({
+      success: true,
+      message,
+      docTitle: config.documentTitle || 'Formatted Document',
+      savedFolders,
+      vaultSaved,
+      vaultDocId,
+      serverPathSaved,
+      autoDownload: saveTargets.includes('download'),
+      docxFilename: cleanDocxName,
+      pdfFilename: cleanPdfName,
+      docxBase64: docxBuffer.toString('base64'),
+      pdfBase64: pdfBuffer ? pdfBuffer.toString('base64') : null,
+      primaryFolder: savedFolders[0]?.id || targetFolderIds[0] || '01_SGB_Constitution'
+    });
   } catch (error) {
     console.error('Document generation error:', error);
     res.status(500).json({ error: error.message || 'Failed to generate document' });
