@@ -2690,11 +2690,11 @@ async function generateAndExportDocument(formatOverride = null) {
         // 1. If Direct Download is checked or formatOverride, automatically trigger client browser download
         if (result.docxBase64 && (result.autoDownload || formatOverride)) {
             const docxBlob = base64ToBlob(result.docxBase64, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-            triggerBrowserDownload(docxBlob, result.docxFilename || 'LGAA_Document.docx');
+            triggerBrowserDownload(docxBlob, result.docxFilename || 'LGAA Document.docx');
 
-            if (result.pdfBase64 && (outputFormat === 'pdf' || outputFormat === 'both' || formatOverride === 'pdf')) {
+            if (result.pdfBase64) {
                 const pdfBlob = base64ToBlob(result.pdfBase64, 'application/pdf');
-                setTimeout(() => triggerBrowserDownload(pdfBlob, result.pdfFilename || 'LGAA_Document.pdf'), 350);
+                setTimeout(() => triggerBrowserDownload(pdfBlob, result.pdfFilename || 'LGAA Document.pdf'), 350);
             }
         }
 

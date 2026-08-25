@@ -164,28 +164,7 @@
     }
   ],
   "agendaItems": [],
-  "documents": [
-    {
-      "id": "ed645b8b-1eba-42ef-9f20-7d0135a8af8f",
-      "title": "TEST API CONSTITUTION",
-      "filename": "TEST_API_CONSTITUTION_1787411477188.docx",
-      "originalName": "TEST_API_CONSTITUTION.docx",
-      "category": "Governance & Policy",
-      "tags": [
-        "Policies",
-        "Formatted",
-        "Stephen Vorster"
-      ],
-      "description": "Formatted hierarchical document generated via Admin Formatter Studio (Arial, 10mm hanging indents).",
-      "mimetype": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      "size": 57579,
-      "uploadedBy": {
-        "memberId": "admin",
-        "memberName": "Stephen Vorster"
-      },
-      "uploadedAt": "2026-08-22T15:11:17.198Z"
-    }
-  ],
+  "documents": [],
   "categories": [
     "Finances > Fee Collection & Debt Recovery",
     "Finances > Budget & Financial Management",

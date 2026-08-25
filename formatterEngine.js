@@ -1018,7 +1018,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
     }
 
     // 3. Bordered Signature Cards Table (thicker cell borders, spacer columns for gaps)
-    const spacerMm = maxCols > 1 ? (maxCols === 3 ? 5 : 6) : 0;
+    const spacerMm = maxCols > 1 ? (maxCols === 3 ? 8 : 10) : 0;
     const totalSpacerWidthMm = (maxCols - 1) * spacerMm;
     const boxWidthMm = (bodyWidthMm - totalSpacerWidthMm) / maxCols;
     const boxInnerWidthTwip = convertMillimetersToTwip(boxWidthMm) - 320;
@@ -1039,7 +1039,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
                 right: { style: BorderStyle.NONE },
               },
               margins: { left: 0, right: 0, top: 0, bottom: 0 },
-              children: [new Paragraph({ spacing: { before: 160, after: 0 }, children: [] })],
+              children: [new Paragraph({ spacing: { before: 280, after: 0 }, children: [] })],
             })
           );
         }
@@ -1088,7 +1088,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
               left: { style: BorderStyle.SINGLE, size: 6, color: '94A3B8' },
               right: { style: BorderStyle.SINGLE, size: 6, color: '94A3B8' },
             },
-            margins: { left: 160, right: 160, top: 120, bottom: 120 },
+            margins: { left: 200, right: 200, top: 160, bottom: 160 },
             children: [
               // 1. Signature signing space
               new Paragraph({
@@ -1128,7 +1128,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
                     ]
                   : [
                       new TextRun({ text: 'NAME: ', bold: true, color: '64748B', font: fontFamily, size: 15 }),
-                      new TextRun({ text: '________________________________________________', color: '94A3B8', font: fontFamily, size: 14 }),
+                      new TextRun({ text: '______________________________', color: '94A3B8', font: fontFamily, size: 14 }),
                     ],
               }),
               // 5. Role row (evenly spaced)
@@ -1155,7 +1155,7 @@ export async function buildFormattedDocx(config, parsedBlocks) {
                     ]
                   : [
                       new TextRun({ text: 'DATE: ', bold: true, color: '64748B', font: fontFamily, size: 15 }),
-                      new TextRun({ text: '________________________________________________', color: '94A3B8', font: fontFamily, size: 14 }),
+                      new TextRun({ text: '______________________________', color: '94A3B8', font: fontFamily, size: 14 }),
                     ],
               }),
             ],

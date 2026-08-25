@@ -2433,11 +2433,11 @@ app.post('/api/doc-formatter/generate', async (req, res) => {
     const parsedBlocks = parseRawText(rawText);
     const docxBuffer = await buildFormattedDocx(config, parsedBlocks);
 
-    const baseTitle = (config.documentTitle || 'Formatted_Document')
+    const baseTitle = (config.documentTitle || 'Formatted Document')
       .replace(/[^a-zA-Z0-9_\-\s]/g, '')
       .trim()
-      .replace(/\s+/g, '_')
-      .substring(0, 60) || 'LGAA_Document';
+      .replace(/\s+/g, ' ')
+      .substring(0, 80) || 'LGAA Document';
 
     const timestamp = Date.now();
     const docxFilename = `${baseTitle}_${timestamp}.docx`;
@@ -2488,7 +2488,7 @@ app.post('/api/doc-formatter/generate', async (req, res) => {
       }
     }
 
-    // 2. Save to Document Vault
+    // 2. Save to Document Vault (PDF only)
     let vaultSaved = false;
     let vaultDocId = null;
     if (saveTargets.includes('vault')) {
@@ -2496,37 +2496,41 @@ app.post('/api/doc-formatter/generate', async (req, res) => {
       if (!Array.isArray(store.documents)) store.documents = [];
       const member = req.member || { id: 'admin', name: 'Stephen Vorster', role: 'SGB Admin' };
 
-      const docRecord = {
-        id: uuidv4(),
-        title: config.documentTitle || 'Formatted Legal Document',
-        filename: docxFilename,
-        originalName: cleanDocxName,
-        category: vaultCategory,
-        tags: [vaultTag, 'Formatted', member.name, ...targetFolderIds].filter(Boolean),
-        description: `Formatted hierarchical document saved across ${targetFolderIds.join(', ')}.`,
-        mimetype: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        size: docxBuffer.length,
-        uploadedBy: { memberId: member.id, memberName: member.name },
-        uploadedAt: new Date().toISOString()
-      };
-      store.documents.unshift(docRecord);
-      vaultDocId = docRecord.id;
-
       if (pdfBuffer && pdfFilename) {
         const pdfDocRecord = {
           id: uuidv4(),
-          title: `${config.documentTitle || 'Formatted Legal Document'} (PDF)`,
+          title: config.documentTitle || 'Formatted Legal Document',
           filename: pdfFilename,
+          storedName: pdfFilename,
           originalName: cleanPdfName,
           category: vaultCategory,
           tags: [vaultTag, 'PDF', 'Formatted', member.name, ...targetFolderIds].filter(Boolean),
-          description: `Compiled PDF format saved across ${targetFolderIds.join(', ')}.`,
+          description: `Formatted hierarchical document saved across ${targetFolderIds.join(', ')}.`,
           mimetype: 'application/pdf',
           size: pdfBuffer.length,
           uploadedBy: { memberId: member.id, memberName: member.name },
           uploadedAt: new Date().toISOString()
         };
         store.documents.unshift(pdfDocRecord);
+        vaultDocId = pdfDocRecord.id;
+      } else {
+        // Fallback to DOCX if PDF conversion failed
+        const docRecord = {
+          id: uuidv4(),
+          title: config.documentTitle || 'Formatted Legal Document',
+          filename: docxFilename,
+          storedName: docxFilename,
+          originalName: cleanDocxName,
+          category: vaultCategory,
+          tags: [vaultTag, 'Formatted', member.name, ...targetFolderIds].filter(Boolean),
+          description: `Formatted hierarchical document saved across ${targetFolderIds.join(', ')}.`,
+          mimetype: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          size: docxBuffer.length,
+          uploadedBy: { memberId: member.id, memberName: member.name },
+          uploadedAt: new Date().toISOString()
+        };
+        store.documents.unshift(docRecord);
+        vaultDocId = docRecord.id;
       }
       await storeHelper.write(store);
       vaultSaved = true;
