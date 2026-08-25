@@ -1867,10 +1867,14 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
 
 // ── Fail-Safe PDF Conversion (Word COM with Headless Edge Fallback) ──
 export async function convertDocxToPdf(docxPath, pdfPath, config = null, parsed = null) {
-  // Strategy 1: Word COM Automation
-  const psScript = `
-$docPath = "${docxPath.replace(/\\/g, '\\\\')}"
-$pdfPath = "${pdfPath.replace(/\\/g, '\\\\')}"
+  const absDocx = path.resolve(docxPath);
+  const absPdf = path.resolve(pdfPath);
+
+  // Strategy 1: Word COM Automation (Windows only)
+  if (process.platform === 'win32') {
+    const psScript = `
+$docPath = "${absDocx.replace(/\\/g, '\\\\')}"
+$pdfPath = "${absPdf.replace(/\\/g, '\\\\')}"
 $word = $null
 $doc = $null
 try {
@@ -1905,35 +1909,70 @@ try {
 }
 `;
 
-  const tempPs1 = path.join(__dirname, 'uploads', `convert_${Date.now()}_${Math.random().toString(36).substring(2, 6)}.ps1`);
-  await fs.writeFile(tempPs1, psScript, 'utf8');
+    const tempPs1 = path.join(__dirname, 'uploads', `convert_${Date.now()}_${Math.random().toString(36).substring(2, 6)}.ps1`);
+    await fs.writeFile(tempPs1, psScript, 'utf8');
 
-  try {
-    const { stdout, stderr } = await execPromise(`powershell -ExecutionPolicy Bypass -File "${tempPs1}"`, {
-      timeout: 25000
-    });
-    if (fsSync.existsSync(pdfPath)) {
-      return { success: true, pdfPath, method: 'word_com' };
-    }
-  } catch (wordErr) {
-    console.warn('Word COM PDF conversion encountered issue, falling back to Browser PDF engine:', wordErr.message);
     try {
-      await execPromise('powershell -Command "Stop-Process -Name WINWORD -Force -ErrorAction SilentlyContinue"');
-    } catch (e) {}
-  } finally {
-    try { await fs.unlink(tempPs1); } catch (e) {}
+      await execPromise(`powershell -ExecutionPolicy Bypass -File "${tempPs1}"`, {
+        timeout: 25000
+      });
+      if (fsSync.existsSync(absPdf)) {
+        return { success: true, pdfPath: absPdf, method: 'word_com' };
+      }
+    } catch (wordErr) {
+      console.warn('Word COM PDF conversion encountered issue, falling back to Browser PDF engine:', wordErr.message);
+      try {
+        await execPromise('powershell -Command "Stop-Process -Name WINWORD -Force -ErrorAction SilentlyContinue"');
+      } catch (e) {}
+    } finally {
+      try { await fs.unlink(tempPs1); } catch (e) {}
+    }
   }
 
-  // Strategy 2: Headless Edge / Chrome Fallback Engine
-  const edgePaths = [
+  // Strategy 2: Headless Chromium / Chrome / Edge Engine (Cross-Platform: Windows, Linux, macOS)
+  const candidateBrowsers = [
+    // Linux / Cloud / Docker containers
+    '/usr/bin/google-chrome-stable',
+    '/usr/bin/google-chrome',
+    '/usr/bin/chromium',
+    '/usr/bin/chromium-browser',
+    '/usr/bin/msedge',
+    '/snap/bin/chromium',
+    '/snap/bin/google-chrome',
+    // Windows
     'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
     'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
     'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-    'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe'
-  ];
-  const browserPath = edgePaths.find(p => fsSync.existsSync(p));
+    'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+    process.env.LOCALAPPDATA ? path.join(process.env.LOCALAPPDATA, 'Microsoft', 'Edge', 'Application', 'msedge.exe') : null,
+    process.env.LOCALAPPDATA ? path.join(process.env.LOCALAPPDATA, 'Google', 'Chrome', 'Application', 'chrome.exe') : null,
+    // macOS
+    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+    '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge'
+  ].filter(Boolean);
+
+  let browserPath = candidateBrowsers.find(p => fsSync.existsSync(p));
+
+  // If not found in static list, try resolving via `which` or `where`
   if (!browserPath) {
-    throw new Error('PDF conversion failed: neither Word COM nor browser engine were accessible');
+    const checkCommands = process.platform === 'win32'
+      ? ['where msedge', 'where chrome']
+      : ['which google-chrome', 'which chromium', 'which chromium-browser', 'which msedge'];
+
+    for (const cmd of checkCommands) {
+      try {
+        const { stdout } = await execPromise(cmd);
+        const resolved = stdout.split(/\r?\n/)[0]?.trim();
+        if (resolved && fsSync.existsSync(resolved)) {
+          browserPath = resolved;
+          break;
+        }
+      } catch (e) {}
+    }
+  }
+
+  if (!browserPath) {
+    throw new Error('PDF conversion engine not accessible on server host');
   }
 
   const htmlContent = generatePrintableHtml(config, parsed);
@@ -1941,10 +1980,11 @@ try {
   await fs.writeFile(tempHtml, htmlContent, 'utf8');
 
   try {
-    const cmd = `"${browserPath}" --headless --disable-gpu --run-all-compositor-stages-before-draw --print-to-pdf="${pdfPath}" "${tempHtml}"`;
+    const fileUrl = `file://${path.resolve(tempHtml).replace(/\\/g, '/')}`;
+    const cmd = `"${browserPath}" --headless=new --no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-gpu --run-all-compositor-stages-before-draw --no-pdf-header-footer --print-to-pdf="${absPdf}" "${fileUrl}"`;
     await execPromise(cmd, { timeout: 25000 });
-    if (fsSync.existsSync(pdfPath)) {
-      return { success: true, pdfPath, method: 'browser_headless' };
+    if (fsSync.existsSync(absPdf)) {
+      return { success: true, pdfPath: absPdf, method: 'browser_headless' };
     }
     throw new Error('PDF output file was not produced by browser engine');
   } finally {

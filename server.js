@@ -12,7 +12,7 @@ import XLSX from 'xlsx';
 import pg from 'pg';
 import multer from 'multer';
 import mammoth from 'mammoth';
-import { parseRawText, buildFormattedDocx, convertDocxToPdf } from './formatterEngine.js';
+import { parseRawText, buildFormattedDocx, convertDocxToPdf, generatePrintableHtml } from './formatterEngine.js';
 import { checkDocText } from './spellcheckerEngine.js';
 
 const require = createRequire(import.meta.url);
@@ -401,10 +401,30 @@ const storeHelper = {
         migrateFinanceCategories(initialStore);
         await pool.query('INSERT INTO app_store (id, data) VALUES ($1, $2)', ['main_store', JSON.stringify(initialStore)]);
         console.log(`✅ ${members.length} members initialized in PostgreSQL`);
-      } else {
         console.log('✅ Persistent store loaded — syncing member details from Excel...');
         // Always sync titles/roles/contacts from Excel so spreadsheet changes apply on redeploy
         await syncMembersFromExcel();
+
+        // Clean up orphan document records in PostgreSQL that have no corresponding file data in app_files and not on disk
+        try {
+          const fileRows = await pool.query('SELECT id FROM app_files');
+          const validIds = new Set(fileRows.rows.map(r => r.id));
+          const currentStore = JSON.parse(res.rows[0].data);
+          if (Array.isArray(currentStore.documents) && currentStore.documents.length > 0) {
+            const beforeCount = currentStore.documents.length;
+            currentStore.documents = currentStore.documents.filter(d => {
+              const inDb = validIds.has(d.id);
+              const onDisk = Boolean(d.storedName && fsSync.existsSync(path.join(UPLOADS_DIR, d.storedName)));
+              return inDb || onDisk;
+            });
+            if (currentStore.documents.length !== beforeCount) {
+              await pool.query('UPDATE app_store SET data = $1 WHERE id = $2', [JSON.stringify(currentStore), 'main_store']);
+              console.log(`🧹 Cleaned up ${beforeCount - currentStore.documents.length} orphan/missing document records from PostgreSQL store`);
+            }
+          }
+        } catch (cleanErr) {
+          console.error('Error cleaning orphan document records on startup:', cleanErr.message);
+        }
       }
       return;
     }
@@ -1220,18 +1240,29 @@ app.get('/api/documents', requireAuth, async (req, res) => {
       }
     }
 
-    const docsWithStatus = store.documents.map(d => {
+    const validDocs = [];
+    let needPrune = false;
+    for (const d of store.documents) {
       const existsOnDisk = Boolean(d.storedName && fsSync.existsSync(path.join(UPLOADS_DIR, d.storedName)));
       const existsInDb = existingFileIds.has(d.id);
       const isAvailable = (pool ? existsInDb : existsOnDisk) || existsInDb || existsOnDisk;
-      return {
-        ...d,
-        isAvailable
-      };
-    });
+      if (isAvailable) {
+        validDocs.push({
+          ...d,
+          isAvailable: true
+        });
+      } else {
+        needPrune = true;
+      }
+    }
+
+    if (needPrune) {
+      store.documents = validDocs;
+      storeHelper.write(store).catch(err => console.error('Error auto-pruning missing documents:', err.message));
+    }
 
     // Return newest first
-    const sorted = [...docsWithStatus].sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
+    const sorted = [...validDocs].sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
     res.json({
       documents: sorted,
       tags: store.documentTags || DEFAULT_DOCUMENT_TAGS
@@ -2534,6 +2565,21 @@ app.post('/api/doc-formatter/generate', async (req, res) => {
       }
       await storeHelper.write(store);
       vaultSaved = true;
+
+      // In PostgreSQL mode, also persist file binary into app_files table
+      if (pool && vaultDocId) {
+        const fileBuffer = (pdfBuffer && pdfFilename) ? pdfBuffer : docxBuffer;
+        const fileMime = (pdfBuffer && pdfFilename) ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+        const fileName = (pdfBuffer && pdfFilename) ? cleanPdfName : cleanDocxName;
+        try {
+          await pool.query(
+            'INSERT INTO app_files (id, filename, mimetype, file_data) VALUES ($1, $2, $3, $4) ON CONFLICT (id) DO UPDATE SET filename = $2, mimetype = $3, file_data = $4',
+            [vaultDocId, fileName, fileMime, fileBuffer]
+          );
+        } catch (dbErr) {
+          console.error('Error inserting document into app_files:', dbErr.message);
+        }
+      }
     }
 
     // 3. Custom Server Path
@@ -2579,6 +2625,7 @@ app.post('/api/doc-formatter/generate', async (req, res) => {
       pdfFilename: cleanPdfName,
       docxBase64: docxBuffer.toString('base64'),
       pdfBase64: pdfBuffer ? pdfBuffer.toString('base64') : null,
+      printableHtml: generatePrintableHtml(config, parsedBlocks),
       primaryFolder: savedFolders[0]?.id || targetFolderIds[0] || '01_SGB_Constitution'
     });
   } catch (error) {

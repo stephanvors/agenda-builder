@@ -2637,6 +2637,21 @@ function triggerBrowserDownload(blob, filename) {
     setTimeout(() => window.URL.revokeObjectURL(url), 2000);
 }
 
+function openPrintablePdfWindow(htmlContent) {
+    const printWin = window.open('', '_blank', 'width=900,height=1000');
+    if (!printWin) {
+        showToast('Please allow popups to save/print the PDF document.', true);
+        return;
+    }
+    printWin.document.open();
+    printWin.document.write(htmlContent);
+    printWin.document.close();
+    printWin.focus();
+    setTimeout(() => {
+        printWin.print();
+    }, 500);
+}
+
 async function generateAndExportDocument(formatOverride = null) {
     const statusBox = document.getElementById('generation-status');
     const genBtn = document.getElementById('btn-generate-doc');
@@ -2687,14 +2702,23 @@ async function generateAndExportDocument(formatOverride = null) {
 
         const result = await res.json();
 
-        // 1. If Direct Download is checked or formatOverride, automatically trigger client browser download
-        if (result.docxBase64 && (result.autoDownload || formatOverride)) {
+        // 1. Download Handling
+        const isPdfOnly = formatOverride === 'pdf' || (outputFormat === 'pdf' && !result.autoDownload);
+        const shouldDownloadDocx = result.docxBase64 && (result.autoDownload || outputFormat === 'docx' || outputFormat === 'both' || formatOverride === 'docx') && !isPdfOnly;
+        const shouldDownloadPdf = result.autoDownload || outputFormat === 'pdf' || outputFormat === 'both' || formatOverride === 'pdf';
+
+        if (shouldDownloadDocx && result.docxBase64) {
             const docxBlob = base64ToBlob(result.docxBase64, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
             triggerBrowserDownload(docxBlob, result.docxFilename || 'LGAA Document.docx');
+        }
 
+        if (shouldDownloadPdf) {
             if (result.pdfBase64) {
                 const pdfBlob = base64ToBlob(result.pdfBase64, 'application/pdf');
-                setTimeout(() => triggerBrowserDownload(pdfBlob, result.pdfFilename || 'LGAA Document.pdf'), 350);
+                const delay = shouldDownloadDocx ? 350 : 50;
+                setTimeout(() => triggerBrowserDownload(pdfBlob, result.pdfFilename || 'LGAA Document.pdf'), delay);
+            } else if (result.printableHtml) {
+                setTimeout(() => openPrintablePdfWindow(result.printableHtml), 300);
             }
         }
 
