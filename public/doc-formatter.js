@@ -2638,7 +2638,10 @@ function triggerBrowserDownload(blob, filename) {
 }
 
 async function generatePdfBase64FromPreview() {
-    if (typeof html2pdf === 'undefined') return null;
+    if (typeof html2pdf === 'undefined') {
+        console.warn('html2pdf is not loaded in window');
+        return null;
+    }
     const pageNodes = document.querySelectorAll('#pages-container .a4-sheet');
     if (!pageNodes || pageNodes.length === 0) return null;
 
@@ -2682,12 +2685,18 @@ async function generatePdfBase64FromPreview() {
     };
 
     try {
-        const pdfDataUri = await html2pdf().set(opt).from(wrapper).outputPdf('datauristring');
+        const worker = html2pdf().set(opt).from(wrapper);
+        const pdf = await worker.toPdf().get('pdf');
+        const pdfDataUri = pdf.output('datauristring');
         wrapper.remove();
-        return pdfDataUri;
+        if (pdfDataUri && pdfDataUri.length > 1000 && (pdfDataUri.startsWith('data:application/pdf') || pdfDataUri.includes('JVBERi'))) {
+            return pdfDataUri;
+        }
+        console.warn('PDF Data URI too small or invalid:', pdfDataUri?.length);
+        return null;
     } catch (err) {
-        console.warn('html2pdf compilation error:', err);
-        wrapper.remove();
+        console.error('html2pdf compilation error:', err);
+        try { wrapper.remove(); } catch (e) {}
         return null;
     }
 }

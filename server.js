@@ -405,21 +405,22 @@ const storeHelper = {
         // Always sync titles/roles/contacts from Excel so spreadsheet changes apply on redeploy
         await syncMembersFromExcel();
 
-        // Clean up orphan document records in PostgreSQL that have no corresponding file data in app_files and not on disk
+        // Clean up orphan and corrupted (< 500 bytes) document records in PostgreSQL
         try {
-          const fileRows = await pool.query('SELECT id FROM app_files');
+          await pool.query('DELETE FROM app_files WHERE LENGTH(file_data) < 500');
+          const fileRows = await pool.query('SELECT id FROM app_files WHERE LENGTH(file_data) >= 500');
           const validIds = new Set(fileRows.rows.map(r => r.id));
           const currentStore = JSON.parse(res.rows[0].data);
           if (Array.isArray(currentStore.documents) && currentStore.documents.length > 0) {
             const beforeCount = currentStore.documents.length;
             currentStore.documents = currentStore.documents.filter(d => {
               const inDb = validIds.has(d.id);
-              const onDisk = Boolean(d.storedName && fsSync.existsSync(path.join(UPLOADS_DIR, d.storedName)));
+              const onDisk = Boolean(d.storedName && fsSync.existsSync(path.join(UPLOADS_DIR, d.storedName)) && fsSync.statSync(path.join(UPLOADS_DIR, d.storedName)).size >= 500);
               return inDb || onDisk;
             });
             if (currentStore.documents.length !== beforeCount) {
               await pool.query('UPDATE app_store SET data = $1 WHERE id = $2', [JSON.stringify(currentStore), 'main_store']);
-              console.log(`🧹 Cleaned up ${beforeCount - currentStore.documents.length} orphan/missing document records from PostgreSQL store`);
+              console.log(`🧹 Cleaned up ${beforeCount - currentStore.documents.length} corrupt/orphan document records from PostgreSQL store`);
             }
           }
         } catch (cleanErr) {
@@ -1233,7 +1234,7 @@ app.get('/api/documents', requireAuth, async (req, res) => {
     let existingFileIds = new Set();
     if (pool) {
       try {
-        const fileRows = await pool.query('SELECT id FROM app_files');
+        const fileRows = await pool.query('SELECT id FROM app_files WHERE LENGTH(file_data) >= 500');
         fileRows.rows.forEach(r => existingFileIds.add(r.id));
       } catch (e) {
         console.error('Error checking existing file IDs in DB:', e.message);
@@ -1243,7 +1244,7 @@ app.get('/api/documents', requireAuth, async (req, res) => {
     const validDocs = [];
     let needPrune = false;
     for (const d of store.documents) {
-      const existsOnDisk = Boolean(d.storedName && fsSync.existsSync(path.join(UPLOADS_DIR, d.storedName)));
+      const existsOnDisk = Boolean(d.storedName && fsSync.existsSync(path.join(UPLOADS_DIR, d.storedName)) && fsSync.statSync(path.join(UPLOADS_DIR, d.storedName)).size >= 500);
       const existsInDb = existingFileIds.has(d.id);
       const isAvailable = (pool ? existsInDb : existsOnDisk) || existsInDb || existsOnDisk;
       if (isAvailable) {
@@ -2483,9 +2484,14 @@ app.post('/api/doc-formatter/generate', async (req, res) => {
 
     if (clientPdfBase64 && typeof clientPdfBase64 === 'string') {
       try {
-        const cleanBase64 = clientPdfBase64.replace(/^data:application\/pdf;base64,/, '');
-        pdfBuffer = Buffer.from(cleanBase64, 'base64');
-        await fs.writeFile(pdfFilePath, pdfBuffer);
+        const cleanBase64 = clientPdfBase64.replace(/^data:application\/pdf[^;]*;base64,/, '').replace(/^data:[^;]*;base64,/, '');
+        const candidateBuffer = Buffer.from(cleanBase64, 'base64');
+        if (candidateBuffer.length >= 1000 && candidateBuffer.toString('utf8', 0, 4).startsWith('%PDF')) {
+          pdfBuffer = candidateBuffer;
+          await fs.writeFile(pdfFilePath, pdfBuffer);
+        } else {
+          console.warn('Received clientPdfBase64 was not valid PDF (size: ' + candidateBuffer.length + ' bytes)');
+        }
       } catch (clientPdfErr) {
         console.error('Error saving client-provided PDF buffer:', clientPdfErr.message);
       }
@@ -2495,7 +2501,10 @@ app.post('/api/doc-formatter/generate', async (req, res) => {
       try {
         await convertDocxToPdf(docxFilePath, pdfFilePath, config, parsedBlocks);
         if (fsSync.existsSync(pdfFilePath)) {
-          pdfBuffer = await fs.readFile(pdfFilePath);
+          const sBuf = await fs.readFile(pdfFilePath);
+          if (sBuf.length >= 500 && sBuf.toString('utf8', 0, 4).startsWith('%PDF')) {
+            pdfBuffer = sBuf;
+          }
         }
       } catch (pdfErr) {
         console.warn('Server PDF conversion notice:', pdfErr.message);
