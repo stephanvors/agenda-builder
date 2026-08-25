@@ -2617,16 +2617,29 @@ function syncPreviewToRawText() {
 
 // ── Document Generation & Export API ──
 function base64ToBlob(base64, mimeType) {
-    const byteChars = atob(base64);
-    const byteNumbers = new Array(byteChars.length);
-    for (let i = 0; i < byteChars.length; i++) {
-        byteNumbers[i] = byteChars.charCodeAt(i);
+    if (!base64 || typeof base64 !== 'string') return null;
+    let clean = base64;
+    const commaIdx = clean.indexOf(',');
+    if (commaIdx !== -1 && clean.substring(0, commaIdx).includes('base64')) {
+        clean = clean.substring(commaIdx + 1);
     }
-    const byteArray = new Uint8Array(byteNumbers);
-    return new Blob([byteArray], { type: mimeType });
+    clean = clean.replace(/[^A-Za-z0-9+/=]/g, '');
+    try {
+        const byteChars = atob(clean);
+        const byteNumbers = new Array(byteChars.length);
+        for (let i = 0; i < byteChars.length; i++) {
+            byteNumbers[i] = byteChars.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        return new Blob([byteArray], { type: mimeType });
+    } catch (e) {
+        console.error('base64ToBlob conversion error:', e);
+        return null;
+    }
 }
 
 function triggerBrowserDownload(blob, filename) {
+    if (!blob) return;
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -2650,9 +2663,11 @@ async function generatePdfBase64FromPreview() {
     wrapper.style.background = '#FFFFFF';
     wrapper.style.color = '#1A1A1A';
     wrapper.style.position = 'fixed';
-    wrapper.style.left = '-9999px';
+    wrapper.style.left = '0';
     wrapper.style.top = '0';
-    wrapper.style.zIndex = '-999';
+    wrapper.style.opacity = '0';
+    wrapper.style.pointerEvents = 'none';
+    wrapper.style.zIndex = '-99999';
 
     pageNodes.forEach((pNode, idx) => {
         const clone = pNode.cloneNode(true);
@@ -2688,8 +2703,8 @@ async function generatePdfBase64FromPreview() {
         const worker = html2pdf().set(opt).from(wrapper);
         const pdf = await worker.toPdf().get('pdf');
         const pdfDataUri = pdf.output('datauristring');
-        wrapper.remove();
-        if (pdfDataUri && pdfDataUri.length > 1000 && (pdfDataUri.startsWith('data:application/pdf') || pdfDataUri.includes('JVBERi'))) {
+        try { wrapper.remove(); } catch (e) {}
+        if (pdfDataUri && pdfDataUri.length > 1000) {
             return pdfDataUri;
         }
         console.warn('PDF Data URI too small or invalid:', pdfDataUri?.length);

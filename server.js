@@ -2484,7 +2484,12 @@ app.post('/api/doc-formatter/generate', async (req, res) => {
 
     if (clientPdfBase64 && typeof clientPdfBase64 === 'string') {
       try {
-        const cleanBase64 = clientPdfBase64.replace(/^data:application\/pdf[^;]*;base64,/, '').replace(/^data:[^;]*;base64,/, '');
+        let cleanBase64 = clientPdfBase64;
+        const commaIdx = cleanBase64.indexOf(',');
+        if (commaIdx !== -1 && cleanBase64.substring(0, commaIdx).includes('base64')) {
+          cleanBase64 = cleanBase64.substring(commaIdx + 1);
+        }
+        cleanBase64 = cleanBase64.replace(/[^A-Za-z0-9+/=]/g, '');
         const candidateBuffer = Buffer.from(cleanBase64, 'base64');
         if (candidateBuffer.length >= 1000 && candidateBuffer.toString('utf8', 0, 4).startsWith('%PDF')) {
           pdfBuffer = candidateBuffer;

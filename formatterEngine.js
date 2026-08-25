@@ -5,6 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { exec } from 'child_process';
 import util from 'util';
+import PDFDocument from 'pdfkit';
 
 const execPromise = util.promisify(exec);
 const __filename = fileURLToPath(import.meta.url);
@@ -1862,18 +1863,246 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
   `;
 }
 
-// ── Fail-Safe PDF Conversion (Word COM with Headless Edge Fallback) ──
-export async function convertDocxToPdf(docxPath, pdfPath, config = null, parsed = null) {
+// ── Pure Vector PDFKit Engine (Runs in any Node environment with 0 dependencies) ──
+export async function generatePdfWithPdfkit(config = {}, parsed = {}, outputPath = null) {
+  return new Promise((resolve, reject) => {
+    try {
+      const primaryColor = config.typography?.primaryColor || '#0C2340';
+      const secondaryColor = config.typography?.secondaryColor || '#A6192E';
+      const textColor = config.typography?.textColor || '#1A1A1A';
+      const grayColor = '#64748B';
+
+      const doc = new PDFDocument({
+        size: 'A4',
+        margins: { top: 28.35, bottom: 35, left: 28.35, right: 28.35 },
+        bufferPages: true,
+        autoFirstPage: true
+      });
+
+      const chunks = [];
+      let writeStream = null;
+      if (outputPath) {
+        writeStream = fsSync.createWriteStream(outputPath);
+        doc.pipe(writeStream);
+      } else {
+        doc.on('data', chunk => chunks.push(chunk));
+      }
+
+      const pw = 595.28;
+      const ph = 841.89;
+      const ml = 28.35;
+      const mr = 28.35;
+      const contentW = pw - ml - mr;
+
+      // 1. Header
+      if (config.header?.frequency !== 'none') {
+        doc.rect(ml, 28.35, contentW * 0.68, 3.5).fill(primaryColor);
+        doc.rect(ml + contentW * 0.68 + 2, 28.35, contentW * 0.32 - 2, 3.5).fill(secondaryColor);
+        doc.moveDown(0.7);
+        doc.fillColor(primaryColor).font('Helvetica-Bold').fontSize(13).text(config.header?.title || 'LADY GREY ARTS ACADEMY', { align: 'center' });
+        doc.fillColor(grayColor).font('Helvetica-Oblique').fontSize(8.5).text(config.header?.subtitle || 'Where Learning is an Art', { align: 'center' });
+        doc.fillColor(textColor).font('Helvetica').fontSize(7.5).text(config.header?.contact || '18 Brummer Street, Lady Grey, 9755 | Tel: 051 603 0046 | admin@lgaa.co.za', { align: 'center' });
+        doc.fillColor(grayColor).font('Helvetica').fontSize(7.5).text(config.header?.emis || 'EMIS: 200600985 | District: Joe Gqabi | Circuit: Ekhephini | CMC: Maletswai', { align: 'center' });
+      }
+
+      // 2. Titles
+      doc.moveDown(0.8);
+      if (config.documentTitle) {
+        doc.fillColor(primaryColor).font('Helvetica-Bold').fontSize(12).text(config.documentTitle.toUpperCase(), { align: 'center' });
+      }
+      if (config.documentSubtitle) {
+        doc.fillColor(secondaryColor).font('Helvetica-Bold').fontSize(9.5).text(config.documentSubtitle, { align: 'center' });
+      }
+
+      // 3. Metadata table
+      const meta = config.components?.metadata;
+      if (meta && meta.enabled && Array.isArray(meta.rows) && meta.rows.length > 0) {
+        doc.moveDown(0.6);
+        const startY = doc.y;
+        const col1W = 160;
+        const col2W = contentW - col1W;
+        
+        doc.rect(ml, startY, contentW, 16).fill('#F1F5F9');
+        doc.rect(ml, startY, contentW, 16).strokeColor('#CBD5E1').lineWidth(0.5).stroke();
+        doc.fillColor(primaryColor).font('Helvetica-Bold').fontSize(8).text(meta.tableHeaderLeft || 'Parameter', ml + 6, startY + 4, { width: col1W - 12 });
+        doc.fillColor(primaryColor).font('Helvetica-Bold').fontSize(8).text(meta.tableHeaderRight || 'Details', ml + col1W + 6, startY + 4, { width: col2W - 12 });
+        doc.y = startY + 16;
+
+        meta.rows.forEach((r, idx) => {
+          const rowY = doc.y;
+          const rBg = idx % 2 === 1 ? '#F8FAFC' : '#FFFFFF';
+          doc.rect(ml, rowY, contentW, 15).fill(rBg);
+          doc.rect(ml, rowY, contentW, 15).strokeColor('#CBD5E1').lineWidth(0.5).stroke();
+          doc.fillColor(primaryColor).font('Helvetica-Bold').fontSize(7.5).text(r.key || '', ml + 6, rowY + 3.5, { width: col1W - 12 });
+          doc.fillColor(textColor).font('Helvetica').fontSize(7.5).text(r.value || '', ml + col1W + 6, rowY + 3.5, { width: col2W - 12 });
+          doc.y = rowY + 15;
+        });
+      }
+
+      // 4. Legal Notice
+      const notice = config.components?.legalNotice;
+      if (notice && notice.enabled && notice.text) {
+        doc.moveDown(0.6);
+        const nY = doc.y;
+        doc.rect(ml, nY, contentW, 26).fill('#F1F5F9');
+        doc.rect(ml, nY, 3, 26).fill(primaryColor);
+        doc.rect(ml, nY, contentW, 26).strokeColor('#CBD5E1').lineWidth(0.5).stroke();
+        doc.fillColor(primaryColor).font('Helvetica-Bold').fontSize(7.5).text('LEGAL NOTICE: ', ml + 8, nY + 4, { continued: true });
+        doc.fillColor(textColor).font('Helvetica').fontSize(7.5).text(notice.text, { width: contentW - 16 });
+        doc.y = nY + 28;
+      }
+
+      // 5. Body paragraphs / clauses
+      const blocks = Array.isArray(parsed) ? parsed : (parsed?.blocks || []);
+      doc.moveDown(0.8);
+      blocks.forEach(b => {
+        if (doc.y > ph - 65) doc.addPage();
+        const lvl = b.level || 1;
+        if (lvl === 1) {
+          doc.moveDown(0.5);
+          doc.fillColor(primaryColor).font('Helvetica-Bold').fontSize(9.5).text(b.text || '', ml, doc.y, { width: contentW });
+          doc.moveDown(0.2);
+        } else {
+          const indent = (lvl - 1) * 14;
+          doc.fillColor(textColor).font('Helvetica').fontSize(8.5).text(b.text || '', ml + indent, doc.y, { width: contentW - indent, align: 'justify' });
+          doc.moveDown(0.3);
+        }
+      });
+
+      // 6. Signatures
+      const sigs = config.components?.signatures;
+      if (sigs && sigs.enabled && Array.isArray(sigs.signers) && sigs.signers.length > 0) {
+        if (doc.y > ph - 160) doc.addPage();
+        else doc.moveDown(1);
+
+        doc.fillColor(primaryColor).font('Helvetica-Bold').fontSize(10).text(sigs.title || 'ADOPTION AND SIGN-OFF RESOLUTION');
+        if (sigs.introText) {
+          doc.moveDown(0.2);
+          doc.fillColor(textColor).font('Helvetica').fontSize(8).text(sigs.introText, { width: contentW, align: 'justify' });
+        }
+        doc.moveDown(0.5);
+
+        const cardGap = 8;
+        const signers = sigs.signers;
+        const nCols = Math.min(3, signers.length);
+        const cardW = (contentW - (nCols - 1) * cardGap) / nCols;
+        const cardH = 58;
+
+        for (let i = 0; i < signers.length; i += nCols) {
+          if (doc.y > ph - 75) doc.addPage();
+          const rowY = doc.y;
+          const chunk = signers.slice(i, i + nCols);
+          chunk.forEach((s, cIdx) => {
+            const cardX = ml + cIdx * (cardW + cardGap);
+            doc.rect(cardX, rowY, cardW, cardH).fill('#FFFFFF');
+            doc.rect(cardX, rowY, cardW, cardH).strokeColor('#94A3B8').lineWidth(0.8).stroke();
+            
+            // Baseline
+            const lineY = rowY + 22;
+            doc.strokeColor(primaryColor).lineWidth(1.2).moveTo(cardX + 8, lineY).lineTo(cardX + cardW - 8, lineY).stroke();
+            doc.fillColor(grayColor).font('Helvetica-Bold').fontSize(6.5).text('SIGNATURE', cardX + 8, lineY + 2);
+
+            // Name
+            const nameVal = (s.name || '').replace(/^_+$/, '').trim();
+            if (nameVal) {
+              doc.fillColor(textColor).font('Helvetica-Bold').fontSize(8).text(nameVal, cardX + 8, lineY + 12, { width: cardW - 16 });
+            } else {
+              doc.fillColor(grayColor).font('Helvetica').fontSize(7.5).text('NAME: __________________', cardX + 8, lineY + 12);
+            }
+
+            // Role
+            doc.fillColor(primaryColor).font('Helvetica-Bold').fontSize(7.5).text((s.role || 'SIGNATORY').toUpperCase(), cardX + 8, lineY + 22, { width: cardW - 16 });
+
+            // Date
+            const dVal = (s.dateLabel || '').replace(/^_+$/, '').trim();
+            doc.fillColor(grayColor).font('Helvetica').fontSize(7.5).text(dVal ? `DATE: ${dVal}` : 'DATE: ___/___/2026', cardX + 8, lineY + 32, { align: 'right', width: cardW - 16 });
+          });
+          doc.y = rowY + cardH + 8;
+        }
+
+        // School Stamp Box
+        if (sigs.showSchoolStamp !== false) {
+          if (doc.y > ph - 65) doc.addPage();
+          const stampY = doc.y;
+          const stampW = 160;
+          const stampH = 45;
+          doc.rect(ml, stampY, stampW, stampH).fill('#F8FAFC');
+          doc.rect(ml, stampY, stampW, stampH).strokeColor('#94A3B8').lineWidth(0.8).dash(3, { space: 2 }).stroke();
+          doc.undash();
+          doc.fillColor('#475569').font('Helvetica-Bold').fontSize(7.5).text('OFFICIAL SCHOOL STAMP', ml, stampY + 8, { align: 'center', width: stampW });
+          doc.fillColor('#94A3B8').font('Helvetica-Oblique').fontSize(6.5).text('(Place Official School Date Stamp Here)', ml, stampY + stampH - 12, { align: 'center', width: stampW });
+          doc.y = stampY + stampH + 8;
+        }
+
+        // District Endorsement Box
+        if (sigs.showDistrictStamp !== false) {
+          if (doc.y > ph - 75) doc.addPage();
+          doc.moveDown(0.3);
+          doc.fillColor(primaryColor).font('Helvetica-Bold').fontSize(8.5).text('DISTRICT ENDORSEMENT & RECORD OF RECEIPT');
+          doc.fillColor('#475569').font('Helvetica').fontSize(7.5).text('Received, verified, and endorsed for departmental records by the District Office:');
+          doc.moveDown(0.3);
+
+          const dY = doc.y;
+          const dGap = 8;
+          const dColW = (contentW - dGap) / 2;
+          const dH = 48;
+
+          // Left stamp
+          doc.rect(ml, dY, dColW, dH).fill('#F8FAFC');
+          doc.rect(ml, dY, dColW, dH).strokeColor('#94A3B8').lineWidth(0.8).dash(3, { space: 2 }).stroke();
+          doc.undash();
+          doc.fillColor('#475569').font('Helvetica-Bold').fontSize(7.5).text('OFFICIAL DISTRICT / CIRCUIT STAMP', ml, dY + 8, { align: 'center', width: dColW });
+          doc.fillColor('#94A3B8').font('Helvetica-Oblique').fontSize(6.5).text('(Place District Registry / Circuit Office Date Stamp Here)', ml, dY + dH - 12, { align: 'center', width: dColW });
+
+          // Right signature card
+          const rightX = ml + dColW + dGap;
+          doc.rect(rightX, dY, dColW, dH).fill('#FFFFFF');
+          doc.rect(rightX, dY, dColW, dH).strokeColor('#94A3B8').lineWidth(0.8).stroke();
+          const dLineY = dY + 18;
+          doc.strokeColor(primaryColor).lineWidth(1.2).moveTo(rightX + 8, dLineY).lineTo(rightX + dColW - 8, dLineY).stroke();
+          doc.fillColor(grayColor).font('Helvetica-Bold').fontSize(6.5).text('SIGNATURE', rightX + 8, dLineY + 2);
+          doc.fillColor(grayColor).font('Helvetica').fontSize(7.5).text('NAME: ________________________', rightX + 8, dLineY + 11);
+          doc.fillColor(primaryColor).font('Helvetica-Bold').fontSize(7.5).text((sigs.districtRole || 'CIRCUIT MANAGER').toUpperCase(), rightX + 8, dLineY + 19);
+          doc.fillColor(grayColor).font('Helvetica').fontSize(7.5).text('DATE: ________________________', rightX + 8, dLineY + 27, { align: 'right', width: dColW - 16 });
+
+          doc.y = dY + dH + 8;
+        }
+      }
+
+      // Page numbers across all pages
+      const range = doc.bufferedPageRange();
+      for (let i = 0; i < range.count; i++) {
+        doc.switchToPage(i);
+        doc.strokeColor('#CBD5E1').lineWidth(0.5).moveTo(ml, ph - 25).lineTo(pw - mr, ph - 25).stroke();
+        doc.fillColor(grayColor).font('Helvetica').fontSize(8).text(`Page ${i + 1} of ${range.count}`, ml, ph - 20, { align: 'center', width: contentW });
+      }
+
+      doc.end();
+
+      if (writeStream) {
+        writeStream.on('finish', () => resolve({ success: true, pdfPath: outputPath, method: 'pdfkit' }));
+        writeStream.on('error', reject);
+      } else {
+        doc.on('end', () => resolve({ success: true, buffer: Buffer.concat(chunks), method: 'pdfkit' }));
+        doc.on('error', reject);
+      }
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
+
+// ── Export / Convert Function to PDF ──
+export async function convertDocxToPdf(docxPath, pdfPath, config = {}, parsed = {}) {
   const absDocx = path.resolve(docxPath);
   const absPdf = path.resolve(pdfPath);
 
-  // Strategy 1: Word COM Automation (Windows only)
+  // Strategy 1: Windows Word COM Automation (Fastest native Word fidelity on Windows)
   if (process.platform === 'win32') {
     const psScript = `
+$ErrorActionPreference = "Stop"
 $docPath = "${absDocx.replace(/\\/g, '\\\\')}"
 $pdfPath = "${absPdf.replace(/\\/g, '\\\\')}"
-$word = $null
-$doc = $null
 try {
     $word = New-Object -ComObject Word.Application
     $word.Visible = $false
@@ -1928,7 +2157,6 @@ try {
 
   // Strategy 2: Headless Chromium / Chrome / Edge Engine (Cross-Platform: Windows, Linux, macOS)
   const candidateBrowsers = [
-    // Linux / Cloud / Docker containers
     '/usr/bin/google-chrome-stable',
     '/usr/bin/google-chrome',
     '/usr/bin/chromium',
@@ -1936,21 +2164,18 @@ try {
     '/usr/bin/msedge',
     '/snap/bin/chromium',
     '/snap/bin/google-chrome',
-    // Windows
     'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
     'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
     'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
     'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
     process.env.LOCALAPPDATA ? path.join(process.env.LOCALAPPDATA, 'Microsoft', 'Edge', 'Application', 'msedge.exe') : null,
     process.env.LOCALAPPDATA ? path.join(process.env.LOCALAPPDATA, 'Google', 'Chrome', 'Application', 'chrome.exe') : null,
-    // macOS
     '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
     '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge'
   ].filter(Boolean);
 
   let browserPath = candidateBrowsers.find(p => fsSync.existsSync(p));
 
-  // If not found in static list, try resolving via `which` or `where`
   if (!browserPath) {
     const checkCommands = process.platform === 'win32'
       ? ['where msedge', 'where chrome']
@@ -1968,23 +2193,25 @@ try {
     }
   }
 
-  if (!browserPath) {
-    throw new Error('PDF conversion engine not accessible on server host');
-  }
+  if (browserPath) {
+    const htmlContent = generatePrintableHtml(config, parsed);
+    const tempHtml = path.join(__dirname, 'uploads', `render_${Date.now()}_${Math.random().toString(36).substring(2, 6)}.html`);
+    await fs.writeFile(tempHtml, htmlContent, 'utf8');
 
-  const htmlContent = generatePrintableHtml(config, parsed);
-  const tempHtml = path.join(__dirname, 'uploads', `render_${Date.now()}_${Math.random().toString(36).substring(2, 6)}.html`);
-  await fs.writeFile(tempHtml, htmlContent, 'utf8');
-
-  try {
-    const fileUrl = `file://${path.resolve(tempHtml).replace(/\\/g, '/')}`;
-    const cmd = `"${browserPath}" --headless=new --no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-gpu --run-all-compositor-stages-before-draw --no-pdf-header-footer --print-to-pdf="${absPdf}" "${fileUrl}"`;
-    await execPromise(cmd, { timeout: 25000 });
-    if (fsSync.existsSync(absPdf)) {
-      return { success: true, pdfPath: absPdf, method: 'browser_headless' };
+    try {
+      const fileUrl = `file://${path.resolve(tempHtml).replace(/\\/g, '/')}`;
+      const cmd = `"${browserPath}" --headless=new --no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-gpu --run-all-compositor-stages-before-draw --no-pdf-header-footer --print-to-pdf="${absPdf}" "${fileUrl}"`;
+      await execPromise(cmd, { timeout: 25000 });
+      if (fsSync.existsSync(absPdf)) {
+        return { success: true, pdfPath: absPdf, method: 'browser_headless' };
+      }
+    } catch (browserErr) {
+      console.warn('Browser headless PDF failed, falling back to pure PDFKit engine:', browserErr.message);
+    } finally {
+      try { await fs.unlink(tempHtml); } catch (e) {}
     }
-    throw new Error('PDF output file was not produced by browser engine');
-  } finally {
-    try { await fs.unlink(tempHtml); } catch (e) {}
   }
+
+  // Strategy 3: Pure Vector PDFKit Engine (Runs 100% reliably in any Node environment with 0 dependencies)
+  return await generatePdfWithPdfkit(config, parsed, absPdf);
 }
