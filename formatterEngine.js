@@ -1506,11 +1506,11 @@ export async function buildFormattedDocx(config, parsedBlocks) {
   return await Packer.toBuffer(doc);
 }
 
-// ── Generate Printable HTML for Headless Browser PDF Fallback ──
+// ── Generate Printable HTML f// ── Generate Printable HTML for Headless Browser PDF Fallback ──
 export function generatePrintableHtml(config = {}, parsed = {}) {
-  const primaryColor = config.colors?.primary || '#0C2340';
-  const secondaryColor = config.colors?.secondary || '#A6192E';
-  const textColor = config.colors?.bodyText || '#1A1A1A';
+  const primaryColor = config.colors?.primary || config.primaryColor || config.typography?.primaryColor || '#0C2340';
+  const secondaryColor = config.colors?.secondary || config.secondaryColor || config.typography?.secondaryColor || '#A6192E';
+  const textColor = config.colors?.bodyText || config.textColor || config.typography?.textColor || '#1A1A1A';
   const fontFamily = config.typography?.fontFamily || 'Arial';
   const lineSpacing = config.typography?.lineSpacing || 1.15;
   const titleSizePt = config.typography?.titleSizePt || 14;
@@ -1522,6 +1522,14 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
   const marginRight = config.margins?.right || 10;
   const marginTop = config.margins?.top || 10;
   const marginBottom = config.margins?.bottom || 10;
+
+  let emblemSrc = '/emblem.png';
+  try {
+    const emblemPath = path.join(__dirname, 'public', 'emblem.png');
+    if (fsSync.existsSync(emblemPath)) {
+      emblemSrc = `data:image/png;base64,${fsSync.readFileSync(emblemPath).toString('base64')}`;
+    }
+  } catch (e) {}
 
   const header = config.header || {};
   let headerHtml = '';
@@ -1545,7 +1553,7 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
         <table style="width: 100%; border-collapse: collapse; border: none; margin-bottom: 2mm;">
           <tr>
             <td style="width: 16mm; vertical-align: middle; padding: 0 4mm 0 0;">
-              <img src="http://localhost:3000/emblem.png" style="width: 14mm; height: 14mm; object-fit: contain;" />
+              <img src="${emblemSrc}" style="width: 14mm; height: 14mm; object-fit: contain;" />
             </td>
             <td style="vertical-align: middle; padding: 0 3mm;">
               <div style="font-weight: bold; font-size: 10pt; color: ${primaryColor}; line-height: 1.2;">${header.title || 'LADY GREY ARTS ACADEMY'}</div>
@@ -1614,7 +1622,7 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
     }
 
     noticeHtml = `
-      <div style="border-left: 3.5px solid ${primaryColor}; background: #F8FAFC; padding: 6px 10px; margin: 4mm 0 6mm 0; font-size: 8.5pt; color: ${textColor};">
+      <div style="border-left: 3.5px solid ${primaryColor}; background: #F8FAFC; padding: 6px 10px; margin: 4mm 0 6mm 0; font-size: 8.5pt; color: ${textColor}; line-height: 1.35;">
         <strong style="color: ${primaryColor};">${config.components.legalNotice.prefix || 'LEGAL NOTICE: '}</strong>
         <span>${noticeText}</span>
       </div>
@@ -1672,13 +1680,13 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
   blocks.forEach(b => {
     if (b.type === 'level1') {
       isFirstParagraphAfterHeading = true;
-      currentBodyIndentMm = l2Wrap; // Subsequent body paragraphs line up under Level 1 text!
+      currentBodyIndentMm = l2Wrap;
       const headingText = l1Upper ? b.text.toUpperCase() : b.text;
       const textDecor = l1Underline ? 'underline' : 'none';
       const weight = l1Bold ? 'bold' : 'normal';
       const topMarginPt = spaceBeforePt;
       bodyHtml += `
-        <div style="font-weight: ${weight}; text-decoration: ${textDecor}; font-size: ${l1SizePt}pt; color: ${primaryColor}; margin: ${topMarginPt}pt 0 ${spaceAfterPt}pt ${indentL1}mm; page-break-after: avoid;">
+        <div style="font-weight: ${weight}; text-decoration: ${textDecor}; font-size: ${l1SizePt}pt; color: ${primaryColor}; margin: ${topMarginPt}pt 0 ${spaceAfterPt}pt ${indentL1}mm; page-break-after: avoid; break-after: avoid;">
           ${b.number ? `<span style="display: inline-block; min-width: 10mm; text-decoration: none;">${b.number}</span>` : ''}
           <span>${headingText}</span>
         </div>
@@ -1867,9 +1875,9 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
 export async function generatePdfWithPdfkit(config = {}, parsed = {}, outputPath = null) {
   return new Promise((resolve, reject) => {
     try {
-      const primaryColor = config.typography?.primaryColor || '#0C2340';
-      const secondaryColor = config.typography?.secondaryColor || '#A6192E';
-      const textColor = config.typography?.textColor || '#1A1A1A';
+      const primaryColor = config.colors?.primary || config.primaryColor || config.typography?.primaryColor || '#0C2340';
+      const secondaryColor = config.colors?.secondary || config.secondaryColor || config.typography?.secondaryColor || '#A6192E';
+      const textColor = config.colors?.bodyText || config.textColor || config.typography?.textColor || '#1A1A1A';
       const grayColor = '#64748B';
 
       const doc = new PDFDocument({
@@ -1895,175 +1903,223 @@ export async function generatePdfWithPdfkit(config = {}, parsed = {}, outputPath
       const contentW = pw - ml - mr;
 
       // 1. Header
-      if (config.header?.frequency !== 'none') {
-        doc.rect(ml, 28.35, contentW * 0.68, 3.5).fill(primaryColor);
-        doc.rect(ml + contentW * 0.68 + 2, 28.35, contentW * 0.32 - 2, 3.5).fill(secondaryColor);
+      if (config.header?.sourceMode !== 'none') {
+        doc.rect(ml, 28.35, contentW * 0.68, 3.5).fill(secondaryColor);
+        doc.rect(ml + contentW * 0.68 + 2, 28.35, contentW * 0.32 - 2, 3.5).fill(primaryColor);
         doc.moveDown(0.7);
-        doc.fillColor(primaryColor).font('Helvetica-Bold').fontSize(13).text(config.header?.title || 'LADY GREY ARTS ACADEMY', { align: 'center' });
-        doc.fillColor(grayColor).font('Helvetica-Oblique').fontSize(8.5).text(config.header?.subtitle || 'Where Learning is an Art', { align: 'center' });
-        doc.fillColor(textColor).font('Helvetica').fontSize(7.5).text(config.header?.contact || '18 Brummer Street, Lady Grey, 9755 | Tel: 051 603 0046 | admin@lgaa.co.za', { align: 'center' });
-        doc.fillColor(grayColor).font('Helvetica').fontSize(7.5).text(config.header?.emis || 'EMIS: 200600985 | District: Joe Gqabi | Circuit: Ekhephini | CMC: Maletswai', { align: 'center' });
+
+        const emblemPath = path.join(__dirname, 'public', 'emblem.png');
+        const hasEmblem = fsSync.existsSync(emblemPath);
+        const headerTopY = doc.y;
+
+        if (hasEmblem) {
+          try {
+            doc.image(emblemPath, ml + 2, headerTopY + 2, { width: 38, height: 38 });
+          } catch (e) {}
+        }
+
+        const textLeft = hasEmblem ? ml + 46 : ml;
+        const textW = hasEmblem ? contentW - 46 : contentW;
+
+        doc.fillColor(primaryColor).font('Helvetica-Bold').fontSize(12).text(config.header?.title || 'LADY GREY ARTS ACADEMY', textLeft, headerTopY, { align: hasEmblem ? 'left' : 'center', width: textW });
+        doc.fillColor(secondaryColor).font('Helvetica-Oblique').fontSize(8.5).text(config.header?.subtitle || 'Where Learning is an Art', textLeft, doc.y, { align: hasEmblem ? 'left' : 'center', width: textW });
+        doc.fillColor('#475569').font('Helvetica').fontSize(7.5).text(config.header?.contact || '18 Brummer Street, Lady Grey, 9755 | Tel: 051 603 0046 | admin@lgaa.co.za', textLeft, doc.y, { align: hasEmblem ? 'left' : 'center', width: textW });
+        doc.fillColor('#475569').font('Helvetica').fontSize(7.5).text(config.header?.emis || 'EMIS: 200600985 | District: Joe Gqabi | Circuit: Ekhephini | CMC: Maletswai', textLeft, doc.y, { align: hasEmblem ? 'left' : 'center', width: textW });
+
+        doc.y = Math.max(doc.y, headerTopY + 44);
+        doc.strokeColor('#CBD5E1').lineWidth(1).moveTo(ml, doc.y).lineTo(pw - mr, doc.y).stroke();
       }
 
       // 2. Titles
-      doc.moveDown(0.8);
+      doc.moveDown(0.6);
       if (config.documentTitle) {
-        doc.fillColor(primaryColor).font('Helvetica-Bold').fontSize(12).text(config.documentTitle.toUpperCase(), { align: 'center' });
+        doc.fillColor(primaryColor).font('Helvetica-Bold').fontSize(13).text(config.documentTitle.toUpperCase(), { align: 'center', width: contentW });
       }
       if (config.documentSubtitle) {
-        doc.fillColor(secondaryColor).font('Helvetica-Bold').fontSize(9.5).text(config.documentSubtitle, { align: 'center' });
+        doc.moveDown(0.2);
+        doc.fillColor(secondaryColor).font('Helvetica-Bold').fontSize(10).text(config.documentSubtitle, { align: 'center', width: contentW });
       }
 
-      // 3. Metadata table
-      const meta = config.components?.metadata;
+      // 3. Metadata Table
+      const meta = config.components?.metadataTable || config.components?.metadata;
       if (meta && meta.enabled && Array.isArray(meta.rows) && meta.rows.length > 0) {
         doc.moveDown(0.6);
         const startY = doc.y;
         const col1W = 160;
         const col2W = contentW - col1W;
-        
-        doc.rect(ml, startY, contentW, 16).fill('#F1F5F9');
-        doc.rect(ml, startY, contentW, 16).strokeColor('#CBD5E1').lineWidth(0.5).stroke();
-        doc.fillColor(primaryColor).font('Helvetica-Bold').fontSize(8).text(meta.tableHeaderLeft || 'Parameter', ml + 6, startY + 4, { width: col1W - 12 });
-        doc.fillColor(primaryColor).font('Helvetica-Bold').fontSize(8).text(meta.tableHeaderRight || 'Details', ml + col1W + 6, startY + 4, { width: col2W - 12 });
+
+        doc.rect(ml, startY, contentW, 16).fill(primaryColor);
+        doc.fillColor('#FFFFFF').font('Helvetica-Bold').fontSize(8).text(meta.col1Title || meta.tableHeaderLeft || 'Parameter', ml + 6, startY + 4, { width: col1W - 12 });
+        doc.fillColor('#FFFFFF').font('Helvetica-Bold').fontSize(8).text(meta.col2Title || meta.tableHeaderRight || 'Specifications', ml + col1W + 6, startY + 4, { width: col2W - 12 });
         doc.y = startY + 16;
 
         meta.rows.forEach((r, idx) => {
           const rowY = doc.y;
           const rBg = idx % 2 === 1 ? '#F8FAFC' : '#FFFFFF';
-          doc.rect(ml, rowY, contentW, 15).fill(rBg);
-          doc.rect(ml, rowY, contentW, 15).strokeColor('#CBD5E1').lineWidth(0.5).stroke();
-          doc.fillColor(primaryColor).font('Helvetica-Bold').fontSize(7.5).text(r.key || '', ml + 6, rowY + 3.5, { width: col1W - 12 });
-          doc.fillColor(textColor).font('Helvetica').fontSize(7.5).text(r.value || '', ml + col1W + 6, rowY + 3.5, { width: col2W - 12 });
-          doc.y = rowY + 15;
+          doc.rect(ml, rowY, contentW, 16).fill(rBg);
+          doc.rect(ml, rowY, contentW, 16).strokeColor('#E2E8F0').lineWidth(0.5).stroke();
+          doc.fillColor(primaryColor).font('Helvetica-Bold').fontSize(7.5).text(r.label || r.key || '', ml + 6, rowY + 4, { width: col1W - 12 });
+          doc.fillColor(textColor).font('Helvetica').fontSize(7.5).text(r.value || '', ml + col1W + 6, rowY + 4, { width: col2W - 12 });
+          doc.y = rowY + 16;
         });
       }
 
-      // 4. Legal Notice
+      // 4. Legal Notice (with dynamic multi-line height calculation and proper spacing)
       const notice = config.components?.legalNotice;
       if (notice && notice.enabled && notice.text) {
         doc.moveDown(0.6);
+        if (doc.y > ph - 90) doc.addPage();
+        const prefix = notice.prefix || 'LEGAL NOTICE: ';
+        let noticeBody = notice.text;
+        if (config.documentTitle) {
+          let formattedTitle = config.documentTitle.trim();
+          if (formattedTitle === formattedTitle.toUpperCase() && formattedTitle.length > 3) {
+            formattedTitle = formattedTitle.toLowerCase().replace(/(?:^|\s|-|\()\S/g, c => c.toUpperCase());
+          }
+          noticeBody = noticeBody.replace(/\{documentTitle\}|\{title\}/g, formattedTitle);
+        }
+
+        const fullNoticeText = prefix + noticeBody;
+        doc.fontSize(8).font('Helvetica');
+        const textH = doc.heightOfString(fullNoticeText, { width: contentW - 16, lineGap: 2 });
+        const boxH = Math.max(28, textH + 10);
         const nY = doc.y;
-        doc.rect(ml, nY, contentW, 26).fill('#F1F5F9');
-        doc.rect(ml, nY, 3, 26).fill(primaryColor);
-        doc.rect(ml, nY, contentW, 26).strokeColor('#CBD5E1').lineWidth(0.5).stroke();
-        doc.fillColor(primaryColor).font('Helvetica-Bold').fontSize(7.5).text('LEGAL NOTICE: ', ml + 8, nY + 4, { continued: true });
-        doc.fillColor(textColor).font('Helvetica').fontSize(7.5).text(notice.text, { width: contentW - 16 });
-        doc.y = nY + 28;
+
+        doc.rect(ml, nY, contentW, boxH).fill('#F8FAFC');
+        doc.rect(ml, nY, 3.5, boxH).fill(primaryColor);
+        doc.rect(ml, nY, contentW, boxH).strokeColor('#CBD5E1').lineWidth(0.5).stroke();
+
+        doc.fillColor(primaryColor).font('Helvetica-Bold').fontSize(8).text(prefix, ml + 8, nY + 5, { continued: true, lineGap: 2 });
+        doc.fillColor(textColor).font('Helvetica').fontSize(8).text(noticeBody, { width: contentW - 16, lineGap: 2 });
+
+        doc.y = nY + boxH + 8;
       }
 
-      // 5. Body paragraphs / clauses
+      // 5. Body paragraphs / clauses (with proper numbering and hierarchical indentations)
       const blocks = Array.isArray(parsed) ? parsed : (parsed?.blocks || []);
-      doc.moveDown(0.8);
+      doc.moveDown(0.6);
       blocks.forEach(b => {
-        if (doc.y > ph - 65) doc.addPage();
-        const lvl = b.level || 1;
+        if (doc.y > ph - 55) doc.addPage();
+        const lvl = b.level || (b.type === 'level1' ? 1 : b.type === 'level2' ? 2 : b.type === 'level3' ? 3 : b.type === 'level4' ? 4 : b.type === 'level5' ? 5 : 0);
+
         if (lvl === 1) {
           doc.moveDown(0.5);
-          doc.fillColor(primaryColor).font('Helvetica-Bold').fontSize(9.5).text(b.text || '', ml, doc.y, { width: contentW });
-          doc.moveDown(0.2);
-        } else {
+          if (doc.y > ph - 55) doc.addPage();
+          const heading = (b.number ? b.number + '  ' : '') + (b.text || '').toUpperCase();
+          doc.fillColor(primaryColor).font('Helvetica-Bold').fontSize(10).text(heading, ml, doc.y, { width: contentW });
+          doc.moveDown(0.25);
+        } else if (lvl >= 2) {
           const indent = (lvl - 1) * 14;
-          doc.fillColor(textColor).font('Helvetica').fontSize(8.5).text(b.text || '', ml + indent, doc.y, { width: contentW - indent, align: 'justify' });
-          doc.moveDown(0.3);
+          const text = (b.number ? b.number + '  ' : '') + (b.text || '');
+          const isBold = lvl === 2;
+          doc.fillColor(isBold ? primaryColor : textColor)
+             .font(isBold ? 'Helvetica-Bold' : 'Helvetica')
+             .fontSize(8.5)
+             .text(text, ml + indent, doc.y, { width: contentW - indent, align: 'justify', lineGap: 1.5 });
+          doc.moveDown(0.25);
+        } else {
+          doc.fillColor(textColor)
+             .font('Helvetica')
+             .fontSize(8.5)
+             .text(b.text || '', ml + 14, doc.y, { width: contentW - 14, align: 'justify', lineGap: 1.5 });
+          doc.moveDown(0.25);
         }
       });
 
-      // 6. Signatures
+      // 6. Signatures (dedicated final sign-off resolution page)
       const sigs = config.components?.signatures;
       if (sigs && sigs.enabled && Array.isArray(sigs.signers) && sigs.signers.length > 0) {
-        if (doc.y > ph - 160) doc.addPage();
-        else doc.moveDown(1);
-
-        doc.fillColor(primaryColor).font('Helvetica-Bold').fontSize(10).text(sigs.title || 'ADOPTION AND SIGN-OFF RESOLUTION');
+        doc.addPage();
+        doc.fillColor(primaryColor).font('Helvetica-Bold').fontSize(11).text((sigs.title || 'ADOPTION AND SIGN-OFF RESOLUTION').toUpperCase(), ml, doc.y, { width: contentW });
         if (sigs.introText) {
-          doc.moveDown(0.2);
-          doc.fillColor(textColor).font('Helvetica').fontSize(8).text(sigs.introText, { width: contentW, align: 'justify' });
+          doc.moveDown(0.3);
+          doc.fillColor(textColor).font('Helvetica').fontSize(8.5).text(sigs.introText, ml, doc.y, { width: contentW, align: 'justify', lineGap: 2 });
         }
-        doc.moveDown(0.5);
+        doc.moveDown(0.6);
 
         const cardGap = 8;
         const signers = sigs.signers;
         const nCols = Math.min(3, signers.length);
         const cardW = (contentW - (nCols - 1) * cardGap) / nCols;
-        const cardH = 58;
+        const cardH = 65;
 
         for (let i = 0; i < signers.length; i += nCols) {
-          if (doc.y > ph - 75) doc.addPage();
+          if (doc.y > ph - 80) doc.addPage();
           const rowY = doc.y;
           const chunk = signers.slice(i, i + nCols);
           chunk.forEach((s, cIdx) => {
             const cardX = ml + cIdx * (cardW + cardGap);
             doc.rect(cardX, rowY, cardW, cardH).fill('#FFFFFF');
             doc.rect(cardX, rowY, cardW, cardH).strokeColor('#94A3B8').lineWidth(0.8).stroke();
-            
+
             // Baseline
-            const lineY = rowY + 22;
+            const lineY = rowY + 24;
             doc.strokeColor(primaryColor).lineWidth(1.2).moveTo(cardX + 8, lineY).lineTo(cardX + cardW - 8, lineY).stroke();
             doc.fillColor(grayColor).font('Helvetica-Bold').fontSize(6.5).text('SIGNATURE', cardX + 8, lineY + 2);
 
             // Name
             const nameVal = (s.name || '').replace(/^_+$/, '').trim();
             if (nameVal) {
-              doc.fillColor(textColor).font('Helvetica-Bold').fontSize(8).text(nameVal, cardX + 8, lineY + 12, { width: cardW - 16 });
+              doc.fillColor(textColor).font('Helvetica-Bold').fontSize(8.5).text(nameVal, cardX + 8, lineY + 13, { width: cardW - 16 });
             } else {
-              doc.fillColor(grayColor).font('Helvetica').fontSize(7.5).text('NAME: __________________', cardX + 8, lineY + 12);
+              doc.fillColor(grayColor).font('Helvetica').fontSize(7.5).text('NAME: __________________', cardX + 8, lineY + 13);
             }
 
             // Role
-            doc.fillColor(primaryColor).font('Helvetica-Bold').fontSize(7.5).text((s.role || 'SIGNATORY').toUpperCase(), cardX + 8, lineY + 22, { width: cardW - 16 });
+            doc.fillColor(primaryColor).font('Helvetica-Bold').fontSize(7.5).text((s.role || 'SIGNATORY').toUpperCase(), cardX + 8, lineY + 24, { width: cardW - 16 });
 
             // Date
-            const dVal = (s.dateLabel || '').replace(/^_+$/, '').trim();
-            doc.fillColor(grayColor).font('Helvetica').fontSize(7.5).text(dVal ? `DATE: ${dVal}` : 'DATE: ___/___/2026', cardX + 8, lineY + 32, { align: 'right', width: cardW - 16 });
+            const dVal = (s.dateLabel || s.date || '').replace(/^_+$/, '').trim();
+            doc.fillColor(grayColor).font('Helvetica').fontSize(7.5).text(dVal ? `DATE: ${dVal}` : 'DATE: ___/___/2026', cardX + 8, lineY + 36, { align: 'right', width: cardW - 16 });
           });
           doc.y = rowY + cardH + 8;
         }
 
         // School Stamp Box
         if (sigs.showSchoolStamp !== false) {
-          if (doc.y > ph - 65) doc.addPage();
+          if (doc.y > ph - 70) doc.addPage();
+          doc.moveDown(0.3);
           const stampY = doc.y;
-          const stampW = 160;
-          const stampH = 45;
+          const stampW = 180;
+          const stampH = 50;
           doc.rect(ml, stampY, stampW, stampH).fill('#F8FAFC');
           doc.rect(ml, stampY, stampW, stampH).strokeColor('#94A3B8').lineWidth(0.8).dash(3, { space: 2 }).stroke();
           doc.undash();
-          doc.fillColor('#475569').font('Helvetica-Bold').fontSize(7.5).text('OFFICIAL SCHOOL STAMP', ml, stampY + 8, { align: 'center', width: stampW });
-          doc.fillColor('#94A3B8').font('Helvetica-Oblique').fontSize(6.5).text('(Place Official School Date Stamp Here)', ml, stampY + stampH - 12, { align: 'center', width: stampW });
+          doc.fillColor('#475569').font('Helvetica-Bold').fontSize(8).text('OFFICIAL SCHOOL STAMP', ml, stampY + 10, { align: 'center', width: stampW });
+          doc.fillColor('#94A3B8').font('Helvetica-Oblique').fontSize(7).text('(Place Official School Date Stamp Here)', ml, stampY + stampH - 14, { align: 'center', width: stampW });
           doc.y = stampY + stampH + 8;
         }
 
         // District Endorsement Box
         if (sigs.showDistrictStamp !== false) {
-          if (doc.y > ph - 75) doc.addPage();
-          doc.moveDown(0.3);
-          doc.fillColor(primaryColor).font('Helvetica-Bold').fontSize(8.5).text('DISTRICT ENDORSEMENT & RECORD OF RECEIPT');
+          if (doc.y > ph - 80) doc.addPage();
+          doc.moveDown(0.4);
+          doc.fillColor(primaryColor).font('Helvetica-Bold').fontSize(9).text('DISTRICT ENDORSEMENT & RECORD OF RECEIPT');
           doc.fillColor('#475569').font('Helvetica').fontSize(7.5).text('Received, verified, and endorsed for departmental records by the District Office:');
           doc.moveDown(0.3);
 
           const dY = doc.y;
           const dGap = 8;
           const dColW = (contentW - dGap) / 2;
-          const dH = 48;
+          const dH = 52;
 
           // Left stamp
           doc.rect(ml, dY, dColW, dH).fill('#F8FAFC');
           doc.rect(ml, dY, dColW, dH).strokeColor('#94A3B8').lineWidth(0.8).dash(3, { space: 2 }).stroke();
           doc.undash();
-          doc.fillColor('#475569').font('Helvetica-Bold').fontSize(7.5).text('OFFICIAL DISTRICT / CIRCUIT STAMP', ml, dY + 8, { align: 'center', width: dColW });
-          doc.fillColor('#94A3B8').font('Helvetica-Oblique').fontSize(6.5).text('(Place District Registry / Circuit Office Date Stamp Here)', ml, dY + dH - 12, { align: 'center', width: dColW });
+          doc.fillColor('#475569').font('Helvetica-Bold').fontSize(8).text('OFFICIAL DISTRICT / CIRCUIT STAMP', ml, dY + 10, { align: 'center', width: dColW });
+          doc.fillColor('#94A3B8').font('Helvetica-Oblique').fontSize(7).text('(Place District Registry / Circuit Office Date Stamp Here)', ml, dY + dH - 14, { align: 'center', width: dColW });
 
           // Right signature card
           const rightX = ml + dColW + dGap;
           doc.rect(rightX, dY, dColW, dH).fill('#FFFFFF');
           doc.rect(rightX, dY, dColW, dH).strokeColor('#94A3B8').lineWidth(0.8).stroke();
-          const dLineY = dY + 18;
+          const dLineY = dY + 20;
           doc.strokeColor(primaryColor).lineWidth(1.2).moveTo(rightX + 8, dLineY).lineTo(rightX + dColW - 8, dLineY).stroke();
           doc.fillColor(grayColor).font('Helvetica-Bold').fontSize(6.5).text('SIGNATURE', rightX + 8, dLineY + 2);
-          doc.fillColor(grayColor).font('Helvetica').fontSize(7.5).text('NAME: ________________________', rightX + 8, dLineY + 11);
-          doc.fillColor(primaryColor).font('Helvetica-Bold').fontSize(7.5).text((sigs.districtRole || 'CIRCUIT MANAGER').toUpperCase(), rightX + 8, dLineY + 19);
-          doc.fillColor(grayColor).font('Helvetica').fontSize(7.5).text('DATE: ________________________', rightX + 8, dLineY + 27, { align: 'right', width: dColW - 16 });
+          doc.fillColor(grayColor).font('Helvetica').fontSize(7.5).text('NAME: ________________________', rightX + 8, dLineY + 12);
+          doc.fillColor(primaryColor).font('Helvetica-Bold').fontSize(7.5).text((sigs.districtRole || 'CIRCUIT MANAGER').toUpperCase(), rightX + 8, dLineY + 21);
+          doc.fillColor(grayColor).font('Helvetica').fontSize(7.5).text('DATE: ________________________', rightX + 8, dLineY + 30, { align: 'right', width: dColW - 16 });
 
           doc.y = dY + dH + 8;
         }
@@ -2107,13 +2163,13 @@ try {
     $word = New-Object -ComObject Word.Application
     $word.Visible = $false
     $word.DisplayAlerts = 0
-    $doc = $word.Documents.Open($docPath)
+    $doc = $word.Documents.Open($docPath, $false, $true, $false)
     try {
-        $doc.ExportAsFixedFormat($pdfPath, 17) # wdExportFormatPDF = 17
+        $doc.ExportAsFixedFormat($pdfPath, 17, $false, 0, 0, 1, 1, 0, $true, $true, 0, $true, $true, $false)
     } catch {
         $doc.SaveAs([ref]$pdfPath, [ref]17)
     }
-    $doc.Close([ref]0) # wdDoNotSaveChanges = 0
+    $doc.Close([ref]0)
     $doc = $null
     $word.Quit([ref]0)
     $word = $null
@@ -2142,11 +2198,11 @@ try {
       await execPromise(`powershell -ExecutionPolicy Bypass -File "${tempPs1}"`, {
         timeout: 25000
       });
-      if (fsSync.existsSync(absPdf)) {
+      if (fsSync.existsSync(absPdf) && fsSync.statSync(absPdf).size >= 1000) {
         return { success: true, pdfPath: absPdf, method: 'word_com' };
       }
     } catch (wordErr) {
-      console.warn('Word COM PDF conversion encountered issue, falling back to Browser PDF engine:', wordErr.message);
+      console.warn('Word COM PDF conversion notice:', wordErr.message);
       try {
         await execPromise('powershell -Command "Stop-Process -Name WINWORD -Force -ErrorAction SilentlyContinue"');
       } catch (e) {}
@@ -2155,8 +2211,14 @@ try {
     }
   }
 
-  // Strategy 2: Headless Chromium / Chrome / Edge Engine (Cross-Platform: Windows, Linux, macOS)
+  // Strategy 2: Headless Chromium / Edge Engine (Matches on-screen preview CSS exactly)
   const candidateBrowsers = [
+    'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
+    'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
+    'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+    'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+    process.env.LOCALAPPDATA ? path.join(process.env.LOCALAPPDATA, 'Microsoft', 'Edge', 'Application', 'msedge.exe') : null,
+    process.env.LOCALAPPDATA ? path.join(process.env.LOCALAPPDATA, 'Google', 'Chrome', 'Application', 'chrome.exe') : null,
     '/usr/bin/google-chrome-stable',
     '/usr/bin/google-chrome',
     '/usr/bin/chromium',
@@ -2164,12 +2226,6 @@ try {
     '/usr/bin/msedge',
     '/snap/bin/chromium',
     '/snap/bin/google-chrome',
-    'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
-    'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
-    'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-    'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
-    process.env.LOCALAPPDATA ? path.join(process.env.LOCALAPPDATA, 'Microsoft', 'Edge', 'Application', 'msedge.exe') : null,
-    process.env.LOCALAPPDATA ? path.join(process.env.LOCALAPPDATA, 'Google', 'Chrome', 'Application', 'chrome.exe') : null,
     '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
     '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge'
   ].filter(Boolean);
@@ -2199,14 +2255,26 @@ try {
     await fs.writeFile(tempHtml, htmlContent, 'utf8');
 
     try {
-      const fileUrl = `file://${path.resolve(tempHtml).replace(/\\/g, '/')}`;
-      const cmd = `"${browserPath}" --headless=new --no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-gpu --run-all-compositor-stages-before-draw --no-pdf-header-footer --print-to-pdf="${absPdf}" "${fileUrl}"`;
-      await execPromise(cmd, { timeout: 25000 });
-      if (fsSync.existsSync(absPdf)) {
+      const normalizedPath = path.resolve(tempHtml).replace(/\\/g, '/').replace(/^\/+/, '');
+      const fileUrl = `file:///${normalizedPath}`;
+      const { execFile } = await import('child_process');
+      const { promisify } = await import('util');
+      const execFilePromise = promisify(execFile);
+
+      await execFilePromise(browserPath, [
+        '--headless=new',
+        '--no-sandbox',
+        '--disable-gpu',
+        '--no-pdf-header-footer',
+        `--print-to-pdf=${absPdf}`,
+        fileUrl
+      ], { timeout: 25000 });
+
+      if (fsSync.existsSync(absPdf) && fsSync.statSync(absPdf).size >= 1000) {
         return { success: true, pdfPath: absPdf, method: 'browser_headless' };
       }
     } catch (browserErr) {
-      console.warn('Browser headless PDF failed, falling back to pure PDFKit engine:', browserErr.message);
+      console.warn('Browser headless PDF conversion notice:', browserErr.message);
     } finally {
       try { await fs.unlink(tempHtml); } catch (e) {}
     }
@@ -2215,3 +2283,4 @@ try {
   // Strategy 3: Pure Vector PDFKit Engine (Runs 100% reliably in any Node environment with 0 dependencies)
   return await generatePdfWithPdfkit(config, parsed, absPdf);
 }
+
