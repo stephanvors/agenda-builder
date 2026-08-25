@@ -2438,7 +2438,8 @@ app.post('/api/doc-formatter/generate', async (req, res) => {
       auditFolders: rawAuditFolders,
       serverPath = '',
       vaultCategory = 'Governance & Policy',
-      vaultTag = 'Policies'
+      vaultTag = 'Policies',
+      clientPdfBase64 = ''
     } = req.body;
 
     // Normalize saveTargets to Array
@@ -2480,13 +2481,25 @@ app.post('/api/doc-formatter/generate', async (req, res) => {
     let pdfFilePath = path.join(UPLOADS_DIR, pdfFilename);
     let pdfBuffer = null;
 
-    try {
-      await convertDocxToPdf(docxFilePath, pdfFilePath, config, parsedBlocks);
-      if (fsSync.existsSync(pdfFilePath)) {
-        pdfBuffer = await fs.readFile(pdfFilePath);
+    if (clientPdfBase64 && typeof clientPdfBase64 === 'string') {
+      try {
+        const cleanBase64 = clientPdfBase64.replace(/^data:application\/pdf;base64,/, '');
+        pdfBuffer = Buffer.from(cleanBase64, 'base64');
+        await fs.writeFile(pdfFilePath, pdfBuffer);
+      } catch (clientPdfErr) {
+        console.error('Error saving client-provided PDF buffer:', clientPdfErr.message);
       }
-    } catch (pdfErr) {
-      console.error('PDF conversion error:', pdfErr);
+    }
+
+    if (!pdfBuffer) {
+      try {
+        await convertDocxToPdf(docxFilePath, pdfFilePath, config, parsedBlocks);
+        if (fsSync.existsSync(pdfFilePath)) {
+          pdfBuffer = await fs.readFile(pdfFilePath);
+        }
+      } catch (pdfErr) {
+        console.warn('Server PDF conversion notice:', pdfErr.message);
+      }
     }
 
     const cleanDocxName = `${baseTitle}.docx`;
