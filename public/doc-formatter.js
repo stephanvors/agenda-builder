@@ -2650,72 +2650,6 @@ function triggerBrowserDownload(blob, filename) {
     setTimeout(() => window.URL.revokeObjectURL(url), 2000);
 }
 
-async function generatePdfBase64FromPreview() {
-    if (typeof html2pdf === 'undefined') {
-        console.warn('html2pdf is not loaded in window');
-        return null;
-    }
-    const pageNodes = document.querySelectorAll('#pages-container .a4-sheet');
-    if (!pageNodes || pageNodes.length === 0) return null;
-
-    const wrapper = document.createElement('div');
-    wrapper.style.width = '210mm';
-    wrapper.style.background = '#FFFFFF';
-    wrapper.style.color = '#1A1A1A';
-    wrapper.style.position = 'fixed';
-    wrapper.style.left = '0';
-    wrapper.style.top = '0';
-    wrapper.style.opacity = '0';
-    wrapper.style.pointerEvents = 'none';
-    wrapper.style.zIndex = '-99999';
-
-    pageNodes.forEach((pNode, idx) => {
-        const clone = pNode.cloneNode(true);
-        clone.querySelectorAll('.spatial-grid-overlay, .page-corner-indicator, .preview-page-break-divider').forEach(el => el.remove());
-        clone.style.boxShadow = 'none';
-        clone.style.margin = '0';
-        clone.style.border = 'none';
-        clone.style.borderRadius = '0';
-        clone.style.width = '210mm';
-        clone.style.minHeight = '297mm';
-        clone.style.height = 'auto';
-        clone.style.boxSizing = 'border-box';
-        clone.style.background = '#FFFFFF';
-        if (idx > 0) {
-            clone.style.pageBreakBefore = 'always';
-            clone.style.breakBefore = 'page';
-        }
-        wrapper.appendChild(clone);
-    });
-
-    document.body.appendChild(wrapper);
-
-    const opt = {
-        margin:       0,
-        filename:     'document.pdf',
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true, logging: false },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak:    { mode: ['css', 'legacy'] }
-    };
-
-    try {
-        const worker = html2pdf().set(opt).from(wrapper);
-        const pdf = await worker.toPdf().get('pdf');
-        const pdfDataUri = pdf.output('datauristring');
-        try { wrapper.remove(); } catch (e) {}
-        if (pdfDataUri && pdfDataUri.length > 1000) {
-            return pdfDataUri;
-        }
-        console.warn('PDF Data URI too small or invalid:', pdfDataUri?.length);
-        return null;
-    } catch (err) {
-        console.error('html2pdf compilation error:', err);
-        try { wrapper.remove(); } catch (e) {}
-        return null;
-    }
-}
-
 async function generateAndExportDocument(formatOverride = null) {
     const statusBox = document.getElementById('generation-status');
     const genBtn = document.getElementById('btn-generate-doc');
@@ -2727,13 +2661,6 @@ async function generateAndExportDocument(formatOverride = null) {
     if (genBtn) genBtn.disabled = true;
 
     try {
-        let clientPdfBase64 = null;
-        try {
-            clientPdfBase64 = await generatePdfBase64FromPreview();
-        } catch (e) {
-            console.warn('Client-side PDF compilation notice:', e);
-        }
-
         const config = collectCurrentConfig();
         const rawText = document.getElementById('raw-text-input')?.value || '';
         const outputFormat = formatOverride || document.querySelector('input[name="output-format"]:checked')?.value || 'docx';
@@ -2754,8 +2681,7 @@ async function generateAndExportDocument(formatOverride = null) {
             auditFolders,
             serverPath,
             vaultCategory,
-            vaultTag,
-            clientPdfBase64
+            vaultTag
         };
 
         const res = await fetch('/api/doc-formatter/generate', {
@@ -2777,20 +2703,17 @@ async function generateAndExportDocument(formatOverride = null) {
         // 1. Download Handling
         const isPdfOnly = formatOverride === 'pdf' || (outputFormat === 'pdf' && !result.autoDownload);
         const shouldDownloadDocx = result.docxBase64 && (result.autoDownload || outputFormat === 'docx' || outputFormat === 'both' || formatOverride === 'docx') && !isPdfOnly;
-        const shouldDownloadPdf = result.autoDownload || outputFormat === 'pdf' || outputFormat === 'both' || formatOverride === 'pdf';
+        const shouldDownloadPdf = result.pdfBase64 && (result.autoDownload || outputFormat === 'pdf' || outputFormat === 'both' || formatOverride === 'pdf');
 
         if (shouldDownloadDocx && result.docxBase64) {
             const docxBlob = base64ToBlob(result.docxBase64, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
             triggerBrowserDownload(docxBlob, result.docxFilename || 'LGAA Document.docx');
         }
 
-        if (shouldDownloadPdf) {
-            const pdfBase64ToUse = result.pdfBase64 || clientPdfBase64;
-            if (pdfBase64ToUse) {
-                const pdfBlob = base64ToBlob(pdfBase64ToUse, 'application/pdf');
-                const delay = shouldDownloadDocx ? 350 : 50;
-                setTimeout(() => triggerBrowserDownload(pdfBlob, result.pdfFilename || 'LGAA Document.pdf'), delay);
-            }
+        if (shouldDownloadPdf && result.pdfBase64) {
+            const pdfBlob = base64ToBlob(result.pdfBase64, 'application/pdf');
+            const delay = shouldDownloadDocx ? 350 : 50;
+            setTimeout(() => triggerBrowserDownload(pdfBlob, result.pdfFilename || 'LGAA Document.pdf'), delay);
         }
 
         // 2. Render Rich Success Summary

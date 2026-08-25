@@ -401,16 +401,20 @@ const storeHelper = {
         migrateFinanceCategories(initialStore);
         await pool.query('INSERT INTO app_store (id, data) VALUES ($1, $2)', ['main_store', JSON.stringify(initialStore)]);
         console.log(`✅ ${members.length} members initialized in PostgreSQL`);
-        console.log('✅ Persistent store loaded — syncing member details from Excel...');
-        // Always sync titles/roles/contacts from Excel so spreadsheet changes apply on redeploy
-        await syncMembersFromExcel();
+      }
 
-        // Clean up orphan and corrupted (< 500 bytes) document records in PostgreSQL
-        try {
-          await pool.query('DELETE FROM app_files WHERE LENGTH(file_data) < 500');
-          const fileRows = await pool.query('SELECT id FROM app_files WHERE LENGTH(file_data) >= 500');
-          const validIds = new Set(fileRows.rows.map(r => r.id));
-          const currentStore = JSON.parse(res.rows[0].data);
+      console.log('✅ Persistent store loaded — syncing member details from Excel...');
+      // Always sync titles/roles/contacts from Excel so spreadsheet changes apply on redeploy
+      await syncMembersFromExcel();
+
+      // Clean up orphan and corrupted (< 500 bytes) document records in PostgreSQL
+      try {
+        await pool.query('DELETE FROM app_files WHERE LENGTH(file_data) < 500');
+        const fileRows = await pool.query('SELECT id FROM app_files WHERE LENGTH(file_data) >= 500');
+        const validIds = new Set(fileRows.rows.map(r => r.id));
+        const storeRes = await pool.query('SELECT data FROM app_store WHERE id = $1', ['main_store']);
+        if (storeRes.rows.length > 0) {
+          const currentStore = JSON.parse(storeRes.rows[0].data);
           if (Array.isArray(currentStore.documents) && currentStore.documents.length > 0) {
             const beforeCount = currentStore.documents.length;
             currentStore.documents = currentStore.documents.filter(d => {
@@ -423,9 +427,9 @@ const storeHelper = {
               console.log(`🧹 Cleaned up ${beforeCount - currentStore.documents.length} corrupt/orphan document records from PostgreSQL store`);
             }
           }
-        } catch (cleanErr) {
-          console.error('Error cleaning orphan document records on startup:', cleanErr.message);
         }
+      } catch (cleanErr) {
+        console.error('Error cleaning orphan document records on startup:', cleanErr.message);
       }
       return;
     }
@@ -2439,8 +2443,7 @@ app.post('/api/doc-formatter/generate', async (req, res) => {
       auditFolders: rawAuditFolders,
       serverPath = '',
       vaultCategory = 'Governance & Policy',
-      vaultTag = 'Policies',
-      clientPdfBase64 = ''
+      vaultTag = 'Policies'
     } = req.body;
 
     // Normalize saveTargets to Array
@@ -2482,38 +2485,16 @@ app.post('/api/doc-formatter/generate', async (req, res) => {
     let pdfFilePath = path.join(UPLOADS_DIR, pdfFilename);
     let pdfBuffer = null;
 
-    if (clientPdfBase64 && typeof clientPdfBase64 === 'string') {
-      try {
-        let cleanBase64 = clientPdfBase64;
-        const commaIdx = cleanBase64.indexOf(',');
-        if (commaIdx !== -1 && cleanBase64.substring(0, commaIdx).includes('base64')) {
-          cleanBase64 = cleanBase64.substring(commaIdx + 1);
+    try {
+      await convertDocxToPdf(docxFilePath, pdfFilePath, config, parsedBlocks);
+      if (fsSync.existsSync(pdfFilePath)) {
+        const sBuf = await fs.readFile(pdfFilePath);
+        if (sBuf.length >= 500 && sBuf.toString('utf8', 0, 4).startsWith('%PDF')) {
+          pdfBuffer = sBuf;
         }
-        cleanBase64 = cleanBase64.replace(/[^A-Za-z0-9+/=]/g, '');
-        const candidateBuffer = Buffer.from(cleanBase64, 'base64');
-        if (candidateBuffer.length >= 1000 && candidateBuffer.toString('utf8', 0, 4).startsWith('%PDF')) {
-          pdfBuffer = candidateBuffer;
-          await fs.writeFile(pdfFilePath, pdfBuffer);
-        } else {
-          console.warn('Received clientPdfBase64 was not valid PDF (size: ' + candidateBuffer.length + ' bytes)');
-        }
-      } catch (clientPdfErr) {
-        console.error('Error saving client-provided PDF buffer:', clientPdfErr.message);
       }
-    }
-
-    if (!pdfBuffer) {
-      try {
-        await convertDocxToPdf(docxFilePath, pdfFilePath, config, parsedBlocks);
-        if (fsSync.existsSync(pdfFilePath)) {
-          const sBuf = await fs.readFile(pdfFilePath);
-          if (sBuf.length >= 500 && sBuf.toString('utf8', 0, 4).startsWith('%PDF')) {
-            pdfBuffer = sBuf;
-          }
-        }
-      } catch (pdfErr) {
-        console.warn('Server PDF conversion notice:', pdfErr.message);
-      }
+    } catch (pdfErr) {
+      console.warn('Server PDF conversion notice:', pdfErr.message);
     }
 
     const cleanDocxName = `${baseTitle}.docx`;
