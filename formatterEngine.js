@@ -1117,23 +1117,22 @@ export async function buildFormattedDocx(config, parsedBlocks) {
                   }),
                 ],
               }),
-              // 4. NAME row (evenly spaced with underline extending across the card)
+              // 4. NAME row (direct bold name if provided, or underline placeholder)
               new Paragraph({
-                spacing: { before: 0, after: 160 },
+                spacing: { before: 0, after: 120 },
                 keepWithNext: true,
                 children: nameVal
                   ? [
-                      new TextRun({ text: 'NAME: ', bold: true, color: '64748B', font: fontFamily, size: 15 }),
-                      new TextRun({ text: nameVal, bold: true, color: textColor, font: fontFamily, size: 16 }),
+                      new TextRun({ text: nameVal, bold: true, color: textColor, font: fontFamily, size: 17 }),
                     ]
                   : [
                       new TextRun({ text: 'NAME: ', bold: true, color: '64748B', font: fontFamily, size: 15 }),
                       new TextRun({ text: '______________________________', color: '94A3B8', font: fontFamily, size: 14 }),
                     ],
               }),
-              // 5. Role row (evenly spaced)
+              // 5. Role row (bold primary color uppercase)
               new Paragraph({
-                spacing: { before: 0, after: 180 },
+                spacing: { before: 0, after: 160 },
                 keepWithNext: true,
                 children: [
                   new TextRun({
@@ -1145,17 +1144,18 @@ export async function buildFormattedDocx(config, parsedBlocks) {
                   }),
                 ],
               }),
-              // 6. DATE row (evenly spaced with underline extending across the card)
+              // 6. DATE row (right-aligned)
               new Paragraph({
+                alignment: AlignmentType.RIGHT,
                 spacing: { before: 0, after: 60 },
                 children: dateVal
                   ? [
                       new TextRun({ text: 'DATE: ', bold: true, color: '64748B', font: fontFamily, size: 15 }),
-                      new TextRun({ text: dateVal, color: textColor, font: fontFamily, size: 15 }),
+                      new TextRun({ text: dateVal, bold: true, color: textColor, font: fontFamily, size: 15 }),
                     ]
                   : [
                       new TextRun({ text: 'DATE: ', bold: true, color: '64748B', font: fontFamily, size: 15 }),
-                      new TextRun({ text: '______________________________', color: '94A3B8', font: fontFamily, size: 14 }),
+                      new TextRun({ text: '___/___/2026', color: '94A3B8', font: fontFamily, size: 14 }),
                     ],
               }),
             ],
@@ -1763,14 +1763,11 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
                     <div style="border-bottom: 1.5px solid ${primaryColor}; margin-bottom: 1mm;"></div>
                     <div style="font-size: 7pt; text-transform: uppercase; letter-spacing: 0.8px; color: #64748B; font-weight: 600; margin-bottom: 4.5mm;">Signature</div>
                     <div style="display: flex; flex-direction: column; gap: 1.5mm;">
-                      <div style="display: flex; align-items: flex-end; gap: 1.5mm; font-size: 8.5pt; color: #475569;">
-                        <span style="font-weight: 600; color: #64748B; font-size: 8pt; text-transform: uppercase; white-space: nowrap;">NAME:</span> 
-                        ${nVal ? `<span style="font-size: 9.5pt; font-weight: 700; color: ${textColor}; padding-left: 2px;">${escapeHtml(nVal)}</span>` : `<span style="flex: 1; border-bottom: 1px solid #94A3B8; min-height: 1px; margin-bottom: 1px;"></span>`}
-                      </div>
+                      ${nVal ? `<div style="font-size: 9.5pt; font-weight: 700; color: ${textColor}; padding-left: 2px;">${escapeHtml(nVal)}</div>` : `<div style="display: flex; align-items: flex-end; gap: 1.5mm; font-size: 8.5pt; color: #475569;"><span style="font-weight: 600; color: #64748B; font-size: 8pt; text-transform: uppercase; white-space: nowrap;">NAME:</span> <span style="flex: 1; border-bottom: 1px solid #94A3B8; min-height: 1px; margin-bottom: 1px;"></span></div>`}
                       <div style="font-size: 8.5pt; font-weight: 700; color: ${primaryColor}; text-transform: uppercase; line-height: 1.2;">${escapeHtml((s.role || 'SIGNATORY').toUpperCase())}</div>
-                      <div style="display: flex; align-items: flex-end; gap: 1.5mm; font-size: 8.5pt; color: #475569;">
+                      <div style="display: flex; justify-content: flex-end; align-items: flex-end; gap: 1.5mm; font-size: 8.5pt; color: #475569;">
                         <span style="font-weight: 600; color: #64748B; font-size: 8pt; text-transform: uppercase; white-space: nowrap;">DATE:</span> 
-                        ${dVal ? `<span style="font-weight: 600; color: ${textColor}; font-size: 8.5pt; padding-left: 2px;">${escapeHtml(dVal)}</span>` : `<span style="flex: 1; border-bottom: 1px solid #94A3B8; min-height: 1px; margin-bottom: 1px;"></span>`}
+                        ${dVal ? `<span style="font-weight: 700; color: ${textColor}; font-size: 8.5pt; padding-left: 2px;">${escapeHtml(dVal)}</span>` : `<span style="width: 22mm; border-bottom: 1px solid #94A3B8; min-height: 1px; margin-bottom: 1px; display: inline-block;"></span>`}
                       </div>
                     </div>
                   </td>
@@ -1811,10 +1808,10 @@ export function generatePrintableHtml(config = {}, parsed = {}) {
                       <span style="font-weight: 600; color: #64748B; font-size: 8pt; text-transform: uppercase; white-space: nowrap;">NAME:</span> 
                       <span style="flex: 1; border-bottom: 1px solid #94A3B8; min-height: 1px; margin-bottom: 1px;"></span>
                     </div>
-                    <div style="font-size: 8.5pt; font-weight: 700; color: ${primaryColor}; text-transform: uppercase; line-height: 1.2;">${escapeHtml((config.components.signatures.districtRole || 'Circuit Manager').toUpperCase())}</div>
-                    <div style="display: flex; align-items: flex-end; gap: 1.5mm; font-size: 8.5pt; color: #475569;">
+                    <div style="font-size: 8.5pt; font-weight: 700; color: ${primaryColor}; text-transform: uppercase; line-height: 1.2;">${escapeHtml((config.components?.signatures?.districtRole || 'Circuit Manager').toUpperCase())}</div>
+                    <div style="display: flex; justify-content: flex-end; align-items: flex-end; gap: 1.5mm; font-size: 8.5pt; color: #475569;">
                       <span style="font-weight: 600; color: #64748B; font-size: 8pt; text-transform: uppercase; white-space: nowrap;">DATE:</span> 
-                      <span style="flex: 1; border-bottom: 1px solid #94A3B8; min-height: 1px; margin-bottom: 1px;"></span>
+                      <span style="width: 25mm; border-bottom: 1px solid #94A3B8; min-height: 1px; margin-bottom: 1px; display: inline-block;"></span>
                     </div>
                   </div>
                 </td>
