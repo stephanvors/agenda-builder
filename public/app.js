@@ -42,7 +42,7 @@ function isAdmin() {
     return name.includes('vorster') || role.includes('admin') || role.includes('principal') || role.includes('chairperson') || role.includes('smt') || role.includes('treasurer') || role.includes('finance') || role.includes('officer') || role.includes('sgb') || role.includes('deputy');
 }
 
-const APP_VERSION = '20260822-01';
+const APP_VERSION = '20260826-03';
 const MEETING_DATE = new Date('2026-08-27T10:00:00');
 const POLL_INTERVAL_MS = 15000;
 
@@ -1098,6 +1098,29 @@ function setupEventListeners() {
         setupCategoryDragAndDrop();
     }
 
+    // Global delegation for opening and closing category/tag modal
+    document.addEventListener('click', (e) => {
+        const catBtn = e.target.closest('#btn-manage-agenda-cats, .btn-manage-categories, #btn-add-agenda-cat-inline');
+        if (catBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            const type = (catBtn.id.includes('doc') || catBtn.id.includes('tag')) ? 'documents' : 'agenda';
+            openCategoryModal(type);
+            return;
+        }
+
+        if (e.target.id === 'btn-close-category-modal' || e.target.closest('#btn-close-category-modal')) {
+            e.preventDefault();
+            closeCategoryModal();
+            return;
+        }
+
+        if (e.target.id === 'category-modal') {
+            closeCategoryModal();
+            return;
+        }
+    });
+
     // Info modal close handlers
     if (els.btnCloseInfoModal) {
         els.btnCloseInfoModal.addEventListener('click', closeInfoModal);
@@ -2118,52 +2141,65 @@ function renderDocTagManager() {
 // ── Category Management Modal Logic (Admin) ──
 function openCategoryModal(type = 'agenda') {
     state.activeCategoryModalType = type;
-    if (!els.categoryModal) return;
+    if (!els.categoryModal) {
+        els.categoryModal = document.getElementById('category-modal');
+    }
+    if (!els.categoryModal) {
+        console.error('categoryModal element not found in DOM!');
+        return;
+    }
 
-    if (type === 'agenda') {
-        if (els.categoryModalTitle) els.categoryModalTitle.textContent = 'Manage Agenda Categories';
-        if (els.categoryModalDesc)  els.categoryModalDesc.textContent = 'Create and organize up to 3 levels of nested categories for agenda items.';
-        if (els.btnSubmitNewCategory) els.btnSubmitNewCategory.textContent = '+ Add Category';
-        if (els.newCategoryInput) els.newCategoryInput.placeholder = 'Enter main category name (e.g. Governance & Legal)...';
-        if (els.catBuilderCard) els.catBuilderCard.classList.remove('hidden');
-        if (els.categoryModalListTitle) els.categoryModalListTitle.textContent = 'Hierarchy Structure';
-        if (els.catDragTip) els.catDragTip.classList.remove('hidden');
-        if (els.catDropRootZone) els.catDropRootZone.classList.add('hidden');
-        updateCategoryBuilderSelectors();
-        renderCategoryTree();
-    } else {
-        if (els.categoryModalTitle) els.categoryModalTitle.textContent = 'Manage File Vault Tags';
-        if (els.categoryModalDesc)  els.categoryModalDesc.textContent = 'Add or remove tags for files in the vault. Files can have multiple tags.';
-        if (els.btnSubmitNewCategory) els.btnSubmitNewCategory.textContent = '+ Add Tag';
-        if (els.newCategoryInput) els.newCategoryInput.placeholder = 'Enter tag name (e.g. Policies, Term 3, Financial Reports)...';
-        if (els.catBuilderCard) els.catBuilderCard.classList.add('hidden');
-        if (els.categoryModalListTitle) els.categoryModalListTitle.textContent = 'Available Tags';
-        if (els.catDragTip) els.catDragTip.classList.add('hidden');
-        if (els.catDropRootZone) els.catDropRootZone.classList.add('hidden');
-        renderDocTagManager();
+    // 1. Immediately display the modal so clicking is never unresponsive
+    els.categoryModal.classList.add('active');
+
+    try {
+        if (type === 'agenda') {
+            if (els.categoryModalTitle) els.categoryModalTitle.textContent = 'Manage Agenda Categories';
+            if (els.categoryModalDesc)  els.categoryModalDesc.textContent = 'Create and organize up to 3 levels of nested categories for agenda items.';
+            if (els.btnSubmitNewCategory) els.btnSubmitNewCategory.textContent = '+ Add Category';
+            if (els.newCategoryInput) els.newCategoryInput.placeholder = 'Enter main category name (e.g. Governance & Legal)...';
+            if (els.catBuilderCard) els.catBuilderCard.classList.remove('hidden');
+            if (els.categoryModalListTitle) els.categoryModalListTitle.textContent = 'Hierarchy Structure';
+            if (els.catDragTip) els.catDragTip.classList.remove('hidden');
+            if (els.catDropRootZone) els.catDropRootZone.classList.add('hidden');
+            updateCategoryBuilderSelectors();
+            renderCategoryTree();
+        } else {
+            if (els.categoryModalTitle) els.categoryModalTitle.textContent = 'Manage File Vault Tags';
+            if (els.categoryModalDesc)  els.categoryModalDesc.textContent = 'Add or remove tags for files in the vault. Files can have multiple tags.';
+            if (els.btnSubmitNewCategory) els.btnSubmitNewCategory.textContent = '+ Add Tag';
+            if (els.newCategoryInput) els.newCategoryInput.placeholder = 'Enter tag name (e.g. Policies, Term 3, Financial Reports)...';
+            if (els.catBuilderCard) els.catBuilderCard.classList.add('hidden');
+            if (els.categoryModalListTitle) els.categoryModalListTitle.textContent = 'Available Tags';
+            if (els.catDragTip) els.catDragTip.classList.add('hidden');
+            if (els.catDropRootZone) els.catDropRootZone.classList.add('hidden');
+            renderDocTagManager();
+        }
+    } catch (err) {
+        console.error('Error populating category modal:', err);
     }
 
     if (els.newCategoryInput) {
         els.newCategoryInput.value = '';
+        setTimeout(() => {
+            if (els.newCategoryInput) els.newCategoryInput.focus();
+        }, 100);
     }
     if (els.categoryModalError) {
         els.categoryModalError.textContent = '';
     }
-
-    els.categoryModal.classList.add('active');
-    setTimeout(() => {
-        if (els.newCategoryInput) els.newCategoryInput.focus();
-    }, 100);
 }
 
 function closeCategoryModal() {
-    if (els.categoryModal) {
-        els.categoryModal.classList.remove('active');
+    const modal = els.categoryModal || document.getElementById('category-modal');
+    if (modal) {
+        modal.classList.remove('active');
     }
 }
 
 function updateCategoryBuilderSelectors(preselectL1 = null, preselectL2 = null) {
-    const list = state.categories || [];
+    if (!els.catParentL1) els.catParentL1 = document.getElementById('cat-parent-l1');
+    const list = Array.isArray(state.categories) ? state.categories : [];
     const { tree } = parseCategoryHierarchy(list);
 
     if (els.catParentL1) {
@@ -2183,9 +2219,13 @@ function updateCategoryBuilderSelectors(preselectL1 = null, preselectL2 = null) 
 }
 
 function updateL2Selector(preselectL2 = null) {
+    if (!els.catParentL1) els.catParentL1 = document.getElementById('cat-parent-l1');
+    if (!els.catParentL2) els.catParentL2 = document.getElementById('cat-parent-l2');
+    if (!els.catParentL2Group) els.catParentL2Group = document.getElementById('cat-parent-l2-group');
     if (!els.catParentL1 || !els.catParentL2 || !els.catParentL2Group) return;
+
     const selectedL1 = els.catParentL1.value;
-    const list = state.categories || [];
+    const list = Array.isArray(state.categories) ? state.categories : [];
     const { map } = parseCategoryHierarchy(list);
 
     if (selectedL1 === '__NEW__') {
@@ -2207,7 +2247,7 @@ function updateL2Selector(preselectL2 = null) {
     }
     els.catParentL2.innerHTML = l2Html;
 
-    if (preselectL2 && l1Node && l1Node.children.some(c => c.path === preselectL2)) {
+    if (preselectL2 && l1Node && l1Node.children && l1Node.children.some(c => c.path === preselectL2)) {
         els.catParentL2.value = preselectL2;
     } else {
         els.catParentL2.value = '__NEW__';
@@ -2217,7 +2257,11 @@ function updateL2Selector(preselectL2 = null) {
 }
 
 function updateTargetPreview() {
+    if (!els.catParentL1) els.catParentL1 = document.getElementById('cat-parent-l1');
+    if (!els.catTargetPath) els.catTargetPath = document.getElementById('cat-target-path');
+    if (!els.newCategoryInput) els.newCategoryInput = document.getElementById('new-category-input');
     if (!els.catParentL1 || !els.catTargetPath || !els.newCategoryInput) return;
+
     const selectedL1 = els.catParentL1.value;
     const selectedL2 = els.catParentL2 ? els.catParentL2.value : '__NEW__';
 
@@ -2237,9 +2281,16 @@ let draggedCatPath = null;
 let draggedCatEl = null;
 
 function renderCategoryTree() {
+    if (!els.categoryTreeContainer) {
+        els.categoryTreeContainer = document.getElementById('category-tree-container');
+    }
     if (!els.categoryTreeContainer) return;
-    const list = state.categories || [];
+
+    const list = Array.isArray(state.categories) ? state.categories : [];
     const { tree } = parseCategoryHierarchy(list);
+    const isAgenda = state.activeCategoryModalType === 'agenda';
+    const items = Array.isArray(state.items) ? state.items : [];
+    const docs = Array.isArray(state.documents) ? state.documents : [];
 
     if (els.categoryModalCount) {
         els.categoryModalCount.textContent = list.length;
@@ -2253,7 +2304,7 @@ function renderCategoryTree() {
     let html = '';
 
     tree.forEach(l1 => {
-        const l1Count = state.items.filter(i => i.category === l1.path || i.category?.startsWith(l1.path + ' > ')).length;
+        const l1Count = items.filter(i => i && (i.category === l1.path || (typeof i.category === 'string' && i.category.startsWith(l1.path + ' > ')))).length;
 
         html += `
             <div class="cat-tree-node level-1" draggable="true" data-path="${escapeHTML(l1.path)}" data-level="1">
@@ -2272,10 +2323,10 @@ function renderCategoryTree() {
             </div>
         `;
 
-        l1.children.forEach(l2 => {
+        (l1.children || []).forEach(l2 => {
             const l2Count = isAgenda
-                ? state.items.filter(i => i.category === l2.path || i.category?.startsWith(l2.path + ' > ')).length
-                : (state.documents || []).filter(d => d.category === l2.path || d.category?.startsWith(l2.path + ' > ')).length;
+                ? items.filter(i => i && (i.category === l2.path || (typeof i.category === 'string' && i.category.startsWith(l2.path + ' > ')))).length
+                : docs.filter(d => d && (d.category === l2.path || (typeof d.category === 'string' && d.category.startsWith(l2.path + ' > ')))).length;
 
             html += `
                 <div class="cat-tree-node level-2" draggable="true" data-path="${escapeHTML(l2.path)}" data-level="2">
@@ -2294,10 +2345,10 @@ function renderCategoryTree() {
                 </div>
             `;
 
-            l2.children.forEach(l3 => {
+            (l2.children || []).forEach(l3 => {
                 const l3Count = isAgenda
-                    ? state.items.filter(i => i.category === l3.path).length
-                    : (state.documents || []).filter(d => d.category === l3.path).length;
+                    ? items.filter(i => i && i.category === l3.path).length
+                    : docs.filter(d => d && d.category === l3.path).length;
 
                 html += `
                     <div class="cat-tree-node level-3" draggable="true" data-path="${escapeHTML(l3.path)}" data-level="3">
@@ -3817,53 +3868,51 @@ async function showExportModal() {
             </div>
         `;
 
-        if (agenda.length === 0) {
+        // Flatten all items across categories and sort by vote count (most votes first)
+        const allItems = agenda.flatMap(group => group.items.map(item => ({ ...item, category: group.category })));
+        allItems.sort((a, b) => b.votes.length - a.votes.length);
+
+        if (allItems.length === 0) {
             html += '<p style="text-align:center; color:#718096; padding:2rem;">No agenda items have been proposed yet.</p>';
         } else {
-            let itemNumber = 1;
-            agenda.forEach(group => {
-                html += `<h3 class="print-category">${escapeHTML(group.category)}</h3>`;
-                html += '<div class="print-items">';
-                group.items.forEach(item => {
-                    const statusLabel = item.status.charAt(0).toUpperCase() + item.status.slice(1);
-                    const comments = Array.isArray(item.comments) ? item.comments : [];
-                    const isResolved = Boolean(item.isResolved);
+            allItems.forEach((item, idx) => {
+                const itemNumber = idx + 1;
+                const statusLabel = item.status.charAt(0).toUpperCase() + item.status.slice(1);
+                const comments = Array.isArray(item.comments) ? item.comments : [];
+                const isResolved = Boolean(item.isResolved);
 
-                    html += `
-                        <div class="print-item ${isResolved ? 'print-item-resolved' : ''}">
-                            <h4>${itemNumber}. ${escapeHTML(item.title)}
-                                <small>(${isResolved ? 'Resolved • ' : ''}${statusLabel} — ${item.votes.length} ${item.votes.length === 1 ? 'vote' : 'votes'})</small>
-                            </h4>
-                            <p class="print-meta"><em>Proposed by: ${escapeHTML(formatShortName(item.proposedBy.memberName))} (${escapeHTML(item.proposedBy.memberRole)})</em></p>
-                            <p class="print-desc">${escapeHTML(item.description)}</p>
+                html += `
+                    <div class="print-item ${isResolved ? 'print-item-resolved' : ''}">
+                        <h4>${itemNumber}. ${escapeHTML(item.title)}
+                            <small>(${isResolved ? 'Resolved • ' : ''}${statusLabel} — ${item.votes.length} ${item.votes.length === 1 ? 'vote' : 'votes'})</small>
+                        </h4>
+                        <p class="print-meta"><em>Proposed by: ${escapeHTML(formatShortName(item.proposedBy.memberName))} (${escapeHTML(item.proposedBy.memberRole)}) · ${escapeHTML(item.category)}</em></p>
+                        <p class="print-desc">${escapeHTML(item.description)}</p>
 
-                            ${isResolved && item.resolution ? `
-                                <div class="print-resolution-box">
-                                    <strong>✅ Resolution / Agreed Plan:</strong> ${escapeHTML(item.resolution.solutionText)}
-                                    <span class="print-res-by">(Resolved by ${escapeHTML(formatShortName(item.resolution.resolvedBy ? item.resolution.resolvedBy.memberName : 'Member'))})</span>
-                                </div>
-                            ` : ''}
+                        ${isResolved && item.resolution ? `
+                            <div class="print-resolution-box">
+                                <strong>✅ Resolution / Agreed Plan:</strong> ${escapeHTML(item.resolution.solutionText)}
+                                <span class="print-res-by">(Resolved by ${escapeHTML(formatShortName(item.resolution.resolvedBy ? item.resolution.resolvedBy.memberName : 'Member'))})</span>
+                            </div>
+                        ` : ''}
 
-                            ${comments.length > 0 ? `
-                                <div class="print-comments-box">
-                                    <div class="print-comments-title">Brainstorming & Discussion (${comments.length}):</div>
-                                    <ul class="print-comments-list">
-                                        ${comments.map(c => `
-                                            <li>
-                                                <strong>${escapeHTML(formatShortName(c.memberName))}</strong>
-                                                <span class="print-tag">[${escapeHTML(c.type || 'comment')}]</span>:
-                                                ${escapeHTML(c.content)}
-                                                ${c.isSolution ? ' <em>(⭐ Accepted Solution)</em>' : ''}
-                                            </li>
-                                        `).join('')}
-                                    </ul>
-                                </div>
-                            ` : ''}
-                        </div>
-                    `;
-                    itemNumber++;
-                });
-                html += '</div>';
+                        ${comments.length > 0 ? `
+                            <div class="print-comments-box">
+                                <div class="print-comments-title">Brainstorming & Discussion (${comments.length}):</div>
+                                <ul class="print-comments-list">
+                                    ${comments.map(c => `
+                                        <li>
+                                            <strong>${escapeHTML(formatShortName(c.memberName))}</strong>
+                                            <span class="print-tag">[${escapeHTML(c.type || 'comment')}]</span>:
+                                            ${escapeHTML(c.content)}
+                                            ${c.isSolution ? ' <em>(⭐ Accepted Solution)</em>' : ''}
+                                        </li>
+                                    `).join('')}
+                                </ul>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
             });
         }
 

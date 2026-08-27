@@ -3214,13 +3214,27 @@ textarea:focus {
     #export-modal {
         position: absolute;
         left: 0; top: 0;
+        width: 100%;
+        height: auto;
+        overflow: visible;
         background: transparent;
         padding: 0;
+        display: block;
     }
     .modal-content {
         box-shadow: none;
         margin: 0;
         max-width: 100%;
+        overflow: visible;
+        height: auto;
+    }
+    .printable-area {
+        overflow: visible;
+        height: auto;
+    }
+    .print-item {
+        page-break-inside: avoid;
+        break-inside: avoid;
     }
     .modal-header .modal-actions { display: none; }
 }
@@ -4052,6 +4066,110 @@ textarea:focus {
     background: #2A3854;
     color: #F1F5F9;
     border-color: #3B4B68;
+}
+
+/* Category Hierarchy Tree & Modal (Dark Mode) */
+[data-theme="dark"] .cat-builder-card {
+    background: #0E1422;
+    border-color: #243048;
+}
+
+[data-theme="dark"] .cat-select-box {
+    background: #151D2E;
+    border-color: #2E3E5B;
+    color: #F1F5F9;
+}
+
+[data-theme="dark"] .cat-target-badge {
+    background: rgba(99, 102, 241, 0.12);
+    border-color: rgba(99, 102, 241, 0.3);
+    color: #C7D2FE;
+}
+
+[data-theme="dark"] .cat-target-path {
+    color: #818CF8;
+}
+
+[data-theme="dark"] .cat-drag-tip-text {
+    background: rgba(59, 130, 246, 0.12);
+    border-color: rgba(59, 130, 246, 0.25);
+    color: #93C5FD;
+}
+
+[data-theme="dark"] .cat-drop-root-zone {
+    border-color: #2E3E5B;
+    background: #0E1422;
+    color: #94A3B8;
+}
+
+[data-theme="dark"] .cat-drop-root-zone.drag-target-hover {
+    border-color: #10B981;
+    background: rgba(16, 185, 129, 0.12);
+    color: #6EE7B7;
+}
+
+[data-theme="dark"] .cat-tree-node.level-1 {
+    background: #0E1422;
+    border-color: #243048;
+    color: #F1F5F9;
+}
+
+[data-theme="dark"] .cat-tree-node.level-2 {
+    background: #0B101C;
+    border-color: #1E293B;
+    border-left-color: #3B82F6;
+    color: #E2E8F0;
+}
+
+[data-theme="dark"] .cat-tree-node.level-3 {
+    background: transparent;
+    color: #CBD5E1;
+}
+
+[data-theme="dark"] .cat-tree-node:hover {
+    background: #17233B;
+    border-color: #2E3E5B;
+}
+
+[data-theme="dark"] .cat-tree-node.is-dragging {
+    background: #1E293B !important;
+    border-color: #3B82F6 !important;
+}
+
+[data-theme="dark"] .cat-tree-node.drag-target-hover {
+    background: #1A2846 !important;
+    border-color: #60A5FA !important;
+}
+
+[data-theme="dark"] .btn-cat-add-sub {
+    background: rgba(99, 102, 241, 0.15);
+    border-color: rgba(99, 102, 241, 0.35);
+    color: #A5B4FC;
+}
+
+[data-theme="dark"] .btn-cat-add-sub:hover {
+    background: var(--primary);
+    color: #FFFFFF;
+}
+
+[data-theme="dark"] .btn-cat-move {
+    background: #1E293B;
+    color: #94A3B8;
+    border-color: #2E3E5B;
+}
+
+[data-theme="dark"] .btn-cat-move:hover {
+    background: #2E3E5B;
+    color: #F1F5F9;
+}
+
+[data-theme="dark"] .btn-cat-delete {
+    color: #64748B;
+}
+
+[data-theme="dark"] .btn-cat-delete:hover {
+    color: #F87171;
+    background: rgba(239, 68, 68, 0.15);
 }
 
 [data-theme="dark"] .printable-area {

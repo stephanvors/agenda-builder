@@ -14,6 +14,8 @@ import multer from 'multer';
 import mammoth from 'mammoth';
 import { parseRawText, buildFormattedDocx, convertDocxToPdf, generatePrintableHtml } from './formatterEngine.js';
 import { checkDocText } from './spellcheckerEngine.js';
+import { startAuditWatcher, isAuditWatcherRunning, scanAndSyncAllFolders, findCoreSourceDocInFolder } from './auditWatcher.js';
+import { generateEvidencePack, AUDIT_BASE_DIR } from './auditEvidenceGenerator.js';
 
 const require = createRequire(import.meta.url);
 const pdfParse = require('pdf-parse');
@@ -414,7 +416,8 @@ const storeHelper = {
         const validIds = new Set(fileRows.rows.map(r => r.id));
         const storeRes = await pool.query('SELECT data FROM app_store WHERE id = $1', ['main_store']);
         if (storeRes.rows.length > 0) {
-          const currentStore = JSON.parse(storeRes.rows[0].data);
+          const rawData = storeRes.rows[0].data;
+          const currentStore = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
           if (Array.isArray(currentStore.documents) && currentStore.documents.length > 0) {
             const beforeCount = currentStore.documents.length;
             currentStore.documents = currentStore.documents.filter(d => {
@@ -476,7 +479,7 @@ const storeHelper = {
     if (pool) {
       const res = await pool.query('SELECT data FROM app_store WHERE id = $1', ['main_store']);
       if (res.rows.length > 0) {
-        store = res.rows[0].data;
+        store = typeof res.rows[0].data === 'string' ? JSON.parse(res.rows[0].data) : res.rows[0].data;
       }
     }
     if (!store) {
@@ -589,7 +592,7 @@ async function requireAuth(req, res, next) {
 
 // ── Public Endpoints ──
 
-const APP_VERSION = '20260821-40';
+const APP_VERSION = '20260826-01';
 
 app.get('/api/version', (req, res) => {
   res.json({ version: APP_VERSION });
@@ -2717,12 +2720,64 @@ app.get('/api/admin/pins', async (req, res) => {
   }
 });
 
+// ── SGB Functionality Audit Watcher & Evidence API ──
+app.get('/api/audit/status', async (req, res) => {
+  try {
+    const running = isAuditWatcherRunning();
+    const folders = [];
+    if (fsSync.existsSync(AUDIT_BASE_DIR)) {
+      const entries = await fs.readdir(AUDIT_BASE_DIR, { withFileTypes: true });
+      for (const entry of entries) {
+        if (entry.isDirectory() && /^\d{2}_/.test(entry.name) && entry.name !== '00_Sources') {
+          const folderPath = path.join(AUDIT_BASE_DIR, entry.name);
+          const sourceDoc = findCoreSourceDocInFolder(folderPath);
+          const allFiles = await fs.readdir(folderPath);
+          const docxCount = allFiles.filter(f => f.endsWith('.docx') && !f.startsWith('~$')).length;
+          const pdfCount = allFiles.filter(f => f.endsWith('.pdf')).length;
+          folders.push({
+            folderId: entry.name,
+            sourceDoc: sourceDoc ? path.basename(sourceDoc) : null,
+            totalFiles: allFiles.filter(f => !f.startsWith('~$')).length,
+            docxCount,
+            pdfCount,
+            hasFullEvidencePack: docxCount >= 8 && pdfCount >= 8
+          });
+        }
+      }
+    }
+    res.json({ watcherRunning: running, folders });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/audit/regenerate/:folderId', async (req, res) => {
+  try {
+    const { folderId } = req.params;
+    const folderPath = path.join(AUDIT_BASE_DIR, folderId);
+    if (!fsSync.existsSync(folderPath)) {
+      return res.status(404).json({ error: `Folder ${folderId} not found` });
+    }
+    const sourceDoc = findCoreSourceDocInFolder(folderPath);
+    if (!sourceDoc) {
+      return res.status(400).json({ error: `No core source document found in ${folderId}` });
+    }
+    const result = await generateEvidencePack(folderPath, sourceDoc);
+    res.json({ message: `Regenerated evidence pack for ${folderId}`, result });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── Start Server ──
 const PORT = process.env.PORT || 3000;
 
 storeHelper.init().then(() => {
   // Start file watcher for local development
   startExcelWatcher();
+
+  // Start SGB Functionality Audit 16-folder watcher
+  startAuditWatcher();
 
   app.listen(PORT, () => {
     console.log(`🚀 SGB/SMT Agenda Builder running on port ${PORT}`);

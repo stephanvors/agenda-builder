@@ -2153,9 +2153,8 @@ export async function convertDocxToPdf(docxPath, pdfPath, config = {}, parsed = 
   const absDocx = path.resolve(docxPath);
   const absPdf = path.resolve(pdfPath);
 
-  // Strategy 1: Windows Word COM Automation (Fastest native Word fidelity on Windows)
-  if (process.platform === 'win32') {
-    const psScript = `
+  // Word COM Automation: Convert DOCX → PDF via Microsoft Word for 100% layout fidelity
+  const psScript = `
 $ErrorActionPreference = "Stop"
 $docPath = "${absDocx.replace(/\\/g, '\\\\')}"
 $pdfPath = "${absPdf.replace(/\\/g, '\\\\')}"
@@ -2191,96 +2190,24 @@ try {
 }
 `;
 
-    const tempPs1 = path.join(__dirname, 'uploads', `convert_${Date.now()}_${Math.random().toString(36).substring(2, 6)}.ps1`);
-    await fs.writeFile(tempPs1, psScript, 'utf8');
+  const tempPs1 = path.join(__dirname, 'uploads', `convert_${Date.now()}_${Math.random().toString(36).substring(2, 6)}.ps1`);
+  await fs.writeFile(tempPs1, psScript, 'utf8');
 
+  try {
+    await execPromise(`powershell -ExecutionPolicy Bypass -File "${tempPs1}"`, {
+      timeout: 25000
+    });
+    if (fsSync.existsSync(absPdf) && fsSync.statSync(absPdf).size >= 1000) {
+      return { success: true, pdfPath: absPdf, method: 'word_com' };
+    }
+    throw new Error('PDF file was not created or is too small after Word conversion.');
+  } catch (wordErr) {
     try {
-      await execPromise(`powershell -ExecutionPolicy Bypass -File "${tempPs1}"`, {
-        timeout: 25000
-      });
-      if (fsSync.existsSync(absPdf) && fsSync.statSync(absPdf).size >= 1000) {
-        return { success: true, pdfPath: absPdf, method: 'word_com' };
-      }
-    } catch (wordErr) {
-      console.warn('Word COM PDF conversion notice:', wordErr.message);
-      try {
-        await execPromise('powershell -Command "Stop-Process -Name WINWORD -Force -ErrorAction SilentlyContinue"');
-      } catch (e) {}
-    } finally {
-      try { await fs.unlink(tempPs1); } catch (e) {}
-    }
+      await execPromise('powershell -Command "Stop-Process -Name WINWORD -Force -ErrorAction SilentlyContinue"');
+    } catch (e) {}
+    throw new Error(`Word PDF conversion failed: ${wordErr.message}`);
+  } finally {
+    try { await fs.unlink(tempPs1); } catch (e) {}
   }
-
-  // Strategy 2: Headless Chromium / Edge Engine (Matches on-screen preview CSS exactly)
-  const candidateBrowsers = [
-    'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
-    'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
-    'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-    'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
-    process.env.LOCALAPPDATA ? path.join(process.env.LOCALAPPDATA, 'Microsoft', 'Edge', 'Application', 'msedge.exe') : null,
-    process.env.LOCALAPPDATA ? path.join(process.env.LOCALAPPDATA, 'Google', 'Chrome', 'Application', 'chrome.exe') : null,
-    '/usr/bin/google-chrome-stable',
-    '/usr/bin/google-chrome',
-    '/usr/bin/chromium',
-    '/usr/bin/chromium-browser',
-    '/usr/bin/msedge',
-    '/snap/bin/chromium',
-    '/snap/bin/google-chrome',
-    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-    '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge'
-  ].filter(Boolean);
-
-  let browserPath = candidateBrowsers.find(p => fsSync.existsSync(p));
-
-  if (!browserPath) {
-    const checkCommands = process.platform === 'win32'
-      ? ['where msedge', 'where chrome']
-      : ['which google-chrome', 'which chromium', 'which chromium-browser', 'which msedge'];
-
-    for (const cmd of checkCommands) {
-      try {
-        const { stdout } = await execPromise(cmd);
-        const resolved = stdout.split(/\r?\n/)[0]?.trim();
-        if (resolved && fsSync.existsSync(resolved)) {
-          browserPath = resolved;
-          break;
-        }
-      } catch (e) {}
-    }
-  }
-
-  if (browserPath) {
-    const htmlContent = generatePrintableHtml(config, parsed);
-    const tempHtml = path.join(__dirname, 'uploads', `render_${Date.now()}_${Math.random().toString(36).substring(2, 6)}.html`);
-    await fs.writeFile(tempHtml, htmlContent, 'utf8');
-
-    try {
-      const normalizedPath = path.resolve(tempHtml).replace(/\\/g, '/').replace(/^\/+/, '');
-      const fileUrl = `file:///${normalizedPath}`;
-      const { execFile } = await import('child_process');
-      const { promisify } = await import('util');
-      const execFilePromise = promisify(execFile);
-
-      await execFilePromise(browserPath, [
-        '--headless=new',
-        '--no-sandbox',
-        '--disable-gpu',
-        '--no-pdf-header-footer',
-        `--print-to-pdf=${absPdf}`,
-        fileUrl
-      ], { timeout: 25000 });
-
-      if (fsSync.existsSync(absPdf) && fsSync.statSync(absPdf).size >= 1000) {
-        return { success: true, pdfPath: absPdf, method: 'browser_headless' };
-      }
-    } catch (browserErr) {
-      console.warn('Browser headless PDF conversion notice:', browserErr.message);
-    } finally {
-      try { await fs.unlink(tempHtml); } catch (e) {}
-    }
-  }
-
-  // Strategy 3: Pure Vector PDFKit Engine (Runs 100% reliably in any Node environment with 0 dependencies)
-  return await generatePdfWithPdfkit(config, parsed, absPdf);
 }
 
