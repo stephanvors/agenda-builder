@@ -4642,6 +4642,23 @@ window.saveAttendanceToDatabase = async function() {
 };
 
 // ── Utilities ──
+function getMemberComponent(role) {
+    const r = (role || '').toLowerCase();
+    if (r.includes('educator') || r.includes('teacher') || r.includes('tots') || r.includes('preschool') || r.includes('grade r')) {
+        return 'Educator Component';
+    }
+    if (r.includes('parent') || r.includes('chairperson') || r.includes('treasurer')) {
+        return 'Parent Component';
+    }
+    if (r.includes('principal') || r.includes('deputy') || r.includes('smt') || r.includes('management')) {
+        return 'Management / SMT Component';
+    }
+    if (r.includes('non') || r.includes('finance') || r.includes('clerk') || r.includes('admin') || r.includes('staff')) {
+        return 'Non-Teaching Staff & Secretariat Component';
+    }
+    return 'General Governance Component';
+}
+
 function escapeHTML(str) {
     if (!str) return '';
     return str.replace(/[&<>'"]/g,

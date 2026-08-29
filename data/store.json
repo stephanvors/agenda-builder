@@ -134,7 +134,7 @@
       "id": "ec90f721-fa50-490f-b2e0-4b23cf936a4b",
       "name": "Charlene Vorster",
       "title": "Mrs",
-      "role": "SGB Tots Academy",
+      "role": "Tots Academy (Preschool) Rep",
       "contact": "0836535007",
       "email": "charlene.vorster30@gmail.com",
       "pin": "7791",
@@ -153,9 +153,9 @@
   ],
   "sessions": [
     {
-      "token": "ac3eb38b-aa5e-44b2-8eb9-70565821e667",
+      "token": "ec3bd1fd-3fa7-4f2c-9861-230c6fe4e79c",
       "memberId": "7c2333c0-5555-486f-afde-2d10af845f5c",
-      "createdAt": "2026-08-29T17:51:55.420Z"
+      "createdAt": "2026-08-29T18:05:21.956Z"
     }
   ],
   "agendaItems": [],
