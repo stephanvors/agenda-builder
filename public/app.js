@@ -40,6 +40,7 @@ const state = {
     editingArchive: null,    // archive currently edited in edit modal
     concludeStep: 1,         // current step in conclude wizard (1..5)
     selectedConcludeAudios: [], // files selected for audio upload
+    selectedConcludeMinutes: [], // files selected for minutes upload
     concludeResolutions: [], // dynamic resolutions array in wizard
     concludeAttendance: null, // dynamic attendance roster in wizard
     archiveFilters: {
@@ -47,7 +48,7 @@ const state = {
         sort: 'newest',      // 'newest' | 'oldest' | 'items' | 'resolutions'
         search: ''
     },
-    dossierActiveTab: 'overview' // 'overview' | 'audio' | 'transcript' | 'resolutions' | 'agenda' | 'attendance' | 'files'
+    dossierActiveTab: 'overview' // 'overview' | 'minutes' | 'audio' | 'transcript' | 'resolutions' | 'agenda' | 'attendance' | 'files'
 };
 
 // Check if current user has Admin privileges
@@ -797,6 +798,10 @@ const els = {
     concludeAudioInput:       document.getElementById('conclude-audio-input'),
     concludeAudioDropTitle:   document.getElementById('conclude-audio-drop-title'),
     concludeAudioTray:        document.getElementById('conclude-audio-tray'),
+    concludeMinutesDropZone:  document.getElementById('conclude-minutes-drop-zone'),
+    concludeMinutesFileInput: document.getElementById('conclude-minutes-file-input'),
+    concludeMinutesDropTitle: document.getElementById('conclude-minutes-drop-title'),
+    concludeMinutesTray:      document.getElementById('conclude-minutes-tray'),
     concludeTranscriptFileInput: document.getElementById('conclude-transcript-file-input'),
     concludeTranscriptText:   document.getElementById('conclude-transcript-text'),
     concludeResCount:         document.getElementById('conclude-res-count'),
@@ -833,6 +838,7 @@ const els = {
     btnCloseDossierModal:     document.getElementById('btn-close-dossier-modal'),
     dossierTabsStrip:         document.getElementById('dossier-tabs-strip'),
     dossierModalBody:         document.getElementById('dossier-modal-body'),
+    dossierMinutesTabCount:   document.getElementById('dossier-minutes-tab-count'),
     dossierAudioTabCount:     document.getElementById('dossier-audio-tab-count'),
     dossierResTabCount:       document.getElementById('dossier-res-tab-count'),
     dossierItemsTabCount:     document.getElementById('dossier-items-tab-count'),
@@ -854,6 +860,7 @@ const els = {
     editArchiveTranscript:    document.getElementById('edit-archive-transcript'),
     editArchiveExistingFiles: document.getElementById('edit-archive-existing-files'),
     editArchiveNewAudio:      document.getElementById('edit-archive-new-audio'),
+    editArchiveNewMinutes:    document.getElementById('edit-archive-new-minutes'),
     editArchiveNewSigned:     document.getElementById('edit-archive-new-signed'),
     editArchiveNewTranscript: document.getElementById('edit-archive-new-transcript'),
     editArchiveNewResolution: document.getElementById('edit-archive-new-resolution'),
@@ -5035,6 +5042,7 @@ function renderArchives() {
 function openConcludeWizard() {
     state.concludeStep = 1;
     state.selectedConcludeAudios = [];
+    state.selectedConcludeMinutes = [];
     
     // Pre-fill meeting metadata from current meetingInfo or defaults
     const currentInfo = state.meetingInfo || {};
@@ -5080,7 +5088,10 @@ function openConcludeWizard() {
     if (els.concludeAudioTray) els.concludeAudioTray.innerHTML = '';
     if (els.concludeAudioInput) els.concludeAudioInput.value = '';
 
-    // Step 3 Transcript Reset
+    // Step 3 Minutes & Transcript Reset
+    if (els.concludeMinutesTray) els.concludeMinutesTray.innerHTML = '';
+    if (els.concludeMinutesFileInput) els.concludeMinutesFileInput.value = '';
+    if (els.concludeMinutesDropTitle) els.concludeMinutesDropTitle.textContent = 'Click to upload Official Minutes Document (.docx, .pdf, .doc)';
     if (els.concludeTranscriptFileInput) els.concludeTranscriptFileInput.value = '';
     if (els.concludeTranscriptText) els.concludeTranscriptText.value = '';
 
@@ -5280,11 +5291,13 @@ async function openArchiveDossier(archiveId) {
         if (els.dossierModalSubtitle) els.dossierModalSubtitle.textContent = `Official Meeting Dossier • ${formatDateLong(meetingDate)} • ${meetingInfo.venue || 'Staff Room'}`;
 
         // Update dossier tab counts
+        const minutesCount = Array.isArray(arch.minutesFiles) ? arch.minutesFiles.length : 0;
         const audioCount = Array.isArray(arch.audioFiles) ? arch.audioFiles.length : 0;
         const resCount = Array.isArray(arch.resolutions) ? arch.resolutions.length : 0;
         const itemsCount = Array.isArray(arch.agendaSnapshot) ? arch.agendaSnapshot.length : 0;
         const filesCount = Array.isArray(arch.vaultDocuments) ? arch.vaultDocuments.length : 0;
 
+        if (els.dossierMinutesTabCount) els.dossierMinutesTabCount.textContent = minutesCount;
         if (els.dossierAudioTabCount) els.dossierAudioTabCount.textContent = audioCount;
         if (els.dossierResTabCount) els.dossierResTabCount.textContent = resCount;
         if (els.dossierItemsTabCount) els.dossierItemsTabCount.textContent = itemsCount;
@@ -5327,6 +5340,8 @@ function renderDossierContent() {
 
     if (tab === 'overview') {
         renderDossierOverview(arch);
+    } else if (tab === 'minutes') {
+        renderDossierMinutes(arch);
     } else if (tab === 'audio') {
         renderDossierAudio(arch);
     } else if (tab === 'transcript') {
@@ -5407,6 +5422,67 @@ function renderDossierOverview(arch) {
                     <button type="button" class="btn btn-secondary btn-sm btn-download-archive-docx" data-id="${arch.id}">📄 Download Word Minutes</button>
                     <button type="button" class="btn btn-primary btn-sm btn-download-archive-zip" data-id="${arch.id}">📦 Download Full Dossier ZIP</button>
                 </div>
+            </div>
+        </div>
+    `;
+}
+
+function renderDossierMinutes(arch) {
+    const minutesFiles = Array.isArray(arch.minutesFiles) ? arch.minutesFiles : [];
+    const meetingDate = arch.meetingInfo?.date || '2026-08-27';
+
+    if (minutesFiles.length === 0) {
+        els.dossierModalBody.innerHTML = `
+            <div class="empty-state" style="padding: 3rem 1rem;">
+                <div class="empty-icon">📄</div>
+                <h3>Official Minutes Documents</h3>
+                <p>No minutes document was uploaded during meeting packaging.</p>
+                <div style="display: flex; justify-content: center; gap: 0.75rem; margin-top: 1.25rem; flex-wrap: wrap;">
+                    <button type="button" class="btn btn-primary btn-sm btn-download-archive-docx" data-id="${arch.id}">
+                        📄 Download Auto-Generated Word Minutes (.docx)
+                    </button>
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    els.dossierModalBody.innerHTML = `
+        <div class="transcript-viewer-card">
+            <div class="transcript-toolbar">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <h3 style="font-size: 1.1rem; margin: 0;">📄 Official Meeting Minutes Documents</h3>
+                    <span class="badge badge--success" style="font-size: 0.75rem;">${minutesFiles.length} Adopted Document${minutesFiles.length > 1 ? 's' : ''}</span>
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button type="button" class="btn btn-secondary btn-sm btn-download-archive-docx" data-id="${arch.id}">
+                        📄 Generated Word Minutes (.docx)
+                    </button>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-top: 1.25rem;">
+                ${minutesFiles.map(mf => {
+                    const downloadUrl = `/api/archives/${arch.id}/files/${mf.id}/download?token=${encodeURIComponent(state.token || '')}`;
+                    const isPdf = mf.extension === 'pdf' || (mf.originalName || '').toLowerCase().endsWith('.pdf');
+                    return `
+                        <div class="dossier-file-card" style="background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 1.25rem; display: flex; flex-direction: column; justify-content: space-between; gap: 0.75rem;">
+                            <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
+                                <div style="font-size: 1.8rem; line-height: 1;">${isPdf ? '📕' : '📘'}</div>
+                                <div style="flex: 1; min-width: 0;">
+                                    <div style="font-weight: 700; font-size: 0.92rem; word-break: break-word; color: var(--text-main);">${escapeHTML(mf.originalName)}</div>
+                                    <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.25rem;">
+                                        ${formatBytes(mf.size)} • Uploaded ${formatDateLong(mf.uploadedAt ? mf.uploadedAt.split('T')[0] : meetingDate)}
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 0.5rem; justify-content: flex-end; border-top: 1px solid var(--border-color); padding-top: 0.75rem;">
+                                ${isPdf ? `<a href="${downloadUrl}" target="_blank" class="btn btn-outline btn-sm">👁️ Preview PDF</a>` : ''}
+                                <a href="${downloadUrl}" download="${escapeHTML(mf.originalName)}" class="btn btn-primary btn-sm">⬇️ Download File</a>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
             </div>
         </div>
     `;
@@ -5920,6 +5996,7 @@ function renderEditArchiveExistingFiles(arch) {
     if (!els.editArchiveExistingFiles) return;
 
     const allFiles = [
+        ...(arch.minutesFiles || []).map(f => ({ ...f, typeLabel: '📄 Minutes Doc' })),
         ...(arch.audioFiles || []).map(f => ({ ...f, typeLabel: '🎙️ Audio' })),
         ...(arch.signedAttendanceFiles || []).map(f => ({ ...f, typeLabel: '📝 Signed Register' })),
         ...(arch.transcript?.files || []).map(f => ({ ...f, typeLabel: '📄 Transcript Doc' })),
@@ -6049,6 +6126,62 @@ function initArchivesModule() {
         });
     }
 
+    // Step 3 Minutes Document Dropzone & File Input
+    if (els.concludeMinutesDropZone && els.concludeMinutesFileInput) {
+        els.concludeMinutesDropZone.addEventListener('click', () => els.concludeMinutesFileInput.click());
+        els.concludeMinutesFileInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files.length > 0) {
+                Array.from(e.target.files).forEach(f => state.selectedConcludeMinutes.push(f));
+                renderConcludeMinutesTray();
+            }
+        });
+
+        els.concludeMinutesDropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            els.concludeMinutesDropZone.classList.add('dragover');
+        });
+        els.concludeMinutesDropZone.addEventListener('dragleave', () => {
+            els.concludeMinutesDropZone.classList.remove('dragover');
+        });
+        els.concludeMinutesDropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            els.concludeMinutesDropZone.classList.remove('dragover');
+            if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                Array.from(e.dataTransfer.files).forEach(f => state.selectedConcludeMinutes.push(f));
+                renderConcludeMinutesTray();
+            }
+        });
+    }
+
+    function renderConcludeMinutesTray() {
+        if (!els.concludeMinutesTray) return;
+        if (state.selectedConcludeMinutes.length === 0) {
+            els.concludeMinutesTray.innerHTML = '';
+            if (els.concludeMinutesDropTitle) els.concludeMinutesDropTitle.textContent = 'Click to upload Official Minutes Document (.docx, .pdf, .doc)';
+            return;
+        }
+
+        if (els.concludeMinutesDropTitle) els.concludeMinutesDropTitle.textContent = `${state.selectedConcludeMinutes.length} Minutes Document(s) Selected — Click to add more`;
+
+        els.concludeMinutesTray.innerHTML = state.selectedConcludeMinutes.map((f, idx) => `
+            <div class="uploaded-file-chip">
+                <div class="uploaded-file-chip-info">
+                    <span>📄</span>
+                    <span><strong>${escapeHTML(f.name)}</strong> (${formatBytes(f.size)})</span>
+                </div>
+                <button type="button" class="btn-link-action btn-remove-conclude-minutes" data-index="${idx}" style="color: var(--danger);">✕ Remove</button>
+            </div>
+        `).join('');
+
+        els.concludeMinutesTray.querySelectorAll('.btn-remove-conclude-minutes').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const idx = parseInt(e.target.dataset.index, 10);
+                state.selectedConcludeMinutes.splice(idx, 1);
+                renderConcludeMinutesTray();
+            });
+        });
+    }
+
     // Step 4 Add Resolution Button
     if (els.btnAddResolutionRow) {
         els.btnAddResolutionRow.addEventListener('click', () => {
@@ -6160,6 +6293,11 @@ function initArchivesModule() {
             // Audio Files
             state.selectedConcludeAudios.forEach(af => {
                 formData.append('audioFiles', af);
+            });
+
+            // Minutes Files
+            state.selectedConcludeMinutes.forEach(mf => {
+                formData.append('minutesFiles', mf);
             });
 
             // Transcript
@@ -6381,14 +6519,18 @@ function initArchivesModule() {
 
                 // Upload additional files if selected
                 const hasNewAudio = els.editArchiveNewAudio?.files?.length > 0;
+                const hasNewMinutes = els.editArchiveNewMinutes?.files?.length > 0;
                 const hasNewSigned = els.editArchiveNewSigned?.files?.length > 0;
                 const hasNewTranscript = els.editArchiveNewTranscript?.files?.length > 0;
                 const hasNewResolution = els.editArchiveNewResolution?.files?.length > 0;
 
-                if (hasNewAudio || hasNewSigned || hasNewTranscript || hasNewResolution) {
+                if (hasNewAudio || hasNewMinutes || hasNewSigned || hasNewTranscript || hasNewResolution) {
                     const formData = new FormData();
                     if (hasNewAudio) {
                         Array.from(els.editArchiveNewAudio.files).forEach(f => formData.append('audioFiles', f));
+                    }
+                    if (hasNewMinutes) {
+                        Array.from(els.editArchiveNewMinutes.files).forEach(f => formData.append('minutesFiles', f));
                     }
                     if (hasNewSigned) {
                         formData.append('signedRegisterFiles', els.editArchiveNewSigned.files[0]);

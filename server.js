@@ -127,6 +127,7 @@ const archiveUpload = multer({
   }
 }).fields([
   { name: 'audioFiles', maxCount: 10 },
+  { name: 'minutesFiles', maxCount: 5 },
   { name: 'transcriptFiles', maxCount: 5 },
   { name: 'signedRegisterFiles', maxCount: 5 },
   { name: 'resolutionFiles', maxCount: 5 }
@@ -2571,6 +2572,9 @@ app.get('/api/archives', requireAuth, async (req, res) => {
       lastModifiedBy: arch.lastModifiedBy,
       meetingInfo: arch.meetingInfo,
       stats: arch.stats,
+      hasMinutes: Array.isArray(arch.minutesFiles) && arch.minutesFiles.length > 0,
+      minutesCount: Array.isArray(arch.minutesFiles) ? arch.minutesFiles.length : 0,
+      minutesFiles: arch.minutesFiles || [],
       hasAudio: Array.isArray(arch.audioFiles) && arch.audioFiles.length > 0,
       audioCount: Array.isArray(arch.audioFiles) ? arch.audioFiles.length : 0,
       hasTranscript: Boolean((arch.transcript?.text && arch.transcript.text.trim()) || (Array.isArray(arch.transcript?.files) && arch.transcript.files.length > 0)),
@@ -2599,7 +2603,7 @@ app.get('/api/archives/:id', requireAuth, async (req, res) => {
     }
     res.json(arch);
   } catch (error) {
-    console.error('Error fetching archive details:', error);
+    console.error('Error fetching archive dossier:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -2676,6 +2680,7 @@ app.post('/api/archives/conclude', requireAuth, (req, res) => {
       };
 
       const audioFilesList = await mapUploadedFiles(req.files?.audioFiles);
+      const minutesFilesList = await mapUploadedFiles(req.files?.minutesFiles);
       const transcriptFilesList = await mapUploadedFiles(req.files?.transcriptFiles);
       const signedRegisterFilesList = await mapUploadedFiles(req.files?.signedRegisterFiles);
       const resolutionFilesList = await mapUploadedFiles(req.files?.resolutionFiles);
@@ -2800,12 +2805,14 @@ app.post('/api/archives/conclude', requireAuth, (req, res) => {
           totalItems: agendaSnapshot.length,
           totalVotes: agendaSnapshot.reduce((s, i) => s + (Array.isArray(i.votes) ? i.votes.length : 0), 0),
           totalResolutions: parsedResolutions.length,
+          totalMinutesFiles: minutesFilesList.length,
           totalAudioFiles: audioFilesList.length,
           totalVaultDocuments: vaultDocuments.length
         },
         agendaSnapshot,
         resolutions: parsedResolutions,
         attendance: parsedAttendance,
+        minutesFiles: minutesFilesList,
         audioFiles: audioFilesList,
         transcript: {
           text: transcriptText,
@@ -2971,12 +2978,16 @@ app.post('/api/archives/:id/files', requireAuth, (req, res) => {
       };
 
       const newAudio = await mapUploadedFiles(req.files?.audioFiles);
+      const newMinutes = await mapUploadedFiles(req.files?.minutesFiles);
       const newTranscripts = await mapUploadedFiles(req.files?.transcriptFiles);
       const newRegisters = await mapUploadedFiles(req.files?.signedRegisterFiles);
       const newResolutions = await mapUploadedFiles(req.files?.resolutionFiles);
 
       if (!Array.isArray(arch.audioFiles)) arch.audioFiles = [];
       arch.audioFiles.push(...newAudio);
+
+      if (!Array.isArray(arch.minutesFiles)) arch.minutesFiles = [];
+      arch.minutesFiles.push(...newMinutes);
 
       if (!arch.transcript) arch.transcript = { text: '', files: [] };
       if (!Array.isArray(arch.transcript.files)) arch.transcript.files = [];
@@ -2990,6 +3001,7 @@ app.post('/api/archives/:id/files', requireAuth, (req, res) => {
 
       if (arch.stats) {
         arch.stats.totalAudioFiles = arch.audioFiles.length;
+        arch.stats.totalMinutesFiles = arch.minutesFiles.length;
       }
 
       arch.lastModifiedAt = new Date().toISOString();
@@ -3029,6 +3041,14 @@ app.delete('/api/archives/:id/files/:fileId', requireAuth, async (req, res) => {
       if (idx !== -1) {
         storedFilename = arch.audioFiles[idx].storedName;
         arch.audioFiles.splice(idx, 1);
+        removed = true;
+      }
+    }
+    if (!removed && Array.isArray(arch.minutesFiles)) {
+      const idx = arch.minutesFiles.findIndex(f => f.id === fileId);
+      if (idx !== -1) {
+        storedFilename = arch.minutesFiles[idx].storedName;
+        arch.minutesFiles.splice(idx, 1);
         removed = true;
       }
     }
@@ -3242,12 +3262,19 @@ app.get('/api/archives/:id/export/zip', requireAuth, async (req, res) => {
     const meetingDate = arch.meetingInfo?.date || '2026-08-27';
     const safeTitle = (arch.meetingInfo?.title || 'Meeting').replace(/[^a-zA-Z0-9_\-]/g, '_');
 
-    // 1. Add Generated Minutes DOCX
+    // 1. Add Generated Minutes DOCX and Uploaded Minutes Documents
     try {
       const minutesDocxBuf = await generateArchiveMinutesDocx(arch);
       zip.addFile(`01_Official_Minutes_and_Resolutions_${meetingDate}.docx`, minutesDocxBuf);
     } catch (docErr) {
       console.warn('Could not generate DOCX for ZIP:', docErr.message);
+    }
+
+    for (const mf of (arch.minutesFiles || [])) {
+      const fileData = await getFileBufferFromRecord(mf);
+      if (fileData && fileData.buffer) {
+        zip.addFile(`01_Adopted_Minutes_Documents/${mf.originalName}`, fileData.buffer);
+      }
     }
 
     // 2. Add Transcript text or docs
