@@ -435,31 +435,6 @@ const storeHelper = {
         migrateFinanceCategories(initialStore);
         await pool.query('INSERT INTO app_store (id, data) VALUES ($1, $2)', ['main_store', JSON.stringify(initialStore)]);
         console.log(`✅ ${members.length} members initialized in PostgreSQL`);
-      } else {
-        // If DB has existing data, ensure archives are reset if disk store.json has 0 archives
-        try {
-          if (fsSync.existsSync(STORE_FILE)) {
-            const diskRaw = fsSync.readFileSync(STORE_FILE, 'utf8');
-            const diskStore = JSON.parse(diskRaw);
-            if (diskStore && Array.isArray(diskStore.archives) && diskStore.archives.length === 0) {
-              const currentDb = typeof res.rows[0].data === 'string' ? JSON.parse(res.rows[0].data) : res.rows[0].data;
-              if (currentDb && Array.isArray(currentDb.archives) && currentDb.archives.length > 0) {
-                console.log('🔄 Resetting archive test data in PostgreSQL to clean pre-archive state...');
-                currentDb.archives = [];
-                currentDb.meetingInfo = diskStore.meetingInfo || {
-                  title: 'SGB/SMT Strategy Meeting',
-                  date: '2026-08-27',
-                  time: '10:00',
-                  venue: 'Staff Room',
-                  school: 'Lady Grey Arts Academy'
-                };
-                await pool.query('UPDATE app_store SET data = $1 WHERE id = $2', [JSON.stringify(currentDb), 'main_store']);
-              }
-            }
-          }
-        } catch (e) {
-          console.warn('Sync check warning:', e.message);
-        }
       }
 
       console.log('✅ Persistent store loaded — syncing member details from Excel...');
@@ -3204,6 +3179,7 @@ app.get('/api/archives/:id/files/:fileId/download', requireAuth, async (req, res
     if (!arch) return res.status(404).json({ error: 'Archive not found' });
 
     const allFiles = [
+      ...(arch.minutesFiles || []),
       ...(arch.audioFiles || []),
       ...(arch.transcript?.files || []),
       ...(arch.signedAttendanceFiles || []),
