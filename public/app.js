@@ -31,7 +31,23 @@ const state = {
     openDocs: new Set(),     // doc IDs with expanded description drawers (starts collapsed by default)
     activeCommentType: {},   // { [itemId]: 'idea' | 'action' | 'question' | 'comment' }
     commentDrafts: {},       // { [itemId]: 'draft text' }
-    editingComments: {}      // { [commentId]: { content: '...', type: '...' } }
+    editingComments: {},     // { [commentId]: { content: '...', type: '...' } }
+
+    // ── Meeting Archives & Conclude State ──
+    archives: [],            // past meeting archives
+    meetingInfo: null,       // current active meeting info { title, date, time, venue, school }
+    activeArchive: null,     // archive currently viewed in dossier modal
+    editingArchive: null,    // archive currently edited in edit modal
+    concludeStep: 1,         // current step in conclude wizard (1..5)
+    selectedConcludeAudios: [], // files selected for audio upload
+    concludeResolutions: [], // dynamic resolutions array in wizard
+    concludeAttendance: null, // dynamic attendance roster in wizard
+    archiveFilters: {
+        filter: 'all',       // 'all' | 'audio' | 'transcript' | 'signed' | 'resolutions'
+        sort: 'newest',      // 'newest' | 'oldest' | 'items' | 'resolutions'
+        search: ''
+    },
+    dossierActiveTab: 'overview' // 'overview' | 'audio' | 'transcript' | 'resolutions' | 'agenda' | 'attendance' | 'files'
 };
 
 // Check if current user has Admin privileges
@@ -292,6 +308,13 @@ const api = {
         return res.json();
     },
 
+    async getAttendance() {
+        const res = await fetch('/api/attendance', { headers: authHeaders() });
+        if (res.status === 401) { handleSessionExpired(); return null; }
+        if (!res.ok) throw new Error('Failed to load attendance register');
+        return res.json();
+    },
+
     async getDocuments() {
         const res = await fetch('/api/documents', { headers: authHeaders() });
         if (res.status === 401) { handleSessionExpired(); return { documents: [], tags: [] }; }
@@ -434,6 +457,139 @@ const api = {
             throw new Error(err.error || 'Failed to move category');
         }
         return res.json();
+    },
+
+    // ── Meeting Archives API Methods ──
+    async getArchives() {
+        const res = await fetch('/api/archives', { headers: authHeaders() });
+        if (res.status === 401) { handleSessionExpired(); return []; }
+        if (!res.ok) throw new Error('Failed to load archives');
+        return res.json();
+    },
+
+    async getArchive(archiveId) {
+        const res = await fetch(`/api/archives/${archiveId}`, { headers: authHeaders() });
+        if (res.status === 401) { handleSessionExpired(); return null; }
+        if (!res.ok) throw new Error('Failed to load meeting archive');
+        return res.json();
+    },
+
+    concludeMeeting(formData, onProgress) {
+        return new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/api/archives/conclude');
+            if (state.token) {
+                xhr.setRequestHeader('Authorization', `Bearer ${state.token}`);
+            }
+
+            if (xhr.upload && onProgress) {
+                xhr.upload.onprogress = (e) => {
+                    if (e.lengthComputable) {
+                        const percent = Math.round((e.loaded / e.total) * 100);
+                        onProgress(percent);
+                    }
+                };
+            }
+
+            xhr.onload = () => {
+                if (xhr.status === 401) {
+                    handleSessionExpired();
+                    return reject(new Error('Session expired'));
+                }
+                try {
+                    const data = JSON.parse(xhr.responseText);
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        resolve(data);
+                    } else {
+                        reject(new Error(data.error || 'Failed to conclude and archive meeting'));
+                    }
+                } catch {
+                    reject(new Error('Failed to conclude and archive meeting'));
+                }
+            };
+
+            xhr.onerror = () => reject(new Error('Network error during archive packaging'));
+            xhr.send(formData);
+        });
+    },
+
+    async updateArchive(archiveId, payload) {
+        const res = await fetch(`/api/archives/${archiveId}`, {
+            method: 'PUT',
+            headers: authHeaders(),
+            body: JSON.stringify(payload)
+        });
+        if (res.status === 401) { handleSessionExpired(); return null; }
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error || 'Failed to update archive');
+        }
+        return res.json();
+    },
+
+    uploadArchiveFiles(archiveId, formData, onProgress) {
+        return new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', `/api/archives/${archiveId}/files`);
+            if (state.token) {
+                xhr.setRequestHeader('Authorization', `Bearer ${state.token}`);
+            }
+
+            if (xhr.upload && onProgress) {
+                xhr.upload.onprogress = (e) => {
+                    if (e.lengthComputable) {
+                        const percent = Math.round((e.loaded / e.total) * 100);
+                        onProgress(percent);
+                    }
+                };
+            }
+
+            xhr.onload = () => {
+                if (xhr.status === 401) {
+                    handleSessionExpired();
+                    return reject(new Error('Session expired'));
+                }
+                try {
+                    const data = JSON.parse(xhr.responseText);
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        resolve(data);
+                    } else {
+                        reject(new Error(data.error || 'Upload failed'));
+                    }
+                } catch {
+                    reject(new Error('Upload failed'));
+                }
+            };
+
+            xhr.onerror = () => reject(new Error('Network error during file upload'));
+            xhr.send(formData);
+        });
+    },
+
+    async deleteArchiveFile(archiveId, fileId) {
+        const res = await fetch(`/api/archives/${archiveId}/files/${fileId}`, {
+            method: 'DELETE',
+            headers: authHeaders()
+        });
+        if (res.status === 401) { handleSessionExpired(); return null; }
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error || 'Failed to delete file from archive');
+        }
+        return res.json();
+    },
+
+    async deleteArchive(archiveId) {
+        const res = await fetch(`/api/archives/${archiveId}`, {
+            method: 'DELETE',
+            headers: authHeaders()
+        });
+        if (res.status === 401) { handleSessionExpired(); return null; }
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error || 'Failed to delete archive');
+        }
+        return res.json();
     }
 };
 
@@ -458,17 +614,22 @@ const els = {
     statItems:        document.getElementById('stat-items'),
     statVotes:        document.getElementById('stat-votes'),
     statDocs:         document.getElementById('stat-docs'),
+    statArchives:     document.getElementById('stat-archives'),
     statCardMembers:  document.getElementById('stat-card-members'),
     statCardItems:    document.getElementById('stat-card-items'),
     statCardVotes:    document.getElementById('stat-card-votes'),
     statCardDocs:     document.getElementById('stat-card-docs'),
+    statCardArchives: document.getElementById('stat-card-archives'),
 
     tabBtnAgenda:     document.getElementById('tab-btn-agenda'),
     tabBtnDocuments:  document.getElementById('tab-btn-documents'),
+    tabBtnArchives:   document.getElementById('tab-btn-archives'),
     tabAgendaBadge:   document.getElementById('tab-agenda-badge'),
     tabDocsBadge:     document.getElementById('tab-docs-badge'),
+    tabArchivesBadge: document.getElementById('tab-archives-badge'),
     tabViewAgenda:    document.getElementById('tab-view-agenda'),
     tabViewDocuments: document.getElementById('tab-view-documents'),
+    tabViewArchives:  document.getElementById('tab-view-archives'),
 
     infoModal:        document.getElementById('info-modal'),
     infoModalTitle:   document.getElementById('info-modal-title'),
@@ -574,6 +735,108 @@ const els = {
     btnPrint:         document.getElementById('btn-print'),
     btnCloseModal:    document.getElementById('btn-close-modal'),
     printableAgenda:  document.getElementById('printable-agenda'),
+
+    btnAttendance:             document.getElementById('btn-attendance'),
+    attendanceModal:           document.getElementById('attendance-modal'),
+    printableAttendance:       document.getElementById('printable-attendance'),
+    btnPrintAttendance:        document.getElementById('btn-print-attendance'),
+    btnCloseAttendanceModal:   document.getElementById('btn-close-attendance-modal'),
+    btnSwitchToAttendance:     document.getElementById('btn-switch-to-attendance'),
+    btnSwitchToAgenda:         document.getElementById('btn-switch-to-agenda'),
+    btnDownloadAttendanceDocx: document.getElementById('btn-download-attendance-docx'),
+
+    // Meeting Archives & Conclude Wizard Elements
+    btnConcludeMeeting:       document.getElementById('btn-conclude-meeting'),
+    btnConcludeFromArchives:  document.getElementById('btn-conclude-from-archives'),
+    archiveSearchInput:       document.getElementById('archive-search-input'),
+    archiveFilterChips:       document.getElementById('archive-filter-chips'),
+    sortArchives:             document.getElementById('sort-archives'),
+    archivesContainer:        document.getElementById('archives-container'),
+    archivesEmptyState:       document.getElementById('archives-empty-state'),
+
+    // Conclude Wizard Modal
+    concludeModal:            document.getElementById('conclude-modal'),
+    concludeModalSubtitle:    document.getElementById('conclude-modal-subtitle'),
+    btnCloseConcludeModal:    document.getElementById('btn-close-conclude-modal'),
+    concludeWizardStepper:    document.getElementById('conclude-wizard-stepper'),
+    concludeMeetingForm:      document.getElementById('conclude-meeting-form'),
+    concludeStep1:            document.getElementById('conclude-step-1'),
+    concludeStep2:            document.getElementById('conclude-step-2'),
+    concludeStep3:            document.getElementById('conclude-step-3'),
+    concludeStep4:            document.getElementById('conclude-step-4'),
+    concludeStep5:            document.getElementById('conclude-step-5'),
+    concludeMeetingTitle:     document.getElementById('conclude-meeting-title'),
+    concludeMeetingDate:      document.getElementById('conclude-meeting-date'),
+    concludeMeetingTime:      document.getElementById('conclude-meeting-time'),
+    concludeMeetingVenue:     document.getElementById('conclude-meeting-venue'),
+    concludeStatsSummaryCard: document.getElementById('conclude-stats-summary-card'),
+    concludeMeetingNotes:     document.getElementById('conclude-meeting-notes'),
+    concludeAudioDropZone:    document.getElementById('conclude-audio-drop-zone'),
+    concludeAudioInput:       document.getElementById('conclude-audio-input'),
+    concludeAudioDropTitle:   document.getElementById('conclude-audio-drop-title'),
+    concludeAudioTray:        document.getElementById('conclude-audio-tray'),
+    concludeTranscriptFileInput: document.getElementById('conclude-transcript-file-input'),
+    concludeTranscriptText:   document.getElementById('conclude-transcript-text'),
+    concludeResCount:         document.getElementById('conclude-res-count'),
+    btnAddResolutionRow:      document.getElementById('btn-add-resolution-row'),
+    concludeResolutionsList:  document.getElementById('conclude-resolutions-list'),
+    concludeResolutionFileInput: document.getElementById('conclude-resolution-file-input'),
+    concludeSignedRegDropZone:document.getElementById('conclude-signed-reg-drop-zone'),
+    concludeSignedRegInput:   document.getElementById('conclude-signed-reg-input'),
+    concludeSignedRegTitle:   document.getElementById('conclude-signed-reg-title'),
+    concludeSignedRegError:   document.getElementById('conclude-signed-reg-error'),
+    concludeAttendanceReviewBox: document.getElementById('conclude-attendance-review-box'),
+    nextMeetingTitle:         document.getElementById('next-meeting-title'),
+    nextMeetingDate:          document.getElementById('next-meeting-date'),
+    nextMeetingTime:          document.getElementById('next-meeting-time'),
+    nextMeetingVenue:         document.getElementById('next-meeting-venue'),
+    concludeClearVault:       document.getElementById('conclude-clear-vault'),
+    concludeProgressWrapper:  document.getElementById('conclude-progress-wrapper'),
+    concludeProgressFill:     document.getElementById('conclude-progress-fill'),
+    concludeProgressText:     document.getElementById('conclude-progress-text'),
+    concludeProgressPercent:  document.getElementById('conclude-progress-percent'),
+    btnConcludePrev:          document.getElementById('btn-conclude-prev'),
+    btnConcludeNext:          document.getElementById('btn-conclude-next'),
+    btnConcludeSubmit:        document.getElementById('btn-conclude-submit'),
+    btnConcludeCancel:        document.getElementById('btn-conclude-cancel'),
+
+    // Archive Dossier Viewer Modal
+    archiveDossierModal:      document.getElementById('archive-dossier-modal'),
+    dossierModalTitle:        document.getElementById('dossier-modal-title'),
+    dossierModalSubtitle:     document.getElementById('dossier-modal-subtitle'),
+    btnDossierEdit:           document.getElementById('btn-dossier-edit'),
+    btnDossierDownloadDocx:   document.getElementById('btn-dossier-download-docx'),
+    btnDossierDownloadZip:    document.getElementById('btn-dossier-download-zip'),
+    btnDossierPrint:          document.getElementById('btn-dossier-print'),
+    btnCloseDossierModal:     document.getElementById('btn-close-dossier-modal'),
+    dossierTabsStrip:         document.getElementById('dossier-tabs-strip'),
+    dossierModalBody:         document.getElementById('dossier-modal-body'),
+    dossierAudioTabCount:     document.getElementById('dossier-audio-tab-count'),
+    dossierResTabCount:       document.getElementById('dossier-res-tab-count'),
+    dossierItemsTabCount:     document.getElementById('dossier-items-tab-count'),
+    dossierFilesTabCount:     document.getElementById('dossier-files-tab-count'),
+
+    // Edit Archive Modal
+    editArchiveModal:         document.getElementById('edit-archive-modal'),
+    editArchiveModalSubtitle: document.getElementById('edit-archive-modal-subtitle'),
+    btnCloseEditArchiveModal: document.getElementById('btn-close-edit-archive-modal'),
+    editArchiveForm:          document.getElementById('edit-archive-form'),
+    editArchiveId:            document.getElementById('edit-archive-id'),
+    editArchiveTitle:         document.getElementById('edit-archive-title'),
+    editArchiveDate:          document.getElementById('edit-archive-date'),
+    editArchiveTime:          document.getElementById('edit-archive-time'),
+    editArchiveVenue:         document.getElementById('edit-archive-venue'),
+    editArchiveNotes:         document.getElementById('edit-archive-notes'),
+    editArchiveResolutionsList: document.getElementById('edit-archive-resolutions-list'),
+    btnEditAddResolutionRow:  document.getElementById('btn-edit-add-resolution-row'),
+    editArchiveTranscript:    document.getElementById('edit-archive-transcript'),
+    editArchiveExistingFiles: document.getElementById('edit-archive-existing-files'),
+    editArchiveNewAudio:      document.getElementById('edit-archive-new-audio'),
+    editArchiveNewSigned:     document.getElementById('edit-archive-new-signed'),
+    editArchiveNewTranscript: document.getElementById('edit-archive-new-transcript'),
+    editArchiveNewResolution: document.getElementById('edit-archive-new-resolution'),
+    btnCancelEditArchive:     document.getElementById('btn-cancel-edit-archive'),
+    btnSaveEditArchive:       document.getElementById('btn-save-edit-archive'),
 
     refreshCountdown: document.getElementById('refresh-countdown')
 };
@@ -1138,6 +1401,39 @@ function setupEventListeners() {
         if (e.target === els.modal) els.modal.classList.remove('active');
     });
 
+    if (els.btnAttendance) {
+        els.btnAttendance.addEventListener('click', showAttendanceModal);
+    }
+    if (els.btnCloseAttendanceModal) {
+        els.btnCloseAttendanceModal.addEventListener('click', closeAttendanceModal);
+    }
+    if (els.btnPrintAttendance) {
+        els.btnPrintAttendance.addEventListener('click', () => window.print());
+    }
+    if (els.attendanceModal) {
+        els.attendanceModal.addEventListener('click', (e) => {
+            if (e.target === els.attendanceModal) closeAttendanceModal();
+        });
+    }
+    if (els.btnSwitchToAttendance) {
+        els.btnSwitchToAttendance.addEventListener('click', () => {
+            els.modal.classList.remove('active');
+            showAttendanceModal();
+        });
+    }
+    if (els.btnSwitchToAgenda) {
+        els.btnSwitchToAgenda.addEventListener('click', () => {
+            closeAttendanceModal();
+            showExportModal();
+        });
+    }
+    if (els.btnDownloadAttendanceDocx) {
+        els.btnDownloadAttendanceDocx.addEventListener('click', () => {
+            const token = encodeURIComponent(state.token || '');
+            window.location.href = `/api/attendance/docx?token=${token}`;
+        });
+    }
+
     const openDocFormatter = () => {
         const token = encodeURIComponent(state.token || '');
         const timestamp = Date.now();
@@ -1579,12 +1875,19 @@ async function loadData() {
             activeSelectionEnd = document.activeElement.selectionEnd;
         }
 
-        const [items, stats, docData] = await Promise.all([
+        const [items, stats, docData, archives, meetingInfo] = await Promise.all([
             api.getItems(),
             api.getStats(),
-            api.getDocuments()
+            api.getDocuments(),
+            api.getArchives().catch(() => []),
+            api.getMeetingInfo().catch(() => null)
         ]);
         state.items = items;
+        state.archives = Array.isArray(archives) ? archives : [];
+        if (meetingInfo) {
+            state.meetingInfo = meetingInfo;
+            updateMeetingHeaderInfo(meetingInfo);
+        }
         if (docData && Array.isArray(docData.documents)) {
             state.documents = docData.documents.map(d => {
                 const uploader = (d.uploadedBy?.memberName || '').trim();
@@ -1617,6 +1920,9 @@ async function loadData() {
 
         renderItems();
         renderDocuments();
+        if (state.activeTab === 'archives') {
+            renderArchives();
+        }
 
         // Restore focus if appropriate
         if (activeInputId) {
@@ -1895,8 +2201,10 @@ function updateStats(stats = null) {
     if (els.statMembers) els.statMembers.textContent = stats?.totalMembers ?? (state.members.length || 15);
     if (els.statVotes)   els.statVotes.textContent = state.items.reduce((sum, item) => sum + (Array.isArray(item.votes) ? item.votes.length : 0), 0);
     if (els.statDocs)    els.statDocs.textContent = stats?.totalDocuments ?? state.documents.length;
+    if (els.statArchives) els.statArchives.textContent = state.archives.length;
     if (els.tabAgendaBadge) els.tabAgendaBadge.textContent = state.items.length;
     if (els.tabDocsBadge)   els.tabDocsBadge.textContent = state.documents.length;
+    if (els.tabArchivesBadge) els.tabArchivesBadge.textContent = state.archives.length;
 }
 
 // ── 3-Level Category Hierarchy System ──
@@ -2723,14 +3031,16 @@ function switchTab(tabName) {
 
     const agendaView = document.getElementById('tab-view-agenda');
     const docsView = document.getElementById('tab-view-documents');
+    const archivesView = document.getElementById('tab-view-archives');
 
-    if (tabName === 'agenda') {
-        if (agendaView) agendaView.classList.add('active');
-        if (docsView) docsView.classList.remove('active');
-    } else {
-        if (agendaView) agendaView.classList.remove('active');
-        if (docsView) docsView.classList.add('active');
+    if (agendaView) agendaView.classList.toggle('active', tabName === 'agenda');
+    if (docsView) docsView.classList.toggle('active', tabName === 'documents');
+    if (archivesView) archivesView.classList.toggle('active', tabName === 'archives');
+
+    if (tabName === 'documents') {
         renderDocuments();
+    } else if (tabName === 'archives') {
+        renderArchives();
     }
 }
 window.switchTab = switchTab;
@@ -3858,13 +4168,51 @@ async function showExportModal() {
 
         let html = `
             <div class="print-agenda-header">
-                <h1>${escapeHTML(meetingInfo.title)}</h1>
-                <h3>School Governing Body & School Management Team</h3>
-                <p><strong>Date:</strong> 27 August 2026 — 10:00</p>
-                <p><strong>Venue:</strong> Staff Room</p>
-                <p><strong>Type:</strong> Strategy Meeting — Way Forward</p>
-                <p><strong>Members:</strong> ${members.map(m => formatShortName(m.name, m.title)).join(', ')}</p>
-                <p><em>Agenda generated on ${new Date().toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' })}</em></p>
+                <div class="print-header-top">
+                    <img src="logo.svg" alt="Lady Grey Arts Academy Logo" class="print-school-logo">
+                    <div class="print-header-titles">
+                        <div class="print-school-dept">EASTERN CAPE DEPARTMENT OF EDUCATION • JOE GQABI DISTRICT</div>
+                        <h1 class="print-school-name">LADY GREY ARTS ACADEMY</h1>
+                        <div class="print-school-sub">School Governing Body &amp; School Management Team</div>
+                    </div>
+                    <div class="print-header-badge">
+                        <span class="badge-title">OFFICIAL</span>
+                        <span class="badge-sub">AGENDA</span>
+                    </div>
+                </div>
+
+                <div class="print-meeting-card">
+                    <div class="print-meeting-title-row">
+                        <h2 class="print-meeting-title">${escapeHTML(meetingInfo.title || 'SGB & SMT Strategy Meeting')}</h2>
+                        <span class="print-badge-type">Strategic Planning &amp; Governance</span>
+                    </div>
+                    <div class="print-meta-grid">
+                        <div class="print-meta-cell">
+                            <span class="meta-label">📅 Date &amp; Time:</span>
+                            <span class="meta-val">27 August 2026 — 10:00 SAST</span>
+                        </div>
+                        <div class="print-meta-cell">
+                            <span class="meta-label">📍 Venue:</span>
+                            <span class="meta-val">School Staff Room / Boardroom</span>
+                        </div>
+                        <div class="print-meta-cell">
+                            <span class="meta-label">👥 Constitution:</span>
+                            <span class="meta-val">Joint SGB &amp; SMT Sitting</span>
+                        </div>
+                        <div class="print-meta-cell">
+                            <span class="meta-label">⚖️ Statutory Basis:</span>
+                            <span class="meta-val">SASA Act 84 of 1996 &amp; SGB Constitution</span>
+                        </div>
+                    </div>
+                    <div class="print-members-row">
+                        <strong>Convened Members (${members.length}):</strong>
+                        <span>${members.map(m => `<strong>${escapeHTML(formatShortName(m.name, m.title))}</strong> <small class="role-chip">(${escapeHTML(m.role)})</small>`).join(', ')}</span>
+                    </div>
+                </div>
+                <div class="print-generation-notice">
+                    <span>Official Notice &amp; Order of Proceedings</span>
+                    <span>Generated on ${new Date().toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                </div>
             </div>
         `;
 
@@ -3914,6 +4262,32 @@ async function showExportModal() {
                     </div>
                 `;
             });
+
+            // Agenda Adoption & Sign-off Section
+            html += `
+                <div class="print-adoption-section">
+                    <div class="adoption-statement">
+                        <strong>Agenda Adoption &amp; Certification:</strong> In accordance with Section 7 of the SGB Constitution, this agenda was duly circulated and approved for formal adoption at the commencement of the meeting.
+                    </div>
+                    <div class="print-sign-grid print-sign-grid--3">
+                        <div class="print-sign-box">
+                            <div class="sign-line"></div>
+                            <div class="sign-name">Mr. K. Dyasi</div>
+                            <div class="sign-role">SGB Chairperson</div>
+                        </div>
+                        <div class="print-sign-box">
+                            <div class="sign-line"></div>
+                            <div class="sign-name">Ms. M. Botha</div>
+                            <div class="sign-role">School Principal</div>
+                        </div>
+                        <div class="print-sign-box">
+                            <div class="sign-line"></div>
+                            <div class="sign-name">Mr. S. Vorster</div>
+                            <div class="sign-role">SGB Secretariat / Admin</div>
+                        </div>
+                    </div>
+                </div>
+            `;
         }
 
         els.printableAgenda.innerHTML = html;
@@ -3922,6 +4296,246 @@ async function showExportModal() {
         showToast('Failed to generate agenda preview', true);
     }
 }
+
+// ── Attendance Register Modal ──
+let attendanceRosterState = null;
+
+async function showAttendanceModal() {
+    try {
+        const data = await api.getAttendance();
+        if (!data) return;
+
+        attendanceRosterState = data;
+        renderAttendanceModalContent();
+        els.attendanceModal.classList.add('active');
+    } catch (error) {
+        showToast('Failed to load formal attendance register', true);
+    }
+}
+
+function closeAttendanceModal() {
+    if (els.attendanceModal) {
+        els.attendanceModal.classList.remove('active');
+    }
+}
+
+function renderAttendanceModalContent() {
+    if (!attendanceRosterState) return;
+    const { schoolInfo, meetingInfo, stats, components } = attendanceRosterState;
+
+    // Calculate dynamic attendance stats
+    let totalCount = 0;
+    let presentCount = 0;
+    let apologyCount = 0;
+    let absentCount = 0;
+
+    components.forEach(group => {
+        group.members.forEach(m => {
+            totalCount++;
+            if (m.status === 'Present') presentCount++;
+            else if (m.status === 'Apology') apologyCount++;
+            else absentCount++;
+        });
+    });
+
+    const isQuorate = presentCount >= stats.quorumThreshold;
+    const quorumPercent = totalCount > 0 ? ((presentCount / totalCount) * 100).toFixed(1) : '100.0';
+
+    let html = `
+        <div class="print-agenda-header print-attendance-header">
+            <div class="print-header-top">
+                <img src="logo.svg" alt="Lady Grey Arts Academy Logo" class="print-school-logo">
+                <div class="print-header-titles">
+                    <div class="print-school-dept">${escapeHTML(schoolInfo.department)} • ${escapeHTML(schoolInfo.district)}</div>
+                    <h1 class="print-school-name">${escapeHTML(schoolInfo.name)}</h1>
+                    <div class="print-school-sub">School Governing Body &amp; School Management Team</div>
+                </div>
+                <div class="print-header-badge">
+                    <span class="badge-title">OFFICIAL</span>
+                    <span class="badge-sub">ATTENDANCE</span>
+                </div>
+            </div>
+
+            <div class="print-meeting-card">
+                <div class="print-meeting-title-row">
+                    <h2 class="print-meeting-title">OFFICIAL SGB &amp; SMT MEETING ATTENDANCE REGISTER</h2>
+                    <span class="print-badge-type">Statutory Quorum Declaration</span>
+                </div>
+                <div class="print-meta-grid">
+                    <div class="print-meta-cell">
+                        <span class="meta-label">📅 Date &amp; Time:</span>
+                        <span class="meta-val">${escapeHTML(meetingInfo.dateFormatted)} — ${escapeHTML(meetingInfo.time)}</span>
+                    </div>
+                    <div class="print-meta-cell">
+                        <span class="meta-label">📍 Venue:</span>
+                        <span class="meta-val">${escapeHTML(meetingInfo.venue)}</span>
+                    </div>
+                    <div class="print-meta-cell">
+                        <span class="meta-label">🏛️ Meeting Type:</span>
+                        <span class="meta-val">${escapeHTML(meetingInfo.type)}</span>
+                    </div>
+                    <div class="print-meta-cell">
+                        <span class="meta-label">⚖️ Statutory Authority:</span>
+                        <span class="meta-val">SASA Act No. 84 of 1996 (Sections 12 &amp; 18)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quorum Summary Banner -->
+            <div class="quorum-summary-card ${isQuorate ? 'quorum-passed' : 'quorum-failed'}">
+                <div class="quorum-summary-main">
+                    <div class="quorum-status-pill">
+                        ${isQuorate ? '✅ DULY CONSTITUTED &amp; QUORATE' : '⚠️ NON-QUORATE SITTING'}
+                    </div>
+                    <div class="quorum-stats-text">
+                        <strong>Total Members:</strong> ${totalCount} &nbsp;|&nbsp; 
+                        <strong>Present:</strong> ${presentCount} (${quorumPercent}%) &nbsp;|&nbsp; 
+                        <strong>Apologies:</strong> ${apologyCount} &nbsp;|&nbsp; 
+                        <strong>Required Quorum (&gt;50%):</strong> ${stats.quorumThreshold} Members
+                    </div>
+                </div>
+                <div class="quorum-legal-note">
+                    ${isQuorate 
+                        ? 'Statutory quorum requirement satisfied. Meeting is legally empowered to adopt binding governance resolutions.' 
+                        : 'Quorum requirement not met. Decisions subject to subsequent ratification.'}
+                </div>
+            </div>
+        </div>
+
+        <!-- Attendance Roster by Component -->
+        <div class="attendance-roster-section">
+            <h3 class="attendance-section-title">1. RECORD OF ATTENDANCE BY GOVERNANCE COMPONENT</h3>
+    `;
+
+    let globalIndex = 1;
+    components.forEach((group) => {
+        html += `
+            <div class="attendance-component-block">
+                <h4 class="attendance-component-heading">${escapeHTML(group.name)}</h4>
+                <div class="table-responsive">
+                    <table class="attendance-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 36px; text-align: center;">#</th>
+                                <th style="width: 25%;">Member Name &amp; Title</th>
+                                <th style="width: 28%;">Governance / SMT Role</th>
+                                <th style="width: 17%; text-align: center;">Status</th>
+                                <th style="width: 12%; text-align: center;">Time In</th>
+                                <th style="width: 18%; text-align: center;">Signature / Initial</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+        `;
+
+        group.members.forEach((member) => {
+            const memberIdx = globalIndex++;
+            const fullName = `${member.title ? member.title + ' ' : ''}${member.name}`;
+            html += `
+                <tr class="attendance-row ${member.status.toLowerCase()}">
+                    <td style="text-align: center; font-weight: 600; color: var(--text-muted);">${memberIdx}</td>
+                    <td>
+                        <strong>${escapeHTML(fullName)}</strong>
+                        ${member.email ? `<br><small class="text-muted">${escapeHTML(member.email)}</small>` : ''}
+                    </td>
+                    <td>
+                        <span class="member-role-text">${escapeHTML(member.role)}</span>
+                    </td>
+                    <td style="text-align: center;">
+                        <select class="attendance-status-select no-print" onchange="window.updateMemberAttendanceStatus('${escapeHTML(member.id)}', this.value)">
+                            <option value="Present" ${member.status === 'Present' ? 'selected' : ''}>Present</option>
+                            <option value="Apology" ${member.status === 'Apology' ? 'selected' : ''}>Apology</option>
+                            <option value="Absent" ${member.status === 'Absent' ? 'selected' : ''}>Absent</option>
+                        </select>
+                        <span class="attendance-print-status only-print ${member.status === 'Present' ? 'status-present' : 'status-apology'}">
+                            ${member.status === 'Present' ? '✔ Present' : (member.status === 'Apology' ? 'Apology' : 'Absent')}
+                        </span>
+                    </td>
+                    <td style="text-align: center; font-size: 0.88rem;">
+                        ${member.status === 'Present' ? '10:00' : '—'}
+                    </td>
+                    <td style="text-align: center;">
+                        ${member.status === 'Present' 
+                            ? `<div class="attendance-sig-space"><span class="attendance-signed-pill">Signed</span></div>` 
+                            : `<span class="text-muted" style="font-size: 0.8rem;">—</span>`}
+                    </td>
+                </tr>
+            `;
+        });
+
+        html += `
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+    });
+
+    html += `
+        </div>
+
+        <!-- Section 2: Apologies -->
+        <div class="attendance-apologies-block">
+            <h3 class="attendance-section-title">2. RECORD OF FORMAL APOLOGIES &amp; LEAVE OF ABSENCE</h3>
+            <div class="apologies-card">
+                ${apologyCount === 0 
+                    ? `<p class="apology-none-text">✅ No formal apologies were tendered; full governance quorum recorded in attendance.</p>`
+                    : `<ul class="apology-list">
+                        ${components.flatMap(g => g.members).filter(m => m.status === 'Apology').map(m => `
+                            <li><strong>${escapeHTML(m.title ? m.title + ' ' : '')}${escapeHTML(m.name)}</strong> (${escapeHTML(m.role)}): Formal apology tendered and recorded in terms of SGB meeting procedures.</li>
+                        `).join('')}
+                       </ul>`
+                }
+            </div>
+        </div>
+
+        <!-- Section 3: Verification & Certification -->
+        <div class="print-adoption-section print-attendance-certification">
+            <h3 class="attendance-section-title">3. VERIFICATION OF ATTENDANCE &amp; QUORUM CERTIFICATION</h3>
+            <p class="adoption-statement">
+                We, the undersigned executive office-bearers of the School Governing Body and School Management Team of Lady Grey Arts Academy, hereby certify that the above attendance roster represents an accurate, true, and complete record of the meeting held on <strong>27 August 2026</strong>.
+            </p>
+            <div class="print-sign-grid print-sign-grid--3">
+                <div class="print-sign-box">
+                    <div class="sign-line"></div>
+                    <div class="sign-name">Mr. K. Dyasi</div>
+                    <div class="sign-role">SGB Chairperson</div>
+                    <div class="sign-date">Date: 27 August 2026</div>
+                </div>
+                <div class="print-sign-box">
+                    <div class="sign-line"></div>
+                    <div class="sign-name">Ms. M. Botha</div>
+                    <div class="sign-role">School Principal</div>
+                    <div class="sign-date">Date: 27 August 2026</div>
+                </div>
+                <div class="print-sign-box">
+                    <div class="sign-line"></div>
+                    <div class="sign-name">Mr. S. Vorster</div>
+                    <div class="sign-role">SGB Secretariat / Admin</div>
+                    <div class="sign-date">Date: 27 August 2026</div>
+                </div>
+            </div>
+            <div class="cert-stamp-box">
+                <div class="stamp-border">
+                    <span>OFFICIAL SCHOOL STAMP</span>
+                </div>
+            </div>
+        </div>
+    `;
+
+    els.printableAttendance.innerHTML = html;
+}
+
+window.updateMemberAttendanceStatus = function(memberId, newStatus) {
+    if (!attendanceRosterState) return;
+    attendanceRosterState.components.forEach(group => {
+        group.members.forEach(m => {
+            if (m.id === memberId) {
+                m.status = newStatus;
+            }
+        });
+    });
+    renderAttendanceModalContent();
+};
 
 // ── Utilities ──
 function escapeHTML(str) {
@@ -4078,7 +4692,28 @@ function handleBackNavigation() {
         return;
     }
 
-    // 5. Any expanded comment / brainstorm drawers
+    // 5. Conclude Meeting Wizard Modal
+    if (els.concludeModal && els.concludeModal.classList.contains('active')) {
+        closeConcludeWizard();
+        rearmHistory();
+        return;
+    }
+
+    // 6. Archive Dossier Viewer Modal
+    if (els.archiveDossierModal && els.archiveDossierModal.classList.contains('active')) {
+        closeArchiveDossier();
+        rearmHistory();
+        return;
+    }
+
+    // 7. Edit Archive Modal
+    if (els.editArchiveModal && els.editArchiveModal.classList.contains('active')) {
+        closeEditArchiveModal();
+        rearmHistory();
+        return;
+    }
+
+    // 8. Any expanded comment / brainstorm drawers
     if (state.openComments && state.openComments.size > 0) {
         state.openComments.clear();
         renderItems();
@@ -4086,14 +4721,14 @@ function handleBackNavigation() {
         return;
     }
 
-    // 6. In Documents Vault View -> Switch back to Agenda view
-    if (state.activeTab === 'documents') {
+    // 9. In Documents Vault View or Archives View -> Switch back to Agenda view
+    if (state.activeTab === 'documents' || state.activeTab === 'archives') {
         switchTab('agenda');
         rearmHistory();
         return;
     }
 
-    // 7. Base Screen (Main View or Login View) -> Double back to exit
+    // 10. Base Screen (Main View or Login View) -> Double back to exit
     const now = Date.now();
     if (now - lastBackPressTime < 2000) {
         // Double press within 2s -> Allow exit
@@ -4105,5 +4740,1635 @@ function handleBackNavigation() {
     }
 }
 
+// ═════════════════════════════════════════════════════════════════
+// ── MEETING ARCHIVES, CONCLUDE WIZARD & DOSSIER VIEWER MODULE ───
+// ═════════════════════════════════════════════════════════════════
+
+// Update Header, Login Screen, and countdown with dynamic meeting info
+function updateMeetingHeaderInfo(info) {
+    if (!info) return;
+    const headerSubtitle = document.querySelector('.header-title .subtitle');
+    if (headerSubtitle) {
+        const formattedDate = formatDateLong(info.date || '2026-08-27');
+        headerSubtitle.textContent = `${info.title || 'SGB/SMT Strategy Meeting'} • ${formattedDate} @ ${info.time || '10:00'} · ${info.venue || 'Staff Room'}`;
+    }
+    const loginDesc = document.querySelector('.login-card p');
+    if (loginDesc) {
+        const formattedDate = formatDateLong(info.date || '2026-08-27');
+        loginDesc.innerHTML = `Welcome to the collaborative agenda builder for our upcoming sitting on <strong>${formattedDate} at ${info.time || '10:00 SAST'}</strong> in the <strong>${info.venue || 'School Staff Room'}</strong>. Select your name and enter your secure PIN to continue.`;
+    }
+}
+
+function formatDateLong(dateStr) {
+    if (!dateStr) return '';
+    try {
+        const d = new Date(dateStr + 'T00:00:00');
+        if (isNaN(d.getTime())) return dateStr;
+        return d.toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' });
+    } catch {
+        return dateStr;
+    }
+}
+
+function formatDayOnly(dateStr) {
+    if (!dateStr) return '01';
+    try {
+        const d = new Date(dateStr + 'T00:00:00');
+        if (isNaN(d.getTime())) return '01';
+        return d.toLocaleDateString('en-ZA', { day: '2-digit' });
+    } catch {
+        return '01';
+    }
+}
+
+function formatMonthYearOnly(dateStr) {
+    if (!dateStr) return 'AUG 2026';
+    try {
+        const d = new Date(dateStr + 'T00:00:00');
+        if (isNaN(d.getTime())) return 'AUG 2026';
+        return d.toLocaleDateString('en-ZA', { month: 'short', year: 'numeric' }).toUpperCase();
+    } catch {
+        return 'AUG 2026';
+    }
+}
+
+// ── Render Meeting Archives List ──
+function renderArchives() {
+    if (!els.archivesContainer) return;
+
+    let list = Array.isArray(state.archives) ? [...state.archives] : [];
+
+    // Filter by search query
+    const query = (state.archiveFilters.search || '').toLowerCase().trim();
+    if (query) {
+        list = list.filter(a => {
+            const title = (a.meetingInfo?.title || '').toLowerCase();
+            const date = (a.meetingInfo?.date || '').toLowerCase();
+            const notes = (a.notes || '').toLowerCase();
+            const resTitles = (a.resolutions || []).map(r => (r.itemTitle || r.title || '').toLowerCase()).join(' ');
+            return title.includes(query) || date.includes(query) || notes.includes(query) || resTitles.includes(query);
+        });
+    }
+
+    // Filter by category chip
+    const filterType = state.archiveFilters.filter;
+    if (filterType === 'audio') {
+        list = list.filter(a => a.hasAudio || (Array.isArray(a.audioFiles) && a.audioFiles.length > 0));
+    } else if (filterType === 'transcript') {
+        list = list.filter(a => a.hasTranscript || Boolean(a.transcript?.text && a.transcript.text.trim()) || (Array.isArray(a.transcript?.files) && a.transcript.files.length > 0));
+    } else if (filterType === 'signed') {
+        list = list.filter(a => a.hasSignedRegister || (Array.isArray(a.signedAttendanceFiles) && a.signedAttendanceFiles.length > 0));
+    } else if (filterType === 'resolutions') {
+        list = list.filter(a => (a.resolutionsCount > 0) || (Array.isArray(a.resolutions) && a.resolutions.length > 0));
+    }
+
+    // Sort list
+    const sortType = state.archiveFilters.sort;
+    if (sortType === 'newest') {
+        list.sort((a, b) => new Date(b.meetingInfo?.date || b.archivedAt) - new Date(a.meetingInfo?.date || a.archivedAt));
+    } else if (sortType === 'oldest') {
+        list.sort((a, b) => new Date(a.meetingInfo?.date || a.archivedAt) - new Date(b.meetingInfo?.date || b.archivedAt));
+    } else if (sortType === 'items') {
+        list.sort((a, b) => (b.itemsCount || 0) - (a.itemsCount || 0));
+    } else if (sortType === 'resolutions') {
+        list.sort((a, b) => (b.resolutionsCount || 0) - (a.resolutionsCount || 0));
+    }
+
+    if (list.length === 0) {
+        els.archivesContainer.innerHTML = '';
+        if (els.archivesEmptyState) els.archivesEmptyState.classList.remove('hidden');
+        return;
+    }
+
+    if (els.archivesEmptyState) els.archivesEmptyState.classList.add('hidden');
+
+    const adminUser = isAdmin();
+
+    els.archivesContainer.innerHTML = list.map(arch => {
+        const meetingInfo = arch.meetingInfo || {};
+        const stats = arch.stats || {};
+        const meetingDate = meetingInfo.date || arch.archivedAt?.split('T')[0] || '2026-08-27';
+        const day = formatDayOnly(meetingDate);
+        const monthYear = formatMonthYearOnly(meetingDate);
+        const hasAudio = arch.hasAudio || (Array.isArray(arch.audioFiles) && arch.audioFiles.length > 0);
+        const audioCount = arch.audioCount || (Array.isArray(arch.audioFiles) ? arch.audioFiles.length : 0);
+        const hasSigned = arch.hasSignedRegister || (Array.isArray(arch.signedAttendanceFiles) && arch.signedAttendanceFiles.length > 0);
+        const resCount = arch.resolutionsCount || (Array.isArray(arch.resolutions) ? arch.resolutions.length : 0);
+        const itemsCount = arch.itemsCount || (Array.isArray(arch.agendaSnapshot) ? arch.agendaSnapshot.length : 0);
+
+        return `
+            <div class="archive-card" data-archive-id="${arch.id}">
+                <div>
+                    <div class="archive-card-header">
+                        <div class="archive-date-badge">
+                            <div class="archive-date-day">${day}</div>
+                            <div class="archive-date-month-year">${monthYear}</div>
+                        </div>
+                        <div class="archive-card-title-group">
+                            <h3 class="archive-card-title">${escapeHTML(meetingInfo.title || 'SGB/SMT Meeting')}</h3>
+                            <div class="archive-card-meta">
+                                <span>🕒 ${escapeHTML(meetingInfo.time || '10:00 SAST')}</span>
+                                <span>📍 ${escapeHTML(meetingInfo.venue || 'Staff Room')}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="archive-badges-wrap">
+                        ${hasAudio ? `<span class="archive-badge archive-badge--audio">🎙️ ${audioCount} Audio${audioCount > 1 ? 's' : ''}</span>` : ''}
+                        ${hasSigned ? `<span class="archive-badge archive-badge--signed">📝 Signed Register</span>` : ''}
+                        <span class="archive-badge archive-badge--res">⚖️ ${resCount} Decision${resCount !== 1 ? 's' : ''}</span>
+                        <span class="archive-badge archive-badge--quorum">👥 ${stats.presentCount ?? stats.totalMembers ?? 15} Present (${stats.quorumPercentage || '100%'})</span>
+                        <span class="archive-badge">📋 ${itemsCount} Items</span>
+                    </div>
+
+                    ${arch.notes ? `<p class="archive-card-summary">${escapeHTML(arch.notes)}</p>` : `<p class="archive-card-summary" style="font-style: italic; color: var(--text-muted);">Official sitting concluded and archived. Dossier contains full deliberations, voting log, audio recordings, and adopted resolutions.</p>`}
+                </div>
+
+                <div class="archive-card-footer">
+                    <button type="button" class="btn btn-primary btn-sm btn-open-archive-dossier" data-id="${arch.id}">
+                        📂 Open Dossier
+                    </button>
+                    <div class="archive-card-actions">
+                        <button type="button" class="btn btn-outline btn-sm btn-download-archive-docx" data-id="${arch.id}" title="Download Word Minutes (.docx)">
+                            📄 DOCX
+                        </button>
+                        <button type="button" class="btn btn-outline btn-sm btn-download-archive-zip" data-id="${arch.id}" title="Download Full Dossier ZIP Pack">
+                            📦 ZIP
+                        </button>
+                        ${adminUser ? `
+                            <button type="button" class="btn btn-outline btn-sm btn-edit-archive-quick" data-id="${arch.id}" title="Edit Archive Particulars & Resolutions">
+                                ✏️
+                            </button>
+                            <button type="button" class="btn btn-outline btn-sm btn-delete-archive-quick" data-id="${arch.id}" title="Delete Archive (Admin Only)" style="color: var(--danger); border-color: rgba(239, 68, 68, 0.3);">
+                                🗑️
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// ── Conclude & Archive Meeting Wizard Logic ──
+function openConcludeWizard() {
+    state.concludeStep = 1;
+    state.selectedConcludeAudios = [];
+    
+    // Pre-fill meeting metadata from current meetingInfo or defaults
+    const currentInfo = state.meetingInfo || {};
+    if (els.concludeMeetingTitle) els.concludeMeetingTitle.value = currentInfo.title || 'SGB/SMT Strategy Meeting';
+    if (els.concludeMeetingDate) els.concludeMeetingDate.value = currentInfo.date || '2026-08-27';
+    if (els.concludeMeetingTime) els.concludeMeetingTime.value = currentInfo.time || '10:00 SAST';
+    if (els.concludeMeetingVenue) els.concludeMeetingVenue.value = currentInfo.venue || 'School Staff Room / Boardroom';
+    if (els.concludeMeetingNotes) els.concludeMeetingNotes.value = currentInfo.summary || '';
+
+    // Render Stats Summary Card in Step 1
+    if (els.concludeStatsSummaryCard) {
+        const totalItems = state.items.length;
+        const totalVotes = state.items.reduce((sum, item) => sum + (Array.isArray(item.votes) ? item.votes.length : 0), 0);
+        const resolvedCount = state.items.filter(i => i.isResolved).length;
+        const docsCount = state.documents.length;
+        const membersCount = state.members.length || 15;
+
+        els.concludeStatsSummaryCard.innerHTML = `
+            <div class="conclude-stat-pill">
+                <span class="conclude-stat-pill-label">Proposed Topics</span>
+                <span class="conclude-stat-pill-val">${totalItems}</span>
+            </div>
+            <div class="conclude-stat-pill">
+                <span class="conclude-stat-pill-label">Total Votes</span>
+                <span class="conclude-stat-pill-val">${totalVotes}</span>
+            </div>
+            <div class="conclude-stat-pill">
+                <span class="conclude-stat-pill-label">Resolved Decisions</span>
+                <span class="conclude-stat-pill-val">${resolvedCount}</span>
+            </div>
+            <div class="conclude-stat-pill">
+                <span class="conclude-stat-pill-label">Supporting Files</span>
+                <span class="conclude-stat-pill-val">${docsCount}</span>
+            </div>
+            <div class="conclude-stat-pill">
+                <span class="conclude-stat-pill-label">Convened Members</span>
+                <span class="conclude-stat-pill-val">${membersCount}</span>
+            </div>
+        `;
+    }
+
+    // Step 2 Audio Tray Reset
+    if (els.concludeAudioTray) els.concludeAudioTray.innerHTML = '';
+    if (els.concludeAudioInput) els.concludeAudioInput.value = '';
+
+    // Step 3 Transcript Reset
+    if (els.concludeTranscriptFileInput) els.concludeTranscriptFileInput.value = '';
+    if (els.concludeTranscriptText) els.concludeTranscriptText.value = '';
+
+    // Step 4 Pre-populate Resolutions
+    state.concludeResolutions = [];
+    state.items.forEach(item => {
+        if (item.isResolved && item.resolution) {
+            state.concludeResolutions.push({
+                itemId: item.id,
+                itemTitle: item.title,
+                decision: 'Adopted',
+                resolutionText: item.resolution.solutionText || item.resolution.summary || '',
+                actionItems: [
+                    { task: `Execute resolution on "${item.title}"`, assignee: item.proposedBy?.memberName || '', dueDate: '', priority: 'High', status: 'Pending' }
+                ]
+            });
+        }
+    });
+
+    if (state.concludeResolutions.length === 0) {
+        state.concludeResolutions.push({
+            itemId: null,
+            itemTitle: 'Adoption of Agenda & Strategic Directives',
+            decision: 'Adopted',
+            resolutionText: 'The meeting unanimously resolved to adopt all deliberations and proceedings as official policy.',
+            actionItems: []
+        });
+    }
+    renderConcludeResolutions();
+
+    // Step 5 Attendance review pre-fill
+    renderConcludeAttendanceReview();
+
+    // Next Meeting setup pre-fill
+    const currentDate = currentInfo.date ? new Date(currentInfo.date) : new Date();
+    const nextDate = new Date(currentDate.getTime() + 30 * 24 * 60 * 60 * 1000);
+    const nextDateStr = nextDate.toISOString().split('T')[0];
+    if (els.nextMeetingDate) els.nextMeetingDate.value = nextDateStr;
+    if (els.nextMeetingTitle) els.nextMeetingTitle.value = 'SGB & SMT Ordinary Meeting';
+    if (els.nextMeetingTime) els.nextMeetingTime.value = '10:00 SAST';
+    if (els.nextMeetingVenue) els.nextMeetingVenue.value = 'School Staff Room / Boardroom';
+    if (els.concludeClearVault) els.concludeClearVault.checked = true;
+
+    if (els.concludeSignedRegInput) els.concludeSignedRegInput.value = '';
+    if (els.concludeSignedRegTitle) els.concludeSignedRegTitle.textContent = 'Click to upload official signed attendance scan / PDF';
+    if (els.concludeSignedRegError) els.concludeSignedRegError.textContent = '';
+    if (els.concludeProgressWrapper) els.concludeProgressWrapper.classList.add('hidden');
+
+    updateConcludeWizardStep(1);
+    if (els.concludeModal) els.concludeModal.classList.add('active');
+}
+
+function closeConcludeWizard() {
+    if (els.concludeModal) els.concludeModal.classList.remove('active');
+}
+
+function updateConcludeWizardStep(step) {
+    state.concludeStep = step;
+
+    // Update wizard nodes
+    document.querySelectorAll('.wizard-step-node').forEach(node => {
+        const s = parseInt(node.dataset.step, 10);
+        node.classList.toggle('active', s === step);
+        node.classList.toggle('completed', s < step);
+    });
+
+    // Update panels
+    for (let i = 1; i <= 5; i++) {
+        const panel = document.getElementById(`conclude-step-${i}`);
+        if (panel) panel.classList.toggle('active', i === step);
+    }
+
+    // Button states
+    if (els.btnConcludePrev) els.btnConcludePrev.style.visibility = step === 1 ? 'hidden' : 'visible';
+    if (els.btnConcludeNext) {
+        if (step === 5) {
+            els.btnConcludeNext.classList.add('hidden');
+            if (els.btnConcludeSubmit) els.btnConcludeSubmit.classList.remove('hidden');
+        } else {
+            els.btnConcludeNext.classList.remove('hidden');
+            if (els.btnConcludeSubmit) els.btnConcludeSubmit.classList.add('hidden');
+        }
+    }
+}
+
+// Render dynamic resolutions editor in Conclude Wizard
+function renderConcludeResolutions() {
+    if (!els.concludeResolutionsList) return;
+    if (els.concludeResCount) els.concludeResCount.textContent = state.concludeResolutions.length;
+
+    const membersList = state.members || [];
+
+    els.concludeResolutionsList.innerHTML = state.concludeResolutions.map((res, resIdx) => `
+        <div class="resolution-card-editor" data-res-index="${resIdx}">
+            <div class="resolution-card-top-row">
+                <input type="text" class="form-input res-edit-title" value="${escapeHTML(res.itemTitle || '')}" placeholder="Resolution / Decision Topic Title" required style="font-weight: 700;">
+                <select class="resolution-decision-select res-edit-decision">
+                    <option value="Adopted" ${res.decision === 'Adopted' ? 'selected' : ''}>✅ Adopted</option>
+                    <option value="Approved" ${res.decision === 'Approved' ? 'selected' : ''}>👍 Approved</option>
+                    <option value="Deferred" ${res.decision === 'Deferred' ? 'selected' : ''}>⏳ Deferred</option>
+                    <option value="Rejected" ${res.decision === 'Rejected' ? 'selected' : ''}>❌ Rejected</option>
+                    <option value="Action Required" ${res.decision === 'Action Required' ? 'selected' : ''}>🎯 Action Required</option>
+                </select>
+                <button type="button" class="btn-link-action btn-remove-resolution" data-res-index="${resIdx}" style="color: var(--danger);" title="Remove resolution">✕</button>
+            </div>
+            
+            <textarea class="form-textarea res-edit-text" rows="2" placeholder="Record agreed binding resolution text...">${escapeHTML(res.resolutionText || '')}</textarea>
+
+            <div class="action-items-editor-box">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">Action Items &amp; Deadlines</span>
+                    <button type="button" class="btn-link-action btn-add-action-item" data-res-index="${resIdx}">+ Add Action Item</button>
+                </div>
+
+                <div class="action-items-list-container" data-res-index="${resIdx}">
+                    ${(res.actionItems || []).map((act, actIdx) => `
+                        <div class="action-item-row-edit" data-act-index="${actIdx}">
+                            <input type="text" class="form-input act-edit-task" placeholder="Task description..." value="${escapeHTML(act.task || '')}" required>
+                            <select class="form-input act-edit-assignee">
+                                <option value="">Select Assignee...</option>
+                                ${membersList.map(m => `<option value="${escapeHTML(m.name)}" ${act.assignee === m.name ? 'selected' : ''}>${escapeHTML(m.name)} (${escapeHTML(m.role)})</option>`).join('')}
+                            </select>
+                            <input type="date" class="form-input act-edit-due" value="${act.dueDate || ''}">
+                            <button type="button" class="btn-link-action btn-remove-action-item" data-res-index="${resIdx}" data-act-index="${actIdx}" style="color: var(--danger);">✕</button>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Render dynamic attendance verification checklist in Conclude Step 5
+function renderConcludeAttendanceReview() {
+    if (!els.concludeAttendanceReviewBox) return;
+
+    const membersList = state.members || [];
+    const componentsMap = {
+        'Parent Component': [],
+        'Management / SMT Component': [],
+        'Educator Component': [],
+        'Non-Teaching Staff & Secretariat Component': []
+    };
+
+    membersList.forEach((m, idx) => {
+        const comp = getMemberComponent(m.role);
+        if (!componentsMap[comp]) componentsMap[comp] = [];
+        componentsMap[comp].push({
+            id: m.id || `m-${idx}`,
+            name: m.name,
+            role: m.role,
+            status: 'Present'
+        });
+    });
+
+    state.concludeAttendance = {
+        components: Object.entries(componentsMap)
+            .filter(([_, list]) => list.length > 0)
+            .map(([name, list]) => ({ name, members: list }))
+    };
+
+    els.concludeAttendanceReviewBox.innerHTML = `
+        <div style="background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.75rem 1rem; margin-top: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <strong style="font-size: 0.88rem;">👥 Digital Attendance &amp; Quorum Verification (${membersList.length} Members)</strong>
+                <span class="badge badge--success" style="font-size: 0.75rem;">Quorate (Legally Valid)</span>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0.5rem; max-height: 180px; overflow-y: auto; padding-right: 0.25rem;">
+                ${membersList.map((m, idx) => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; background: var(--white); border: 1px solid var(--border-color); border-radius: 6px; padding: 0.35rem 0.65rem; font-size: 0.8rem;">
+                        <span style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 140px;">${escapeHTML(m.name)}</span>
+                        <select class="conclude-att-status-select" data-member-idx="${idx}" style="font-size: 0.75rem; padding: 0.15rem 0.35rem; border-radius: 4px; border: 1px solid var(--border-color);">
+                            <option value="Present" selected>Present</option>
+                            <option value="Apology">Apology</option>
+                            <option value="Absent">Absent</option>
+                        </select>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+}
+
+// ── Open & Render Archive Dossier Modal ──
+async function openArchiveDossier(archiveId) {
+    try {
+        const arch = await api.getArchive(archiveId);
+        if (!arch) return;
+
+        state.activeArchive = arch;
+        state.dossierActiveTab = 'overview';
+
+        const meetingInfo = arch.meetingInfo || {};
+        const meetingDate = meetingInfo.date || '2026-08-27';
+
+        if (els.dossierModalTitle) els.dossierModalTitle.textContent = `${meetingInfo.title || 'SGB/SMT Strategy Meeting'}`;
+        if (els.dossierModalSubtitle) els.dossierModalSubtitle.textContent = `Official Meeting Dossier • ${formatDateLong(meetingDate)} • ${meetingInfo.venue || 'Staff Room'}`;
+
+        // Update dossier tab counts
+        const audioCount = Array.isArray(arch.audioFiles) ? arch.audioFiles.length : 0;
+        const resCount = Array.isArray(arch.resolutions) ? arch.resolutions.length : 0;
+        const itemsCount = Array.isArray(arch.agendaSnapshot) ? arch.agendaSnapshot.length : 0;
+        const filesCount = Array.isArray(arch.vaultDocuments) ? arch.vaultDocuments.length : 0;
+
+        if (els.dossierAudioTabCount) els.dossierAudioTabCount.textContent = audioCount;
+        if (els.dossierResTabCount) els.dossierResTabCount.textContent = resCount;
+        if (els.dossierItemsTabCount) els.dossierItemsTabCount.textContent = itemsCount;
+        if (els.dossierFilesTabCount) els.dossierFilesTabCount.textContent = filesCount;
+
+        // Admin edit button visibility
+        if (els.btnDossierEdit) {
+            if (isAdmin()) els.btnDossierEdit.classList.remove('hidden');
+            else els.btnDossierEdit.classList.add('hidden');
+        }
+
+        renderDossierContent();
+
+        // Activate Overview tab strip button
+        document.querySelectorAll('.dossier-tab-btn').forEach(b => {
+            b.classList.toggle('active', b.dataset.dtab === 'overview');
+        });
+
+        if (els.archiveDossierModal) els.archiveDossierModal.classList.add('active');
+    } catch (error) {
+        console.error('Error opening archive dossier:', error);
+        showToast(error.message || 'Failed to open meeting dossier', true);
+    }
+}
+
+function closeArchiveDossier() {
+    // Pause any playing audio
+    if (els.archiveDossierModal) {
+        const audios = els.archiveDossierModal.querySelectorAll('audio');
+        audios.forEach(a => { try { a.pause(); } catch {} });
+        els.archiveDossierModal.classList.remove('active');
+    }
+}
+
+// Render active tab inside Dossier Modal
+function renderDossierContent() {
+    if (!els.dossierModalBody || !state.activeArchive) return;
+    const arch = state.activeArchive;
+    const tab = state.dossierActiveTab;
+
+    if (tab === 'overview') {
+        renderDossierOverview(arch);
+    } else if (tab === 'audio') {
+        renderDossierAudio(arch);
+    } else if (tab === 'transcript') {
+        renderDossierTranscript(arch);
+    } else if (tab === 'resolutions') {
+        renderDossierResolutions(arch);
+    } else if (tab === 'agenda') {
+        renderDossierAgenda(arch);
+    } else if (tab === 'attendance') {
+        renderDossierAttendance(arch);
+    } else if (tab === 'files') {
+        renderDossierFiles(arch);
+    }
+}
+
+function renderDossierOverview(arch) {
+    const meetingInfo = arch.meetingInfo || {};
+    const stats = arch.stats || {};
+    const meetingDate = meetingInfo.date || '2026-08-27';
+
+    els.dossierModalBody.innerHTML = `
+        <div class="printable-area dossier-printable-view">
+            <!-- Official Header -->
+            <div class="letterhead" style="margin-bottom: 1.5rem;">
+                <div class="color-bar" style="height: 4px; background: linear-gradient(90deg, var(--primary), var(--accent)); margin-bottom: 1rem;"></div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <img src="logo.svg" alt="LGAA Logo" style="width: 54px; height: 54px;">
+                        <div>
+                            <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--primary); margin: 0;">LADY GREY ARTS ACADEMY</h2>
+                            <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">School Governing Body &amp; School Management Team</span>
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <span class="badge" style="background: var(--primary); color: #fff; font-size: 0.8rem; font-weight: 700; padding: 0.35rem 0.75rem;">OFFICIAL ARCHIVE</span>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">EMIS: 200600985 • Joe Gqabi</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Meeting Overview Cards -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                <div style="background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 1.25rem;">
+                    <h4 style="font-size: 0.95rem; margin-bottom: 0.75rem; color: var(--primary);">📋 Meeting Particulars</h4>
+                    <div style="font-size: 0.85rem; line-height: 1.6;">
+                        <div><strong>Title:</strong> ${escapeHTML(meetingInfo.title || 'SGB/SMT Strategy Meeting')}</div>
+                        <div><strong>Date &amp; Time:</strong> ${formatDateLong(meetingDate)} @ ${escapeHTML(meetingInfo.time || '10:00 SAST')}</div>
+                        <div><strong>Venue:</strong> ${escapeHTML(meetingInfo.venue || 'School Staff Room / Boardroom')}</div>
+                        <div><strong>Chairperson:</strong> ${escapeHTML(meetingInfo.chairperson || 'Mr. Kwezi Dyasi')}</div>
+                        <div><strong>Secretariat:</strong> ${escapeHTML(meetingInfo.secretary || 'Mr. Stephen Vorster')}</div>
+                    </div>
+                </div>
+
+                <div style="background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 1.25rem;">
+                    <h4 style="font-size: 0.95rem; margin-bottom: 0.75rem; color: #059669;">👥 Quorum &amp; Legal Mandate</h4>
+                    <div style="font-size: 0.85rem; line-height: 1.6;">
+                        <div><strong>Statutory Authority:</strong> SASA Act 84 of 1996 (Sections 12 &amp; 18)</div>
+                        <div><strong>Quorum Certification:</strong> <span class="badge badge--success" style="font-size: 0.75rem;">Legally Quorate (${stats.quorumPercentage || '100%'})</span></div>
+                        <div><strong>Total Members:</strong> ${stats.totalMembers || 15} | <strong>Present:</strong> ${stats.presentCount || 15}</div>
+                        <div><strong>Apologies:</strong> ${stats.apologyCount || 0} | <strong>Absent:</strong> ${stats.absentCount || 0}</div>
+                        <div><strong>Archived By:</strong> ${escapeHTML(arch.archivedBy?.memberName || 'Secretariat')} on ${formatDateLong(arch.archivedAt?.split('T')[0])}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notes & Executive Summary -->
+            <div style="background: var(--white); border: 1px solid var(--border-color); border-radius: 10px; padding: 1.25rem; margin-bottom: 1.5rem;">
+                <h4 style="font-size: 0.95rem; margin-bottom: 0.5rem; color: var(--text-main);">📝 Secretariat Executive Summary</h4>
+                <p style="font-size: 0.88rem; line-height: 1.6; color: var(--text-muted); margin: 0;">
+                    ${arch.notes ? escapeHTML(arch.notes) : 'All agenda items were formally deliberated in accordance with SGB statutory guidelines. The meeting arrived at binding governance resolutions and adopted actionable mandates.'}
+                </p>
+            </div>
+
+            <!-- Quick Action Downloads Strip -->
+            <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; justify-content: space-between; background: rgba(12, 79, 242, 0.05); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.75rem 1.25rem;">
+                <span style="font-size: 0.85rem; font-weight: 600;">📥 Complete Governance Dossier Exports:</span>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button type="button" class="btn btn-secondary btn-sm btn-download-archive-docx" data-id="${arch.id}">📄 Download Word Minutes</button>
+                    <button type="button" class="btn btn-primary btn-sm btn-download-archive-zip" data-id="${arch.id}">📦 Download Full Dossier ZIP</button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function renderDossierAudio(arch) {
+    const audios = Array.isArray(arch.audioFiles) ? arch.audioFiles : [];
+    if (audios.length === 0) {
+        els.dossierModalBody.innerHTML = `
+            <div class="empty-state" style="padding: 3rem 1rem;">
+                <div class="empty-icon">🎙️</div>
+                <h3>No Audio Recordings Attached</h3>
+                <p>No audio files were uploaded for this sitting. You can attach recordings by clicking <strong>✏️ Edit Archive</strong>.</p>
+            </div>
+        `;
+        return;
+    }
+
+    els.dossierModalBody.innerHTML = `
+        <div style="padding: 0.5rem 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3 style="font-size: 1.1rem; margin: 0;">🎙️ Official Audio Recordings (${audios.length})</h3>
+                <small style="color: var(--text-muted);">High-Fidelity in-browser playback with speed &amp; download controls</small>
+            </div>
+
+            <div class="audio-recordings-grid">
+                ${audios.map((af, idx) => {
+                    const streamUrl = `/api/archives/${arch.id}/audio/${af.id}/stream?token=${encodeURIComponent(state.token || '')}`;
+                    const downloadUrl = `/api/archives/${arch.id}/files/${af.id}/download?token=${encodeURIComponent(state.token || '')}`;
+                    return `
+                        <div class="audio-player-card">
+                            <div class="audio-player-card-header">
+                                <span class="audio-player-title">🎙️ Audio Part ${idx + 1}: ${escapeHTML(af.originalName)}</span>
+                                <span class="badge" style="font-size: 0.72rem;">${formatBytes(af.size)}</span>
+                            </div>
+                            <audio controls class="audio-native-player" preload="metadata" data-audio-id="${af.id}">
+                                <source src="${streamUrl}" type="${af.mimeType || 'audio/mpeg'}">
+                                Your browser does not support audio playback.
+                            </audio>
+                            <div class="audio-player-controls-row">
+                                <label style="font-size: 0.78rem; font-weight: 600; color: var(--text-muted);">Speed:</label>
+                                <select class="filter-select audio-speed-select" data-audio-id="${af.id}" style="padding: 0.25rem 0.5rem; font-size: 0.78rem;">
+                                    <option value="1">1.0x Normal</option>
+                                    <option value="1.25">1.25x Fast</option>
+                                    <option value="1.5">1.5x Rapid</option>
+                                    <option value="2">2.0x Double</option>
+                                </select>
+                                <a href="${downloadUrl}" download="${escapeHTML(af.originalName)}" class="btn btn-outline btn-sm" style="margin-left: auto; font-size: 0.78rem;">
+                                    ⬇️ Download
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        </div>
+    `;
+
+    // Attach playback speed listeners
+    els.dossierModalBody.querySelectorAll('.audio-speed-select').forEach(sel => {
+        sel.addEventListener('change', (e) => {
+            const audioId = e.target.dataset.audioId;
+            const player = els.dossierModalBody.querySelector(`audio[data-audio-id="${audioId}"]`);
+            if (player) {
+                player.playbackRate = parseFloat(e.target.value);
+            }
+        });
+    });
+}
+
+function renderDossierTranscript(arch) {
+    const transcriptText = arch.transcript?.text || '';
+    const transcriptFiles = Array.isArray(arch.transcript?.files) ? arch.transcript.files : [];
+
+    if (!transcriptText && transcriptFiles.length === 0) {
+        els.dossierModalBody.innerHTML = `
+            <div class="empty-state" style="padding: 3rem 1rem;">
+                <div class="empty-icon">📄</div>
+                <h3>No Transcript Available</h3>
+                <p>No transcript text or document was uploaded for this sitting. You can add one via <strong>✏️ Edit Archive</strong>.</p>
+            </div>
+        `;
+        return;
+    }
+
+    els.dossierModalBody.innerHTML = `
+        <div class="transcript-viewer-card">
+            <div class="transcript-toolbar">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <h3 style="font-size: 1.1rem; margin: 0;">📄 Meeting Deliberation Transcript</h3>
+                    ${transcriptFiles.length > 0 ? `<span class="badge" style="font-size: 0.75rem;">${transcriptFiles.length} Attached Document${transcriptFiles.length > 1 ? 's' : ''}</span>` : ''}
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    ${transcriptText ? `
+                        <button type="button" class="btn btn-outline btn-sm btn-copy-transcript">📋 Copy Text</button>
+                        <button type="button" class="btn btn-outline btn-sm btn-download-transcript-txt">⬇️ Text (.txt)</button>
+                    ` : ''}
+                </div>
+            </div>
+
+            ${transcriptFiles.length > 0 ? `
+                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color);">
+                    ${transcriptFiles.map(tf => {
+                        const downloadUrl = `/api/archives/${arch.id}/files/${tf.id}/download?token=${encodeURIComponent(state.token || '')}`;
+                        return `
+                            <a href="${downloadUrl}" download="${escapeHTML(tf.originalName)}" class="btn btn-secondary btn-sm">
+                                📎 ${escapeHTML(tf.originalName)} (${formatBytes(tf.size)})
+                            </a>
+                        `;
+                    }).join('')}
+                </div>
+            ` : ''}
+
+            <div class="transcript-body" id="dossier-transcript-content">${transcriptText ? escapeHTML(transcriptText) : '<em style="color: var(--text-muted);">Transcript documents attached above. Click to view or download.</em>'}</div>
+        </div>
+    `;
+
+    // Copy text trigger
+    const btnCopy = els.dossierModalBody.querySelector('.btn-copy-transcript');
+    if (btnCopy && transcriptText) {
+        btnCopy.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(transcriptText);
+                showToast('Transcript copied to clipboard!');
+            } catch {
+                showToast('Failed to copy to clipboard', true);
+            }
+        });
+    }
+
+    // Download TXT trigger
+    const btnDownloadTxt = els.dossierModalBody.querySelector('.btn-download-transcript-txt');
+    if (btnDownloadTxt && transcriptText) {
+        btnDownloadTxt.addEventListener('click', () => {
+            const blob = new Blob([transcriptText], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Transcript_${arch.meetingInfo?.date || 'Meeting'}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+    }
+}
+
+function renderDossierResolutions(arch) {
+    const resolutions = Array.isArray(arch.resolutions) ? arch.resolutions : [];
+    const resFiles = Array.isArray(arch.resolutionFiles) ? arch.resolutionFiles : [];
+
+    if (resolutions.length === 0 && resFiles.length === 0) {
+        els.dossierModalBody.innerHTML = `
+            <div class="empty-state" style="padding: 3rem 1rem;">
+                <div class="empty-icon">⚖️</div>
+                <h3>No Formal Resolutions Logged</h3>
+                <p>No resolutions were recorded for this sitting. You can add resolutions via <strong>✏️ Edit Archive</strong>.</p>
+            </div>
+        `;
+        return;
+    }
+
+    const decisionClassMap = {
+        'Adopted': 'decision-adopted',
+        'Approved': 'decision-approved',
+        'Deferred': 'decision-deferred',
+        'Rejected': 'decision-rejected',
+        'Action Required': 'decision-action'
+    };
+
+    els.dossierModalBody.innerHTML = `
+        <div style="padding: 0.5rem 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                <div>
+                    <h3 style="font-size: 1.15rem; margin: 0;">⚖️ Formal Governance Resolutions &amp; Action Plan (${resolutions.length})</h3>
+                    <small style="color: var(--text-muted);">Adopted strategic decisions, mandates, and assignable tasks</small>
+                </div>
+                ${resFiles.length > 0 ? `
+                    <div style="display: flex; gap: 0.4rem;">
+                        ${resFiles.map(rf => {
+                            const downloadUrl = `/api/archives/${arch.id}/files/${rf.id}/download?token=${encodeURIComponent(state.token || '')}`;
+                            return `<a href="${downloadUrl}" download="${escapeHTML(rf.originalName)}" class="btn btn-secondary btn-sm">📜 Signed Resolution Document</a>`;
+                        }).join('')}
+                    </div>
+                ` : ''}
+            </div>
+
+            <div class="resolutions-matrix-grid">
+                ${resolutions.map((res, idx) => {
+                    const dec = res.decision || 'Adopted';
+                    const decClass = decisionClassMap[dec] || 'decision-adopted';
+                    const actionItems = Array.isArray(res.actionItems) ? res.actionItems : [];
+
+                    return `
+                        <div class="resolution-matrix-card">
+                            <div class="resolution-matrix-header">
+                                <div>
+                                    <span style="font-size: 0.78rem; font-weight: 700; color: var(--primary); text-transform: uppercase;">Resolution ${idx + 1}</span>
+                                    <h4 style="font-size: 1.05rem; font-weight: 700; margin: 0.15rem 0 0.35rem 0;">${escapeHTML(res.itemTitle || res.title || ('Resolution ' + (idx + 1)))}</h4>
+                                </div>
+                                <span class="resolution-decision-badge ${decClass}">${dec}</span>
+                            </div>
+
+                            <p style="font-size: 0.9rem; line-height: 1.6; color: var(--text-main); margin-bottom: 0.75rem;">
+                                ${escapeHTML(res.resolutionText || res.text || 'Resolution adopted by unanimous sitting consensus.')}
+                            </p>
+
+                            ${actionItems.length > 0 ? `
+                                <div style="margin-top: 0.75rem;">
+                                    <strong style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted);">Action Items &amp; Deadlines:</strong>
+                                    <table class="action-items-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Task</th>
+                                                <th>Responsible Person</th>
+                                                <th>Due Date</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${actionItems.map(act => `
+                                                <tr>
+                                                    <td><strong>${escapeHTML(act.task || '')}</strong></td>
+                                                    <td>${escapeHTML(act.assignee || 'Assigned Officer')}</td>
+                                                    <td>${act.dueDate ? formatDateLong(act.dueDate) : 'Immediate'}</td>
+                                                    <td><span class="badge badge--success" style="font-size: 0.72rem;">${escapeHTML(act.status || 'Pending')}</span></td>
+                                                </tr>
+                                            `).join('')}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        </div>
+    `;
+}
+
+function renderDossierAgenda(arch) {
+    const items = Array.isArray(arch.agendaSnapshot) ? arch.agendaSnapshot : [];
+
+    if (items.length === 0) {
+        els.dossierModalBody.innerHTML = `
+            <div class="empty-state" style="padding: 3rem 1rem;">
+                <div class="empty-icon">📋</div>
+                <h3>No Agenda Items Logged</h3>
+                <p>No agenda items were captured in this sitting snapshot.</p>
+            </div>
+        `;
+        return;
+    }
+
+    els.dossierModalBody.innerHTML = `
+        <div style="padding: 0.5rem 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3 style="font-size: 1.15rem; margin: 0;">📋 Agenda Items &amp; Deliberations Log (${items.length})</h3>
+                <small style="color: var(--text-muted);">Complete record of topics, proposer, votes, and brainstorm comments</small>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                ${items.map((item, idx) => {
+                    const votes = Array.isArray(item.votes) ? item.votes : [];
+                    const comments = Array.isArray(item.comments) ? item.comments : [];
+                    return `
+                        <div style="background: var(--white); border: 1px solid var(--border-color); border-radius: 10px; padding: 1.25rem; box-shadow: var(--shadow-sm);">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem;">
+                                <div>
+                                    <span style="font-size: 0.75rem; font-weight: 700; color: var(--primary);">ITEM ${idx + 1} • ${escapeHTML(item.category || 'General')}</span>
+                                    <h4 style="font-size: 1.05rem; font-weight: 700; margin: 0.2rem 0;">${escapeHTML(item.title)}</h4>
+                                    <div style="font-size: 0.8rem; color: var(--text-muted);">
+                                        Proposed by: <strong>${escapeHTML(item.proposedBy?.memberName || 'Member')}</strong> (${escapeHTML(item.proposedBy?.memberRole || 'Governance')})
+                                    </div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <span class="badge" style="background: rgba(12, 79, 242, 0.1); color: var(--primary); font-size: 0.8rem; font-weight: 700;">${votes.length} Votes</span>
+                                </div>
+                            </div>
+
+                            <p style="font-size: 0.88rem; line-height: 1.6; color: var(--text-main); margin: 0.75rem 0;">
+                                ${escapeHTML(item.description)}
+                            </p>
+
+                            ${item.isResolved && item.resolution ? `
+                                <div style="background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 6px; padding: 0.6rem 0.85rem; font-size: 0.84rem; color: #166534; margin: 0.5rem 0;">
+                                    <strong>⭐ Agreed Resolution:</strong> ${escapeHTML(item.resolution.solutionText || item.resolution.summary || '')}
+                                </div>
+                            ` : ''}
+
+                            ${comments.length > 0 ? `
+                                <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border-color);">
+                                    <strong style="font-size: 0.76rem; text-transform: uppercase; color: var(--text-muted);">Discussion Log (${comments.length}):</strong>
+                                    <div style="display: flex; flex-direction: column; gap: 0.4rem; margin-top: 0.4rem;">
+                                        ${comments.map(c => `
+                                            <div style="font-size: 0.82rem; background: var(--bg-color); border-radius: 6px; padding: 0.4rem 0.65rem;">
+                                                <strong>${escapeHTML(c.memberName)}:</strong> ${escapeHTML(c.content)}
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        </div>
+    `;
+}
+
+function renderDossierAttendance(arch) {
+    const signedFiles = Array.isArray(arch.signedAttendanceFiles) ? arch.signedAttendanceFiles : [];
+    const att = arch.attendance || {};
+    const components = Array.isArray(att.components) ? att.components : [];
+
+    els.dossierModalBody.innerHTML = `
+        <div style="padding: 0.5rem 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                <div>
+                    <h3 style="font-size: 1.15rem; margin: 0;">📝 Official Attendance Register &amp; Statutory Quorum</h3>
+                    <small style="color: var(--text-muted);">Certified physical signed register scan and digital component roster</small>
+                </div>
+                ${signedFiles.length > 0 ? `
+                    <div style="display: flex; gap: 0.5rem;">
+                        ${signedFiles.map(sf => {
+                            const downloadUrl = `/api/archives/${arch.id}/files/${sf.id}/download?token=${encodeURIComponent(state.token || '')}`;
+                            return `<a href="${downloadUrl}" download="${escapeHTML(sf.originalName)}" class="btn btn-primary btn-sm">📄 Download Official Signed Register</a>`;
+                        }).join('')}
+                    </div>
+                ` : ''}
+            </div>
+
+            ${signedFiles.length > 0 ? `
+                <div style="background: rgba(16, 185, 129, 0.06); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 0.85rem 1.25rem; margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <span style="font-size: 1.5rem;">📜</span>
+                        <div>
+                            <strong style="font-size: 0.92rem; color: #065F46;">Official Signed Register Attached</strong>
+                            <div style="font-size: 0.78rem; color: var(--text-muted);">${escapeHTML(signedFiles[0].originalName)} (${formatBytes(signedFiles[0].size)})</div>
+                        </div>
+                    </div>
+                    <a href="/api/archives/${arch.id}/files/${signedFiles[0].id}/download?token=${encodeURIComponent(state.token || '')}" class="btn btn-secondary btn-sm" download>⬇️ Open Document</a>
+                </div>
+            ` : `
+                <div style="background: #FEF3C7; border: 1px solid #FDE68A; border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1.25rem; font-size: 0.85rem; color: #92400E;">
+                    ⚠️ No physical signed register scan attached yet. Upload scan via <strong>✏️ Edit Archive</strong>.
+                </div>
+            `}
+
+            <!-- Statutory Roster by Component -->
+            <div style="background: var(--white); border: 1px solid var(--border-color); border-radius: 10px; padding: 1.25rem;">
+                <h4 style="font-size: 0.95rem; margin-bottom: 0.75rem;">Governance Component Roster</h4>
+                ${components.length > 0 ? components.map(comp => `
+                    <div style="margin-bottom: 1rem;">
+                        <strong style="font-size: 0.82rem; color: var(--primary); text-transform: uppercase;">${escapeHTML(comp.name)}</strong>
+                        <table class="action-items-table" style="margin-top: 0.35rem;">
+                            <thead>
+                                <tr>
+                                    <th>Member Name</th>
+                                    <th>Governance Role</th>
+                                    <th>Attendance Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${(comp.members || []).map(m => `
+                                    <tr>
+                                        <td><strong>${escapeHTML(m.title ? m.title + ' ' : '')}${escapeHTML(m.name)}</strong></td>
+                                        <td>${escapeHTML(m.role || 'Member')}</td>
+                                        <td><span class="badge ${m.status === 'Present' ? 'badge--success' : (m.status === 'Apology' ? 'badge--warning' : 'badge--danger')}" style="font-size: 0.72rem;">${escapeHTML(m.status || 'Present')}</span></td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `).join('') : `
+                    <p style="font-size: 0.85rem; color: var(--text-muted);">Full attendance certified in official signed register.</p>
+                `}
+            </div>
+        </div>
+    `;
+}
+
+function renderDossierFiles(arch) {
+    const files = Array.isArray(arch.vaultDocuments) ? arch.vaultDocuments : [];
+
+    if (files.length === 0) {
+        els.dossierModalBody.innerHTML = `
+            <div class="empty-state" style="padding: 3rem 1rem;">
+                <div class="empty-icon">📁</div>
+                <h3>No Vault Files Attached</h3>
+                <p>No supporting shared documents were active in the vault during this sitting.</p>
+            </div>
+        `;
+        return;
+    }
+
+    els.dossierModalBody.innerHTML = `
+        <div style="padding: 0.5rem 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3 style="font-size: 1.15rem; margin: 0;">📁 Supporting Documents Vault (${files.length})</h3>
+                <small style="color: var(--text-muted);">Supporting reports, financials, and proposals tabled during sitting</small>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem;">
+                ${files.map(doc => {
+                    const downloadUrl = `/api/documents/${doc.id}/download?token=${encodeURIComponent(state.token || '')}`;
+                    return `
+                        <div style="background: var(--white); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; justify-content: space-between;">
+                            <div>
+                                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                    <span style="font-size: 1.25rem;">📄</span>
+                                    <strong style="font-size: 0.92rem; word-break: break-all;">${escapeHTML(doc.title || doc.originalName)}</strong>
+                                </div>
+                                <div style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+                                    Size: ${formatBytes(doc.size)} • Type: ${(doc.extension || 'file').toUpperCase()}
+                                </div>
+                            </div>
+                            <a href="${downloadUrl}" download="${escapeHTML(doc.originalName)}" class="btn btn-outline btn-sm" style="text-align: center;">
+                                ⬇️ Download File
+                            </a>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        </div>
+    `;
+}
+
+// ── Edit Archived Meeting Logic ──
+async function openEditArchiveModal(archiveId) {
+    try {
+        const arch = await api.getArchive(archiveId);
+        if (!arch) return;
+
+        state.editingArchive = arch;
+        const meetingInfo = arch.meetingInfo || {};
+
+        if (els.editArchiveId) els.editArchiveId.value = arch.id;
+        if (els.editArchiveTitle) els.editArchiveTitle.value = meetingInfo.title || '';
+        if (els.editArchiveDate) els.editArchiveDate.value = meetingInfo.date || '';
+        if (els.editArchiveTime) els.editArchiveTime.value = meetingInfo.time || '10:00 SAST';
+        if (els.editArchiveVenue) els.editArchiveVenue.value = meetingInfo.venue || 'Staff Room';
+        if (els.editArchiveNotes) els.editArchiveNotes.value = arch.notes || '';
+        if (els.editArchiveTranscript) els.editArchiveTranscript.value = arch.transcript?.text || '';
+
+        // Reset file inputs
+        if (els.editArchiveNewAudio) els.editArchiveNewAudio.value = '';
+        if (els.editArchiveNewSigned) els.editArchiveNewSigned.value = '';
+        if (els.editArchiveNewTranscript) els.editArchiveNewTranscript.value = '';
+        if (els.editArchiveNewResolution) els.editArchiveNewResolution.value = '';
+
+        renderEditArchiveResolutions(arch.resolutions || []);
+        renderEditArchiveExistingFiles(arch);
+
+        if (els.editArchiveModal) els.editArchiveModal.classList.add('active');
+    } catch (error) {
+        console.error('Error opening edit archive:', error);
+        showToast(error.message || 'Failed to open edit modal', true);
+    }
+}
+
+function closeEditArchiveModal() {
+    if (els.editArchiveModal) els.editArchiveModal.classList.remove('active');
+    state.editingArchive = null;
+}
+
+function renderEditArchiveResolutions(resolutions) {
+    if (!els.editArchiveResolutionsList) return;
+    const membersList = state.members || [];
+
+    els.editArchiveResolutionsList.innerHTML = resolutions.map((res, resIdx) => `
+        <div class="resolution-card-editor" data-res-index="${resIdx}">
+            <div class="resolution-card-top-row">
+                <input type="text" class="form-input edit-res-title" value="${escapeHTML(res.itemTitle || res.title || '')}" placeholder="Resolution Title" required style="font-weight: 700;">
+                <select class="resolution-decision-select edit-res-decision">
+                    <option value="Adopted" ${res.decision === 'Adopted' ? 'selected' : ''}>Adopted</option>
+                    <option value="Approved" ${res.decision === 'Approved' ? 'selected' : ''}>Approved</option>
+                    <option value="Deferred" ${res.decision === 'Deferred' ? 'selected' : ''}>Deferred</option>
+                    <option value="Rejected" ${res.decision === 'Rejected' ? 'selected' : ''}>Rejected</option>
+                    <option value="Action Required" ${res.decision === 'Action Required' ? 'selected' : ''}>Action Required</option>
+                </select>
+                <button type="button" class="btn-link-action btn-edit-remove-resolution" data-res-index="${resIdx}" style="color: var(--danger);">✕</button>
+            </div>
+            
+            <textarea class="form-textarea edit-res-text" rows="2" placeholder="Resolution text...">${escapeHTML(res.resolutionText || res.text || '')}</textarea>
+
+            <div class="action-items-editor-box">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">Action Items</span>
+                    <button type="button" class="btn-link-action btn-edit-add-action-item" data-res-index="${resIdx}">+ Add Action Item</button>
+                </div>
+                <div class="edit-action-items-container" data-res-index="${resIdx}">
+                    ${(res.actionItems || []).map((act, actIdx) => `
+                        <div class="action-item-row-edit" data-act-index="${actIdx}">
+                            <input type="text" class="form-input edit-act-task" placeholder="Task..." value="${escapeHTML(act.task || '')}">
+                            <select class="form-input edit-act-assignee">
+                                <option value="">Assignee...</option>
+                                ${membersList.map(m => `<option value="${escapeHTML(m.name)}" ${act.assignee === m.name ? 'selected' : ''}>${escapeHTML(m.name)}</option>`).join('')}
+                            </select>
+                            <input type="date" class="form-input edit-act-due" value="${act.dueDate || ''}">
+                            <button type="button" class="btn-link-action btn-edit-remove-action-item" data-res-index="${resIdx}" data-act-index="${actIdx}" style="color: var(--danger);">✕</button>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function renderEditArchiveExistingFiles(arch) {
+    if (!els.editArchiveExistingFiles) return;
+
+    const allFiles = [
+        ...(arch.audioFiles || []).map(f => ({ ...f, typeLabel: '🎙️ Audio' })),
+        ...(arch.signedAttendanceFiles || []).map(f => ({ ...f, typeLabel: '📝 Signed Register' })),
+        ...(arch.transcript?.files || []).map(f => ({ ...f, typeLabel: '📄 Transcript Doc' })),
+        ...(arch.resolutionFiles || []).map(f => ({ ...f, typeLabel: '⚖️ Resolution Doc' }))
+    ];
+
+    if (allFiles.length === 0) {
+        els.editArchiveExistingFiles.innerHTML = `<p style="font-size: 0.84rem; color: var(--text-muted);">No files attached to this archive.</p>`;
+        return;
+    }
+
+    els.editArchiveExistingFiles.innerHTML = `
+        <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+            ${allFiles.map(f => `
+                <div class="uploaded-file-chip">
+                    <div class="uploaded-file-chip-info">
+                        <span style="font-size: 0.8rem; font-weight: 700; color: var(--primary);">${f.typeLabel}:</span>
+                        <span>${escapeHTML(f.originalName)} (${formatBytes(f.size)})</span>
+                    </div>
+                    <button type="button" class="btn-link-action btn-delete-archive-file" data-archive-id="${arch.id}" data-file-id="${f.id}" style="color: var(--danger); font-size: 0.8rem;">
+                        🗑️ Remove
+                    </button>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+// ── Global Event Listeners for Archives Module ──
+function initArchivesModule() {
+    // Stat card archives click
+    if (els.statCardArchives) {
+        els.statCardArchives.addEventListener('click', () => switchTab('archives'));
+    }
+
+    // Conclude Meeting button triggers
+    if (els.btnConcludeMeeting) {
+        els.btnConcludeMeeting.addEventListener('click', openConcludeWizard);
+    }
+    if (els.btnConcludeFromArchives) {
+        els.btnConcludeFromArchives.addEventListener('click', openConcludeWizard);
+    }
+    if (els.btnCloseConcludeModal) {
+        els.btnCloseConcludeModal.addEventListener('click', closeConcludeWizard);
+    }
+    if (els.btnConcludeCancel) {
+        els.btnConcludeCancel.addEventListener('click', closeConcludeWizard);
+    }
+
+    // Wizard navigation
+    if (els.btnConcludeNext) {
+        els.btnConcludeNext.addEventListener('click', () => {
+            if (state.concludeStep < 5) {
+                updateConcludeWizardStep(state.concludeStep + 1);
+            }
+        });
+    }
+    if (els.btnConcludePrev) {
+        els.btnConcludePrev.addEventListener('click', () => {
+            if (state.concludeStep > 1) {
+                updateConcludeWizardStep(state.concludeStep - 1);
+            }
+        });
+    }
+
+    // Wizard Step Nodes click
+    document.querySelectorAll('.wizard-step-node').forEach(node => {
+        node.addEventListener('click', () => {
+            const step = parseInt(node.dataset.step, 10);
+            if (step) updateConcludeWizardStep(step);
+        });
+    });
+
+    // Step 2 Audio Dropzone & File Input
+    if (els.concludeAudioDropZone && els.concludeAudioInput) {
+        els.concludeAudioDropZone.addEventListener('click', () => els.concludeAudioInput.click());
+        els.concludeAudioInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files.length > 0) {
+                Array.from(e.target.files).forEach(f => state.selectedConcludeAudios.push(f));
+                renderConcludeAudioTray();
+            }
+        });
+
+        els.concludeAudioDropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            els.concludeAudioDropZone.classList.add('dragover');
+        });
+        els.concludeAudioDropZone.addEventListener('dragleave', () => {
+            els.concludeAudioDropZone.classList.remove('dragover');
+        });
+        els.concludeAudioDropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            els.concludeAudioDropZone.classList.remove('dragover');
+            if (e.dataTransfer && e.dataTransfer.files.length > 0) {
+                Array.from(e.dataTransfer.files).forEach(f => state.selectedConcludeAudios.push(f));
+                renderConcludeAudioTray();
+            }
+        });
+    }
+
+    function renderConcludeAudioTray() {
+        if (!els.concludeAudioTray) return;
+        if (state.selectedConcludeAudios.length === 0) {
+            els.concludeAudioTray.innerHTML = '';
+            if (els.concludeAudioDropTitle) els.concludeAudioDropTitle.textContent = 'Click to browse or drag & drop audio files here';
+            return;
+        }
+
+        if (els.concludeAudioDropTitle) els.concludeAudioDropTitle.textContent = `${state.selectedConcludeAudios.length} Audio File(s) Selected — Click to add more`;
+
+        els.concludeAudioTray.innerHTML = state.selectedConcludeAudios.map((f, idx) => `
+            <div class="uploaded-file-chip">
+                <div class="uploaded-file-chip-info">
+                    <span>🎙️</span>
+                    <span><strong>${escapeHTML(f.name)}</strong> (${formatBytes(f.size)})</span>
+                </div>
+                <button type="button" class="btn-link-action btn-remove-conclude-audio" data-index="${idx}" style="color: var(--danger);">✕ Remove</button>
+            </div>
+        `).join('');
+
+        els.concludeAudioTray.querySelectorAll('.btn-remove-conclude-audio').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const idx = parseInt(e.target.dataset.index, 10);
+                state.selectedConcludeAudios.splice(idx, 1);
+                renderConcludeAudioTray();
+            });
+        });
+    }
+
+    // Step 4 Add Resolution Button
+    if (els.btnAddResolutionRow) {
+        els.btnAddResolutionRow.addEventListener('click', () => {
+            state.concludeResolutions.push({
+                itemId: null,
+                itemTitle: 'New Governance Resolution',
+                decision: 'Adopted',
+                resolutionText: '',
+                actionItems: []
+            });
+            renderConcludeResolutions();
+        });
+    }
+
+    // Step 4 Resolution removal & action item management
+    if (els.concludeResolutionsList) {
+        els.concludeResolutionsList.addEventListener('click', (e) => {
+            if (e.target.classList.contains('btn-remove-resolution')) {
+                const idx = parseInt(e.target.dataset.resIndex, 10);
+                state.concludeResolutions.splice(idx, 1);
+                renderConcludeResolutions();
+            } else if (e.target.classList.contains('btn-add-action-item')) {
+                const idx = parseInt(e.target.dataset.resIndex, 10);
+                if (!Array.isArray(state.concludeResolutions[idx].actionItems)) {
+                    state.concludeResolutions[idx].actionItems = [];
+                }
+                state.concludeResolutions[idx].actionItems.push({
+                    task: '',
+                    assignee: '',
+                    dueDate: '',
+                    status: 'Pending'
+                });
+                renderConcludeResolutions();
+            } else if (e.target.classList.contains('btn-remove-action-item')) {
+                const resIdx = parseInt(e.target.dataset.resIndex, 10);
+                const actIdx = parseInt(e.target.dataset.actIndex, 10);
+                if (state.concludeResolutions[resIdx]?.actionItems) {
+                    state.concludeResolutions[resIdx].actionItems.splice(actIdx, 1);
+                    renderConcludeResolutions();
+                }
+            }
+        });
+
+        // Sync inputs back to state
+        els.concludeResolutionsList.addEventListener('input', (e) => {
+            const card = e.target.closest('.resolution-card-editor');
+            if (!card) return;
+            const resIdx = parseInt(card.dataset.resIndex, 10);
+            const res = state.concludeResolutions[resIdx];
+            if (!res) return;
+
+            if (e.target.classList.contains('res-edit-title')) res.itemTitle = e.target.value;
+            if (e.target.classList.contains('res-edit-decision')) res.decision = e.target.value;
+            if (e.target.classList.contains('res-edit-text')) res.resolutionText = e.target.value;
+
+            const actRow = e.target.closest('.action-item-row-edit');
+            if (actRow) {
+                const actIdx = parseInt(actRow.dataset.actIndex, 10);
+                const act = res.actionItems?.[actIdx];
+                if (act) {
+                    if (e.target.classList.contains('act-edit-task')) act.task = e.target.value;
+                    if (e.target.classList.contains('act-edit-assignee')) act.assignee = e.target.value;
+                    if (e.target.classList.contains('act-edit-due')) act.dueDate = e.target.value;
+                }
+            }
+        });
+    }
+
+    // Step 5 Signed Register Dropzone
+    if (els.concludeSignedRegDropZone && els.concludeSignedRegInput) {
+        els.concludeSignedRegDropZone.addEventListener('click', () => els.concludeSignedRegInput.click());
+        els.concludeSignedRegInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files.length > 0) {
+                if (els.concludeSignedRegTitle) {
+                    els.concludeSignedRegTitle.textContent = `Selected: ${e.target.files[0].name} (${formatBytes(e.target.files[0].size)})`;
+                }
+                if (els.concludeSignedRegError) els.concludeSignedRegError.textContent = '';
+            }
+        });
+    }
+
+    // Step 5 Conclude Wizard Submit Handler
+    if (els.concludeMeetingForm) {
+        els.concludeMeetingForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const title = (els.concludeMeetingTitle?.value || '').trim();
+            const date = els.concludeMeetingDate?.value || '';
+
+            if (!title || !date) {
+                showToast('Please specify Meeting Title and Date', true);
+                updateConcludeWizardStep(1);
+                return;
+            }
+
+            const formData = new FormData();
+
+            // Meeting Info
+            const meetingInfo = {
+                title,
+                date,
+                time: (els.concludeMeetingTime?.value || '10:00 SAST').trim(),
+                venue: (els.concludeMeetingVenue?.value || 'School Staff Room / Boardroom').trim(),
+                notes: (els.concludeMeetingNotes?.value || '').trim()
+            };
+            formData.append('meetingInfo', JSON.stringify(meetingInfo));
+            formData.append('notes', meetingInfo.notes);
+
+            // Audio Files
+            state.selectedConcludeAudios.forEach(af => {
+                formData.append('audioFiles', af);
+            });
+
+            // Transcript
+            if (els.concludeTranscriptFileInput?.files?.[0]) {
+                formData.append('transcriptFiles', els.concludeTranscriptFileInput.files[0]);
+            }
+            formData.append('transcriptText', (els.concludeTranscriptText?.value || '').trim());
+
+            // Resolutions
+            formData.append('resolutions', JSON.stringify(state.concludeResolutions));
+            if (els.concludeResolutionFileInput?.files?.[0]) {
+                formData.append('resolutionFiles', els.concludeResolutionFileInput.files[0]);
+            }
+
+            // Signed Attendance Register
+            if (els.concludeSignedRegInput?.files?.[0]) {
+                formData.append('signedRegisterFiles', els.concludeSignedRegInput.files[0]);
+            }
+
+            // Attendance Data
+            if (state.concludeAttendance) {
+                // Collect status selects
+                const selects = document.querySelectorAll('.conclude-att-status-select');
+                let memberIdx = 0;
+                (state.concludeAttendance.components || []).forEach(comp => {
+                    (comp.members || []).forEach(m => {
+                        const sel = document.querySelector(`.conclude-att-status-select[data-member-idx="${memberIdx}"]`);
+                        if (sel) m.status = sel.value;
+                        memberIdx++;
+                    });
+                });
+                formData.append('attendanceData', JSON.stringify(state.concludeAttendance));
+            }
+
+            // Next Meeting Setup
+            const nextMeetingInfo = {
+                title: (els.nextMeetingTitle?.value || 'SGB & SMT Ordinary Meeting').trim(),
+                date: els.nextMeetingDate?.value || '',
+                time: (els.nextMeetingTime?.value || '10:00 SAST').trim(),
+                venue: (els.nextMeetingVenue?.value || 'School Staff Room / Boardroom').trim()
+            };
+            formData.append('nextMeetingInfo', JSON.stringify(nextMeetingInfo));
+            formData.append('clearVault', String(els.concludeClearVault?.checked !== false));
+
+            // UI progress
+            if (els.concludeProgressWrapper) els.concludeProgressWrapper.classList.remove('hidden');
+            if (els.btnConcludeSubmit) els.btnConcludeSubmit.disabled = true;
+
+            try {
+                const res = await api.concludeMeeting(formData, (percent) => {
+                    if (els.concludeProgressFill) els.concludeProgressFill.style.width = `${percent}%`;
+                    if (els.concludeProgressPercent) els.concludeProgressPercent.textContent = `${percent}%`;
+                });
+
+                showToast('🏁 Meeting successfully concluded and archived!');
+                closeConcludeWizard();
+                await loadData();
+                switchTab('archives');
+                if (res.archiveId) {
+                    openArchiveDossier(res.archiveId);
+                }
+            } catch (error) {
+                console.error('Error concluding meeting:', error);
+                showToast(error.message || 'Failed to archive meeting', true);
+            } finally {
+                if (els.btnConcludeSubmit) els.btnConcludeSubmit.disabled = false;
+                if (els.concludeProgressWrapper) els.concludeProgressWrapper.classList.add('hidden');
+            }
+        });
+    }
+
+    // Dossier Modal Tab Strip click listener
+    if (els.dossierTabsStrip) {
+        els.dossierTabsStrip.addEventListener('click', (e) => {
+            const btn = e.target.closest('.dossier-tab-btn');
+            if (!btn) return;
+            state.dossierActiveTab = btn.dataset.dtab;
+            els.dossierTabsStrip.querySelectorAll('.dossier-tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderDossierContent();
+        });
+    }
+
+    // Dossier Modal Actions
+    if (els.btnCloseDossierModal) els.btnCloseDossierModal.addEventListener('click', closeArchiveDossier);
+    if (els.btnDossierPrint) els.btnDossierPrint.addEventListener('click', () => window.print());
+    if (els.btnDossierDownloadDocx) {
+        els.btnDossierDownloadDocx.addEventListener('click', () => {
+            if (state.activeArchive) {
+                window.location.href = `/api/archives/${state.activeArchive.id}/export/docx?token=${encodeURIComponent(state.token || '')}`;
+            }
+        });
+    }
+    if (els.btnDossierDownloadZip) {
+        els.btnDossierDownloadZip.addEventListener('click', () => {
+            if (state.activeArchive) {
+                window.location.href = `/api/archives/${state.activeArchive.id}/export/zip?token=${encodeURIComponent(state.token || '')}`;
+            }
+        });
+    }
+    if (els.btnDossierEdit) {
+        els.btnDossierEdit.addEventListener('click', () => {
+            if (state.activeArchive) {
+                closeArchiveDossier();
+                openEditArchiveModal(state.activeArchive.id);
+            }
+        });
+    }
+
+    // Edit Archive Modal Actions
+    if (els.btnCloseEditArchiveModal) els.btnCloseEditArchiveModal.addEventListener('click', closeEditArchiveModal);
+    if (els.btnCancelEditArchive) els.btnCancelEditArchive.addEventListener('click', closeEditArchiveModal);
+
+    if (els.btnEditAddResolutionRow) {
+        els.btnEditAddResolutionRow.addEventListener('click', () => {
+            if (!state.editingArchive) return;
+            if (!Array.isArray(state.editingArchive.resolutions)) state.editingArchive.resolutions = [];
+            state.editingArchive.resolutions.push({
+                itemTitle: 'New Formal Resolution',
+                decision: 'Adopted',
+                resolutionText: '',
+                actionItems: []
+            });
+            renderEditArchiveResolutions(state.editingArchive.resolutions);
+        });
+    }
+
+    if (els.editArchiveResolutionsList) {
+        els.editArchiveResolutionsList.addEventListener('click', (e) => {
+            if (e.target.classList.contains('btn-edit-remove-resolution')) {
+                const idx = parseInt(e.target.dataset.resIndex, 10);
+                if (state.editingArchive?.resolutions) {
+                    state.editingArchive.resolutions.splice(idx, 1);
+                    renderEditArchiveResolutions(state.editingArchive.resolutions);
+                }
+            } else if (e.target.classList.contains('btn-edit-add-action-item')) {
+                const idx = parseInt(e.target.dataset.resIndex, 10);
+                if (state.editingArchive?.resolutions?.[idx]) {
+                    if (!Array.isArray(state.editingArchive.resolutions[idx].actionItems)) {
+                        state.editingArchive.resolutions[idx].actionItems = [];
+                    }
+                    state.editingArchive.resolutions[idx].actionItems.push({
+                        task: '',
+                        assignee: '',
+                        dueDate: '',
+                        status: 'Pending'
+                    });
+                    renderEditArchiveResolutions(state.editingArchive.resolutions);
+                }
+            } else if (e.target.classList.contains('btn-edit-remove-action-item')) {
+                const resIdx = parseInt(e.target.dataset.resIndex, 10);
+                const actIdx = parseInt(e.target.dataset.actIndex, 10);
+                if (state.editingArchive?.resolutions?.[resIdx]?.actionItems) {
+                    state.editingArchive.resolutions[resIdx].actionItems.splice(actIdx, 1);
+                    renderEditArchiveResolutions(state.editingArchive.resolutions);
+                }
+            }
+        });
+    }
+
+    // Delete single file from archive in edit modal
+    if (els.editArchiveExistingFiles) {
+        els.editArchiveExistingFiles.addEventListener('click', async (e) => {
+            if (e.target.classList.contains('btn-delete-archive-file')) {
+                const { archiveId, fileId } = e.target.dataset;
+                if (confirm('Delete this file from the meeting archive?')) {
+                    try {
+                        const res = await api.deleteArchiveFile(archiveId, fileId);
+                        showToast('File removed from archive');
+                        state.editingArchive = res.archive;
+                        renderEditArchiveExistingFiles(res.archive);
+                        await loadData();
+                    } catch (error) {
+                        showToast(error.message || 'Failed to delete file', true);
+                    }
+                }
+            }
+        });
+    }
+
+    // Save Edit Archive Form
+    if (els.editArchiveForm) {
+        els.editArchiveForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const archiveId = els.editArchiveId?.value;
+            if (!archiveId) return;
+
+            // Collect resolutions
+            const resCards = els.editArchiveResolutionsList?.querySelectorAll('.resolution-card-editor') || [];
+            const updatedResolutions = [];
+            resCards.forEach(card => {
+                const title = card.querySelector('.edit-res-title')?.value || '';
+                const decision = card.querySelector('.edit-res-decision')?.value || 'Adopted';
+                const text = card.querySelector('.edit-res-text')?.value || '';
+                const actionItems = [];
+                card.querySelectorAll('.action-item-row-edit').forEach(actRow => {
+                    const task = actRow.querySelector('.edit-act-task')?.value || '';
+                    const assignee = actRow.querySelector('.edit-act-assignee')?.value || '';
+                    const dueDate = actRow.querySelector('.edit-act-due')?.value || '';
+                    if (task) actionItems.push({ task, assignee, dueDate, status: 'Pending' });
+                });
+                updatedResolutions.push({ itemTitle: title, decision, resolutionText: text, actionItems });
+            });
+
+            const payload = {
+                meetingInfo: {
+                    title: (els.editArchiveTitle?.value || '').trim(),
+                    date: els.editArchiveDate?.value || '',
+                    time: (els.editArchiveTime?.value || '').trim(),
+                    venue: (els.editArchiveVenue?.value || '').trim()
+                },
+                notes: (els.editArchiveNotes?.value || '').trim(),
+                transcriptText: (els.editArchiveTranscript?.value || '').trim(),
+                resolutions: updatedResolutions
+            };
+
+            try {
+                await api.updateArchive(archiveId, payload);
+
+                // Upload additional files if selected
+                const hasNewAudio = els.editArchiveNewAudio?.files?.length > 0;
+                const hasNewSigned = els.editArchiveNewSigned?.files?.length > 0;
+                const hasNewTranscript = els.editArchiveNewTranscript?.files?.length > 0;
+                const hasNewResolution = els.editArchiveNewResolution?.files?.length > 0;
+
+                if (hasNewAudio || hasNewSigned || hasNewTranscript || hasNewResolution) {
+                    const formData = new FormData();
+                    if (hasNewAudio) {
+                        Array.from(els.editArchiveNewAudio.files).forEach(f => formData.append('audioFiles', f));
+                    }
+                    if (hasNewSigned) {
+                        formData.append('signedRegisterFiles', els.editArchiveNewSigned.files[0]);
+                    }
+                    if (hasNewTranscript) {
+                        formData.append('transcriptFiles', els.editArchiveNewTranscript.files[0]);
+                    }
+                    if (hasNewResolution) {
+                        formData.append('resolutionFiles', els.editArchiveNewResolution.files[0]);
+                    }
+                    await api.uploadArchiveFiles(archiveId, formData);
+                }
+
+                showToast('Archive updated successfully!');
+                closeEditArchiveModal();
+                await loadData();
+                openArchiveDossier(archiveId);
+            } catch (error) {
+                console.error('Error saving archive edits:', error);
+                showToast(error.message || 'Failed to update archive', true);
+            }
+        });
+    }
+
+    // Global click delegate for Archive cards
+    if (els.archivesContainer) {
+        els.archivesContainer.addEventListener('click', async (e) => {
+            const btnDossier = e.target.closest('.btn-open-archive-dossier');
+            if (btnDossier) {
+                openArchiveDossier(btnDossier.dataset.id);
+                return;
+            }
+
+            const btnDocx = e.target.closest('.btn-download-archive-docx');
+            if (btnDocx) {
+                window.location.href = `/api/archives/${btnDocx.dataset.id}/export/docx?token=${encodeURIComponent(state.token || '')}`;
+                return;
+            }
+
+            const btnZip = e.target.closest('.btn-download-archive-zip');
+            if (btnZip) {
+                window.location.href = `/api/archives/${btnZip.dataset.id}/export/zip?token=${encodeURIComponent(state.token || '')}`;
+                return;
+            }
+
+            const btnEdit = e.target.closest('.btn-edit-archive-quick');
+            if (btnEdit) {
+                openEditArchiveModal(btnEdit.dataset.id);
+                return;
+            }
+
+            const btnDelete = e.target.closest('.btn-delete-archive-quick');
+            if (btnDelete) {
+                const archiveId = btnDelete.dataset.id;
+                if (confirm('Are you sure you want to permanently delete this meeting archive? All recorded assets and audio will be removed.')) {
+                    try {
+                        await api.deleteArchive(archiveId);
+                        showToast('Meeting archive deleted');
+                        await loadData();
+                    } catch (error) {
+                        showToast(error.message || 'Failed to delete archive', true);
+                    }
+                }
+                return;
+            }
+
+            // Card body click
+            const card = e.target.closest('.archive-card');
+            if (card && !e.target.closest('button') && !e.target.closest('a')) {
+                openArchiveDossier(card.dataset.archiveId);
+            }
+        });
+    }
+
+    // Archive Search & Filters
+    if (els.archiveSearchInput) {
+        els.archiveSearchInput.addEventListener('input', (e) => {
+            state.archiveFilters.search = e.target.value;
+            renderArchives();
+        });
+    }
+
+    if (els.archiveFilterChips) {
+        els.archiveFilterChips.addEventListener('click', (e) => {
+            const chip = e.target.closest('.tag-filter-chip');
+            if (!chip) return;
+            state.archiveFilters.filter = chip.dataset.filter;
+            els.archiveFilterChips.querySelectorAll('.tag-filter-chip').forEach(c => c.classList.remove('active'));
+            chip.classList.add('active');
+            renderArchives();
+        });
+    }
+
+    if (els.sortArchives) {
+        els.sortArchives.addEventListener('change', (e) => {
+            state.archiveFilters.sort = e.target.value;
+            renderArchives();
+        });
+    }
+}
+
 // ── Start ──
 init();
+initArchivesModule();

@@ -151,18 +151,7 @@
       "registeredAt": "2026-08-16T18:32:58.956Z"
     }
   ],
-  "sessions": [
-    {
-      "token": "1a91bdbb-3c60-4e41-afbd-845c09868c12",
-      "memberId": "ca5d4a12-d2c7-4bd7-9366-6a254a5d2212",
-      "createdAt": "2026-08-16T18:33:33.173Z"
-    },
-    {
-      "token": "8800a0d6-57a9-4cfe-9432-6fd40cc99b6a",
-      "memberId": "6365f662-ff08-4775-8169-88bdb7c3f0d7",
-      "createdAt": "2026-08-18T10:32:49.497Z"
-    }
-  ],
+  "sessions": [],
   "agendaItems": [],
   "documents": [],
   "categories": [
@@ -198,6 +187,9 @@
   "meetingInfo": {
     "title": "SGB/SMT Strategy Meeting",
     "date": "2026-08-27",
-    "school": "LGAA"
-  }
+    "time": "10:00",
+    "venue": "Staff Room",
+    "school": "Lady Grey Arts Academy"
+  },
+  "archives": []
 }

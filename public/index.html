@@ -118,6 +118,11 @@
                 <span class="stat-label">Shared Files</span>
                 <span class="stat-tap-hint">Tap to view</span>
             </div>
+            <div class="stat-item stat-item--clickable" id="stat-card-archives" role="button" tabindex="0">
+                <span class="stat-value" id="stat-archives">0</span>
+                <span class="stat-label">Meeting Archives</span>
+                <span class="stat-tap-hint">Tap to view</span>
+            </div>
         </div>
 
         <!-- Navigation Tabs -->
@@ -131,6 +136,11 @@
                 <span class="tab-nav-icon">📁</span>
                 <span class="tab-nav-text">Shared Files &amp; Vault</span>
                 <span class="tab-nav-badge" id="tab-docs-badge">0</span>
+            </button>
+            <button type="button" class="tab-nav-btn" id="tab-btn-archives" data-tab="archives" onclick="switchTab('archives')">
+                <span class="tab-nav-icon">🏛️</span>
+                <span class="tab-nav-text">Meeting Archives</span>
+                <span class="tab-nav-badge" id="tab-archives-badge">0</span>
             </button>
             <button type="button" class="tab-nav-btn tab-nav-btn--studio" id="tab-btn-formatter" title="Open Document Formatter Studio in a new window">
                 <span class="tab-nav-icon">📑</span>
@@ -147,6 +157,12 @@
                     </button>
                     <button id="btn-export" class="btn btn-secondary">
                         <span class="icon">📋</span> View Agenda
+                    </button>
+                    <button id="btn-attendance" class="btn btn-secondary" title="View and Print Official Attendance Register">
+                        <span class="icon">📝</span> Attendance Register
+                    </button>
+                    <button id="btn-conclude-meeting" class="btn btn-primary admin-only hidden btn-conclude-highlight" title="Conclude Meeting, Upload Audio, Transcript, Signed Attendance & Archive Dossier">
+                        <span class="icon">🏁</span> Conclude &amp; Archive Meeting
                     </button>
                     <button type="button" id="btn-open-doc-formatter-agenda" class="btn btn-secondary admin-only hidden" title="Open Legal & Multi-Level Document Formatter Studio">
                         <span class="icon">📑</span> Document Formatter
@@ -387,21 +403,81 @@
                     <p>No documents uploaded yet. Click <strong>Upload File / Document</strong> above to share supporting files!</p>
                 </div>
             </div>
+
+            <!-- TAB 3: MEETING ARCHIVES -->
+            <div id="tab-view-archives" class="tab-view">
+                <div class="actions-bar">
+                    <button id="btn-conclude-from-archives" class="btn btn-primary admin-only hidden btn-conclude-highlight" title="Conclude Current Meeting and Archive Dossier">
+                        <span class="icon">🏁</span> Conclude &amp; Archive Current Sitting
+                    </button>
+                    <div class="search-input-wrapper">
+                        <input type="search" id="archive-search-input" class="search-input" placeholder="🔍 Search past meetings, resolutions, or topics...">
+                    </div>
+                </div>
+
+                <div class="filters-section">
+                    <div class="filter-group archive-filter-group">
+                        <div class="archive-filter-chips" id="archive-filter-chips">
+                            <button type="button" class="tag-filter-chip active" data-filter="all">All Archives</button>
+                            <button type="button" class="tag-filter-chip" data-filter="audio">🎙️ With Audio</button>
+                            <button type="button" class="tag-filter-chip" data-filter="transcript">📄 With Transcript</button>
+                            <button type="button" class="tag-filter-chip" data-filter="signed">📝 Signed Register</button>
+                            <button type="button" class="tag-filter-chip" data-filter="resolutions">⚖️ Has Decisions</button>
+                        </div>
+                        <div class="doc-filter-controls">
+                            <select id="sort-archives" class="filter-select">
+                                <option value="newest">Sort: Meeting Date (Newest)</option>
+                                <option value="oldest">Sort: Meeting Date (Oldest)</option>
+                                <option value="items">Sort: Most Items</option>
+                                <option value="resolutions">Sort: Most Decisions</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="archives-container" class="archives-grid">
+                    <!-- Meeting archive cards injected here -->
+                </div>
+                <div id="archives-empty-state" class="empty-state hidden">
+                    <div class="empty-icon">🏛️</div>
+                    <h3>No Meeting Archives Found</h3>
+                    <p>When a meeting is concluded, its full dossier (audio recordings, transcript, resolutions, and signed attendance register) will be permanently preserved here.</p>
+                </div>
+            </div>
         </section>
     </main>
 
     <!-- Export/Print Modal -->
     <div id="export-modal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content modal-content--wide">
             <div class="modal-header">
                 <h2>Agenda Preview</h2>
                 <div class="modal-actions">
+                    <button id="btn-switch-to-attendance" class="btn btn-secondary btn-sm" title="Switch to Attendance Register">📝 Attendance Register</button>
                     <button id="btn-print" class="btn btn-primary btn-sm">Print / PDF</button>
                     <button id="btn-close-modal" class="btn-modal-close" aria-label="Close" title="Close">&times;</button>
                 </div>
             </div>
             <div id="printable-agenda" class="printable-area">
                 <!-- Printable content injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance Register Modal -->
+    <div id="attendance-modal" class="modal">
+        <div class="modal-content modal-content--wide">
+            <div class="modal-header">
+                <h2>Formal Attendance Register</h2>
+                <div class="modal-actions">
+                    <button id="btn-switch-to-agenda" class="btn btn-secondary btn-sm" title="Switch to Agenda Preview">📋 View Agenda</button>
+                    <button id="btn-download-attendance-docx" class="btn btn-secondary btn-sm" title="Download Word (.docx) Document">⬇️ Word DOCX</button>
+                    <button id="btn-print-attendance" class="btn btn-primary btn-sm">Print / PDF</button>
+                    <button id="btn-close-attendance-modal" class="btn-modal-close" aria-label="Close" title="Close">&times;</button>
+                </div>
+            </div>
+            <div id="printable-attendance" class="printable-area">
+                <!-- Printable attendance register injected here -->
             </div>
         </div>
     </div>
@@ -592,6 +668,354 @@
         </div>
     </div>
 
-    <script src="app.js?v=20260826-03"></script>
+    <!-- Conclude & Archive Meeting Wizard Modal -->
+    <div id="conclude-modal" class="modal">
+        <div class="modal-content modal-content--wide conclude-modal-dialog">
+            <div class="modal-header">
+                <div>
+                    <h2>🏁 Conclude &amp; Archive Sitting</h2>
+                    <span class="modal-subtitle" id="conclude-modal-subtitle">Package meeting assets, audio recordings, transcript, resolutions, and signed attendance</span>
+                </div>
+                <button id="btn-close-conclude-modal" class="btn-modal-close" aria-label="Close" title="Close">&times;</button>
+            </div>
+            <div class="modal-body conclude-modal-body">
+                <!-- Wizard Stepper Navigation -->
+                <div class="wizard-stepper" id="conclude-wizard-stepper">
+                    <div class="wizard-step-node active" data-step="1">
+                        <span class="wizard-step-num">1</span>
+                        <span class="wizard-step-text">Overview</span>
+                    </div>
+                    <div class="wizard-step-line"></div>
+                    <div class="wizard-step-node" data-step="2">
+                        <span class="wizard-step-num">2</span>
+                        <span class="wizard-step-text">Audio</span>
+                    </div>
+                    <div class="wizard-step-line"></div>
+                    <div class="wizard-step-node" data-step="3">
+                        <span class="wizard-step-num">3</span>
+                        <span class="wizard-step-text">Transcript</span>
+                    </div>
+                    <div class="wizard-step-line"></div>
+                    <div class="wizard-step-node" data-step="4">
+                        <span class="wizard-step-num">4</span>
+                        <span class="wizard-step-text">Resolutions</span>
+                    </div>
+                    <div class="wizard-step-line"></div>
+                    <div class="wizard-step-node" data-step="5">
+                        <span class="wizard-step-num">5</span>
+                        <span class="wizard-step-text">Attendance &amp; Reset</span>
+                    </div>
+                </div>
+
+                <form id="conclude-meeting-form" class="conclude-wizard-form">
+                    <!-- STEP 1: Overview & Review -->
+                    <div class="wizard-step-panel active" id="conclude-step-1">
+                        <div class="panel-intro-card">
+                            <h3>📋 Meeting Snapshot &amp; Summary</h3>
+                            <p>Review the sitting particulars and record closing notes or an executive summary before final packaging.</p>
+                        </div>
+
+                        <div class="conclude-meta-grid">
+                            <div class="form-group">
+                                <label for="conclude-meeting-title">Meeting Title <span class="required">*</span></label>
+                                <input type="text" id="conclude-meeting-title" required class="form-input" placeholder="e.g. SGB/SMT Strategy Meeting">
+                            </div>
+                            <div class="form-group">
+                                <label for="conclude-meeting-date">Meeting Date <span class="required">*</span></label>
+                                <input type="date" id="conclude-meeting-date" required class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label for="conclude-meeting-time">Time</label>
+                                <input type="text" id="conclude-meeting-time" class="form-input" placeholder="e.g. 10:00 SAST">
+                            </div>
+                            <div class="form-group">
+                                <label for="conclude-meeting-venue">Venue</label>
+                                <input type="text" id="conclude-meeting-venue" class="form-input" placeholder="e.g. School Staff Room / Boardroom">
+                            </div>
+                        </div>
+
+                        <div class="conclude-stats-summary-card" id="conclude-stats-summary-card">
+                            <!-- Injected stats breakdown -->
+                        </div>
+
+                        <div class="form-group" style="margin-top: 1rem;">
+                            <label for="conclude-meeting-notes">Secretariat Closing Remarks &amp; Executive Summary</label>
+                            <textarea id="conclude-meeting-notes" class="form-textarea" rows="4" placeholder="Add executive summary, chairperson closing remarks, or special notices..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- STEP 2: Audio Recordings -->
+                    <div class="wizard-step-panel" id="conclude-step-2">
+                        <div class="panel-intro-card">
+                            <h3>🎙️ Upload Meeting Audio Recording(s)</h3>
+                            <p>Attach the official audio recording file(s) for permanent archive and in-browser playback. (MP3, M4A, WAV, AAC, OGG, WebM, MP4 up to 500MB each).</p>
+                        </div>
+
+                        <div class="file-drop-zone" id="conclude-audio-drop-zone" role="button" tabindex="0">
+                            <input type="file" id="conclude-audio-input" multiple accept="audio/*,video/mp4,video/webm,.mp3,.m4a,.wav,.aac,.ogg,.opus,.flac,.wma,.mp4" class="file-input-hidden">
+                            <div class="drop-zone-content">
+                                <span class="drop-icon">🎙️</span>
+                                <strong class="drop-title" id="conclude-audio-drop-title">Click to browse or drag &amp; drop audio files here</strong>
+                                <span class="drop-hint">Multiple audio files supported (MP3, M4A, WAV, AAC, WebM — Max 500MB per file)</span>
+                            </div>
+                        </div>
+
+                        <div class="uploaded-files-tray" id="conclude-audio-tray">
+                            <!-- Audio file chips injected here -->
+                        </div>
+                    </div>
+
+                    <!-- STEP 3: Transcript -->
+                    <div class="wizard-step-panel" id="conclude-step-3">
+                        <div class="panel-intro-card">
+                            <h3>📄 Meeting Transcript &amp; Deliberations</h3>
+                            <p>Upload a transcript document (.docx, .pdf, .txt) and/or paste or edit the full verbatim transcript text.</p>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Attach Transcript Document (Optional)</label>
+                            <input type="file" id="conclude-transcript-file-input" accept=".docx,.doc,.pdf,.txt,.md" class="form-input">
+                            <small class="form-hint">Upload structured transcript file (.docx, .pdf, or .txt)</small>
+                        </div>
+
+                        <div class="form-group" style="margin-top: 1rem;">
+                            <label for="conclude-transcript-text">Verbatim Transcript / Meeting Deliberation Text</label>
+                            <textarea id="conclude-transcript-text" class="form-textarea code-font-textarea" rows="10" placeholder="Paste full transcript text or meeting deliberation transcription here..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- STEP 4: Resolutions & Action Items -->
+                    <div class="wizard-step-panel" id="conclude-step-4">
+                        <div class="panel-intro-card">
+                            <h3>⚖️ Formal Resolutions, Decisions &amp; Action Plan</h3>
+                            <p>Record all adopted governance resolutions, formal decisions, and assignable action items with responsible persons and deadlines.</p>
+                        </div>
+
+                        <div class="resolutions-builder-wrapper">
+                            <div class="resolutions-builder-header">
+                                <h4>Formal Resolutions List (<span id="conclude-res-count">0</span>)</h4>
+                                <button type="button" class="btn btn-secondary btn-sm" id="btn-add-resolution-row">+ Add Resolution</button>
+                            </div>
+
+                            <div class="resolutions-builder-list" id="conclude-resolutions-list">
+                                <!-- Dynamic resolution cards injected here -->
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                            <label>Upload Signed Formal Resolutions Document (Optional)</label>
+                            <input type="file" id="conclude-resolution-file-input" accept=".docx,.doc,.pdf,.jpg,.jpeg,.png" class="form-input">
+                            <small class="form-hint">Attach signed formal adoption resolution document or certificate (.docx, .pdf, scan)</small>
+                        </div>
+                    </div>
+
+                    <!-- STEP 5: Attendance & Reset -->
+                    <div class="wizard-step-panel" id="conclude-step-5">
+                        <div class="panel-intro-card">
+                            <h3>📝 Signed Attendance Register &amp; Next Meeting Reset</h3>
+                            <p>Upload the official physically signed attendance register, verify attendance statuses, and configure the workspace reset for the next meeting.</p>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Official Signed Attendance Register File <span class="required">*</span></label>
+                            <div class="file-drop-zone" id="conclude-signed-reg-drop-zone" role="button" tabindex="0">
+                                <input type="file" id="conclude-signed-reg-input" accept=".pdf,.docx,.doc,.jpg,.jpeg,.png" class="form-input file-input-hidden">
+                                <div class="drop-zone-content">
+                                    <span class="drop-icon">📝</span>
+                                    <strong class="drop-title" id="conclude-signed-reg-title">Click to upload official signed attendance scan / PDF</strong>
+                                    <span class="drop-hint">Scanned PDF, high-res photo, or signed DOCX register</span>
+                                </div>
+                            </div>
+                            <span class="error-msg" id="conclude-signed-reg-error"></span>
+                        </div>
+
+                        <div class="attendance-quick-review-box" id="conclude-attendance-review-box">
+                            <!-- Compact attendance component breakdown with Present/Apology/Absent toggle -->
+                        </div>
+
+                        <!-- Reset Workspace Configuration -->
+                        <div class="reset-workspace-card">
+                            <h4>🔄 Next Meeting Initialization &amp; System Reset</h4>
+                            <p>Archiving will securely store all current agenda items, discussions, votes, audio, and documents into the archive repository and reset the board for your next sitting.</p>
+
+                            <div class="conclude-meta-grid" style="margin-top: 0.75rem;">
+                                <div class="form-group">
+                                    <label for="next-meeting-title">Next Meeting Title</label>
+                                    <input type="text" id="next-meeting-title" class="form-input" value="SGB &amp; SMT Ordinary Meeting">
+                                </div>
+                                <div class="form-group">
+                                    <label for="next-meeting-date">Next Meeting Date</label>
+                                    <input type="date" id="next-meeting-date" class="form-input">
+                                </div>
+                                <div class="form-group">
+                                    <label for="next-meeting-time">Next Meeting Time</label>
+                                    <input type="text" id="next-meeting-time" class="form-input" value="10:00 SAST">
+                                </div>
+                                <div class="form-group">
+                                    <label for="next-meeting-venue">Next Meeting Venue</label>
+                                    <input type="text" id="next-meeting-venue" class="form-input" value="School Staff Room / Boardroom">
+                                </div>
+                            </div>
+
+                            <label class="checkbox-label" style="margin-top: 0.75rem;">
+                                <input type="checkbox" id="conclude-clear-vault" checked>
+                                <span>Archive all current shared files and start with an empty file vault for the new meeting</span>
+                            </label>
+                        </div>
+
+                        <div class="upload-progress-wrapper hidden" id="conclude-progress-wrapper">
+                            <div class="progress-bar-track">
+                                <div class="progress-bar-fill" id="conclude-progress-fill" style="width: 0%"></div>
+                            </div>
+                            <div class="progress-status-row">
+                                <span id="conclude-progress-text">Packaging &amp; uploading archive...</span>
+                                <span id="conclude-progress-percent">0%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Wizard Navigation Actions -->
+                    <div class="wizard-nav-actions">
+                        <button type="button" class="btn btn-outline" id="btn-conclude-prev" style="visibility: hidden;">← Back</button>
+                        <div class="wizard-nav-right">
+                            <button type="button" class="btn btn-outline" id="btn-conclude-cancel">Cancel</button>
+                            <button type="button" class="btn btn-primary" id="btn-conclude-next">Next →</button>
+                            <button type="submit" class="btn btn-primary hidden" id="btn-conclude-submit" style="background: #10B981;">🚀 Finalize, Archive &amp; Reset System</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Meeting Archive Dossier Viewer Modal -->
+    <div id="archive-dossier-modal" class="modal">
+        <div class="modal-content modal-content--wide dossier-modal-dialog">
+            <div class="modal-header">
+                <div class="dossier-header-title-box">
+                    <h2 id="dossier-modal-title">Meeting Archive Dossier</h2>
+                    <span class="modal-subtitle" id="dossier-modal-subtitle">Comprehensive official governance dossier &amp; audit evidence</span>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" id="btn-dossier-edit" class="btn btn-secondary btn-sm admin-only hidden" title="Edit this archived meeting">✏️ Edit Archive</button>
+                    <button type="button" id="btn-dossier-download-docx" class="btn btn-secondary btn-sm" title="Download Word (.docx) Minutes">⬇️ Word Minutes</button>
+                    <button type="button" id="btn-dossier-download-zip" class="btn btn-secondary btn-sm" title="Download Complete Meeting Pack (.zip)">📦 ZIP Pack</button>
+                    <button type="button" id="btn-dossier-print" class="btn btn-primary btn-sm" title="Print / Save PDF">Print / PDF</button>
+                    <button id="btn-close-dossier-modal" class="btn-modal-close" aria-label="Close" title="Close">&times;</button>
+                </div>
+            </div>
+
+            <!-- Dossier Sub-Navigation Tabs -->
+            <div class="dossier-tabs-strip" id="dossier-tabs-strip">
+                <button type="button" class="dossier-tab-btn active" data-dtab="overview">📌 Overview &amp; Quorum</button>
+                <button type="button" class="dossier-tab-btn" data-dtab="audio">🎙️ Audio Recordings (<span id="dossier-audio-tab-count">0</span>)</button>
+                <button type="button" class="dossier-tab-btn" data-dtab="transcript">📄 Transcript</button>
+                <button type="button" class="dossier-tab-btn" data-dtab="resolutions">⚖️ Resolutions &amp; Actions (<span id="dossier-res-tab-count">0</span>)</button>
+                <button type="button" class="dossier-tab-btn" data-dtab="agenda">📋 Agenda &amp; Voting Log (<span id="dossier-items-tab-count">0</span>)</button>
+                <button type="button" class="dossier-tab-btn" data-dtab="attendance">📝 Signed Register</button>
+                <button type="button" class="dossier-tab-btn" data-dtab="files">📁 Vault Files (<span id="dossier-files-tab-count">0</span>)</button>
+            </div>
+
+            <div class="modal-body dossier-modal-body" id="dossier-modal-body">
+                <!-- Injected tabbed dossier content -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Archived Meeting Modal -->
+    <div id="edit-archive-modal" class="modal">
+        <div class="modal-content modal-content--wide edit-archive-modal-dialog">
+            <div class="modal-header">
+                <div>
+                    <h2>✏️ Edit Archived Meeting</h2>
+                    <span class="modal-subtitle" id="edit-archive-modal-subtitle">Modify resolutions, action items, transcript, or attach additional files</span>
+                </div>
+                <button id="btn-close-edit-archive-modal" class="btn-modal-close" aria-label="Close" title="Close">&times;</button>
+            </div>
+            <div class="modal-body edit-archive-modal-body">
+                <form id="edit-archive-form">
+                    <input type="hidden" id="edit-archive-id">
+
+                    <div class="conclude-meta-grid">
+                        <div class="form-group">
+                            <label for="edit-archive-title">Meeting Title <span class="required">*</span></label>
+                            <input type="text" id="edit-archive-title" required class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-archive-date">Meeting Date <span class="required">*</span></label>
+                            <input type="date" id="edit-archive-date" required class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-archive-time">Time</label>
+                            <input type="text" id="edit-archive-time" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-archive-venue">Venue</label>
+                            <input type="text" id="edit-archive-venue" class="form-input">
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 1rem;">
+                        <label for="edit-archive-notes">Executive Summary / Notes</label>
+                        <textarea id="edit-archive-notes" class="form-textarea" rows="3"></textarea>
+                    </div>
+
+                    <!-- Resolutions Section in Edit Modal -->
+                    <div class="resolutions-builder-wrapper" style="margin-top: 1.5rem;">
+                        <div class="resolutions-builder-header">
+                            <h4>⚖️ Edit Resolutions &amp; Action Plan</h4>
+                            <button type="button" class="btn btn-secondary btn-sm" id="btn-edit-add-resolution-row">+ Add Resolution</button>
+                        </div>
+                        <div class="resolutions-builder-list" id="edit-archive-resolutions-list">
+                            <!-- Dynamic rows -->
+                        </div>
+                    </div>
+
+                    <!-- Transcript in Edit Modal -->
+                    <div class="form-group" style="margin-top: 1.5rem;">
+                        <label for="edit-archive-transcript">Transcript Text</label>
+                        <textarea id="edit-archive-transcript" class="form-textarea code-font-textarea" rows="6"></textarea>
+                    </div>
+
+                    <!-- Manage Attached Files in Edit Modal -->
+                    <div class="edit-archive-files-section" style="margin-top: 1.5rem;">
+                        <h4>📎 Attached Files &amp; Audio</h4>
+                        <div id="edit-archive-existing-files" class="edit-archive-files-list">
+                            <!-- List of existing files with delete button -->
+                        </div>
+
+                        <div class="edit-archive-add-files-box" style="margin-top: 1rem;">
+                            <h5>+ Attach Additional Files to this Archive</h5>
+                            <div class="conclude-meta-grid" style="margin-top: 0.5rem;">
+                                <div class="form-group">
+                                    <label>Add Audio Recording(s)</label>
+                                    <input type="file" id="edit-archive-new-audio" multiple accept="audio/*,video/mp4,video/webm" class="form-input">
+                                </div>
+                                <div class="form-group">
+                                    <label>Add / Replace Signed Register</label>
+                                    <input type="file" id="edit-archive-new-signed" accept=".pdf,.docx,.doc,.jpg,.jpeg,.png" class="form-input">
+                                </div>
+                                <div class="form-group">
+                                    <label>Add Transcript Document</label>
+                                    <input type="file" id="edit-archive-new-transcript" accept=".docx,.doc,.pdf,.txt" class="form-input">
+                                </div>
+                                <div class="form-group">
+                                    <label>Add Resolution Document</label>
+                                    <input type="file" id="edit-archive-new-resolution" accept=".docx,.doc,.pdf" class="form-input">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions" style="margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 0.5rem;">
+                        <button type="button" class="btn btn-outline" id="btn-cancel-edit-archive">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="btn-save-edit-archive">Save Archive Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js?v=20260826-04"></script>
 </body>
 </html>
