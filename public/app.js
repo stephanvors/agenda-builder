@@ -3,6 +3,55 @@
 // Client-side Application (Authenticated)
 // ─────────────────────────────────────────────────────
 
+// ─────────────────────────────────────────────────────
+
+// ── Minimal Vector SVG Icons (Pure Outline) ──
+const SVG_ICONS = {
+    doc: `<svg class="ui-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`,
+    docSm: `<svg class="ui-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`,
+    docLg: `<svg class="ui-icon" viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`,
+    pdf: `<svg class="ui-icon" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M10 12h4"/><path d="M10 16h4"/></svg>`,
+    word: `<svg class="ui-icon" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><polyline points="9 13 10.5 17 12 13 13.5 17 15 13"/></svg>`,
+    audio: `<svg class="ui-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>`,
+    audioLg: `<svg class="ui-icon" viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>`,
+    transcript: `<svg class="ui-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`,
+    transcriptLg: `<svg class="ui-icon" viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`,
+    resolutions: `<svg class="ui-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M3 7l4 8h10l4-8"/><circle cx="5" cy="15" r="2"/><circle cx="19" cy="15" r="2"/></svg>`,
+    resolutionsLg: `<svg class="ui-icon" viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M3 7l4 8h10l4-8"/><circle cx="5" cy="15" r="2"/><circle cx="19" cy="15" r="2"/></svg>`,
+    agenda: `<svg class="ui-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 12h6"/><path d="M9 16h4"/></svg>`,
+    agendaLg: `<svg class="ui-icon" viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 12h6"/><path d="M9 16h4"/></svg>`,
+    signed: `<svg class="ui-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 14l2 2 4-4"/></svg>`,
+    vault: `<svg class="ui-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>`,
+    vaultLg: `<svg class="ui-icon" viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>`,
+    folder: `<svg class="ui-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>`,
+    folderOpen: `<svg class="ui-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><polygon points="22 19 20 9 2 9 4 19 22 19"/></svg>`,
+    calendar: `<svg class="ui-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`,
+    pin: `<svg class="ui-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`,
+    clock: `<svg class="ui-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
+    users: `<svg class="ui-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
+    user: `<svg class="ui-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
+    edit: `<svg class="ui-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>`,
+    trash: `<svg class="ui-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>`,
+    trashLg: `<svg class="ui-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>`,
+    download: `<svg class="ui-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`,
+    box: `<svg class="ui-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>`,
+    check: `<svg class="ui-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+    checkCircle: `<svg class="ui-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`,
+    alert: `<svg class="ui-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
+    paperclip: `<svg class="ui-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>`,
+    eye: `<svg class="ui-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`,
+    lock: `<svg class="ui-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`,
+    flag: `<svg class="ui-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
+    sun: `<svg class="ui-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`,
+    moon: `<svg class="ui-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`,
+    idea: `<svg class="ui-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .5 2.5 1.5 3.5.76.76 1.23 1.52 1.41 2.5"/></svg>`,
+    action: `<svg class="ui-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>`,
+    question: `<svg class="ui-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
+    comment: `<svg class="ui-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`,
+    star: `<svg class="ui-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
+    arrowUp: `<svg class="ui-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>`
+};
+
 // ── State ──
 const state = {
     token: null,     // session token
@@ -915,19 +964,18 @@ function setTheme(theme, save = true) {
 function toggleTheme() {
     const nextTheme = state.theme === 'dark' ? 'light' : 'dark';
     setTheme(nextTheme, true);
-    showToast(nextTheme === 'dark' ? '🌙 Dark Mode enabled' : '☀️ Light Mode enabled');
+    showToast(nextTheme === 'dark' ? 'Dark Mode enabled' : 'Light Mode enabled');
 }
 
 function updateThemeToggleUI() {
     const isDark = state.theme === 'dark';
-    const icon = isDark ? '☀️' : '🌙';
     const textApp = isDark ? 'Light' : 'Dark';
     const textLogin = isDark ? 'Light Mode' : 'Dark Mode';
 
     if (els.btnThemeToggleApp) {
         const iconSpan = els.btnThemeToggleApp.querySelector('.theme-toggle-icon');
         const textSpan = els.btnThemeToggleApp.querySelector('.theme-toggle-text');
-        if (iconSpan) iconSpan.textContent = icon;
+        if (iconSpan) iconSpan.innerHTML = isDark ? SVG_ICONS.sun : SVG_ICONS.moon;
         if (textSpan) textSpan.textContent = textApp;
         els.btnThemeToggleApp.setAttribute('title', isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode');
     }
@@ -935,7 +983,7 @@ function updateThemeToggleUI() {
     if (els.btnThemeToggleLogin) {
         const iconSpan = els.btnThemeToggleLogin.querySelector('.theme-toggle-icon');
         const textSpan = els.btnThemeToggleLogin.querySelector('.theme-toggle-text');
-        if (iconSpan) iconSpan.textContent = icon;
+        if (iconSpan) iconSpan.innerHTML = isDark ? SVG_ICONS.sun : SVG_ICONS.moon;
         if (textSpan) textSpan.textContent = textLogin;
         els.btnThemeToggleLogin.setAttribute('title', isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode');
     }
@@ -2027,10 +2075,10 @@ function renderItems() {
         const otherVoterNames = otherVotes.map(v => formatShortName(v.memberName)).join(', ');
 
         const typeLabels = {
-            idea: '💡 Idea / Solution',
-            action: '🎯 Action Step',
-            question: '❓ Question',
-            comment: '💬 Discussion'
+            idea: 'Idea / Solution',
+            action: 'Action Step',
+            question: 'Question',
+            comment: 'Discussion'
         };
 
         return `
@@ -2061,7 +2109,7 @@ function renderItems() {
                 ${isResolved && item.resolution ? `
                     <div class="item-resolution-banner">
                         <div class="res-banner-header">
-                            <span class="res-banner-badge">✅ RESOLUTION / AGREED SOLUTION</span>
+                            <span class="res-banner-badge" style="display: flex; align-items: center; gap: 0.35rem;">${SVG_ICONS.check} RESOLUTION / AGREED SOLUTION</span>
                             ${(isProposer || (item.resolution.resolvedBy && item.resolution.resolvedBy.memberId === state.member.id)) ? `
                                 <button class="btn-res-unresolve" data-item-id="${item.id}" title="Reopen this topic / clear resolution">Reopen</button>
                             ` : ''}
@@ -2089,7 +2137,7 @@ function renderItems() {
                         <div class="item-actions-left">
                             ${isProposer ? `<button class="btn-delete" data-id="${item.id}">Withdraw</button>` : ''}
                             <button class="btn-toggle-comments ${commentCount > 0 ? 'has-comments' : ''} ${isOpen ? 'active' : ''}" data-id="${item.id}">
-                                <span class="comment-icon">💬</span>
+                                <span class="comment-icon" style="display: inline-flex; align-items: center;">${SVG_ICONS.comment}</span>
                                 <span class="comment-count-label">${commentCount > 0 ? `${commentCount} ${commentCount === 1 ? 'Comment' : 'Comments'}` : 'Brainstorm'}</span>
                                 <span class="comment-chevron">${isOpen ? '▲' : '▼'}</span>
                             </button>
@@ -2098,7 +2146,7 @@ function renderItems() {
                             <button class="btn-vote ${hasVoted ? 'voted' : ''}"
                                     data-id="${item.id}"
                                     title="${hasVoted ? 'Click to withdraw your support vote' : 'Click to second / support this proposal'}">
-                                <span class="icon">${hasVoted ? '✓' : '↑'}</span> ${voteCount} ${voteCount === 1 ? 'Vote' : 'Votes'}
+                                <span class="icon" style="display: inline-flex; align-items: center;">${hasVoted ? SVG_ICONS.check : SVG_ICONS.arrowUp}</span> ${voteCount} ${voteCount === 1 ? 'Vote' : 'Votes'}
                             </button>
                         </div>
                     </div>
@@ -2110,7 +2158,7 @@ function renderItems() {
                         <h4>Brainstorming & Discussion <span class="comments-counter">(${commentCount})</span></h4>
                         ${!isResolved && isProposer ? `
                             <button class="btn-resolve-direct" data-id="${item.id}" title="Mark this issue as resolved with an agreed decision or plan">
-                                ✅ Mark as Resolved
+                                ${SVG_ICONS.check} Mark as Resolved
                             </button>
                         ` : ''}
                     </div>
@@ -2119,7 +2167,7 @@ function renderItems() {
                     <div class="comments-list">
                         ${commentCount === 0 ? `
                             <div class="comments-empty-hint">
-                                <span class="empty-sparkle">💡</span>
+                                <span class="empty-sparkle" style="display: flex; align-items: center; justify-content: center;">${SVG_ICONS.idea}</span>
                                 <p>No brainstorm ideas or comments yet. Share your thoughts or propose a solution below!</p>
                             </div>
                         ` : comments.map(c => {
@@ -2129,7 +2177,7 @@ function renderItems() {
                             const canDelete = isCommentAuthor || isProposer;
                             const isSol = Boolean(c.isSolution);
                             const type = isEditing ? editState.type : (c.type || 'comment');
-                            const typeLabel = typeLabels[type] || '💬 Discussion';
+                            const typeLabel = typeLabels[type] || 'Discussion';
 
                             return `
                                 <div class="comment-item ${isSol ? 'is-solution' : ''}" id="comment-${c.id}">
@@ -2143,17 +2191,17 @@ function renderItems() {
                                             </div>
                                             <div class="comment-tag-wrapper">
                                                 <span class="comment-type-badge type-${type}">${typeLabel}</span>
-                                                ${isSol ? '<span class="badge-solution-pill">⭐ Accepted Solution</span>' : ''}
+                                                ${isSol ? `<span class="badge-solution-pill">${SVG_ICONS.star} Accepted Solution</span>` : ''}
                                             </div>
                                         </div>
                                         ${isEditing ? `
                                             <div class="comment-edit-box">
                                                 <div class="composer-type-selector composer-type-selector--edit">
                                                     <span class="composer-type-label">Tag:</span>
-                                                    <button type="button" class="composer-type-btn ${editState.type === 'idea' ? 'selected' : ''}" data-edit-comment-id="${c.id}" data-type="idea">💡 Idea</button>
-                                                    <button type="button" class="composer-type-btn ${editState.type === 'action' ? 'selected' : ''}" data-edit-comment-id="${c.id}" data-type="action">🎯 Action</button>
-                                                    <button type="button" class="composer-type-btn ${editState.type === 'question' ? 'selected' : ''}" data-edit-comment-id="${c.id}" data-type="question">❓ Question</button>
-                                                    <button type="button" class="composer-type-btn ${editState.type === 'comment' ? 'selected' : ''}" data-edit-comment-id="${c.id}" data-type="comment">💬 Discussion</button>
+                                                    <button type="button" class="composer-type-btn ${editState.type === 'idea' ? 'selected' : ''}" data-edit-comment-id="${c.id}" data-type="idea">${SVG_ICONS.idea} Idea</button>
+                                                    <button type="button" class="composer-type-btn ${editState.type === 'action' ? 'selected' : ''}" data-edit-comment-id="${c.id}" data-type="action">${SVG_ICONS.action} Action</button>
+                                                    <button type="button" class="composer-type-btn ${editState.type === 'question' ? 'selected' : ''}" data-edit-comment-id="${c.id}" data-type="question">${SVG_ICONS.question} Question</button>
+                                                    <button type="button" class="composer-type-btn ${editState.type === 'comment' ? 'selected' : ''}" data-edit-comment-id="${c.id}" data-type="comment">${SVG_ICONS.comment} Discussion</button>
                                                 </div>
                                                 <textarea class="comment-textarea comment-edit-textarea" id="comment-edit-input-${c.id}" data-comment-id="${c.id}" rows="2">${escapeHTML(editState.content)}</textarea>
                                                 <div class="comment-edit-actions">
@@ -2166,12 +2214,12 @@ function renderItems() {
                                             <div class="comment-footer-actions">
                                                 ${(!isResolved && (isProposer || isCommentAuthor)) ? `
                                                     <button class="btn-mark-solution" data-item-id="${item.id}" data-comment-id="${c.id}" data-comment-text="${escapeHTML(c.content)}" title="Accept this comment as the resolution">
-                                                        ⭐ Accept as Solution
+                                                        ${SVG_ICONS.star} Accept as Solution
                                                     </button>
                                                 ` : ''}
                                                 ${isCommentAuthor ? `
                                                     <button class="btn-edit-comment" data-item-id="${item.id}" data-comment-id="${c.id}" title="Edit your comment">
-                                                        ✏️ Edit
+                                                        ${SVG_ICONS.edit} Edit
                                                     </button>
                                                 ` : ''}
                                                 ${canDelete ? `
@@ -2192,16 +2240,16 @@ function renderItems() {
                         <div class="composer-type-selector">
                             <span class="composer-type-label">Tag as:</span>
                             <button type="button" class="composer-type-btn ${selectedType === 'idea' ? 'selected' : ''}" data-item-id="${item.id}" data-type="idea">
-                                💡 Idea
+                                ${SVG_ICONS.idea} Idea
                             </button>
                             <button type="button" class="composer-type-btn ${selectedType === 'action' ? 'selected' : ''}" data-item-id="${item.id}" data-type="action">
-                                🎯 Action
+                                ${SVG_ICONS.action} Action
                             </button>
                             <button type="button" class="composer-type-btn ${selectedType === 'question' ? 'selected' : ''}" data-item-id="${item.id}" data-type="question">
-                                ❓ Question
+                                ${SVG_ICONS.question} Question
                             </button>
                             <button type="button" class="composer-type-btn ${selectedType === 'comment' ? 'selected' : ''}" data-item-id="${item.id}" data-type="comment">
-                                💬 Discussion
+                                ${SVG_ICONS.comment} Discussion
                             </button>
                         </div>
                         <div class="composer-input-row">
@@ -2310,17 +2358,17 @@ function renderCategorySelectOptions(categories, selectEl, promptText = 'Select 
 
     tree.forEach(l1 => {
         if (l1.children.length === 0) {
-            html += `<option value="${escapeHTML(l1.path)}">📁 ${escapeHTML(l1.name)}</option>`;
+            html += `<option value="${escapeHTML(l1.path)}">${escapeHTML(l1.name)}</option>`;
         } else {
-            html += `<optgroup label="📁 ${escapeHTML(l1.name)}">`;
-            html += `<option value="${escapeHTML(l1.path)}">📁 ${escapeHTML(l1.name)} (General / Main)</option>`;
+            html += `<optgroup label="${escapeHTML(l1.name)}">`;
+            html += `<option value="${escapeHTML(l1.path)}">${escapeHTML(l1.name)} (General / Main)</option>`;
             l1.children.forEach(l2 => {
                 if (l2.children.length === 0) {
-                    html += `<option value="${escapeHTML(l2.path)}">&nbsp;&nbsp;↳ 📂 ${escapeHTML(l2.name)}</option>`;
+                    html += `<option value="${escapeHTML(l2.path)}">&nbsp;&nbsp;↳ ${escapeHTML(l2.name)}</option>`;
                 } else {
-                    html += `<option value="${escapeHTML(l2.path)}">&nbsp;&nbsp;↳ 📂 ${escapeHTML(l2.name)} (Overview)</option>`;
+                    html += `<option value="${escapeHTML(l2.path)}">&nbsp;&nbsp;↳ ${escapeHTML(l2.name)} (Overview)</option>`;
                     l2.children.forEach(l3 => {
-                        html += `<option value="${escapeHTML(l3.path)}">&nbsp;&nbsp;&nbsp;&nbsp;↳ 📄 ${escapeHTML(l3.name)}</option>`;
+                        html += `<option value="${escapeHTML(l3.path)}">&nbsp;&nbsp;&nbsp;&nbsp;↳ ${escapeHTML(l3.name)}</option>`;
                     });
                 }
             });
@@ -2343,17 +2391,17 @@ function renderCategoryFilterOptions(categories, selectEl, allPrompt = 'All Cate
 
     tree.forEach(l1 => {
         if (l1.children.length === 0) {
-            html += `<option value="${escapeHTML(l1.path)}">📁 ${escapeHTML(l1.name)}</option>`;
+            html += `<option value="${escapeHTML(l1.path)}">${escapeHTML(l1.name)}</option>`;
         } else {
-            html += `<optgroup label="📁 ${escapeHTML(l1.name)}">`;
-            html += `<option value="${escapeHTML(l1.path)}">📁 All "${escapeHTML(l1.name)}"</option>`;
+            html += `<optgroup label="${escapeHTML(l1.name)}">`;
+            html += `<option value="${escapeHTML(l1.path)}">All "${escapeHTML(l1.name)}"</option>`;
             l1.children.forEach(l2 => {
                 if (l2.children.length === 0) {
-                    html += `<option value="${escapeHTML(l2.path)}">&nbsp;&nbsp;↳ 📂 ${escapeHTML(l2.name)}</option>`;
+                    html += `<option value="${escapeHTML(l2.path)}">&nbsp;&nbsp;↳ ${escapeHTML(l2.name)}</option>`;
                 } else {
-                    html += `<option value="${escapeHTML(l2.path)}">&nbsp;&nbsp;↳ 📂 All "${escapeHTML(l2.name)}"</option>`;
+                    html += `<option value="${escapeHTML(l2.path)}">&nbsp;&nbsp;↳ All "${escapeHTML(l2.name)}"</option>`;
                     l2.children.forEach(l3 => {
-                        html += `<option value="${escapeHTML(l3.path)}">&nbsp;&nbsp;&nbsp;&nbsp;↳ 📄 ${escapeHTML(l3.name)}</option>`;
+                        html += `<option value="${escapeHTML(l3.path)}">&nbsp;&nbsp;&nbsp;&nbsp;↳ ${escapeHTML(l3.name)}</option>`;
                     });
                 }
             });
@@ -2417,7 +2465,7 @@ function renderDocTagPicker() {
         const isSelected = isCurrentUploader || (state.selectedUploadTags || []).some(t => t.toLowerCase() === tag.toLowerCase());
         if (isCurrentUploader) {
             return `<label class="doc-tag-chip-label doc-tag-chip-uploader selected locked" data-tag="${escapeHTML(tag)}" title="Your contributor tag is automatically assigned to this upload and cannot be removed">
-                👤 ${escapeHTML(tag)} <span class="tag-locked-icon" title="Cannot be removed">🔒</span>
+                ${SVG_ICONS.user} <span>${escapeHTML(tag)}</span> <span class="tag-locked-icon" title="Cannot be removed">${SVG_ICONS.lock}</span>
             </label>`;
         }
         return `<label class="doc-tag-chip-label ${isSelected ? 'selected' : ''}" data-tag="${escapeHTML(tag)}">
@@ -2439,7 +2487,7 @@ function renderDocTagFilterStrip() {
         }).length;
         if (count === 0 && !isActive) return;
         const isContributor = isContributorTagName(tag);
-        html += `<button type="button" class="tag-filter-chip ${isContributor ? 'tag-filter-chip-uploader' : ''} ${isActive ? 'active' : ''}" data-tag="${escapeHTML(tag)}">${isContributor ? '👤 ' : ''}${escapeHTML(tag)} <span style="opacity:0.65;font-size:0.7rem;margin-left:0.2rem;">${count}</span></button>`;
+        html += `<button type="button" class="tag-filter-chip ${isContributor ? 'tag-filter-chip-uploader' : ''} ${isActive ? 'active' : ''}" data-tag="${escapeHTML(tag)}">${isContributor ? SVG_ICONS.user + ' ' : ''}<span>${escapeHTML(tag)}</span> <span style="opacity:0.65;font-size:0.7rem;margin-left:0.2rem;">${count}</span></button>`;
     });
     els.docTagFilterStrip.innerHTML = html;
 }
@@ -2462,12 +2510,12 @@ function renderDocTagManager() {
                 const isContributor = isContributorTagName(tag);
                 return `
                     <div class="doc-tag-manager-row ${isContributor ? 'doc-tag-manager-row-contributor' : ''}">
-                        <span class="doc-tag-pill ${isContributor ? 'doc-tag-pill-uploader' : ''}">${isContributor ? '👤 ' : ''}${escapeHTML(tag)}</span>
+                        <span class="doc-tag-pill ${isContributor ? 'doc-tag-pill-uploader' : ''}">${isContributor ? SVG_ICONS.user + ' ' : ''}${escapeHTML(tag)}</span>
                         <span class="doc-tag-manager-count">${count > 0 ? count + ' file' + (count > 1 ? 's' : '') : 'unused'}</span>
                         ${isContributor ? `
-                            <span class="doc-tag-contributor-badge" title="Contributor tag (cannot be deleted)">🔒 Protected</span>
+                            <span class="doc-tag-contributor-badge" title="Contributor tag (cannot be deleted)">${SVG_ICONS.lock} Protected</span>
                         ` : `
-                            <button type="button" class="btn-cat-delete" data-path="${escapeHTML(tag)}" title="Delete tag">🗑️</button>
+                            <button type="button" class="btn-cat-delete" data-path="${escapeHTML(tag)}" title="Delete tag">${SVG_ICONS.trash}</button>
                         `}
                     </div>
                 `;
@@ -2543,7 +2591,7 @@ function updateCategoryBuilderSelectors(preselectL1 = null, preselectL2 = null) 
     if (els.catParentL1) {
         let l1Html = `<option value="__NEW__">+ New Main Category (Level 1)</option>`;
         tree.forEach(node => {
-            l1Html += `<option value="${escapeHTML(node.path)}">📁 ${escapeHTML(node.name)}</option>`;
+            l1Html += `<option value="${escapeHTML(node.path)}">${escapeHTML(node.name)}</option>`;
         });
         els.catParentL1.innerHTML = l1Html;
         if (preselectL1 && tree.some(n => n.path === preselectL1)) {
@@ -2580,7 +2628,7 @@ function updateL2Selector(preselectL2 = null) {
     let l2Html = `<option value="__NEW__">+ New Subcategory under [${escapeHTML(l1Node ? l1Node.name : selectedL1)}] (Level 2)</option>`;
     if (l1Node && l1Node.children) {
         l1Node.children.forEach(child => {
-            l2Html += `<option value="${escapeHTML(child.path)}">📂 ${escapeHTML(child.name)}</option>`;
+            l2Html += `<option value="${escapeHTML(child.path)}">${escapeHTML(child.name)}</option>`;
         });
     }
     els.catParentL2.innerHTML = l2Html;
@@ -2648,7 +2696,7 @@ function renderCategoryTree() {
             <div class="cat-tree-node level-1" draggable="true" data-path="${escapeHTML(l1.path)}" data-level="1">
                 <div class="cat-tree-info">
                     <span class="cat-drag-handle" title="Drag to nest this category under another">⠿</span>
-                    <span class="cat-tree-icon">📁</span>
+                    <span class="cat-tree-icon">${SVG_ICONS.folder}</span>
                     <span class="cat-tree-title">${escapeHTML(l1.name)}</span>
                     <span class="cat-tree-level-tag tag-l1">Level 1</span>
                     ${l1Count > 0 ? `<span class="doc-size-badge">${l1Count} ${isAgenda ? 'items' : 'files'}</span>` : ''}
@@ -2656,7 +2704,7 @@ function renderCategoryTree() {
                 <div class="cat-tree-actions">
                     <button type="button" class="btn-cat-add-sub" data-l1="${escapeHTML(l1.path)}" data-l2="__NEW__" title="Add Subcategory (Level 2) under this">+ Sub (L2)</button>
                     <button type="button" class="btn-cat-move" data-path="${escapeHTML(l1.path)}" title="Move / Nest under another category">⇄ Move</button>
-                    <button type="button" class="btn-cat-delete" data-path="${escapeHTML(l1.path)}" title="Delete category & subcategories">🗑️</button>
+                    <button type="button" class="btn-cat-delete" data-path="${escapeHTML(l1.path)}" title="Delete category & subcategories">${SVG_ICONS.trash}</button>
                 </div>
             </div>
         `;
@@ -2670,7 +2718,7 @@ function renderCategoryTree() {
                 <div class="cat-tree-node level-2" draggable="true" data-path="${escapeHTML(l2.path)}" data-level="2">
                     <div class="cat-tree-info">
                         <span class="cat-drag-handle" title="Drag to nest under another category or drag to top to un-nest">⠿</span>
-                        <span class="cat-tree-icon">📂</span>
+                        <span class="cat-tree-icon">${SVG_ICONS.folderOpen}</span>
                         <span class="cat-tree-title">${escapeHTML(l2.name)}</span>
                         <span class="cat-tree-level-tag tag-l2">Level 2</span>
                         ${l2Count > 0 ? `<span class="doc-size-badge">${l2Count}</span>` : ''}
@@ -2678,7 +2726,7 @@ function renderCategoryTree() {
                     <div class="cat-tree-actions">
                         <button type="button" class="btn-cat-add-sub" data-l1="${escapeHTML(l1.path)}" data-l2="${escapeHTML(l2.path)}" title="Add Topic (Level 3) under this">+ Sub (L3)</button>
                         <button type="button" class="btn-cat-move" data-path="${escapeHTML(l2.path)}" title="Move / Nest under another category">⇄ Move</button>
-                        <button type="button" class="btn-cat-delete" data-path="${escapeHTML(l2.path)}" title="Delete subcategory">🗑️</button>
+                        <button type="button" class="btn-cat-delete" data-path="${escapeHTML(l2.path)}" title="Delete subcategory">${SVG_ICONS.trash}</button>
                     </div>
                 </div>
             `;
@@ -2692,14 +2740,14 @@ function renderCategoryTree() {
                     <div class="cat-tree-node level-3" draggable="true" data-path="${escapeHTML(l3.path)}" data-level="3">
                         <div class="cat-tree-info">
                             <span class="cat-drag-handle" title="Drag to move under another category">⠿</span>
-                            <span class="cat-tree-icon">📄</span>
+                            <span class="cat-tree-icon">${SVG_ICONS.docSm}</span>
                             <span class="cat-tree-title">${escapeHTML(l3.name)}</span>
                             <span class="cat-tree-level-tag tag-l3">Level 3</span>
                             ${l3Count > 0 ? `<span class="doc-size-badge">${l3Count}</span>` : ''}
                         </div>
                         <div class="cat-tree-actions">
                             <button type="button" class="btn-cat-move" data-path="${escapeHTML(l3.path)}" title="Move / Nest under another category">⇄ Move</button>
-                            <button type="button" class="btn-cat-delete" data-path="${escapeHTML(l3.path)}" title="Delete topic">🗑️</button>
+                            <button type="button" class="btn-cat-delete" data-path="${escapeHTML(l3.path)}" title="Delete topic">${SVG_ICONS.trash}</button>
                         </div>
                     </div>
                 `;
@@ -2867,15 +2915,15 @@ async function promptMoveCategory(sourcePath) {
 
     // Collect valid targets (exclude self and descendants)
     const options = [
-        { label: '⬆️ [Top Level / Main Category (Level 1)]', value: '__ROOT__' }
+        { label: '[Top Level / Main Category (Level 1)]', value: '__ROOT__' }
     ];
 
     tree.forEach(l1 => {
         if (l1.path.toLowerCase() !== srcLower && !l1.path.toLowerCase().startsWith(srcLower + ' > ')) {
-            options.push({ label: `📁 ${l1.name} (Level 1 Parent)`, value: l1.path });
+            options.push({ label: `${l1.name} (Level 1 Parent)`, value: l1.path });
             l1.children.forEach(l2 => {
                 if (l2.path.toLowerCase() !== srcLower && !l2.path.toLowerCase().startsWith(srcLower + ' > ')) {
-                    options.push({ label: `  ↳ 📂 ${l1.name} > ${l2.name} (Level 2 Parent)`, value: l2.path });
+                    options.push({ label: `  ↳ ${l1.name} > ${l2.name} (Level 2 Parent)`, value: l2.path });
                 }
             });
         }
@@ -3267,9 +3315,9 @@ function renderDocuments() {
                         <div class="doc-meta-badges">
                             ${docTags.length > 0 ? `<div class="doc-tags-row">${docTags.map(t => {
                                 const isContributor = (uploaderName && t.trim().toLowerCase() === uploaderName.toLowerCase()) || isContributorTagName(t, doc);
-                                return `<span class="doc-tag-pill ${isContributor ? 'doc-tag-pill-uploader' : ''}" title="${isContributor ? 'Contributor: ' + escapeHTML(formatShortName(t)) : 'Tag: ' + escapeHTML(t)}">${isContributor ? '👤 ' : ''}${escapeHTML(isContributor ? formatShortName(t) : t)}</span>`;
+                                return `<span class="doc-tag-pill ${isContributor ? 'doc-tag-pill-uploader' : ''}" title="${isContributor ? 'Contributor: ' + escapeHTML(formatShortName(t)) : 'Tag: ' + escapeHTML(t)}">${isContributor ? SVG_ICONS.user + ' ' : ''}${escapeHTML(isContributor ? formatShortName(t) : t)}</span>`;
                             }).join('')}</div>` : ''}
-                            ${!isAvailable ? '<span class="doc-warning-badge" title="This file was uploaded prior to database persistence and needs to be re-uploaded">⚠️ Re-upload Needed</span>' : ''}
+                            ${!isAvailable ? `<span class="doc-warning-badge" title="This file was uploaded prior to database persistence and needs to be re-uploaded">${SVG_ICONS.alert} Re-upload Needed</span>` : ''}
                             <span class="doc-size-badge">${formatBytes(doc.size)}</span>
                         </div>
                     </div>
@@ -3691,7 +3739,7 @@ function renderEditDocTagPicker() {
         if (isDocUploader) {
             return `
                 <label class="doc-tag-chip-label doc-tag-chip-uploader selected locked" data-tag="${escapeHTML(tag)}" title="Contributor tag is permanently assigned to this document and cannot be removed">
-                    👤 ${escapeHTML(tag)} <span class="tag-locked-icon" title="Cannot be removed">🔒</span>
+                    ${SVG_ICONS.user} <span>${escapeHTML(tag)}</span> <span class="tag-locked-icon" title="Cannot be removed">${SVG_ICONS.lock}</span>
                 </label>
             `;
         }
@@ -4218,19 +4266,19 @@ async function showExportModal() {
                     </div>
                     <div class="print-meta-grid">
                         <div class="print-meta-cell">
-                            <span class="meta-label">📅 Date &amp; Time:</span>
+                            <span class="meta-label">Date &amp; Time:</span>
                             <span class="meta-val">27 August 2026 — 10:00 SAST</span>
                         </div>
                         <div class="print-meta-cell">
-                            <span class="meta-label">📍 Venue:</span>
+                            <span class="meta-label">Venue:</span>
                             <span class="meta-val">School Staff Room / Boardroom</span>
                         </div>
                         <div class="print-meta-cell">
-                            <span class="meta-label">👥 Constitution:</span>
+                            <span class="meta-label">Constitution:</span>
                             <span class="meta-val">Joint SGB &amp; SMT Sitting</span>
                         </div>
                         <div class="print-meta-cell">
-                            <span class="meta-label">⚖️ Statutory Basis:</span>
+                            <span class="meta-label">Statutory Basis:</span>
                             <span class="meta-val">SASA Act 84 of 1996 &amp; SGB Constitution</span>
                         </div>
                     </div>
@@ -4269,7 +4317,7 @@ async function showExportModal() {
 
                         ${isResolved && item.resolution ? `
                             <div class="print-resolution-box">
-                                <strong>✅ Resolution / Agreed Plan:</strong> ${escapeHTML(item.resolution.solutionText)}
+                                <strong>Resolution / Agreed Plan:</strong> ${escapeHTML(item.resolution.solutionText)}
                                 <span class="print-res-by">(Resolved by ${escapeHTML(formatShortName(item.resolution.resolvedBy ? item.resolution.resolvedBy.memberName : 'Member'))})</span>
                             </div>
                         ` : ''}
@@ -4491,7 +4539,7 @@ function renderAttendanceModalContent() {
                             <option value="Absent" ${member.status === 'Absent' ? 'selected' : ''}>Absent</option>
                         </select>
                         <span class="attendance-print-status only-print ${member.status === 'Present' ? 'status-present' : 'status-apology'}">
-                            ${member.status === 'Present' ? '✔ Present' : (member.status === 'Apology' ? 'Apology' : 'Absent')}
+                            ${member.status === 'Present' ? 'Present' : (member.status === 'Apology' ? 'Apology' : 'Absent')}
                         </span>
                     </td>
                     <td style="text-align: center;">
@@ -4632,7 +4680,7 @@ window.saveAttendanceToDatabase = async function() {
     try {
         const res = await api.saveAttendance({ components: attendanceRosterState.components });
         attendanceRosterState.lastSaved = res?.lastSaved || new Date().toISOString();
-        showToast('✅ Attendance register saved to database!');
+        showToast('Attendance register saved to database!');
         saveBtns.forEach(b => {
             b.innerHTML = `
                 <svg class="btn-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
@@ -4996,18 +5044,18 @@ function renderArchives() {
                         <div class="archive-card-title-group">
                             <h3 class="archive-card-title">${escapeHTML(meetingInfo.title || 'SGB/SMT Meeting')}</h3>
                             <div class="archive-card-meta">
-                                <span>🕒 ${escapeHTML(meetingInfo.time || '10:00 SAST')}</span>
-                                <span>📍 ${escapeHTML(meetingInfo.venue || 'Staff Room')}</span>
+                                <span>${SVG_ICONS.clock} ${escapeHTML(meetingInfo.time || '10:00 SAST')}</span>
+                                <span>${SVG_ICONS.pin} ${escapeHTML(meetingInfo.venue || 'Staff Room')}</span>
                             </div>
                         </div>
                     </div>
 
                     <div class="archive-badges-wrap">
-                        ${hasAudio ? `<span class="archive-badge archive-badge--audio">🎙️ ${audioCount} Audio${audioCount > 1 ? 's' : ''}</span>` : ''}
-                        ${hasSigned ? `<span class="archive-badge archive-badge--signed">📝 Signed Register</span>` : ''}
-                        <span class="archive-badge archive-badge--res">⚖️ ${resCount} Decision${resCount !== 1 ? 's' : ''}</span>
-                        <span class="archive-badge archive-badge--quorum">👥 ${stats.presentCount ?? stats.totalMembers ?? 15} Present (${stats.quorumPercentage || '100%'})</span>
-                        <span class="archive-badge">📋 ${itemsCount} Items</span>
+                        ${hasAudio ? `<span class="archive-badge archive-badge--audio">${SVG_ICONS.audio} ${audioCount} Audio${audioCount > 1 ? 's' : ''}</span>` : ''}
+                        ${hasSigned ? `<span class="archive-badge archive-badge--signed">${SVG_ICONS.signed} Signed Register</span>` : ''}
+                        <span class="archive-badge archive-badge--res">${SVG_ICONS.resolutions} ${resCount} Decision${resCount !== 1 ? 's' : ''}</span>
+                        <span class="archive-badge archive-badge--quorum">${SVG_ICONS.users} ${stats.presentCount ?? stats.totalMembers ?? 15} Present (${stats.quorumPercentage || '100%'})</span>
+                        <span class="archive-badge">${SVG_ICONS.agenda} ${itemsCount} Items</span>
                     </div>
 
                     ${arch.notes ? `<p class="archive-card-summary">${escapeHTML(arch.notes)}</p>` : `<p class="archive-card-summary" style="font-style: italic; color: var(--text-muted);">Official sitting concluded and archived. Dossier contains full deliberations, voting log, audio recordings, and adopted resolutions.</p>`}
@@ -5015,21 +5063,21 @@ function renderArchives() {
 
                 <div class="archive-card-footer">
                     <button type="button" class="btn btn-primary btn-sm btn-open-archive-dossier" data-id="${arch.id}">
-                        📂 Open Dossier
+                        ${SVG_ICONS.folder} <span>Open Dossier</span>
                     </button>
                     <div class="archive-card-actions">
                         <button type="button" class="btn btn-outline btn-sm btn-download-archive-docx" data-id="${arch.id}" title="Download Word Minutes (.docx)">
-                            📄 DOCX
+                            ${SVG_ICONS.doc} <span>DOCX</span>
                         </button>
                         <button type="button" class="btn btn-outline btn-sm btn-download-archive-zip" data-id="${arch.id}" title="Download Full Dossier ZIP Pack">
-                            📦 ZIP
+                            ${SVG_ICONS.box} <span>ZIP</span>
                         </button>
                         ${adminUser ? `
                             <button type="button" class="btn btn-outline btn-sm btn-edit-archive-quick" data-id="${arch.id}" title="Edit Archive Particulars & Resolutions">
-                                ✏️
+                                ${SVG_ICONS.edit}
                             </button>
                             <button type="button" class="btn btn-outline btn-sm btn-delete-archive-quick" data-id="${arch.id}" title="Delete Archive (Admin Only)" style="color: var(--danger); border-color: rgba(239, 68, 68, 0.3);">
-                                🗑️
+                                ${SVG_ICONS.trash}
                             </button>
                         ` : ''}
                     </div>
@@ -5190,11 +5238,11 @@ function renderConcludeResolutions() {
             <div class="resolution-card-top-row">
                 <input type="text" class="form-input res-edit-title" value="${escapeHTML(res.itemTitle || '')}" placeholder="Resolution / Decision Topic Title" required style="font-weight: 700;">
                 <select class="resolution-decision-select res-edit-decision">
-                    <option value="Adopted" ${res.decision === 'Adopted' ? 'selected' : ''}>✅ Adopted</option>
-                    <option value="Approved" ${res.decision === 'Approved' ? 'selected' : ''}>👍 Approved</option>
-                    <option value="Deferred" ${res.decision === 'Deferred' ? 'selected' : ''}>⏳ Deferred</option>
-                    <option value="Rejected" ${res.decision === 'Rejected' ? 'selected' : ''}>❌ Rejected</option>
-                    <option value="Action Required" ${res.decision === 'Action Required' ? 'selected' : ''}>🎯 Action Required</option>
+                    <option value="Adopted" ${res.decision === 'Adopted' ? 'selected' : ''}>Adopted</option>
+                    <option value="Approved" ${res.decision === 'Approved' ? 'selected' : ''}>Approved</option>
+                    <option value="Deferred" ${res.decision === 'Deferred' ? 'selected' : ''}>Deferred</option>
+                    <option value="Rejected" ${res.decision === 'Rejected' ? 'selected' : ''}>Rejected</option>
+                    <option value="Action Required" ${res.decision === 'Action Required' ? 'selected' : ''}>Action Required</option>
                 </select>
                 <button type="button" class="btn-link-action btn-remove-resolution" data-res-index="${resIdx}" style="color: var(--danger);" title="Remove resolution">✕</button>
             </div>
@@ -5257,7 +5305,7 @@ function renderConcludeAttendanceReview() {
     els.concludeAttendanceReviewBox.innerHTML = `
         <div style="background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.75rem 1rem; margin-top: 1rem;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                <strong style="font-size: 0.88rem;">👥 Digital Attendance &amp; Quorum Verification (${membersList.length} Members)</strong>
+                <strong style="font-size: 0.88rem; display: flex; align-items: center; gap: 0.4rem;">${SVG_ICONS.users} Digital Attendance &amp; Quorum Verification (${membersList.length} Members)</strong>
                 <span class="badge badge--success" style="font-size: 0.75rem;">Quorate (Legally Valid)</span>
             </div>
             <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0.5rem; max-height: 180px; overflow-y: auto; padding-right: 0.25rem;">
@@ -5386,7 +5434,7 @@ function renderDossierOverview(arch) {
             <!-- Meeting Overview Cards -->
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
                 <div style="background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 1.25rem;">
-                    <h4 style="font-size: 0.95rem; margin-bottom: 0.75rem; color: var(--primary);">📋 Meeting Particulars</h4>
+                    <h4 style="font-size: 0.95rem; margin-bottom: 0.75rem; color: var(--primary); display: flex; align-items: center; gap: 0.4rem;">${SVG_ICONS.calendar} Meeting Particulars</h4>
                     <div style="font-size: 0.85rem; line-height: 1.6;">
                         <div><strong>Title:</strong> ${escapeHTML(meetingInfo.title || 'SGB/SMT Strategy Meeting')}</div>
                         <div><strong>Date &amp; Time:</strong> ${formatDateLong(meetingDate)} @ ${escapeHTML(meetingInfo.time || '10:00 SAST')}</div>
@@ -5397,7 +5445,7 @@ function renderDossierOverview(arch) {
                 </div>
 
                 <div style="background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 1.25rem;">
-                    <h4 style="font-size: 0.95rem; margin-bottom: 0.75rem; color: #059669;">👥 Quorum &amp; Legal Mandate</h4>
+                    <h4 style="font-size: 0.95rem; margin-bottom: 0.75rem; color: #059669; display: flex; align-items: center; gap: 0.4rem;">${SVG_ICONS.users} Quorum &amp; Legal Mandate</h4>
                     <div style="font-size: 0.85rem; line-height: 1.6;">
                         <div><strong>Statutory Authority:</strong> SASA Act 84 of 1996 (Sections 12 &amp; 18)</div>
                         <div><strong>Quorum Certification:</strong> <span class="badge badge--success" style="font-size: 0.75rem;">Legally Quorate (${stats.quorumPercentage || '100%'})</span></div>
@@ -5410,7 +5458,7 @@ function renderDossierOverview(arch) {
 
             <!-- Notes & Executive Summary -->
             <div style="background: var(--white); border: 1px solid var(--border-color); border-radius: 10px; padding: 1.25rem; margin-bottom: 1.5rem;">
-                <h4 style="font-size: 0.95rem; margin-bottom: 0.5rem; color: var(--text-main);">📝 Secretariat Executive Summary</h4>
+                <h4 style="font-size: 0.95rem; margin-bottom: 0.5rem; color: var(--text-main); display: flex; align-items: center; gap: 0.4rem;">${SVG_ICONS.edit} Secretariat Executive Summary</h4>
                 <p style="font-size: 0.88rem; line-height: 1.6; color: var(--text-muted); margin: 0;">
                     ${arch.notes ? escapeHTML(arch.notes) : 'All agenda items were formally deliberated in accordance with SGB statutory guidelines. The meeting arrived at binding governance resolutions and adopted actionable mandates.'}
                 </p>
@@ -5418,10 +5466,10 @@ function renderDossierOverview(arch) {
 
             <!-- Quick Action Downloads Strip -->
             <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; justify-content: space-between; background: rgba(12, 79, 242, 0.05); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.75rem 1.25rem;">
-                <span style="font-size: 0.85rem; font-weight: 600;">📥 Complete Governance Dossier Exports:</span>
+                <span style="font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 0.4rem;">${SVG_ICONS.download} Complete Governance Dossier Exports:</span>
                 <div style="display: flex; gap: 0.5rem;">
-                    <button type="button" class="btn btn-secondary btn-sm btn-download-archive-docx" data-id="${arch.id}">📄 Download Word Minutes</button>
-                    <button type="button" class="btn btn-primary btn-sm btn-download-archive-zip" data-id="${arch.id}">📦 Download Full Dossier ZIP</button>
+                    <button type="button" class="btn btn-secondary btn-sm btn-download-archive-docx" data-id="${arch.id}">${SVG_ICONS.doc} Download Word Minutes</button>
+                    <button type="button" class="btn btn-primary btn-sm btn-download-archive-zip" data-id="${arch.id}">${SVG_ICONS.box} Download Full Dossier ZIP</button>
                 </div>
             </div>
         </div>
@@ -5435,12 +5483,12 @@ function renderDossierMinutes(arch) {
     if (minutesFiles.length === 0) {
         els.dossierModalBody.innerHTML = `
             <div class="empty-state" style="padding: 3rem 1rem;">
-                <div class="empty-icon">📄</div>
+                <div class="empty-icon">${SVG_ICONS.docLg}</div>
                 <h3>Official Minutes Documents</h3>
                 <p>No minutes document was uploaded during meeting packaging.</p>
                 <div style="display: flex; justify-content: center; gap: 0.75rem; margin-top: 1.25rem; flex-wrap: wrap;">
                     <button type="button" class="btn btn-primary btn-sm btn-download-archive-docx" data-id="${arch.id}">
-                        📄 Download Auto-Generated Word Minutes (.docx)
+                        ${SVG_ICONS.doc} Download Auto-Generated Word Minutes (.docx)
                     </button>
                 </div>
             </div>
@@ -5452,12 +5500,12 @@ function renderDossierMinutes(arch) {
         <div class="transcript-viewer-card">
             <div class="transcript-toolbar">
                 <div style="display: flex; align-items: center; gap: 0.75rem;">
-                    <h3 style="font-size: 1.1rem; margin: 0;">📄 Official Meeting Minutes Documents</h3>
+                    <h3 style="font-size: 1.1rem; margin: 0; display: flex; align-items: center; gap: 0.4rem;">${SVG_ICONS.doc} Official Meeting Minutes Documents</h3>
                     <span class="badge badge--success" style="font-size: 0.75rem;">${minutesFiles.length} Adopted Document${minutesFiles.length > 1 ? 's' : ''}</span>
                 </div>
                 <div style="display: flex; gap: 0.5rem;">
                     <button type="button" class="btn btn-secondary btn-sm btn-download-archive-docx" data-id="${arch.id}">
-                        📄 Generated Word Minutes (.docx)
+                        ${SVG_ICONS.doc} Generated Word Minutes (.docx)
                     </button>
                 </div>
             </div>
@@ -5469,7 +5517,7 @@ function renderDossierMinutes(arch) {
                     return `
                         <div class="dossier-file-card" style="background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 1.25rem; display: flex; flex-direction: column; justify-content: space-between; gap: 0.75rem;">
                             <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
-                                <div style="font-size: 1.8rem; line-height: 1;">${isPdf ? '📕' : '📘'}</div>
+                                <div style="display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 8px; background: rgba(12,79,242,0.08); color: var(--primary);">${isPdf ? SVG_ICONS.pdf : SVG_ICONS.word}</div>
                                 <div style="flex: 1; min-width: 0;">
                                     <div style="font-weight: 700; font-size: 0.92rem; word-break: break-word; color: var(--text-main);">${escapeHTML(mf.originalName)}</div>
                                     <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.25rem;">
@@ -5478,8 +5526,8 @@ function renderDossierMinutes(arch) {
                                 </div>
                             </div>
                             <div style="display: flex; gap: 0.5rem; justify-content: flex-end; border-top: 1px solid var(--border-color); padding-top: 0.75rem;">
-                                ${isPdf ? `<a href="${downloadUrl}" target="_blank" class="btn btn-outline btn-sm">👁️ Preview PDF</a>` : ''}
-                                <a href="${downloadUrl}" download="${escapeHTML(mf.originalName)}" class="btn btn-primary btn-sm">⬇️ Download File</a>
+                                ${isPdf ? `<a href="${downloadUrl}" target="_blank" class="btn btn-outline btn-sm">${SVG_ICONS.eye} Preview PDF</a>` : ''}
+                                <a href="${downloadUrl}" download="${escapeHTML(mf.originalName)}" class="btn btn-primary btn-sm">${SVG_ICONS.download} Download File</a>
                             </div>
                         </div>
                     `;
@@ -5494,9 +5542,9 @@ function renderDossierAudio(arch) {
     if (audios.length === 0) {
         els.dossierModalBody.innerHTML = `
             <div class="empty-state" style="padding: 3rem 1rem;">
-                <div class="empty-icon">🎙️</div>
+                <div class="empty-icon">${SVG_ICONS.audioLg}</div>
                 <h3>No Audio Recordings Attached</h3>
-                <p>No audio files were uploaded for this sitting. You can attach recordings by clicking <strong>✏️ Edit Archive</strong>.</p>
+                <p>No audio files were uploaded for this sitting. You can attach recordings by clicking <strong>Edit Archive</strong>.</p>
             </div>
         `;
         return;
@@ -5505,7 +5553,7 @@ function renderDossierAudio(arch) {
     els.dossierModalBody.innerHTML = `
         <div style="padding: 0.5rem 0;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                <h3 style="font-size: 1.1rem; margin: 0;">🎙️ Official Audio Recordings (${audios.length})</h3>
+                <h3 style="font-size: 1.1rem; margin: 0; display: flex; align-items: center; gap: 0.4rem;">${SVG_ICONS.audio} Official Audio Recordings (${audios.length})</h3>
                 <small style="color: var(--text-muted);">High-Fidelity in-browser playback with speed &amp; download controls</small>
             </div>
 
@@ -5516,7 +5564,7 @@ function renderDossierAudio(arch) {
                     return `
                         <div class="audio-player-card">
                             <div class="audio-player-card-header">
-                                <span class="audio-player-title">🎙️ Audio Part ${idx + 1}: ${escapeHTML(af.originalName)}</span>
+                                <span class="audio-player-title" style="display: flex; align-items: center; gap: 0.4rem;">${SVG_ICONS.audio} Audio Part ${idx + 1}: ${escapeHTML(af.originalName)}</span>
                                 <span class="badge" style="font-size: 0.72rem;">${formatBytes(af.size)}</span>
                             </div>
                             <audio controls class="audio-native-player" preload="metadata" data-audio-id="${af.id}">
@@ -5532,7 +5580,7 @@ function renderDossierAudio(arch) {
                                     <option value="2">2.0x Double</option>
                                 </select>
                                 <a href="${downloadUrl}" download="${escapeHTML(af.originalName)}" class="btn btn-outline btn-sm" style="margin-left: auto; font-size: 0.78rem;">
-                                    ⬇️ Download
+                                    ${SVG_ICONS.download} Download
                                 </a>
                             </div>
                         </div>
@@ -5561,9 +5609,9 @@ function renderDossierTranscript(arch) {
     if (!transcriptText && transcriptFiles.length === 0) {
         els.dossierModalBody.innerHTML = `
             <div class="empty-state" style="padding: 3rem 1rem;">
-                <div class="empty-icon">📄</div>
+                <div class="empty-icon">${SVG_ICONS.transcriptLg}</div>
                 <h3>No Transcript Available</h3>
-                <p>No transcript text or document was uploaded for this sitting. You can add one via <strong>✏️ Edit Archive</strong>.</p>
+                <p>No transcript text or document was uploaded for this sitting. You can add one via <strong>Edit Archive</strong>.</p>
             </div>
         `;
         return;
@@ -5573,13 +5621,13 @@ function renderDossierTranscript(arch) {
         <div class="transcript-viewer-card">
             <div class="transcript-toolbar">
                 <div style="display: flex; align-items: center; gap: 0.75rem;">
-                    <h3 style="font-size: 1.1rem; margin: 0;">📄 Meeting Deliberation Transcript</h3>
+                    <h3 style="font-size: 1.1rem; margin: 0; display: flex; align-items: center; gap: 0.4rem;">${SVG_ICONS.transcript} Meeting Deliberation Transcript</h3>
                     ${transcriptFiles.length > 0 ? `<span class="badge" style="font-size: 0.75rem;">${transcriptFiles.length} Attached Document${transcriptFiles.length > 1 ? 's' : ''}</span>` : ''}
                 </div>
                 <div style="display: flex; gap: 0.5rem;">
                     ${transcriptText ? `
-                        <button type="button" class="btn btn-outline btn-sm btn-copy-transcript">📋 Copy Text</button>
-                        <button type="button" class="btn btn-outline btn-sm btn-download-transcript-txt">⬇️ Text (.txt)</button>
+                        <button type="button" class="btn btn-outline btn-sm btn-copy-transcript">${SVG_ICONS.doc} Copy Text</button>
+                        <button type="button" class="btn btn-outline btn-sm btn-download-transcript-txt">${SVG_ICONS.download} Text (.txt)</button>
                     ` : ''}
                 </div>
             </div>
@@ -5590,7 +5638,7 @@ function renderDossierTranscript(arch) {
                         const downloadUrl = `/api/archives/${arch.id}/files/${tf.id}/download?token=${encodeURIComponent(state.token || '')}`;
                         return `
                             <a href="${downloadUrl}" download="${escapeHTML(tf.originalName)}" class="btn btn-secondary btn-sm">
-                                📎 ${escapeHTML(tf.originalName)} (${formatBytes(tf.size)})
+                                ${SVG_ICONS.paperclip} ${escapeHTML(tf.originalName)} (${formatBytes(tf.size)})
                             </a>
                         `;
                     }).join('')}
@@ -5638,9 +5686,9 @@ function renderDossierResolutions(arch) {
     if (resolutions.length === 0 && resFiles.length === 0) {
         els.dossierModalBody.innerHTML = `
             <div class="empty-state" style="padding: 3rem 1rem;">
-                <div class="empty-icon">⚖️</div>
+                <div class="empty-icon">${SVG_ICONS.resolutionsLg}</div>
                 <h3>No Formal Resolutions Logged</h3>
-                <p>No resolutions were recorded for this sitting. You can add resolutions via <strong>✏️ Edit Archive</strong>.</p>
+                <p>No resolutions were recorded for this sitting. You can add resolutions via <strong>Edit Archive</strong>.</p>
             </div>
         `;
         return;
@@ -5658,14 +5706,14 @@ function renderDossierResolutions(arch) {
         <div style="padding: 0.5rem 0;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
                 <div>
-                    <h3 style="font-size: 1.15rem; margin: 0;">⚖️ Formal Governance Resolutions &amp; Action Plan (${resolutions.length})</h3>
+                    <h3 style="font-size: 1.15rem; margin: 0; display: flex; align-items: center; gap: 0.4rem;">${SVG_ICONS.resolutions} Formal Governance Resolutions &amp; Action Plan (${resolutions.length})</h3>
                     <small style="color: var(--text-muted);">Adopted strategic decisions, mandates, and assignable tasks</small>
                 </div>
                 ${resFiles.length > 0 ? `
                     <div style="display: flex; gap: 0.4rem;">
                         ${resFiles.map(rf => {
                             const downloadUrl = `/api/archives/${arch.id}/files/${rf.id}/download?token=${encodeURIComponent(state.token || '')}`;
-                            return `<a href="${downloadUrl}" download="${escapeHTML(rf.originalName)}" class="btn btn-secondary btn-sm">📜 Signed Resolution Document</a>`;
+                            return `<a href="${downloadUrl}" download="${escapeHTML(rf.originalName)}" class="btn btn-secondary btn-sm">${SVG_ICONS.signed} Signed Resolution Document</a>`;
                         }).join('')}
                     </div>
                 ` : ''}
@@ -5730,7 +5778,7 @@ function renderDossierAgenda(arch) {
     if (items.length === 0) {
         els.dossierModalBody.innerHTML = `
             <div class="empty-state" style="padding: 3rem 1rem;">
-                <div class="empty-icon">📋</div>
+                <div class="empty-icon">${SVG_ICONS.agendaLg}</div>
                 <h3>No Agenda Items Logged</h3>
                 <p>No agenda items were captured in this sitting snapshot.</p>
             </div>
@@ -5741,7 +5789,7 @@ function renderDossierAgenda(arch) {
     els.dossierModalBody.innerHTML = `
         <div style="padding: 0.5rem 0;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                <h3 style="font-size: 1.15rem; margin: 0;">📋 Agenda Items &amp; Deliberations Log (${items.length})</h3>
+                <h3 style="font-size: 1.15rem; margin: 0; display: flex; align-items: center; gap: 0.4rem;">${SVG_ICONS.agenda} Agenda Items &amp; Deliberations Log (${items.length})</h3>
                 <small style="color: var(--text-muted);">Complete record of topics, proposer, votes, and brainstorm comments</small>
             </div>
 
@@ -5770,7 +5818,7 @@ function renderDossierAgenda(arch) {
 
                             ${item.isResolved && item.resolution ? `
                                 <div style="background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 6px; padding: 0.6rem 0.85rem; font-size: 0.84rem; color: #166534; margin: 0.5rem 0;">
-                                    <strong>⭐ Agreed Resolution:</strong> ${escapeHTML(item.resolution.solutionText || item.resolution.summary || '')}
+                                    <strong>Agreed Resolution:</strong> ${escapeHTML(item.resolution.solutionText || item.resolution.summary || '')}
                                 </div>
                             ` : ''}
 
@@ -5803,14 +5851,14 @@ function renderDossierAttendance(arch) {
         <div style="padding: 0.5rem 0;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
                 <div>
-                    <h3 style="font-size: 1.15rem; margin: 0;">📝 Official Attendance Register &amp; Statutory Quorum</h3>
+                    <h3 style="font-size: 1.15rem; margin: 0; display: flex; align-items: center; gap: 0.4rem;">${SVG_ICONS.signed} Official Attendance Register &amp; Statutory Quorum</h3>
                     <small style="color: var(--text-muted);">Certified physical signed register scan and digital component roster</small>
                 </div>
                 ${signedFiles.length > 0 ? `
                     <div style="display: flex; gap: 0.5rem;">
                         ${signedFiles.map(sf => {
                             const downloadUrl = `/api/archives/${arch.id}/files/${sf.id}/download?token=${encodeURIComponent(state.token || '')}`;
-                            return `<a href="${downloadUrl}" download="${escapeHTML(sf.originalName)}" class="btn btn-primary btn-sm">📄 Download Official Signed Register</a>`;
+                            return `<a href="${downloadUrl}" download="${escapeHTML(sf.originalName)}" class="btn btn-primary btn-sm">${SVG_ICONS.doc} Download Official Signed Register</a>`;
                         }).join('')}
                     </div>
                 ` : ''}
@@ -5819,17 +5867,17 @@ function renderDossierAttendance(arch) {
             ${signedFiles.length > 0 ? `
                 <div style="background: rgba(16, 185, 129, 0.06); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 0.85rem 1.25rem; margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: space-between;">
                     <div style="display: flex; align-items: center; gap: 0.75rem;">
-                        <span style="font-size: 1.5rem;">📜</span>
+                        <div style="display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 6px; background: rgba(16, 185, 129, 0.15); color: #065F46;">${SVG_ICONS.signed}</div>
                         <div>
                             <strong style="font-size: 0.92rem; color: #065F46;">Official Signed Register Attached</strong>
                             <div style="font-size: 0.78rem; color: var(--text-muted);">${escapeHTML(signedFiles[0].originalName)} (${formatBytes(signedFiles[0].size)})</div>
                         </div>
                     </div>
-                    <a href="/api/archives/${arch.id}/files/${signedFiles[0].id}/download?token=${encodeURIComponent(state.token || '')}" class="btn btn-secondary btn-sm" download>⬇️ Open Document</a>
+                    <a href="/api/archives/${arch.id}/files/${signedFiles[0].id}/download?token=${encodeURIComponent(state.token || '')}" class="btn btn-secondary btn-sm" download>${SVG_ICONS.download} Open Document</a>
                 </div>
             ` : `
-                <div style="background: #FEF3C7; border: 1px solid #FDE68A; border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1.25rem; font-size: 0.85rem; color: #92400E;">
-                    ⚠️ No physical signed register scan attached yet. Upload scan via <strong>✏️ Edit Archive</strong>.
+                <div style="background: #FEF3C7; border: 1px solid #FDE68A; border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1.25rem; font-size: 0.85rem; color: #92400E; display: flex; align-items: center; gap: 0.4rem;">
+                    ${SVG_ICONS.alert} No physical signed register scan attached yet. Upload scan via <strong>Edit Archive</strong>.
                 </div>
             `}
 
@@ -5872,7 +5920,7 @@ function renderDossierFiles(arch) {
     if (files.length === 0) {
         els.dossierModalBody.innerHTML = `
             <div class="empty-state" style="padding: 3rem 1rem;">
-                <div class="empty-icon">📁</div>
+                <div class="empty-icon">${SVG_ICONS.vaultLg}</div>
                 <h3>No Vault Files Attached</h3>
                 <p>No supporting shared documents were active in the vault during this sitting.</p>
             </div>
@@ -5883,7 +5931,7 @@ function renderDossierFiles(arch) {
     els.dossierModalBody.innerHTML = `
         <div style="padding: 0.5rem 0;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                <h3 style="font-size: 1.15rem; margin: 0;">📁 Supporting Documents Vault (${files.length})</h3>
+                <h3 style="font-size: 1.15rem; margin: 0; display: flex; align-items: center; gap: 0.4rem;">${SVG_ICONS.vault} Supporting Documents Vault (${files.length})</h3>
                 <small style="color: var(--text-muted);">Supporting reports, financials, and proposals tabled during sitting</small>
             </div>
 
@@ -5894,7 +5942,7 @@ function renderDossierFiles(arch) {
                         <div style="background: var(--white); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; justify-content: space-between;">
                             <div>
                                 <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
-                                    <span style="font-size: 1.25rem;">📄</span>
+                                    <span style="display: flex; align-items: center; color: var(--primary);">${SVG_ICONS.doc}</span>
                                     <strong style="font-size: 0.92rem; word-break: break-all;">${escapeHTML(doc.title || doc.originalName)}</strong>
                                 </div>
                                 <div style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.75rem;">
@@ -5902,7 +5950,7 @@ function renderDossierFiles(arch) {
                                 </div>
                             </div>
                             <a href="${downloadUrl}" download="${escapeHTML(doc.originalName)}" class="btn btn-outline btn-sm" style="text-align: center;">
-                                ⬇️ Download File
+                                ${SVG_ICONS.download} Download File
                             </a>
                         </div>
                     `;
@@ -5997,11 +6045,11 @@ function renderEditArchiveExistingFiles(arch) {
     if (!els.editArchiveExistingFiles) return;
 
     const allFiles = [
-        ...(arch.minutesFiles || []).map(f => ({ ...f, typeLabel: '📄 Minutes Doc' })),
-        ...(arch.audioFiles || []).map(f => ({ ...f, typeLabel: '🎙️ Audio' })),
-        ...(arch.signedAttendanceFiles || []).map(f => ({ ...f, typeLabel: '📝 Signed Register' })),
-        ...(arch.transcript?.files || []).map(f => ({ ...f, typeLabel: '📄 Transcript Doc' })),
-        ...(arch.resolutionFiles || []).map(f => ({ ...f, typeLabel: '⚖️ Resolution Doc' }))
+        ...(arch.minutesFiles || []).map(f => ({ ...f, typeLabel: 'Minutes Doc' })),
+        ...(arch.audioFiles || []).map(f => ({ ...f, typeLabel: 'Audio' })),
+        ...(arch.signedAttendanceFiles || []).map(f => ({ ...f, typeLabel: 'Signed Register' })),
+        ...(arch.transcript?.files || []).map(f => ({ ...f, typeLabel: 'Transcript Doc' })),
+        ...(arch.resolutionFiles || []).map(f => ({ ...f, typeLabel: 'Resolution Doc' }))
     ];
 
     if (allFiles.length === 0) {
@@ -6018,7 +6066,7 @@ function renderEditArchiveExistingFiles(arch) {
                         <span>${escapeHTML(f.originalName)} (${formatBytes(f.size)})</span>
                     </div>
                     <button type="button" class="btn-link-action btn-delete-archive-file" data-archive-id="${arch.id}" data-file-id="${f.id}" style="color: var(--danger); font-size: 0.8rem;">
-                        🗑️ Remove
+                        ${SVG_ICONS.trash} Remove
                     </button>
                 </div>
             `).join('')}
@@ -6111,7 +6159,7 @@ function initArchivesModule() {
         els.concludeAudioTray.innerHTML = state.selectedConcludeAudios.map((f, idx) => `
             <div class="uploaded-file-chip">
                 <div class="uploaded-file-chip-info">
-                    <span>🎙️</span>
+                    <span style="display: inline-flex; align-items: center;">${SVG_ICONS.audio}</span>
                     <span><strong>${escapeHTML(f.name)}</strong> (${formatBytes(f.size)})</span>
                 </div>
                 <button type="button" class="btn-link-action btn-remove-conclude-audio" data-index="${idx}" style="color: var(--danger);">✕ Remove</button>
@@ -6167,7 +6215,7 @@ function initArchivesModule() {
         els.concludeMinutesTray.innerHTML = state.selectedConcludeMinutes.map((f, idx) => `
             <div class="uploaded-file-chip">
                 <div class="uploaded-file-chip-info">
-                    <span>📄</span>
+                    <span style="display: inline-flex; align-items: center;">${SVG_ICONS.doc}</span>
                     <span><strong>${escapeHTML(f.name)}</strong> (${formatBytes(f.size)})</span>
                 </div>
                 <button type="button" class="btn-link-action btn-remove-conclude-minutes" data-index="${idx}" style="color: var(--danger);">✕ Remove</button>
@@ -6353,7 +6401,7 @@ function initArchivesModule() {
                     if (els.concludeProgressPercent) els.concludeProgressPercent.textContent = `${percent}%`;
                 });
 
-                showToast('🏁 Meeting successfully concluded and archived!');
+                showToast('Meeting successfully concluded and archived!');
                 closeConcludeWizard();
                 await loadData();
                 switchTab('archives');

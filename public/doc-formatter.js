@@ -160,7 +160,11 @@ function initTheme() {
 
 function updateThemeIcon(theme) {
     const icon = document.getElementById('theme-icon');
-    if (icon) icon.textContent = theme === 'dark' ? '☀️' : '🌙';
+    if (icon) {
+        icon.innerHTML = theme === 'dark' 
+            ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>'
+            : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+    }
 }
 
 function initTabs() {
@@ -822,7 +826,7 @@ function initEventListeners() {
                 alignBtn.id = 'btn-align-legal-notice';
                 alignBtn.title = 'Align Legal Notice with current document title and statutory template';
                 alignBtn.style.cssText = 'background: #0284C7; color: #FFFFFF; border: none; font-weight: 700; padding: 0.35rem 0.85rem; font-size: 0.82rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; box-shadow: 0 1px 3px rgba(0,0,0,0.3);';
-                alignBtn.innerHTML = '⚡ Align Now';
+                alignBtn.innerHTML = 'Align Now';
                 alignBtn.addEventListener('click', alignNoticeHandler);
 
                 const checkboxLabel = cardHeader.querySelector('.checkbox-label');
@@ -846,7 +850,7 @@ function initEventListeners() {
                     inlineBtn.id = 'btn-align-legal-notice-inline';
                     inlineBtn.title = 'Regenerate legal notice text based on current document title';
                     inlineBtn.style.cssText = 'background: rgba(56, 189, 248, 0.15); border: 1px solid #38BDF8; color: #38BDF8; padding: 0.2rem 0.6rem; font-size: 0.75rem; font-weight: 700; border-radius: 4px; cursor: pointer; float: right;';
-                    inlineBtn.innerHTML = '⚡ Align to Document Title';
+                    inlineBtn.innerHTML = 'Align to Document Title';
                     inlineBtn.addEventListener('click', alignNoticeHandler);
                     noticeLabel.parentNode.insertBefore(inlineBtn, noticeLabel.nextSibling);
                 }
@@ -1853,7 +1857,7 @@ function renderDocumentPreview() {
 
     if (headerMode !== 'none') {
         const isFirstOnly = headerFreq === 'first_page_only';
-        pageCornerBadgeHtml = `<div class="page-corner-indicator" title="${isFirstOnly ? 'Header appears on Page 1 only' : 'Running header repeats on all pages'}"><span>${isFirstOnly ? '📄' : '📑'}</span> ${isFirstOnly ? 'First Page Header Only' : 'All Pages Running Header'}</div>`;
+        pageCornerBadgeHtml = `<div class="page-corner-indicator" title="${isFirstOnly ? 'Header appears on Page 1 only' : 'Running header repeats on all pages'}"><span>${isFirstOnly ? 'Header' : 'Running Header'}</span> • ${isFirstOnly ? 'First Page Only' : 'All Pages'}</div>`;
 
         if (headerMode === 'image_banner' && state.headerImageBase64) {
             const imgHeightMm = Number(document.getElementById('header-image-height')?.value) || 32;
@@ -2491,7 +2495,7 @@ function renderDocumentPreview() {
             fullHtml += `
                 <div class="preview-page-break-divider">
                     <div class="page-break-line"></div>
-                    <span class="page-break-badge">✂️ Page Break • Page ${pageNum}</span>
+                    <span class="page-break-badge">Page Break • Page ${pageNum}</span>
                     <div class="page-break-line"></div>
                 </div>
             `;
@@ -2545,7 +2549,7 @@ function initEditablePreviewHandlers() {
             }
             updatePreviewEditableState(isEdit);
             if (isEdit) {
-                showToast('✏️ Direct Editing Enabled: Click on any paragraph or heading in the preview to edit.');
+                showToast('Direct Editing Enabled: Click on any paragraph or heading in the preview to edit.');
             }
         });
     }
@@ -2610,7 +2614,7 @@ function syncPreviewToRawText() {
         if (rawInput) {
             rawInput.value = fullRaw;
             saveDraftToLocalStorage();
-            showToast('✅ Preview changes synchronized to Raw Text successfully!');
+            showToast('Preview changes synchronized to Raw Text successfully!');
         }
     }
 }
@@ -2719,7 +2723,7 @@ async function generateAndExportDocument(formatOverride = null) {
         // 2. Render Rich Success Summary
         const savedFolders = result.savedFolders || [];
         const isMulti = savedFolders.length > 1 || (result.savedFolders?.length && result.vaultSaved);
-        const headingText = isMulti ? '✅ Documents Generated &amp; Saved!' : '✅ Document Generated &amp; Saved!';
+        const headingText = isMulti ? 'Documents Generated &amp; Saved!' : 'Document Generated &amp; Saved!';
 
         let foldersHtml = '';
         if (savedFolders.length > 0) {
@@ -2727,12 +2731,12 @@ async function generateAndExportDocument(formatOverride = null) {
                 <div style="margin-top: 6px; display: flex; flex-direction: column; gap: 6px;">
                     ${savedFolders.map(f => `
                         <div style="background: rgba(0,0,0,0.18); border: 1px solid var(--border); border-radius: 4px; padding: 6px 8px;">
-                            <div style="font-weight: 600; font-size: 8.5pt; color: #38BDF8;">📁 ${escapeHTML(f.id)}</div>
+                            <div style="font-weight: 600; font-size: 8.5pt; color: #38BDF8;">Folder: ${escapeHTML(f.id)}</div>
                             <div style="font-size: 7.8pt; color: #94A3B8; margin-top: 2px;">Path: <code>${escapeHTML(f.path)}</code></div>
                             <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 5px;">
-                                <button type="button" class="btn btn-sm btn-primary" onclick="openAuditFolderInExplorer('${escapeHTML(f.id)}')">📂 Open Folder in Explorer</button>
-                                ${f.docxUrl ? `<a href="${f.docxUrl}" class="btn btn-sm btn-outline" download>📥 Download DOCX</a>` : ''}
-                                ${f.pdfUrl ? `<a href="${f.pdfUrl}" class="btn btn-sm btn-outline" download>📥 Download PDF</a>` : ''}
+                                <button type="button" class="btn btn-sm btn-primary" onclick="openAuditFolderInExplorer('${escapeHTML(f.id)}')">Open Folder in Explorer</button>
+                                ${f.docxUrl ? `<a href="${f.docxUrl}" class="btn btn-sm btn-outline" download>Download DOCX</a>` : ''}
+                                ${f.pdfUrl ? `<a href="${f.pdfUrl}" class="btn btn-sm btn-outline" download>Download PDF</a>` : ''}
                             </div>
                         </div>
                     `).join('')}
@@ -2744,7 +2748,7 @@ async function generateAndExportDocument(formatOverride = null) {
         if (result.vaultSaved) {
             vaultHtml = `
                 <div style="margin-top: 6px; background: rgba(0,0,0,0.18); border: 1px solid var(--border); border-radius: 4px; padding: 6px 8px;">
-                    <div style="font-weight: 600; font-size: 8.5pt; color: #A78BFA;">🏛️ Saved to Document Vault</div>
+                    <div style="font-weight: 600; font-size: 8.5pt; color: #A78BFA;">Saved to Document Vault</div>
                     <div style="font-size: 7.8pt; color: #94A3B8; margin-top: 2px;">Published to Vault Category: <code>${escapeHTML(vaultCategory)}</code></div>
                 </div>
             `;
@@ -2752,7 +2756,7 @@ async function generateAndExportDocument(formatOverride = null) {
 
         let downloadNotice = '';
         if (result.autoDownload) {
-            downloadNotice = `<div style="font-size: 8pt; color: #34D399; margin-top: 4px;">📥 Automatically downloaded to your computer's Downloads folder!</div>`;
+            downloadNotice = `<div style="font-size: 8pt; color: #34D399; margin-top: 4px;">Automatically downloaded to your computer's Downloads folder!</div>`;
         }
 
         if (statusBox) {
@@ -2768,7 +2772,7 @@ async function generateAndExportDocument(formatOverride = null) {
     } catch (e) {
         console.error(e);
         if (statusBox) {
-            statusBox.innerHTML = `<div style="color: #EF4444; font-weight: bold;">❌ Error: ${escapeHTML(e.message)}</div>`;
+            statusBox.innerHTML = `<div style="color: #EF4444; font-weight: bold;">Error: ${escapeHTML(e.message)}</div>`;
         }
         showToast(e.message, true);
     } finally {
@@ -3318,9 +3322,9 @@ function renderSavedDocumentsList(filter = '') {
                     ${doc.subtitle ? `<div class="doc-project-subtitle">${escapeHTML(doc.subtitle)}</div>` : ''}
                     ${doc.previewSnippet ? `<div class="doc-project-snippet">${escapeHTML(doc.previewSnippet)}</div>` : ''}
                     <div class="doc-project-meta">
-                        <span>🕒 ${updatedDate}</span>
+                        <span>${updatedDate}</span>
                         <span>•</span>
-                        <span>📑 ${doc.clauseCount || 0} Clauses</span>
+                        <span>${doc.clauseCount || 0} Clauses</span>
                     </div>
                 </div>
                 <div class="doc-project-actions" onclick="event.stopPropagation()">
@@ -3492,7 +3496,7 @@ function showToast(msg, isError = false) {
 
     const toast = document.createElement('div');
     toast.className = `toast ${isError ? 'toast-error' : 'toast-success'}`;
-    toast.innerHTML = `<span>${isError ? '⚠️' : '✅'}</span> <span>${escapeHTML(msg)}</span>`;
+    toast.innerHTML = `<span>${escapeHTML(msg)}</span>`;
     container.appendChild(toast);
 
     requestAnimationFrame(() => {

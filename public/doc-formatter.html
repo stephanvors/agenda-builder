@@ -48,7 +48,8 @@
                     <span>Open Document</span>
                 </button>
                 <button type="button" class="btn btn-sm btn-outline" id="btn-new-doc" title="Start a New Document">
-                    <span>➕ New</span>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    <span>New</span>
                 </button>
             </div>
 
@@ -67,7 +68,7 @@
             </div>
 
             <button type="button" class="btn-theme-toggle" id="theme-toggle" title="Toggle Light/Dark Theme">
-                <span id="theme-icon">☀️</span>
+                <span id="theme-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></span>
             </button>
         </div>
     </header>
@@ -86,53 +87,41 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"></polyline><line x1="9" y1="20" x2="15" y2="20"></line><line x1="12" y1="4" x2="12" y2="20"></line></svg>
             <span>3. Typography</span>
         </button>
-        <button type="button" class="studio-tab-btn" data-tab="headerfooter">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="18" rx="2"></rect><line x1="2" y1="8" x2="22" y2="8"></line><line x1="2" y1="17" x2="22" y2="17"></line></svg>
+        <button type="button" class="studio-tab-btn" data-tab="header-footer">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="3" y1="7" x2="21" y2="7"></line><line x1="3" y1="17" x2="21" y2="17"></line></svg>
             <span>4. Header &amp; Footer</span>
         </button>
-        <button type="button" class="studio-tab-btn" data-tab="components">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1"></rect></svg>
-            <span>5. Components</span>
+        <button type="button" class="studio-tab-btn" data-tab="coversheet">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            <span>5. Coversheet</span>
+        </button>
+        <button type="button" class="studio-tab-btn" data-tab="compliance">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            <span>6. Compliance</span>
         </button>
         <button type="button" class="studio-tab-btn" data-tab="export">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-            <span>6. Export</span>
+            <span>7. Export &amp; Save</span>
         </button>
     </nav>
 
-    <!-- Main Workspace Split Container -->
+    <!-- Main Workspace Split Pane -->
     <main class="studio-workspace">
-        <!-- Left Panel: Control Form -->
+        <!-- Left Panel: Form Controls Organized by Flow Steps -->
         <section class="studio-controls-pane">
-            <form id="formatter-form" class="studio-form-content">
-                <!-- TAB 1: CONTENT & RAW INPUT -->
-                <div class="studio-tab-pane active" id="pane-content">
-                    <div class="control-card">
-                        <h3>Document Identification</h3>
-                        <div class="form-row">
-                            <div class="form-group flex-1">
-                                <label for="doc-title-input">Primary Document Title</label>
-                                <input type="text" id="doc-title-input" class="studio-input" value="CONSTITUTION OF THE SCHOOL GOVERNING BODY">
-                            </div>
-                        </div>
-                        <div class="form-row mt-2">
-                            <div class="form-group flex-1">
-                                <label for="doc-subtitle-input">Subtitle / Entity Name</label>
-                                <input type="text" id="doc-subtitle-input" class="studio-input" value="LADY GREY ARTS ACADEMY">
-                            </div>
-                        </div>
-                    </div>
-
+            <form id="formatter-form">
+                <!-- STEP 1: CONTENT -->
+                <div class="studio-step-section active" data-step-section="content">
                     <div class="control-card">
                         <div class="card-header-flex">
-                            <h3>Raw Text / Document Input</h3>
-                            <div class="card-actions">
+                            <h3>Raw Text &amp; Source Document</h3>
+                            <div class="action-btn-group">
                                 <button type="button" class="btn-text-action btn-spellcheck-toggle" id="btn-spellcheck" title="Run South African English Spell & Grammar Inspection">
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><path d="m9 11 2 2 4-4"></path></svg>
                                     <span>Spell &amp; Grammar (en-ZA)</span>
                                     <span id="spellcheck-badge" class="badge-pill enza-badge hidden">0</span>
                                 </button>
-                                <button type="button" class="btn-text-action" id="btn-load-sample" title="Load SGB Constitution Sample Text">📋 Sample</button>
+                                <button type="button" class="btn-text-action" id="btn-load-sample" title="Load SGB Constitution Sample Text">Sample</button>
                                 <button type="button" class="btn-text-action" id="btn-clear-text">Clear</button>
                             </div>
                         </div>
@@ -152,7 +141,7 @@
                             <div class="spellcheck-header">
                                 <div class="spellcheck-top-bar">
                                     <div class="spellcheck-title-inline">
-                                        <span class="spellcheck-flag">🇿🇦 en-ZA</span>
+                                        <span class="spellcheck-flag">en-ZA</span>
                                         <h4>English (South Africa) Quality Inspector</h4>
                                     </div>
                                     <button type="button" class="btn-sm btn-icon" id="btn-close-spellcheck" title="Close Inspector">✕</button>
@@ -160,7 +149,7 @@
                                 <div class="spellcheck-toolbar">
                                     <span id="spellcheck-status-pill" class="badge-pill enza-badge">0 Issues</span>
                                     <div class="spellcheck-actions">
-                                        <button type="button" class="btn-sm btn-primary" id="btn-fix-all-spelling">⚡ Fix All</button>
+                                        <button type="button" class="btn-sm btn-primary" id="btn-fix-all-spelling">Fix All</button>
                                         <button type="button" class="btn-sm btn-outline" id="btn-recheck-spelling">↻ Re-check</button>
                                     </div>
                                 </div>
@@ -169,6 +158,7 @@
                                 <!-- Dynamic issue cards -->
                             </div>
                         </div>
+                    </div>
 
                         <div class="form-group mt-3">
                             <div class="label-with-badge">
@@ -749,10 +739,10 @@
                         </div>
                         <div id="metadata-table-fields" class="mt-2">
                             <div class="form-group mb-2">
-                                <label for="metadata-context-select" style="font-weight: 600; color: #38BDF8;">⚡ Document Context / Statutory Template</label>
+                                <label for="metadata-context-select" style="font-weight: 600; color: #38BDF8;">Document Context / Statutory Template</label>
                                 <div style="display: flex; gap: 0.5rem; align-items: center;">
                                     <select id="metadata-context-select" class="studio-select" style="flex: 1;">
-                                        <option value="auto" selected>✨ Auto-Detect from Document Content</option>
+                                        <option value="auto" selected>Auto-Detect from Document Content</option>
                                         <option value="constitution">SGB Constitution &amp; Governance</option>
                                         <option value="mission">School Vision &amp; Mission Statement</option>
                                         <option value="admission">Admission Policy</option>
@@ -765,7 +755,7 @@
                                         <option value="minutes">SGB Meeting Minutes &amp; Resolutions</option>
                                         <option value="general">General School Policy</option>
                                     </select>
-                                    <button type="button" class="btn btn-sm btn-outline" id="btn-auto-align-metadata" title="Regenerate metadata table and legal notice based on current document context" style="white-space: nowrap; padding: 0.4rem 0.75rem;">⚡ Align Now</button>
+                                    <button type="button" class="btn btn-sm btn-outline" id="btn-auto-align-metadata" title="Regenerate metadata table and legal notice based on current document context" style="white-space: nowrap; padding: 0.4rem 0.75rem;">Align Now</button>
                                 </div>
                             </div>
                             <div class="form-grid-2">
@@ -789,7 +779,7 @@
                         <div class="card-header-flex">
                             <h3>Legal Notice Callout Box</h3>
                             <div style="display: flex; gap: 0.6rem; align-items: center;">
-                                <button type="button" class="btn btn-sm btn-primary" id="btn-align-legal-notice" title="Align Legal Notice with current document title and statutory template" style="background: #0284C7; color: #FFFFFF; border: none; font-weight: 700; padding: 0.35rem 0.85rem; font-size: 0.82rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; box-shadow: 0 1px 3px rgba(0,0,0,0.3);">⚡ Align Now</button>
+                                <button type="button" class="btn btn-sm btn-primary" id="btn-align-legal-notice" title="Align Legal Notice with current document title and statutory template" style="background: #0284C7; color: #FFFFFF; border: none; font-weight: 700; padding: 0.35rem 0.85rem; font-size: 0.82rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; box-shadow: 0 1px 3px rgba(0,0,0,0.3);">Align Now</button>
                                 <label class="checkbox-label"><input type="checkbox" id="enable-legal-notice" checked> <span>Include Box</span></label>
                             </div>
                         </div>
@@ -801,7 +791,7 @@
                             <div class="form-group mt-2">
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem;">
                                     <label for="legal-notice-text" style="margin-bottom: 0;">Notice Body</label>
-                                    <button type="button" class="btn btn-sm btn-outline" id="btn-align-legal-notice-inline" title="Regenerate legal notice text based on current document title" style="background: rgba(56, 189, 248, 0.15); border: 1px solid #38BDF8; color: #38BDF8; padding: 0.2rem 0.6rem; font-size: 0.75rem; font-weight: 700; border-radius: 4px; cursor: pointer;">⚡ Align to Document Title</button>
+                                    <button type="button" class="btn btn-sm btn-outline" id="btn-align-legal-notice-inline" title="Regenerate legal notice text based on current document title" style="background: rgba(56, 189, 248, 0.15); border: 1px solid #38BDF8; color: #38BDF8; padding: 0.2rem 0.6rem; font-size: 0.75rem; font-weight: 700; border-radius: 4px; cursor: pointer;">Align to Document Title</button>
                                 </div>
                                 <textarea id="legal-notice-text" class="studio-textarea" rows="3">This Constitution of the School Governing Body is an official legally binding regulatory instrument drafted, adopted, and promulgated by the School Governing Body in terms of Section 18(1) of the South African Schools Act, 1996 (Act No. 84 of 1996) and the Eastern Cape School Education Act, 2000 (Act No. 2 of 2000). This document aligns fully with the Constitution of the Republic of South Africa, 1996 (Act No. 108 of 1996) and relevant national and provincial statutory frameworks. All members of the School Governing Body, School Management Team, educators, administrative staff, learners, and parents/guardians are subject to the provisions and governance protocols herein.</textarea>
                             </div>
@@ -891,28 +881,28 @@
                                 <label class="radio-card checkbox-card">
                                     <input type="checkbox" id="dest-audit" class="save-dest-checkbox" value="audit_folder" checked>
                                     <div class="radio-card-body">
-                                        <strong>📁 SGB Functionality Audit 2026 Folder(s)</strong>
+                                        <strong>SGB Functionality Audit 2026 Folder(s)</strong>
                                         <span>Save into the official audit evidence package directories (DOCX &amp; PDF)</span>
                                     </div>
                                 </label>
                                 <label class="radio-card checkbox-card">
                                     <input type="checkbox" id="dest-vault" class="save-dest-checkbox" value="vault">
                                     <div class="radio-card-body">
-                                        <strong>🏛️ SGB Shared Files &amp; Vault</strong>
+                                        <strong>SGB Shared Files &amp; Vault</strong>
                                         <span>Publish to the school's Document Vault repository</span>
                                     </div>
                                 </label>
                                 <label class="radio-card checkbox-card">
                                     <input type="checkbox" id="dest-download" class="save-dest-checkbox" value="download" checked>
                                     <div class="radio-card-body">
-                                        <strong>📥 Direct Download to Computer</strong>
+                                        <strong>Direct Download to Computer</strong>
                                         <span>Automatically download DOCX &amp; PDF files directly to your browser</span>
                                     </div>
                                 </label>
                                 <label class="radio-card checkbox-card">
                                     <input type="checkbox" id="dest-server" class="save-dest-checkbox" value="server_path">
                                     <div class="radio-card-body">
-                                        <strong>💻 Custom Server Location</strong>
+                                        <strong>Custom Server Location</strong>
                                         <span>Save to a specific folder path on the server</span>
                                     </div>
                                 </label>
@@ -932,7 +922,7 @@
                                 <div class="audit-folders-checklist" style="max-height: 180px; overflow-y: auto; border: 1px solid var(--border); border-radius: 4px; padding: 4px 6px; background: var(--bg-subtle); display: flex; flex-direction: column; gap: 3px;">
                                     <label class="checkbox-label" style="padding: 2px 4px; font-weight: 600; color: var(--primary);">
                                         <input type="checkbox" id="audit-folder-auto" checked>
-                                        <span>✨ Auto-Detect Primary Folder from Document Title</span>
+                                        <span>Auto-Detect Primary Folder from Document Title</span>
                                     </label>
                                     <div style="border-top: 1px solid var(--border); margin: 2px 0;"></div>
                                     <label class="checkbox-label audit-folder-item"><input type="checkbox" class="audit-folder-chk" value="01_SGB_Constitution"> <span>01. SGB Constitution</span></label>
@@ -1009,7 +999,7 @@
                     </label>
                     <label class="grid-toggle-label">
                         <input type="checkbox" id="toggle-editable-preview">
-                        <span style="color: #60A5FA; font-weight: 600;">✏️ Editable</span>
+                        <span style="color: #60A5FA; font-weight: 600;">Editable</span>
                     </label>
                 </div>
                 <div class="preview-toolbar-right">
@@ -1051,12 +1041,14 @@
                 <div class="editor-tool-group">
                     <button type="button" class="btn-editor-tool" data-cmd="undo" title="Undo (Ctrl+Z)">↶</button>
                     <button type="button" class="btn-editor-tool" data-cmd="redo" title="Redo (Ctrl+Y)">↷</button>
-                    <button type="button" class="btn-editor-tool" data-cmd="removeFormat" title="Clear Formatting">🧹</button>
+                    <button type="button" class="btn-editor-tool" data-cmd="removeFormat" title="Clear Formatting">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
                 </div>
                 <div class="editor-tool-divider"></div>
                 <div class="editor-tool-group">
                     <button type="button" class="btn-editor-tool" id="btn-sync-preview-to-source" title="Sync changes from preview back to Raw Text input" style="gap: 4px; padding: 0 8px; background: rgba(59, 130, 246, 0.15); color: #93C5FD; border: 1px solid rgba(59, 130, 246, 0.3);">
-                        <span>💾 Sync Raw Text</span>
+                        <span>Sync Raw Text</span>
                     </button>
                 </div>
                 <span class="editor-status-indicator">● Editing Mode Active (Click on pages to edit directly)</span>
@@ -1083,7 +1075,7 @@
             </div>
             <div class="studio-modal-body">
                 <div class="search-bar-wrap mb-3">
-                    <input type="text" id="doc-projects-search" class="studio-input" placeholder="🔍 Search saved documents by title or keyword...">
+                    <input type="text" id="doc-projects-search" class="studio-input" placeholder="Search saved documents by title or keyword...">
                 </div>
                 <div id="doc-projects-list" class="doc-projects-list">
                     <!-- Populated dynamically with saved documents -->
@@ -1091,7 +1083,10 @@
             </div>
             <div class="studio-modal-footer">
                 <button type="button" class="btn btn-sm btn-outline" id="btn-close-doc-modal-btn">Close</button>
-                <button type="button" class="btn btn-sm btn-primary" id="btn-modal-new-doc">➕ Create New Document</button>
+                <button type="button" class="btn btn-sm btn-primary" id="btn-modal-new-doc">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    <span>Create New Document</span>
+                </button>
             </div>
         </div>
     </div>

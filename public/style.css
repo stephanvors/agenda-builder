@@ -5504,6 +5504,9 @@ textarea:focus {
 }
 
 .dossier-tab-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
     padding: 0.5rem 1rem;
     border-radius: 8px;
     font-size: 0.85rem;
@@ -5527,6 +5530,17 @@ textarea:focus {
     border-color: var(--border-color);
     box-shadow: var(--shadow-sm);
     font-weight: 700;
+}
+
+.ui-icon,
+.tab-icon-svg,
+.btn-icon-svg,
+.section-icon-svg {
+    display: inline-block;
+    vertical-align: -0.125em;
+    stroke: currentColor;
+    fill: none;
+    flex-shrink: 0;
 }
 
 /* ── Audio Player Widget ── */

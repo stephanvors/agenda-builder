@@ -33,7 +33,7 @@
     <main id="login-view" class="view-container active">
         <div class="theme-toggle-floating">
             <button type="button" class="btn-theme-toggle" id="btn-theme-toggle-login" title="Toggle Light / Dark Mode" aria-label="Toggle Light / Dark Mode">
-                <span class="theme-toggle-icon">🌙</span>
+                <span class="theme-toggle-icon"><svg class="ui-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
                 <span class="theme-toggle-text">Dark Mode</span>
             </button>
         </div>
@@ -58,7 +58,8 @@
             </form>
             <div class="login-extra-actions" style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border); text-align: center;">
                 <a href="/doc-formatter.html?_v=2026082403" target="_blank" class="btn btn-secondary btn-block" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; text-decoration: none;">
-                    <span class="icon">📑</span> <strong>Document Formatter Studio ↗</strong>
+                    <svg class="ui-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                    <strong>Document Formatter Studio ↗</strong>
                 </a>
             </div>
         </div>
@@ -77,10 +78,11 @@
                 </div>
                 <div class="user-info">
                     <button type="button" id="btn-header-doc-formatter" class="btn btn-secondary btn-sm" title="Open Legal & Multi-Level Document Formatter Studio in a new window" style="font-weight: 600;">
-                        <span class="icon">📑</span> Document Formatter ↗
+                        <svg class="ui-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                        <span>Document Formatter ↗</span>
                     </button>
                     <button type="button" class="btn-theme-toggle" id="btn-theme-toggle-app" title="Toggle Light / Dark Mode" aria-label="Toggle Light / Dark Mode">
-                        <span class="theme-toggle-icon">🌙</span>
+                        <span class="theme-toggle-icon"><svg class="ui-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
                         <span class="theme-toggle-text">Dark</span>
                     </button>
                     <div class="user-details">
@@ -128,22 +130,30 @@
         <!-- Navigation Tabs -->
         <nav class="main-tabs-nav" aria-label="Main Views">
             <button type="button" class="tab-nav-btn active" id="tab-btn-agenda" data-tab="agenda" onclick="switchTab('agenda')">
-                <span class="tab-nav-icon">📋</span>
+                <span class="tab-nav-icon">
+                    <svg class="ui-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 12h6"/><path d="M9 16h4"/></svg>
+                </span>
                 <span class="tab-nav-text">Agenda &amp; Discussion</span>
                 <span class="tab-nav-badge" id="tab-agenda-badge">0</span>
             </button>
             <button type="button" class="tab-nav-btn" id="tab-btn-documents" data-tab="documents" onclick="switchTab('documents')">
-                <span class="tab-nav-icon">📁</span>
+                <span class="tab-nav-icon">
+                    <svg class="ui-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                </span>
                 <span class="tab-nav-text">Shared Files &amp; Vault</span>
                 <span class="tab-nav-badge" id="tab-docs-badge">0</span>
             </button>
             <button type="button" class="tab-nav-btn" id="tab-btn-archives" data-tab="archives" onclick="switchTab('archives')">
-                <span class="tab-nav-icon">🏛️</span>
+                <span class="tab-nav-icon">
+                    <svg class="ui-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+                </span>
                 <span class="tab-nav-text">Meeting Archives</span>
                 <span class="tab-nav-badge" id="tab-archives-badge">0</span>
             </button>
             <button type="button" class="tab-nav-btn tab-nav-btn--studio" id="tab-btn-formatter" title="Open Document Formatter Studio in a new window">
-                <span class="tab-nav-icon">📑</span>
+                <span class="tab-nav-icon">
+                    <svg class="ui-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                </span>
                 <span class="tab-nav-text">Document Formatter ↗</span>
             </button>
         </nav>
@@ -153,19 +163,24 @@
             <div id="tab-view-agenda" class="tab-view active">
                 <div class="actions-bar">
                     <button id="btn-toggle-form" class="btn btn-primary">
-                        <span class="icon">+</span> Propose New Item
+                        <svg class="btn-icon-svg" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        <span>Propose New Item</span>
                     </button>
                     <button id="btn-export" class="btn btn-secondary">
-                        <span class="icon">📋</span> View Agenda
+                        <svg class="btn-icon-svg" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 12h6"/><path d="M9 16h4"/></svg>
+                        <span>View Agenda</span>
                     </button>
                     <button id="btn-attendance" class="btn btn-secondary" title="View and Print Official Attendance Register">
-                        <span class="icon">📝</span> Attendance Register
+                        <svg class="btn-icon-svg" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                        <span>Attendance Register</span>
                     </button>
                     <button id="btn-conclude-meeting" class="btn btn-primary admin-only hidden btn-conclude-highlight" title="Conclude Meeting, Upload Audio, Transcript, Signed Attendance & Archive Dossier">
-                        <span class="icon">🏁</span> Conclude &amp; Archive Meeting
+                        <svg class="btn-icon-svg" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                        <span>Conclude &amp; Archive Meeting</span>
                     </button>
                     <button type="button" id="btn-open-doc-formatter-agenda" class="btn btn-secondary admin-only hidden" title="Open Legal & Multi-Level Document Formatter Studio">
-                        <span class="icon">📑</span> Document Formatter
+                        <svg class="btn-icon-svg" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                        <span>Document Formatter</span>
                     </button>
                 </div>
 
@@ -210,7 +225,10 @@
                             <option value="newest">Sort: Newest First</option>
                             <option value="oldest">Sort: Oldest First</option>
                         </select>
-                        <button type="button" class="btn btn-outline btn-sm btn-manage-categories admin-only hidden" id="btn-manage-agenda-cats" title="Manage Agenda Categories">⚙️ Categories</button>
+                        <button type="button" class="btn btn-outline btn-sm btn-manage-categories admin-only hidden" id="btn-manage-agenda-cats" title="Manage Agenda Categories">
+                            <svg class="btn-icon-svg" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                            <span>Categories</span>
+                        </button>
                     </div>
                     <div class="status-filters" id="status-filters">
                         <button class="status-btn active" data-status="All">All</button>
@@ -237,13 +255,15 @@
             <div id="tab-view-documents" class="tab-view">
                 <div class="actions-bar">
                     <button id="btn-toggle-upload" class="btn btn-primary">
-                        <span class="icon">⬆️</span> Upload File / Document
+                        <svg class="btn-icon-svg" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        <span>Upload File / Document</span>
                     </button>
                     <button type="button" id="btn-open-doc-formatter" class="btn btn-secondary admin-only hidden" title="Open Legal & Multi-Level Document Formatter Studio">
-                        <span class="icon">📑</span> Document Formatter Studio
+                        <svg class="btn-icon-svg" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                        <span>Document Formatter Studio</span>
                     </button>
                     <div class="search-input-wrapper">
-                        <input type="search" id="doc-search-input" class="search-input" placeholder="🔍 Search files or authors...">
+                        <input type="search" id="doc-search-input" class="search-input" placeholder="Search files or authors...">
                     </div>
                 </div>
 
@@ -257,7 +277,9 @@
                                 <div class="file-drop-zone" id="file-drop-zone" role="button" tabindex="0">
                                     <input type="file" id="doc-file-input" required class="file-input-hidden">
                                     <div class="drop-zone-content" id="drop-zone-content">
-                                        <span class="drop-icon">📁</span>
+                                        <span class="drop-icon">
+                                            <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>
+                                        </span>
                                         <strong class="drop-title" id="drop-zone-title">Click to browse or drag &amp; drop file here</strong>
                                         <span class="drop-hint" id="drop-zone-hint">PDF, Word, Excel, PowerPoint, Images (100MB) or Videos (500MB)</span>
                                     </div>
@@ -271,7 +293,10 @@
                             <div class="form-group">
                                 <div class="form-label-row">
                                     <label>Tags <span class="required">*</span></label>
-                                    <button type="button" class="btn-link-action admin-only hidden" id="btn-manage-doc-tags">⚙️ Manage Tags</button>
+                                    <button type="button" class="btn-link-action admin-only hidden" id="btn-manage-doc-tags">
+                                        <svg class="ui-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                                        <span>Manage Tags</span>
+                                    </button>
                                 </div>
                                 <div class="doc-tag-picker" id="doc-tag-picker">
                                     <!-- Tag checkboxes injected by JS -->
@@ -391,7 +416,10 @@
                                 <option value="size">Sort: Largest Size</option>
                                 <option value="title">Sort: Name (A–Z)</option>
                             </select>
-                            <button type="button" class="btn btn-outline btn-sm btn-manage-categories admin-only hidden" id="btn-manage-doc-tags-modal" title="Manage File Vault Tags">⚙️ Tags</button>
+                            <button type="button" class="btn btn-outline btn-sm btn-manage-categories admin-only hidden" id="btn-manage-doc-tags-modal" title="Manage File Vault Tags">
+                                <svg class="btn-icon-svg" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                                <span>Tags</span>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -408,10 +436,11 @@
             <div id="tab-view-archives" class="tab-view">
                 <div class="actions-bar">
                     <button id="btn-conclude-from-archives" class="btn btn-primary admin-only hidden btn-conclude-highlight" title="Conclude Current Meeting and Archive Dossier">
-                        <span class="icon">🏁</span> Conclude &amp; Archive Current Sitting
+                        <svg class="btn-icon-svg" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                        <span>Conclude &amp; Archive Current Sitting</span>
                     </button>
                     <div class="search-input-wrapper">
-                        <input type="search" id="archive-search-input" class="search-input" placeholder="🔍 Search past meetings, resolutions, or topics...">
+                        <input type="search" id="archive-search-input" class="search-input" placeholder="Search past meetings, resolutions, or topics...">
                     </div>
                 </div>
 
@@ -419,10 +448,22 @@
                     <div class="filter-group archive-filter-group">
                         <div class="archive-filter-chips" id="archive-filter-chips">
                             <button type="button" class="tag-filter-chip active" data-filter="all">All Archives</button>
-                            <button type="button" class="tag-filter-chip" data-filter="audio">🎙️ With Audio</button>
-                            <button type="button" class="tag-filter-chip" data-filter="transcript">📄 With Transcript</button>
-                            <button type="button" class="tag-filter-chip" data-filter="signed">📝 Signed Register</button>
-                            <button type="button" class="tag-filter-chip" data-filter="resolutions">⚖️ Has Decisions</button>
+                            <button type="button" class="tag-filter-chip" data-filter="audio">
+                                <svg class="ui-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+                                <span>With Audio</span>
+                            </button>
+                            <button type="button" class="tag-filter-chip" data-filter="transcript">
+                                <svg class="ui-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                                <span>With Transcript</span>
+                            </button>
+                            <button type="button" class="tag-filter-chip" data-filter="signed">
+                                <svg class="ui-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 14l2 2 4-4"/></svg>
+                                <span>Signed Register</span>
+                            </button>
+                            <button type="button" class="tag-filter-chip" data-filter="resolutions">
+                                <svg class="ui-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M3 7l4 8h10l4-8"/></svg>
+                                <span>Has Decisions</span>
+                            </button>
                         </div>
                         <div class="doc-filter-controls">
                             <select id="sort-archives" class="filter-select">
@@ -439,7 +480,9 @@
                     <!-- Meeting archive cards injected here -->
                 </div>
                 <div id="archives-empty-state" class="empty-state hidden">
-                    <div class="empty-icon">🏛️</div>
+                    <div class="empty-icon">
+                        <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+                    </div>
                     <h3>No Meeting Archives Found</h3>
                     <p>When a meeting is concluded, its full dossier (audio recordings, transcript, resolutions, and signed attendance register) will be permanently preserved here.</p>
                 </div>
@@ -453,7 +496,10 @@
             <div class="modal-header">
                 <h2>Agenda Preview</h2>
                 <div class="modal-actions">
-                    <button id="btn-switch-to-attendance" class="btn btn-secondary btn-sm" title="Switch to Attendance Register">📝 Attendance Register</button>
+                    <button id="btn-switch-to-attendance" class="btn btn-secondary btn-sm" title="Switch to Attendance Register">
+                        <svg class="btn-icon-svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                        <span>Attendance Register</span>
+                    </button>
                     <button id="btn-print" class="btn btn-primary btn-sm">Print / PDF</button>
                     <button id="btn-close-modal" class="btn-modal-close" aria-label="Close" title="Close">&times;</button>
                 </div>
@@ -471,19 +517,19 @@
                 <h2>Formal Attendance Register</h2>
                 <div class="modal-actions">
                     <button id="btn-save-attendance" class="btn btn-success btn-sm" title="Save changes to database" onclick="window.saveAttendanceToDatabase()">
-                        <svg class="btn-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                        <svg class="btn-icon-svg" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
                         <span>Save Attendance</span>
                     </button>
                     <button id="btn-switch-to-agenda" class="btn btn-secondary btn-sm" title="Switch to Agenda Preview">
-                        <svg class="btn-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                        <svg class="btn-icon-svg" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
                         <span>View Agenda</span>
                     </button>
                     <button id="btn-download-attendance-docx" class="btn btn-secondary btn-sm" title="Download Word (.docx) Document">
-                        <svg class="btn-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        <svg class="btn-icon-svg" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                         <span>Word DOCX</span>
                     </button>
                     <button id="btn-print-attendance" class="btn btn-primary btn-sm">
-                        <svg class="btn-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                        <svg class="btn-icon-svg" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
                         <span>Print / PDF</span>
                     </button>
                     <button id="btn-close-attendance-modal" class="btn-modal-close" aria-label="Close" title="Close">&times;</button>
@@ -550,10 +596,14 @@
                 
                 <div class="category-list-header">
                     <span><span id="category-modal-list-title">Hierarchy Structure</span> (<span id="category-modal-count">0</span>)</span>
-                    <span class="cat-drag-tip-text" id="cat-drag-tip">💡 Drag & drop rows to nest</span>
+                    <span class="cat-drag-tip-text" id="cat-drag-tip">
+                        <svg class="ui-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                        <span>Drag &amp; drop rows to nest</span>
+                    </span>
                 </div>
                 <div class="cat-drop-root-zone hidden" id="cat-drop-root-zone" data-path="__ROOT__">
-                    <span>⬆️ Drop here to move to Top Level (Level 1)</span>
+                    <svg class="ui-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+                    <span>Drop here to move to Top Level (Level 1)</span>
                 </div>
                 <div class="category-tree-container" id="category-tree-container">
                     <!-- 3-level tree or tags injected here -->
@@ -566,7 +616,10 @@
     <div id="edit-doc-modal" class="modal">
         <div class="modal-content modal-content--compact edit-doc-modal-dialog">
             <div class="modal-header">
-                <h2>✏️ Edit Document</h2>
+                <h2>
+                    <svg class="ui-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                    <span>Edit Document</span>
+                </h2>
                 <button id="btn-close-edit-doc-modal" class="btn-modal-close" aria-label="Close" title="Close">&times;</button>
             </div>
             <div class="modal-body edit-doc-modal-body">
@@ -641,10 +694,10 @@
                                 <span class="toolbar-divider"></span>
 
                                 <button type="button" class="toolbar-btn" data-command="insertUnorderedList" title="Bullet List (•)">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h2v2H4zm0 5h2v2H4zm0 5h2v2H4zm5-11h11v2H9zm0 5h11v2H9z"/></svg>
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h2v2H4zm0 5h2v2H4zm0 5h2v2H4zm5-11h11v2H9zm0 5h11v2H9zm0 5h11v2H9z"/></svg>
                                 </button>
                                 <button type="button" class="toolbar-btn" data-command="insertOrderedList" title="Numbered List (1, 2, 3)">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h2v1H5v1h1v1H4V8h1V7H4zm0 5h2v3H4zm0 5h2v3H4zm5-10h11v2H9zm0 5h11v2H9zm0 5h11v2H9z"/></svg>
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h2v1H5v1h1v1H4V8h1V7H4zm0 5h2v3H4zm0 5h2v3H4zm5-10h11v2H9zm0 5h11v2H9z"/></svg>
                                 </button>
                                 <button type="button" class="toolbar-btn" data-command="outdent" title="Decrease Indent">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M11 17h10v-2H11zm-8-5 6 6V6zm8-1h10V9H11zm0-4h10V5H11z"/></svg>
@@ -686,7 +739,10 @@
         <div class="modal-content modal-content--wide conclude-modal-dialog">
             <div class="modal-header">
                 <div>
-                    <h2>🏁 Conclude &amp; Archive Sitting</h2>
+                    <h2>
+                        <svg class="ui-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                        <span>Conclude &amp; Archive Sitting</span>
+                    </h2>
                     <span class="modal-subtitle" id="conclude-modal-subtitle">Package meeting assets, audio recordings, minutes document, transcript, resolutions, and signed attendance</span>
                 </div>
                 <button id="btn-close-conclude-modal" class="btn-modal-close" aria-label="Close" title="Close">&times;</button>
@@ -729,7 +785,10 @@
                     <!-- STEP 1: Overview & Review -->
                     <div class="wizard-step-panel active" id="conclude-step-1">
                         <div class="panel-intro-card">
-                            <h3>📋 Meeting Snapshot &amp; Summary</h3>
+                            <h3>
+                                <svg class="ui-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                                <span>Meeting Snapshot &amp; Summary</span>
+                            </h3>
                             <p>Review the sitting particulars and record closing notes or an executive summary before final packaging.</p>
                         </div>
 
@@ -765,14 +824,19 @@
                     <!-- STEP 2: Audio Recordings -->
                     <div class="wizard-step-panel" id="conclude-step-2">
                         <div class="panel-intro-card">
-                            <h3>🎙️ Upload Meeting Audio Recording(s)</h3>
+                            <h3>
+                                <svg class="ui-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                                <span>Upload Meeting Audio Recording(s)</span>
+                            </h3>
                             <p>Attach the official audio recording file(s) for permanent archive and in-browser playback. (MP3, M4A, WAV, AAC, OGG, WebM, MP4 up to 500MB each).</p>
                         </div>
 
                         <div class="file-drop-zone" id="conclude-audio-drop-zone" role="button" tabindex="0">
                             <input type="file" id="conclude-audio-input" multiple accept="audio/*,video/mp4,video/webm,.mp3,.m4a,.wav,.aac,.ogg,.opus,.flac,.wma,.mp4" class="file-input-hidden">
                             <div class="drop-zone-content">
-                                <span class="drop-icon">🎙️</span>
+                                <span class="drop-icon">
+                                    <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                                </span>
                                 <strong class="drop-title" id="conclude-audio-drop-title">Click to browse or drag &amp; drop audio files here</strong>
                                 <span class="drop-hint">Multiple audio files supported (MP3, M4A, WAV, AAC, WebM — Max 500MB per file)</span>
                             </div>
@@ -786,13 +850,16 @@
                     <!-- STEP 3: Transcript -->
                     <div class="wizard-step-panel" id="conclude-step-3">
                         <div class="panel-intro-card">
-                            <h3>📜 Meeting Transcript &amp; Deliberations</h3>
+                            <h3>
+                                <svg class="ui-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                                <span>Meeting Transcript &amp; Deliberations</span>
+                            </h3>
                             <p>Upload a structured transcript document (.docx, .pdf, .txt, .md) and/or paste or edit the full verbatim transcript text.</p>
                         </div>
 
                         <div class="form-group">
                             <label style="display: flex; align-items: center; gap: 0.4rem;">
-                                <svg class="label-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                                <svg class="label-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                                 Attach Transcript Document (Optional)
                             </label>
                             <input type="file" id="conclude-transcript-file-input" accept=".docx,.doc,.pdf,.txt,.md" class="form-input">
@@ -808,19 +875,24 @@
                     <!-- STEP 4: Minutes Document -->
                     <div class="wizard-step-panel" id="conclude-step-4">
                         <div class="panel-intro-card">
-                            <h3>📄 Official Meeting Minutes Document</h3>
+                            <h3>
+                                <svg class="ui-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                                <span>Official Meeting Minutes Document</span>
+                            </h3>
                             <p>Upload the official adopted meeting minutes document (.docx, .pdf, .doc, .odt, .rtf) for permanent preservation and audit evidence.</p>
                         </div>
 
                         <div class="form-group">
                             <label style="display: flex; align-items: center; gap: 0.4rem; font-weight: 600;">
-                                <svg class="label-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                                <svg class="label-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                                 Upload Official Meeting Minutes Document (Optional)
                             </label>
                             <div class="file-drop-zone" id="conclude-minutes-drop-zone" role="button" tabindex="0">
                                 <input type="file" id="conclude-minutes-file-input" multiple accept=".docx,.doc,.pdf,.odt,.rtf" class="file-input-hidden">
                                 <div class="drop-zone-content">
-                                    <span class="drop-icon">📄</span>
+                                    <span class="drop-icon">
+                                        <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                                    </span>
                                     <strong class="drop-title" id="conclude-minutes-drop-title">Click to upload Official Minutes Document (.docx, .pdf, .doc)</strong>
                                     <span class="drop-hint">Attach official signed minutes or Word document (Word DOCX / PDF)</span>
                                 </div>
@@ -834,7 +906,10 @@
                     <!-- STEP 5: Resolutions & Action Items -->
                     <div class="wizard-step-panel" id="conclude-step-5">
                         <div class="panel-intro-card">
-                            <h3>⚖️ Formal Resolutions, Decisions &amp; Action Plan</h3>
+                            <h3>
+                                <svg class="ui-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M3 7l4 8h10l4-8"/><circle cx="5" cy="15" r="2"/><circle cx="19" cy="15" r="2"/></svg>
+                                <span>Formal Resolutions, Decisions &amp; Action Plan</span>
+                            </h3>
                             <p>Record all adopted governance resolutions, formal decisions, and assignable action items with responsible persons and deadlines.</p>
                         </div>
 
@@ -859,7 +934,10 @@
                     <!-- STEP 6: Attendance & Reset -->
                     <div class="wizard-step-panel" id="conclude-step-6">
                         <div class="panel-intro-card">
-                            <h3>📝 Signed Attendance Register &amp; Next Meeting Reset</h3>
+                            <h3>
+                                <svg class="ui-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 14l2 2 4-4"/></svg>
+                                <span>Signed Attendance Register &amp; Next Meeting Reset</span>
+                            </h3>
                             <p>Upload the official physically signed attendance register, verify attendance statuses, and configure the workspace reset for the next meeting.</p>
                         </div>
 
@@ -868,7 +946,9 @@
                             <div class="file-drop-zone" id="conclude-signed-reg-drop-zone" role="button" tabindex="0">
                                 <input type="file" id="conclude-signed-reg-input" accept=".pdf,.docx,.doc,.jpg,.jpeg,.png" class="form-input file-input-hidden">
                                 <div class="drop-zone-content">
-                                    <span class="drop-icon">📝</span>
+                                    <span class="drop-icon">
+                                        <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 14l2 2 4-4"/></svg>
+                                    </span>
                                     <strong class="drop-title" id="conclude-signed-reg-title">Click to upload official signed attendance scan / PDF</strong>
                                     <span class="drop-hint">Scanned PDF, high-res photo, or signed DOCX register</span>
                                 </div>
@@ -882,7 +962,10 @@
 
                         <!-- Reset Workspace Configuration -->
                         <div class="reset-workspace-card">
-                            <h4>🔄 Next Meeting Initialization &amp; System Reset</h4>
+                            <h4>
+                                <svg class="ui-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                                <span>Next Meeting Initialization &amp; System Reset</span>
+                            </h4>
                             <p>Archiving will securely store all current agenda items, discussions, votes, audio, and documents into the archive repository and reset the board for your next sitting.</p>
 
                             <div class="conclude-meta-grid" style="margin-top: 0.75rem;">
@@ -927,7 +1010,10 @@
                         <div class="wizard-nav-right">
                             <button type="button" class="btn btn-outline" id="btn-conclude-cancel">Cancel</button>
                             <button type="button" class="btn btn-primary" id="btn-conclude-next">Next →</button>
-                            <button type="submit" class="btn btn-primary hidden" id="btn-conclude-submit" style="background: #10B981;">🚀 Finalize, Archive &amp; Reset System</button>
+                            <button type="submit" class="btn btn-primary hidden" id="btn-conclude-submit" style="background: #10B981;">
+                                <svg class="btn-icon-svg" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                <span>Finalize, Archive &amp; Reset System</span>
+                            </button>
                         </div>
                     </div>
                 </form>
@@ -944,9 +1030,18 @@
                     <span class="modal-subtitle" id="dossier-modal-subtitle">Comprehensive official governance dossier &amp; audit evidence</span>
                 </div>
                 <div class="modal-actions">
-                    <button type="button" id="btn-dossier-edit" class="btn btn-secondary btn-sm admin-only hidden" title="Edit this archived meeting">✏️ Edit Archive</button>
-                    <button type="button" id="btn-dossier-download-docx" class="btn btn-secondary btn-sm" title="Download Word (.docx) Minutes">⬇️ Word Minutes</button>
-                    <button type="button" id="btn-dossier-download-zip" class="btn btn-secondary btn-sm" title="Download Complete Meeting Pack (.zip)">📦 ZIP Pack</button>
+                    <button type="button" id="btn-dossier-edit" class="btn btn-secondary btn-sm admin-only hidden" title="Edit this archived meeting">
+                        <svg class="btn-icon-svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                        <span>Edit Archive</span>
+                    </button>
+                    <button type="button" id="btn-dossier-download-docx" class="btn btn-secondary btn-sm" title="Download Word (.docx) Minutes">
+                        <svg class="btn-icon-svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                        <span>Word Minutes</span>
+                    </button>
+                    <button type="button" id="btn-dossier-download-zip" class="btn btn-secondary btn-sm" title="Download Complete Meeting Pack (.zip)">
+                        <svg class="btn-icon-svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                        <span>ZIP Pack</span>
+                    </button>
                     <button type="button" id="btn-dossier-print" class="btn btn-primary btn-sm" title="Print / Save PDF">Print / PDF</button>
                     <button id="btn-close-dossier-modal" class="btn-modal-close" aria-label="Close" title="Close">&times;</button>
                 </div>
@@ -954,14 +1049,38 @@
 
             <!-- Dossier Sub-Navigation Tabs -->
             <div class="dossier-tabs-strip" id="dossier-tabs-strip">
-                <button type="button" class="dossier-tab-btn active" data-dtab="overview">📌 Overview &amp; Quorum</button>
-                <button type="button" class="dossier-tab-btn" data-dtab="minutes">📄 Minutes (<span id="dossier-minutes-tab-count">0</span>)</button>
-                <button type="button" class="dossier-tab-btn" data-dtab="audio">🎙️ Audio Recordings (<span id="dossier-audio-tab-count">0</span>)</button>
-                <button type="button" class="dossier-tab-btn" data-dtab="transcript">📜 Transcript</button>
-                <button type="button" class="dossier-tab-btn" data-dtab="resolutions">⚖️ Resolutions &amp; Actions (<span id="dossier-res-tab-count">0</span>)</button>
-                <button type="button" class="dossier-tab-btn" data-dtab="agenda">📋 Agenda &amp; Voting Log (<span id="dossier-items-tab-count">0</span>)</button>
-                <button type="button" class="dossier-tab-btn" data-dtab="attendance">📝 Signed Register</button>
-                <button type="button" class="dossier-tab-btn" data-dtab="files">📁 Vault Files (<span id="dossier-files-tab-count">0</span>)</button>
+                <button type="button" class="dossier-tab-btn active" data-dtab="overview">
+                    <svg class="tab-icon-svg" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    <span>Overview &amp; Quorum</span>
+                </button>
+                <button type="button" class="dossier-tab-btn" data-dtab="minutes">
+                    <svg class="tab-icon-svg" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                    <span>Minutes (<span id="dossier-minutes-tab-count">0</span>)</span>
+                </button>
+                <button type="button" class="dossier-tab-btn" data-dtab="audio">
+                    <svg class="tab-icon-svg" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                    <span>Audio Recordings (<span id="dossier-audio-tab-count">0</span>)</span>
+                </button>
+                <button type="button" class="dossier-tab-btn" data-dtab="transcript">
+                    <svg class="tab-icon-svg" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    <span>Transcript</span>
+                </button>
+                <button type="button" class="dossier-tab-btn" data-dtab="resolutions">
+                    <svg class="tab-icon-svg" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M3 7l4 8h10l4-8"/><circle cx="5" cy="15" r="2"/><circle cx="19" cy="15" r="2"/></svg>
+                    <span>Resolutions &amp; Actions (<span id="dossier-res-tab-count">0</span>)</span>
+                </button>
+                <button type="button" class="dossier-tab-btn" data-dtab="agenda">
+                    <svg class="tab-icon-svg" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 12h6"/><path d="M9 16h4"/></svg>
+                    <span>Agenda &amp; Voting Log (<span id="dossier-items-tab-count">0</span>)</span>
+                </button>
+                <button type="button" class="dossier-tab-btn" data-dtab="attendance">
+                    <svg class="tab-icon-svg" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 14l2 2 4-4"/></svg>
+                    <span>Signed Register</span>
+                </button>
+                <button type="button" class="dossier-tab-btn" data-dtab="files">
+                    <svg class="tab-icon-svg" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                    <span>Vault Files (<span id="dossier-files-tab-count">0</span>)</span>
+                </button>
             </div>
 
             <div class="modal-body dossier-modal-body" id="dossier-modal-body">
@@ -975,7 +1094,10 @@
         <div class="modal-content modal-content--wide edit-archive-modal-dialog">
             <div class="modal-header">
                 <div>
-                    <h2>✏️ Edit Archived Meeting</h2>
+                    <h2>
+                        <svg class="ui-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                        <span>Edit Archived Meeting</span>
+                    </h2>
                     <span class="modal-subtitle" id="edit-archive-modal-subtitle">Modify resolutions, action items, transcript, or attach additional files</span>
                 </div>
                 <button id="btn-close-edit-archive-modal" class="btn-modal-close" aria-label="Close" title="Close">&times;</button>
@@ -1011,7 +1133,10 @@
                     <!-- Resolutions Section in Edit Modal -->
                     <div class="resolutions-builder-wrapper" style="margin-top: 1.5rem;">
                         <div class="resolutions-builder-header">
-                            <h4>⚖️ Edit Resolutions &amp; Action Plan</h4>
+                            <h4>
+                                <svg class="ui-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M3 7l4 8h10l4-8"/></svg>
+                                <span>Edit Resolutions &amp; Action Plan</span>
+                            </h4>
                             <button type="button" class="btn btn-secondary btn-sm" id="btn-edit-add-resolution-row">+ Add Resolution</button>
                         </div>
                         <div class="resolutions-builder-list" id="edit-archive-resolutions-list">
@@ -1027,7 +1152,10 @@
 
                     <!-- Manage Attached Files in Edit Modal -->
                     <div class="edit-archive-files-section" style="margin-top: 1.5rem;">
-                        <h4>📎 Attached Files &amp; Audio</h4>
+                        <h4>
+                            <svg class="ui-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                            <span>Attached Files &amp; Audio</span>
+                        </h4>
                         <div id="edit-archive-existing-files" class="edit-archive-files-list">
                             <!-- List of existing files with delete button -->
                         </div>
