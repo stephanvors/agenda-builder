@@ -299,9 +299,15 @@ let pool = null;
 if (process.env.DATABASE_URL) {
   pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false }
+    ssl: { rejectUnauthorized: false },
+    connectionTimeoutMillis: 5000,
+    idleTimeoutMillis: 30000,
+    max: 10
   });
-  console.log('🐘 PostgreSQL connected — persistent cloud database active');
+  pool.on('error', (err) => {
+    console.error('⚠️ PostgreSQL pool error:', err.message);
+  });
+  console.log('🐘 PostgreSQL pool initialized');
 }
 
 function migrateFinanceCategories(store) {
@@ -397,76 +403,80 @@ function migrateFinanceCategories(store) {
 const storeHelper = {
   async init() {
     if (pool) {
-      // Initialize PostgreSQL tables
-      await pool.query(`
-        CREATE TABLE IF NOT EXISTS app_store (
-          id VARCHAR(50) PRIMARY KEY,
-          data JSONB NOT NULL
-        );
-        CREATE TABLE IF NOT EXISTS app_files (
-          id VARCHAR(100) PRIMARY KEY,
-          filename TEXT,
-          mimetype TEXT,
-          file_data BYTEA,
-          created_at TIMESTAMPTZ DEFAULT NOW()
-        );
-      `);
-      
-      const res = await pool.query('SELECT data FROM app_store WHERE id = $1', ['main_store']);
-      if (res.rows.length === 0) {
-        console.log('📊 Seeding initial data into PostgreSQL...');
-        const members = readMembersFromExcel();
-        const initialStore = {
-          members,
-          sessions: [],
-          agendaItems: [],
-          documents: [],
-          archives: [],
-          categories: [...DEFAULT_CATEGORIES],
-          documentTags: [...DEFAULT_DOCUMENT_TAGS],
-          meetingInfo: {
-            title: 'SGB/SMT Strategy Meeting',
-            date: '2026-08-27',
-            time: '10:00',
-            venue: 'Staff Room',
-            school: 'Lady Grey Arts Academy'
-          }
-        };
-        migrateFinanceCategories(initialStore);
-        await pool.query('INSERT INTO app_store (id, data) VALUES ($1, $2)', ['main_store', JSON.stringify(initialStore)]);
-        console.log(`✅ ${members.length} members initialized in PostgreSQL`);
-      }
-
-      console.log('✅ Persistent store loaded — syncing member details from Excel...');
-      // Always sync titles/roles/contacts from Excel so spreadsheet changes apply on redeploy
-      await syncMembersFromExcel();
-
-      // Clean up orphan and corrupted (< 500 bytes) document records in PostgreSQL
       try {
-        await pool.query('DELETE FROM app_files WHERE LENGTH(file_data) < 500');
-        const fileRows = await pool.query('SELECT id FROM app_files WHERE LENGTH(file_data) >= 500');
-        const validIds = new Set(fileRows.rows.map(r => r.id));
-        const storeRes = await pool.query('SELECT data FROM app_store WHERE id = $1', ['main_store']);
-        if (storeRes.rows.length > 0) {
-          const rawData = storeRes.rows[0].data;
-          const currentStore = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
-          if (Array.isArray(currentStore.documents) && currentStore.documents.length > 0) {
-            const beforeCount = currentStore.documents.length;
-            currentStore.documents = currentStore.documents.filter(d => {
-              const inDb = validIds.has(d.id);
-              const onDisk = Boolean(d.storedName && fsSync.existsSync(path.join(UPLOADS_DIR, d.storedName)) && fsSync.statSync(path.join(UPLOADS_DIR, d.storedName)).size >= 500);
-              return inDb || onDisk;
-            });
-            if (currentStore.documents.length !== beforeCount) {
-              await pool.query('UPDATE app_store SET data = $1 WHERE id = $2', [JSON.stringify(currentStore), 'main_store']);
-              console.log(`🧹 Cleaned up ${beforeCount - currentStore.documents.length} corrupt/orphan document records from PostgreSQL store`);
+        // Initialize PostgreSQL tables
+        await pool.query(`
+          CREATE TABLE IF NOT EXISTS app_store (
+            id VARCHAR(50) PRIMARY KEY,
+            data JSONB NOT NULL
+          );
+          CREATE TABLE IF NOT EXISTS app_files (
+            id VARCHAR(100) PRIMARY KEY,
+            filename TEXT,
+            mimetype TEXT,
+            file_data BYTEA,
+            created_at TIMESTAMPTZ DEFAULT NOW()
+          );
+        `);
+        
+        const res = await pool.query('SELECT data FROM app_store WHERE id = $1', ['main_store']);
+        if (res.rows.length === 0) {
+          console.log('📊 Seeding initial data into PostgreSQL...');
+          const members = readMembersFromExcel();
+          const initialStore = {
+            members,
+            sessions: [],
+            agendaItems: [],
+            documents: [],
+            archives: [],
+            categories: [...DEFAULT_CATEGORIES],
+            documentTags: [...DEFAULT_DOCUMENT_TAGS],
+            meetingInfo: {
+              title: 'SGB/SMT Strategy Meeting',
+              date: '2026-08-27',
+              time: '10:00',
+              venue: 'Staff Room',
+              school: 'Lady Grey Arts Academy'
+            }
+          };
+          migrateFinanceCategories(initialStore);
+          await pool.query('INSERT INTO app_store (id, data) VALUES ($1, $2)', ['main_store', JSON.stringify(initialStore)]);
+          console.log(`✅ ${members.length} members initialized in PostgreSQL`);
+        }
+
+        console.log('✅ Persistent store loaded — syncing member details from Excel...');
+        // Always sync titles/roles/contacts from Excel so spreadsheet changes apply on redeploy
+        await syncMembersFromExcel();
+
+        // Clean up orphan and corrupted (< 500 bytes) document records in PostgreSQL
+        try {
+          await pool.query('DELETE FROM app_files WHERE LENGTH(file_data) < 500');
+          const fileRows = await pool.query('SELECT id FROM app_files WHERE LENGTH(file_data) >= 500');
+          const validIds = new Set(fileRows.rows.map(r => r.id));
+          const storeRes = await pool.query('SELECT data FROM app_store WHERE id = $1', ['main_store']);
+          if (storeRes.rows.length > 0) {
+            const rawData = storeRes.rows[0].data;
+            const currentStore = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
+            if (Array.isArray(currentStore.documents) && currentStore.documents.length > 0) {
+              const beforeCount = currentStore.documents.length;
+              currentStore.documents = currentStore.documents.filter(d => {
+                const inDb = validIds.has(d.id);
+                const onDisk = Boolean(d.storedName && fsSync.existsSync(path.join(UPLOADS_DIR, d.storedName)) && fsSync.statSync(path.join(UPLOADS_DIR, d.storedName)).size >= 500);
+                return inDb || onDisk;
+              });
+              if (currentStore.documents.length !== beforeCount) {
+                await pool.query('UPDATE app_store SET data = $1 WHERE id = $2', [JSON.stringify(currentStore), 'main_store']);
+                console.log(`🧹 Cleaned up ${beforeCount - currentStore.documents.length} corrupt/orphan document records from PostgreSQL store`);
+              }
             }
           }
+        } catch (cleanErr) {
+          console.error('Error cleaning orphan document records on startup:', cleanErr.message);
         }
-      } catch (cleanErr) {
-        console.error('Error cleaning orphan document records on startup:', cleanErr.message);
+        return;
+      } catch (pgInitErr) {
+        console.warn('⚠️ PostgreSQL initialization failed, falling back to disk storage:', pgInitErr.message);
       }
-      return;
     }
 
     // JSON file fallback
@@ -514,14 +524,35 @@ const storeHelper = {
   async read() {
     let store = null;
     if (pool) {
-      const res = await pool.query('SELECT data FROM app_store WHERE id = $1', ['main_store']);
-      if (res.rows.length > 0) {
-        store = typeof res.rows[0].data === 'string' ? JSON.parse(res.rows[0].data) : res.rows[0].data;
+      try {
+        const res = await pool.query('SELECT data FROM app_store WHERE id = $1', ['main_store']);
+        if (res.rows.length > 0) {
+          store = typeof res.rows[0].data === 'string' ? JSON.parse(res.rows[0].data) : res.rows[0].data;
+        }
+      } catch (dbErr) {
+        console.warn('⚠️ PostgreSQL read failed, falling back to disk:', dbErr.message);
       }
     }
     if (!store) {
-      const data = await fs.readFile(STORE_FILE, 'utf-8');
-      store = JSON.parse(data);
+      try {
+        const data = await fs.readFile(STORE_FILE, 'utf-8');
+        store = JSON.parse(data);
+      } catch (fsErr) {
+        store = {
+          members: readMembersFromExcel(),
+          sessions: [],
+          agendaItems: [],
+          documents: [],
+          archives: [],
+          categories: [...DEFAULT_CATEGORIES],
+          documentTags: [...DEFAULT_DOCUMENT_TAGS],
+          meetingInfo: {
+            title: 'SGB/SMT Strategy Meeting',
+            date: '2026-08-27',
+            school: 'LGAA'
+          }
+        };
+      }
     }
     if (!Array.isArray(store.documents)) {
       store.documents = [];
@@ -552,13 +583,20 @@ const storeHelper = {
 
   async write(data) {
     if (pool) {
-      await pool.query(
-        'INSERT INTO app_store (id, data) VALUES ($1, $2) ON CONFLICT (id) DO UPDATE SET data = $2',
-        ['main_store', JSON.stringify(data)]
-      );
-      return;
+      try {
+        await pool.query(
+          'INSERT INTO app_store (id, data) VALUES ($1, $2) ON CONFLICT (id) DO UPDATE SET data = $2',
+          ['main_store', JSON.stringify(data)]
+        );
+      } catch (dbErr) {
+        console.error('⚠️ PostgreSQL store write error (falling back to disk):', dbErr.message);
+      }
     }
-    await fs.writeFile(STORE_FILE, JSON.stringify(data, null, 2));
+    try {
+      await fs.writeFile(STORE_FILE, JSON.stringify(data, null, 2));
+    } catch (fsErr) {
+      console.error('⚠️ Disk store write error:', fsErr.message);
+    }
   }
 };
 
@@ -1402,11 +1440,7 @@ app.post('/api/documents/upload', requireAuth, (req, res) => {
             [newDoc.id, req.file.originalname, req.file.mimetype, fileBuffer]
           );
         } catch (dbErr) {
-          console.error('Failed to store file binary in PostgreSQL:', dbErr);
-          if (req.file && req.file.path) {
-            try { await fs.unlink(req.file.path); } catch { /* ignore */ }
-          }
-          return res.status(500).json({ error: 'Failed to persist document binary into database. ' + (dbErr.message || '') });
+          console.warn('⚠️ Warning: Could not store file binary in PostgreSQL (fallback to disk):', dbErr.message);
         }
       }
 
