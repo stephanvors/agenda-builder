@@ -153,9 +153,9 @@
   ],
   "sessions": [
     {
-      "token": "400d24ec-21b4-40c7-bfe1-f3fec738eeae",
+      "token": "ac3eb38b-aa5e-44b2-8eb9-70565821e667",
       "memberId": "7c2333c0-5555-486f-afde-2d10af845f5c",
-      "createdAt": "2026-08-29T17:22:08.059Z"
+      "createdAt": "2026-08-29T17:51:55.420Z"
     }
   ],
   "agendaItems": [],
@@ -197,5 +197,6 @@
     "venue": "Staff Room",
     "school": "Lady Grey Arts Academy"
   },
-  "archives": []
+  "archives": [],
+  "attendance": {}
 }

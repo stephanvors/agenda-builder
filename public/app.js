@@ -390,6 +390,28 @@ const api = {
         return res.json();
     },
 
+    // ── Attendance Register API Methods ──
+    async getAttendance() {
+        const res = await fetch('/api/attendance', { headers: authHeaders() });
+        if (res.status === 401) { handleSessionExpired(); return null; }
+        if (!res.ok) throw new Error('Failed to load attendance register');
+        return res.json();
+    },
+
+    async saveAttendance(payload) {
+        const res = await fetch('/api/attendance', {
+            method: 'POST',
+            headers: authHeaders(),
+            body: JSON.stringify(payload)
+        });
+        if (res.status === 401) { handleSessionExpired(); return null; }
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error || 'Failed to save attendance register');
+        }
+        return res.json();
+    },
+
     // ── Category API Methods (Admin) ──
     async addAgendaCategory(name, parent = null) {
         const res = await fetch('/api/categories/agenda', {
@@ -4363,19 +4385,31 @@ function renderAttendanceModalContent() {
                 </div>
                 <div class="print-meta-grid">
                     <div class="print-meta-cell">
-                        <span class="meta-label">📅 Date &amp; Time:</span>
+                        <span class="meta-label">
+                            <svg class="meta-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                            Date &amp; Time:
+                        </span>
                         <span class="meta-val">${escapeHTML(meetingInfo.dateFormatted)} — ${escapeHTML(meetingInfo.time)}</span>
                     </div>
                     <div class="print-meta-cell">
-                        <span class="meta-label">📍 Venue:</span>
+                        <span class="meta-label">
+                            <svg class="meta-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                            Venue:
+                        </span>
                         <span class="meta-val">${escapeHTML(meetingInfo.venue)}</span>
                     </div>
                     <div class="print-meta-cell">
-                        <span class="meta-label">🏛️ Meeting Type:</span>
+                        <span class="meta-label">
+                            <svg class="meta-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M4 18h16M6 18v-7M10 18v-7M14 18v-7M18 18v-7M12 3L2 8h20L12 3z"/></svg>
+                            Meeting Type:
+                        </span>
                         <span class="meta-val">${escapeHTML(meetingInfo.type)}</span>
                     </div>
                     <div class="print-meta-cell">
-                        <span class="meta-label">⚖️ Statutory Authority:</span>
+                        <span class="meta-label">
+                            <svg class="meta-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M6 8l6-2 6 2M6 8L3 14h6L6 8zM18 8l-3 6h6l-3-6zM8 21h8"/></svg>
+                            Statutory Authority:
+                        </span>
                         <span class="meta-val">SASA Act No. 84 of 1996 (Sections 12 &amp; 18)</span>
                     </div>
                 </div>
@@ -4385,7 +4419,9 @@ function renderAttendanceModalContent() {
             <div class="quorum-summary-card ${isQuorate ? 'quorum-passed' : 'quorum-failed'}">
                 <div class="quorum-summary-main">
                     <div class="quorum-status-pill">
-                        ${isQuorate ? '✅ DULY CONSTITUTED &amp; QUORATE' : '⚠️ NON-QUORATE SITTING'}
+                        ${isQuorate 
+                            ? `<svg class="pill-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> DULY CONSTITUTED &amp; QUORATE` 
+                            : `<svg class="pill-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> NON-QUORATE SITTING`}
                     </div>
                     <div class="quorum-stats-text">
                         <strong>Total Members:</strong> ${totalCount} &nbsp;|&nbsp; 
@@ -4481,7 +4517,10 @@ function renderAttendanceModalContent() {
             <h3 class="attendance-section-title">2. RECORD OF FORMAL APOLOGIES &amp; LEAVE OF ABSENCE</h3>
             <div class="apologies-card">
                 ${apologyCount === 0 
-                    ? `<p class="apology-none-text">✅ No formal apologies were tendered; full governance quorum recorded in attendance.</p>`
+                    ? `<p class="apology-none-text">
+                        <svg class="apology-check-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        <span>No formal apologies were tendered; full governance quorum recorded in attendance.</span>
+                       </p>`
                     : `<ul class="apology-list">
                         ${components.flatMap(g => g.members).filter(m => m.status === 'Apology').map(m => `
                             <li><strong>${escapeHTML(m.title ? m.title + ' ' : '')}${escapeHTML(m.name)}</strong> (${escapeHTML(m.role)}): Formal apology tendered and recorded in terms of SGB meeting procedures.</li>
@@ -4523,6 +4562,19 @@ function renderAttendanceModalContent() {
                 </div>
             </div>
         </div>
+
+        <!-- Bottom Action Bar with Save Button -->
+        <div class="attendance-footer-actions no-print" style="margin-top: 1.75rem; display: flex; justify-content: space-between; align-items: center; padding-top: 1.25rem; border-top: 1px solid var(--border-color, #243048);">
+            <div class="attendance-last-saved-info" style="font-size: 0.82rem; color: var(--text-muted);">
+                ${attendanceRosterState.lastSaved ? `Last saved to database: ${new Date(attendanceRosterState.lastSaved).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'Unsaved changes in roster'}
+            </div>
+            <div style="display: flex; gap: 0.75rem;">
+                <button type="button" class="btn btn-success" id="btn-save-attendance-bottom" onclick="window.saveAttendanceToDatabase()">
+                    <svg class="btn-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                    <span>Save Attendance Register</span>
+                </button>
+            </div>
+        </div>
     `;
 
     els.printableAttendance.innerHTML = html;
@@ -4552,6 +4604,41 @@ window.updateMemberAttendanceTime = function(memberId, newTime) {
             }
         });
     });
+};
+
+window.saveAttendanceToDatabase = async function() {
+    if (!attendanceRosterState) return;
+    const saveBtns = [
+        document.getElementById('btn-save-attendance'),
+        document.getElementById('btn-save-attendance-bottom')
+    ].filter(Boolean);
+
+    saveBtns.forEach(b => {
+        b.disabled = true;
+        b.innerHTML = `
+            <svg class="btn-icon spin" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg>
+            <span>Saving...</span>
+        `;
+    });
+
+    try {
+        const res = await api.saveAttendance({ components: attendanceRosterState.components });
+        attendanceRosterState.lastSaved = res?.lastSaved || new Date().toISOString();
+        showToast('✅ Attendance register saved to database!');
+        saveBtns.forEach(b => {
+            b.innerHTML = `
+                <svg class="btn-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                <span>Saved!</span>
+            `;
+        });
+        setTimeout(() => {
+            renderAttendanceModalContent();
+        }, 1500);
+    } catch (err) {
+        console.error('Error saving attendance:', err);
+        showToast(err.message || 'Failed to save attendance', true);
+        renderAttendanceModalContent();
+    }
 };
 
 // ── Utilities ──

@@ -2076,6 +2076,7 @@ app.get('/api/attendance', requireAuth, async (req, res) => {
   try {
     const store = req.store;
     const members = store.members || [];
+    const savedAttendance = store.attendance || {};
 
     const componentsMap = {
       'Parent Component': [],
@@ -2084,11 +2085,24 @@ app.get('/api/attendance', requireAuth, async (req, res) => {
       'Non-Teaching Staff & Secretariat Component': []
     };
 
+    let totalMembers = members.length;
+    let presentCount = 0;
+    let apologyCount = 0;
+    let absentCount = 0;
+
     members.forEach((m, idx) => {
       const comp = getMemberComponent(m.role);
       if (!componentsMap[comp]) {
         componentsMap[comp] = [];
       }
+      const saved = savedAttendance[m.id] || savedAttendance[m.name] || {};
+      const status = saved.status || 'Present';
+      const timeIn = saved.timeIn || '10:00';
+
+      if (status === 'Present') presentCount++;
+      else if (status === 'Apology') apologyCount++;
+      else absentCount++;
+
       componentsMap[comp].push({
         id: m.id || `member-${idx + 1}`,
         index: idx + 1,
@@ -2098,14 +2112,15 @@ app.get('/api/attendance', requireAuth, async (req, res) => {
         component: comp,
         email: m.email || '',
         contact: m.contact || '',
-        status: 'Present',
-        timeIn: '10:00',
+        status: status,
+        timeIn: timeIn,
         signature: 'Signed'
       });
     });
 
-    const totalMembers = members.length;
     const quorumThreshold = Math.floor(totalMembers / 2) + 1;
+    const isQuorate = presentCount >= quorumThreshold;
+    const quorumPercentage = totalMembers > 0 ? ((presentCount / totalMembers) * 100).toFixed(1) + '%' : '100.0%';
 
     res.json({
       schoolInfo: {
@@ -2128,11 +2143,12 @@ app.get('/api/attendance', requireAuth, async (req, res) => {
       },
       stats: {
         totalMembers,
-        presentCount: totalMembers,
-        apologyCount: 0,
+        presentCount,
+        apologyCount,
+        absentCount,
         quorumThreshold,
-        isQuorate: true,
-        quorumPercentage: '100.0%',
+        isQuorate,
+        quorumPercentage,
         statutoryBasis: 'Section 12(1) & 18(1) of South African Schools Act (Act No. 84 of 1996)'
       },
       components: Object.entries(componentsMap)
@@ -2143,11 +2159,60 @@ app.get('/api/attendance', requireAuth, async (req, res) => {
         { role: 'SCHOOL PRINCIPAL', name: 'Ms. M. Botha', title: 'Ms' },
         { role: 'SGB SECRETARIAT / ADMIN', name: 'Mr. S. Vorster', title: 'Mr' }
       ],
+      lastSaved: store.attendanceLastSaved || null,
       generatedAt: new Date().toISOString()
     });
   } catch (error) {
     console.error('Error fetching attendance:', error);
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /api/attendance: save / commit updated attendance roster to database
+app.post('/api/attendance', requireAuth, async (req, res) => {
+  try {
+    const store = req.store;
+    const body = req.body || {};
+    let attendanceMap = store.attendance || {};
+
+    if (body.attendance && typeof body.attendance === 'object') {
+      attendanceMap = { ...attendanceMap, ...body.attendance };
+    } else if (Array.isArray(body.components)) {
+      body.components.forEach(comp => {
+        (comp.members || []).forEach(m => {
+          if (m.id || m.name) {
+            attendanceMap[m.id || m.name] = {
+              status: m.status || 'Present',
+              timeIn: m.timeIn || '10:00',
+              updatedAt: new Date().toISOString()
+            };
+          }
+        });
+      });
+    } else if (Array.isArray(body.roster)) {
+      body.roster.forEach(m => {
+        if (m.id || m.name) {
+          attendanceMap[m.id || m.name] = {
+            status: m.status || 'Present',
+            timeIn: m.timeIn || '10:00',
+            updatedAt: new Date().toISOString()
+          };
+        }
+      });
+    }
+
+    store.attendance = attendanceMap;
+    store.attendanceLastSaved = new Date().toISOString();
+    store.attendanceSavedBy = {
+      id: req.member.id,
+      name: req.member.name
+    };
+
+    await storeHelper.write(store);
+    res.json({ ok: true, message: 'Attendance register saved successfully', lastSaved: store.attendanceLastSaved });
+  } catch (error) {
+    console.error('Error saving attendance:', error);
+    res.status(500).json({ error: 'Failed to save attendance record' });
   }
 });
 
