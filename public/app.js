@@ -788,6 +788,7 @@ const els = {
     concludeStep3:            document.getElementById('conclude-step-3'),
     concludeStep4:            document.getElementById('conclude-step-4'),
     concludeStep5:            document.getElementById('conclude-step-5'),
+    concludeStep6:            document.getElementById('conclude-step-6'),
     concludeMeetingTitle:     document.getElementById('conclude-meeting-title'),
     concludeMeetingDate:      document.getElementById('conclude-meeting-date'),
     concludeMeetingTime:      document.getElementById('conclude-meeting-time'),
@@ -5159,7 +5160,7 @@ function updateConcludeWizardStep(step) {
     });
 
     // Update panels
-    for (let i = 1; i <= 5; i++) {
+    for (let i = 1; i <= 6; i++) {
         const panel = document.getElementById(`conclude-step-${i}`);
         if (panel) panel.classList.toggle('active', i === step);
     }
@@ -5167,7 +5168,7 @@ function updateConcludeWizardStep(step) {
     // Button states
     if (els.btnConcludePrev) els.btnConcludePrev.style.visibility = step === 1 ? 'hidden' : 'visible';
     if (els.btnConcludeNext) {
-        if (step === 5) {
+        if (step === 6) {
             els.btnConcludeNext.classList.add('hidden');
             if (els.btnConcludeSubmit) els.btnConcludeSubmit.classList.remove('hidden');
         } else {
@@ -6049,7 +6050,7 @@ function initArchivesModule() {
     // Wizard navigation
     if (els.btnConcludeNext) {
         els.btnConcludeNext.addEventListener('click', () => {
-            if (state.concludeStep < 5) {
+            if (state.concludeStep < 6) {
                 updateConcludeWizardStep(state.concludeStep + 1);
             }
         });

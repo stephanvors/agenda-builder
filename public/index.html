@@ -706,16 +706,21 @@
                     <div class="wizard-step-line"></div>
                     <div class="wizard-step-node" data-step="3">
                         <span class="wizard-step-num">3</span>
-                        <span class="wizard-step-text">Minutes &amp; Transcript</span>
+                        <span class="wizard-step-text">Transcript</span>
                     </div>
                     <div class="wizard-step-line"></div>
                     <div class="wizard-step-node" data-step="4">
                         <span class="wizard-step-num">4</span>
-                        <span class="wizard-step-text">Resolutions</span>
+                        <span class="wizard-step-text">Minutes</span>
                     </div>
                     <div class="wizard-step-line"></div>
                     <div class="wizard-step-node" data-step="5">
                         <span class="wizard-step-num">5</span>
+                        <span class="wizard-step-text">Resolutions</span>
+                    </div>
+                    <div class="wizard-step-line"></div>
+                    <div class="wizard-step-node" data-step="6">
+                        <span class="wizard-step-num">6</span>
                         <span class="wizard-step-text">Attendance &amp; Reset</span>
                     </div>
                 </div>
@@ -778,15 +783,36 @@
                         </div>
                     </div>
 
-                    <!-- STEP 3: Minutes & Transcript -->
+                    <!-- STEP 3: Transcript -->
                     <div class="wizard-step-panel" id="conclude-step-3">
                         <div class="panel-intro-card">
-                            <h3>📄 Official Meeting Minutes &amp; Transcript</h3>
-                            <p>Upload the official adopted meeting minutes document (.docx, .pdf, .doc) and attach transcript documents or paste verbatim deliberations.</p>
+                            <h3>📜 Meeting Transcript &amp; Deliberations</h3>
+                            <p>Upload a structured transcript document (.docx, .pdf, .txt, .md) and/or paste or edit the full verbatim transcript text.</p>
                         </div>
 
-                        <!-- Minutes Document Upload -->
-                        <div class="form-group" style="margin-bottom: 1.25rem;">
+                        <div class="form-group">
+                            <label style="display: flex; align-items: center; gap: 0.4rem;">
+                                <svg class="label-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                                Attach Transcript Document (Optional)
+                            </label>
+                            <input type="file" id="conclude-transcript-file-input" accept=".docx,.doc,.pdf,.txt,.md" class="form-input">
+                            <small class="form-hint">Upload structured transcript file (.docx, .pdf, or .txt)</small>
+                        </div>
+
+                        <div class="form-group" style="margin-top: 1rem;">
+                            <label for="conclude-transcript-text">Verbatim Transcript / Meeting Deliberation Text</label>
+                            <textarea id="conclude-transcript-text" class="form-textarea code-font-textarea" rows="10" placeholder="Paste full transcript text or meeting deliberation transcription here..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- STEP 4: Minutes Document -->
+                    <div class="wizard-step-panel" id="conclude-step-4">
+                        <div class="panel-intro-card">
+                            <h3>📄 Official Meeting Minutes Document</h3>
+                            <p>Upload the official adopted meeting minutes document (.docx, .pdf, .doc, .odt, .rtf) for permanent preservation and audit evidence.</p>
+                        </div>
+
+                        <div class="form-group">
                             <label style="display: flex; align-items: center; gap: 0.4rem; font-weight: 600;">
                                 <svg class="label-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                                 Upload Official Meeting Minutes Document (Optional)
@@ -796,32 +822,17 @@
                                 <div class="drop-zone-content">
                                     <span class="drop-icon">📄</span>
                                     <strong class="drop-title" id="conclude-minutes-drop-title">Click to upload Official Minutes Document (.docx, .pdf, .doc)</strong>
-                                    <span class="drop-hint">Attach official signed minutes or Word document</span>
+                                    <span class="drop-hint">Attach official signed minutes or Word document (Word DOCX / PDF)</span>
                                 </div>
                             </div>
                             <div class="uploaded-files-tray" id="conclude-minutes-tray">
                                 <!-- Minutes file chips injected here -->
                             </div>
                         </div>
-
-                        <!-- Transcript Document Upload -->
-                        <div class="form-group" style="padding-top: 1rem; border-top: 1px dashed var(--border-color);">
-                            <label style="display: flex; align-items: center; gap: 0.4rem;">
-                                <svg class="label-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                                Attach Audio Transcript Document (Optional)
-                            </label>
-                            <input type="file" id="conclude-transcript-file-input" accept=".docx,.doc,.pdf,.txt,.md" class="form-input">
-                            <small class="form-hint">Upload structured transcript file (.docx, .pdf, or .txt)</small>
-                        </div>
-
-                        <div class="form-group" style="margin-top: 1rem;">
-                            <label for="conclude-transcript-text">Verbatim Transcript / Meeting Deliberation Text</label>
-                            <textarea id="conclude-transcript-text" class="form-textarea code-font-textarea" rows="8" placeholder="Paste full transcript text or meeting deliberation transcription here..."></textarea>
-                        </div>
                     </div>
 
-                    <!-- STEP 4: Resolutions & Action Items -->
-                    <div class="wizard-step-panel" id="conclude-step-4">
+                    <!-- STEP 5: Resolutions & Action Items -->
+                    <div class="wizard-step-panel" id="conclude-step-5">
                         <div class="panel-intro-card">
                             <h3>⚖️ Formal Resolutions, Decisions &amp; Action Plan</h3>
                             <p>Record all adopted governance resolutions, formal decisions, and assignable action items with responsible persons and deadlines.</p>
@@ -845,8 +856,8 @@
                         </div>
                     </div>
 
-                    <!-- STEP 5: Attendance & Reset -->
-                    <div class="wizard-step-panel" id="conclude-step-5">
+                    <!-- STEP 6: Attendance & Reset -->
+                    <div class="wizard-step-panel" id="conclude-step-6">
                         <div class="panel-intro-card">
                             <h3>📝 Signed Attendance Register &amp; Next Meeting Reset</h3>
                             <p>Upload the official physically signed attendance register, verify attendance statuses, and configure the workspace reset for the next meeting.</p>
