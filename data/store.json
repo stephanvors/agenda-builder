@@ -151,7 +151,13 @@
       "registeredAt": "2026-08-16T18:32:58.956Z"
     }
   ],
-  "sessions": [],
+  "sessions": [
+    {
+      "token": "400d24ec-21b4-40c7-bfe1-f3fec738eeae",
+      "memberId": "7c2333c0-5555-486f-afde-2d10af845f5c",
+      "createdAt": "2026-08-29T17:22:08.059Z"
+    }
+  ],
   "agendaItems": [],
   "documents": [],
   "categories": [

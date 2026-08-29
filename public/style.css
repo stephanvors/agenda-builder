@@ -1814,6 +1814,27 @@ textarea:focus {
     cursor: pointer;
 }
 
+.attendance-time-input {
+    padding: 0.2rem 0.35rem;
+    border: 1px solid #CBD5E1;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: #FFFFFF;
+    color: #1E293B;
+    text-align: center;
+    width: 82px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.attendance-time-input:focus {
+    outline: none;
+    border-color: #3B82F6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
 .attendance-sig-space {
     display: inline-block;
     min-width: 70px;
@@ -4883,6 +4904,17 @@ textarea:focus {
     background: #1E293B;
     border-color: #3B4B68;
     color: #F1F5F9;
+}
+
+[data-theme="dark"] .attendance-time-input {
+    background: #1E293B;
+    border-color: #3B4B68;
+    color: #F1F5F9;
+}
+
+[data-theme="dark"] .attendance-time-input:focus {
+    border-color: #60A5FA;
+    box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.25);
 }
 
 [data-theme="dark"] .apologies-card {

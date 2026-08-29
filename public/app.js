@@ -4450,8 +4450,11 @@ function renderAttendanceModalContent() {
                             ${member.status === 'Present' ? '✔ Present' : (member.status === 'Apology' ? 'Apology' : 'Absent')}
                         </span>
                     </td>
-                    <td style="text-align: center; font-size: 0.88rem;">
-                        ${member.status === 'Present' ? '10:00' : '—'}
+                    <td style="text-align: center;">
+                        ${member.status === 'Present' 
+                            ? `<input type="time" class="attendance-time-input no-print" value="${escapeHTML(member.timeIn || '10:00')}" onchange="window.updateMemberAttendanceTime('${escapeHTML(member.id)}', this.value)" title="Edit arrival time">
+                               <span class="attendance-print-time only-print" style="font-size: 0.88rem;">${escapeHTML(member.timeIn || '10:00')}</span>` 
+                            : '<span class="text-muted" style="font-size: 0.85rem;">—</span>'}
                     </td>
                     <td style="text-align: center;">
                         ${member.status === 'Present' 
@@ -4531,10 +4534,24 @@ window.updateMemberAttendanceStatus = function(memberId, newStatus) {
         group.members.forEach(m => {
             if (m.id === memberId) {
                 m.status = newStatus;
+                if (newStatus === 'Present' && !m.timeIn) {
+                    m.timeIn = '10:00';
+                }
             }
         });
     });
     renderAttendanceModalContent();
+};
+
+window.updateMemberAttendanceTime = function(memberId, newTime) {
+    if (!attendanceRosterState) return;
+    attendanceRosterState.components.forEach(group => {
+        group.members.forEach(m => {
+            if (m.id === memberId) {
+                m.timeIn = newTime || '10:00';
+            }
+        });
+    });
 };
 
 // ── Utilities ──
