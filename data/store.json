@@ -1,250 +1,227 @@
 {
   "members": [
     {
-      "id": "ca5d4a12-d2c7-4bd7-9366-6a254a5d2212",
-      "name": "Bennie Bekker",
-      "title": "Mr",
-      "role": "SGB Non Teaching Staff",
-      "contact": "0760201695",
-      "email": "benniebekker3@gmail.com",
-      "pin": "3491",
-      "registeredAt": "2026-08-16T18:32:58.956Z"
-    },
-    {
-      "id": "65beef02-4e46-4f89-86c8-c64b8a0d6937",
-      "name": "Sakhile Belle",
-      "title": "Ms",
-      "role": "SMT",
-      "contact": "0608059885",
-      "email": "sakhilebelle@icloud.com",
-      "pin": "8710",
-      "registeredAt": "2026-08-16T18:32:58.956Z"
-    },
-    {
-      "id": "81be2757-2624-4904-a355-9b0444bd8ff1",
-      "name": "Marcelle Botha",
-      "title": "Ms",
-      "role": "Principal",
-      "contact": "0737600933",
-      "email": "principal@lgaa.co.za",
-      "pin": "6970",
-      "registeredAt": "2026-08-16T18:32:58.956Z"
-    },
-    {
-      "id": "f7a6e5cf-e976-449d-a4a8-a10477aca9c0",
-      "name": "Tersia Cock",
-      "title": "Mrs",
-      "role": "SMT",
-      "contact": "0795123365",
-      "email": "tersiahenna@gmail.com",
-      "pin": "3531",
-      "registeredAt": "2026-08-16T18:32:58.956Z"
-    },
-    {
-      "id": "06d075a1-2b95-432d-9288-965708f903ae",
-      "name": "Hanlie Du Preez",
-      "title": "Mrs",
-      "role": "Finance Officer",
-      "contact": "0834507253",
-      "email": "admin@lgaa.co.za",
-      "pin": "8671",
-      "registeredAt": "2026-08-16T18:32:58.956Z"
-    },
-    {
-      "id": "7fd40e14-f2ab-47b3-a50b-e479a48e0602",
-      "name": "Kwezi Dyasi",
-      "title": "Mr",
-      "role": "SGB Chairperson",
-      "contact": "0722730241",
-      "email": "kdyasi@gmail.com",
+      "id": "1de32583-cb10-4cbe-b738-dac672b682ce",
       "pin": "5836",
-      "registeredAt": "2026-08-16T18:32:58.956Z"
-    },
-    {
-      "id": "025999c3-ee04-4090-92c4-9e36da6b32d3",
-      "name": "Anthony Engelbrecht",
+      "name": "Kwezi Dyasi",
+      "role": "SGB Chairperson",
+      "email": "kdyasi@gmail.com",
       "title": "Mr",
-      "role": "SGB Educator Rep",
-      "contact": "0662590335",
-      "email": "Antengel@gmail.com",
-      "pin": "6569",
-      "registeredAt": "2026-08-16T18:32:58.956Z"
+      "contact": "0722730241",
+      "registeredAt": "2026-08-17T15:06:51.482Z"
     },
     {
-      "id": "6b3b390c-fc6a-407f-8064-16ac66918d6a",
-      "name": "Andile Gushmani",
-      "title": "Mr",
-      "role": "SGB Treasurer",
-      "contact": "0730004307",
-      "email": "gushmania@senqu.gov.za",
-      "pin": "4498",
-      "registeredAt": "2026-08-16T18:32:58.956Z"
+      "id": "b7b5aff5-95df-49d9-8c7c-45cd96b25728",
+      "pin": "6970",
+      "name": "Marcelle Botha",
+      "role": "Principal",
+      "email": "principal@lgaa.co.za",
+      "title": "Ms",
+      "contact": "0737600933",
+      "registeredAt": "2026-08-17T15:06:51.482Z"
     },
     {
-      "id": "2e92b67d-59c5-4c7c-b490-f50b96d6d873",
-      "name": "Viljoen Mathee",
-      "title": "Mr",
-      "role": "SMT",
-      "contact": "0827841823",
-      "email": "fviljoenmathee@gmail.com",
-      "pin": "8395",
-      "registeredAt": "2026-08-16T18:32:58.956Z"
-    },
-    {
-      "id": "c888f264-8296-4e0b-a1d9-4772dc43361c",
-      "name": "Marquin Scharneck",
-      "title": "Mr",
-      "role": "SMT",
-      "contact": "0662025670",
-      "email": "mw.scharneck@gmail.com",
-      "pin": "4330",
-      "registeredAt": "2026-08-16T18:32:58.956Z"
-    },
-    {
-      "id": "8ae9bf32-0b10-47be-8168-79fc2f69643c",
-      "name": "Sylvia Swart",
-      "title": "Mrs",
-      "role": "Deputy Principal",
-      "contact": "0820790079",
-      "email": "deputy.principal@lgaa.co.za",
+      "id": "786c8fce-515b-4b72-94e2-31c9570dc6d5",
       "pin": "1985",
-      "registeredAt": "2026-08-16T18:32:58.956Z"
+      "name": "Sylvia Swart",
+      "role": "Deputy Principal",
+      "email": "deputy.principal@lgaa.co.za",
+      "title": "Mrs",
+      "contact": "0820790079",
+      "registeredAt": "2026-08-17T15:06:51.482Z"
     },
     {
-      "id": "6365f662-ff08-4775-8169-88bdb7c3f0d7",
-      "name": "Nellie Von Solms",
-      "title": "Miss",
-      "role": "SGB Educator Rep",
-      "contact": "0848309994",
-      "email": "nellvs888@gmail.com",
-      "pin": "2727",
-      "registeredAt": "2026-08-16T18:32:58.956Z"
-    },
-    {
-      "id": "7c2333c0-5555-486f-afde-2d10af845f5c",
-      "name": "Stephen Vorster",
+      "id": "b7111b59-a434-4b8c-a772-55e24981a426",
+      "pin": "4498",
+      "name": "Andile Gushmani",
+      "role": "SGB Treasurer",
+      "email": "gushmania@senqu.gov.za",
       "title": "Mr",
-      "role": "Admin Clerk",
-      "contact": "0799969504",
-      "email": "stephan.vors@gmail.com",
+      "contact": "0730004307",
+      "registeredAt": "2026-08-17T15:06:51.482Z"
+    },
+    {
+      "id": "df0ec2a8-04c6-46bb-a1c1-149f701adf89",
+      "pin": "8671",
+      "name": "Hanlie Du Preez",
+      "role": "Finance Officer",
+      "email": "admin@lgaa.co.za",
+      "title": "Mrs",
+      "contact": "0834507253",
+      "registeredAt": "2026-08-17T15:06:51.482Z"
+    },
+    {
+      "id": "83a62bbd-2fc0-4bde-a588-3f07007b7658",
+      "pin": "6569",
+      "name": "Anthony Engelbrecht",
+      "role": "SGB Educator Rep",
+      "email": "Antengel@gmail.com",
+      "title": "Mr",
+      "contact": "0662590335",
+      "registeredAt": "2026-08-17T15:06:51.482Z"
+    },
+    {
+      "id": "5f5b60c2-08c7-4935-a3d5-ff1bc9891f80",
+      "pin": "2727",
+      "name": "Nellie Von Solms",
+      "role": "SGB Educator Rep",
+      "email": "nellvs888@gmail.com",
+      "title": "Miss",
+      "contact": "0848309994",
+      "registeredAt": "2026-08-17T15:06:51.482Z"
+    },
+    {
+      "id": "27929da0-b124-475e-85dc-f693a49f361f",
       "pin": "9079",
-      "registeredAt": "2026-08-16T18:32:58.956Z"
+      "name": "Stephen Vorster",
+      "role": "Admin Clerk",
+      "email": "stephan.vors@gmail.com",
+      "title": "Mr",
+      "contact": "0799969504",
+      "registeredAt": "2026-08-17T15:06:51.482Z"
     },
     {
-      "id": "ec90f721-fa50-490f-b2e0-4b23cf936a4b",
-      "name": "Charlene Vorster",
-      "title": "Mrs",
-      "role": "Tots Academy (Preschool) Rep",
-      "contact": "0836535007",
-      "email": "charlene.vorster30@gmail.com",
+      "id": "8af5ef3a-631d-4b79-80d2-849b72b159d2",
       "pin": "7791",
-      "registeredAt": "2026-08-16T18:32:58.956Z"
+      "name": "Charlene Vorster",
+      "role": "Tots Academy (Preschool) Rep",
+      "email": "charlene.vorster30@gmail.com",
+      "title": "Mrs",
+      "contact": "0836535007",
+      "registeredAt": "2026-08-17T15:06:51.482Z"
     },
     {
-      "id": "de699132-7c63-4eab-a5a0-0c8fa3e518c3",
-      "name": "Noncedo Williams",
-      "title": "Mrs",
-      "role": "SGB Parent",
-      "contact": "0782766516",
-      "email": "williamsnoncedo@gmail.com",
+      "id": "77f226f7-2cc2-45e3-88bc-57e375834355",
       "pin": "9830",
-      "registeredAt": "2026-08-16T18:32:58.956Z"
+      "name": "Noncedo Williams",
+      "role": "SGB Parent",
+      "email": "williamsnoncedo@gmail.com",
+      "title": "Mrs",
+      "contact": "0782766516",
+      "registeredAt": "2026-08-17T15:06:51.482Z"
+    },
+    {
+      "id": "c4bccb05-1ec5-4f98-b325-b3463234db70",
+      "pin": "3491",
+      "name": "Bennie Bekker",
+      "role": "SGB Non Teaching Staff",
+      "email": "benniebekker3@gmail.com",
+      "title": "Mr",
+      "contact": "0760201695",
+      "registeredAt": "2026-08-17T15:06:51.482Z"
+    },
+    {
+      "id": "78aabfa5-2d6b-46d5-b974-e479a5dd7b51",
+      "pin": "8710",
+      "name": "Sakhile Belle",
+      "role": "SMT",
+      "email": "sakhilebelle@icloud.com",
+      "title": "Ms",
+      "contact": "0608059885",
+      "registeredAt": "2026-08-17T15:06:51.482Z"
+    },
+    {
+      "id": "ecf4f718-bbe8-4ce4-9ec8-473f67e6e314",
+      "pin": "3531",
+      "name": "Tersia Cock",
+      "role": "SMT",
+      "email": "tersiahenna@gmail.com",
+      "title": "Mrs",
+      "contact": "0795123365",
+      "registeredAt": "2026-08-17T15:06:51.482Z"
+    },
+    {
+      "id": "4eb050f4-0595-4e03-81d6-9f43b1f4a5b6",
+      "pin": "8395",
+      "name": "Viljoen Mathee",
+      "role": "SMT",
+      "email": "fviljoenmathee@gmail.com",
+      "title": "Mr",
+      "contact": "0827841823",
+      "registeredAt": "2026-08-17T15:06:51.482Z"
+    },
+    {
+      "id": "6ef618f8-6395-441c-b13a-312bb8a334a8",
+      "pin": "4330",
+      "name": "Marquin Scharneck",
+      "role": "SMT",
+      "email": "mw.scharneck@gmail.com",
+      "title": "Mr",
+      "contact": "0662025670",
+      "registeredAt": "2026-08-17T15:06:51.482Z"
     }
   ],
   "sessions": [
     {
-      "token": "0ae07a51-0742-4399-94b1-3b5c4f15b476",
-      "memberId": "7c2333c0-5555-486f-afde-2d10af845f5c",
-      "createdAt": "2026-08-30T06:47:57.019Z"
+      "token": "e3969143-dd61-4c1e-ab04-57c511fdc02c",
+      "memberId": "27929da0-b124-475e-85dc-f693a49f361f",
+      "createdAt": "2026-08-30T07:16:34.753Z"
     }
   ],
   "agendaItems": [
     {
       "id": "item-01",
-      "title": "Adoption & Promulgation of Revised SGB Constitution (2026)",
-      "description": "Formal clause-by-clause review and adoption of the School Governing Body Constitution under SASA Act 84 of 1996 and EC Education Act 2000.",
-      "category": "Governance & Policy",
+      "title": "Terminate Aliwal North Bus Lease & Vehicle Return",
+      "description": "Notice to terminate the Aliwal bus lease and return the vehicle due to ridership dropping to 8 learners and unsustainable tyre and maintenance costs.",
+      "category": "Finances > Budget & Financial Management",
       "proposedBy": {
-        "memberId": "7fd40e14-f2ab-47b3-a50b-e479a48e0602",
-        "memberName": "Kwezi Dyasi",
-        "memberRole": "SGB Chairperson"
+        "memberId": "b7b5aff5-95df-49d9-8c7c-45cd96b25728",
+        "memberName": "Marcelle Botha",
+        "memberRole": "Principal"
       },
       "proposedAt": "2026-08-27T08:00:00.000Z",
       "votes": [
         {
-          "memberId": "7fd40e14-f2ab-47b3-a50b-e479a48e0602",
-          "memberName": "Kwezi Dyasi",
-          "votedAt": "2026-08-27T08:00:00.000Z"
+          "memberId": "1de32583-cb10-4cbe-b738-dac672b682ce",
+          "memberName": "Dyasi K."
         },
         {
-          "memberId": "81be2757-2624-4904-a355-9b0444bd8ff1",
-          "memberName": "Marcelle Botha",
-          "votedAt": "2026-08-27T08:05:00.000Z"
+          "memberId": "b7b5aff5-95df-49d9-8c7c-45cd96b25728",
+          "memberName": "Botha M."
         },
         {
-          "memberId": "6b3b390c-fc6a-407f-8064-16ac66918d6a",
-          "memberName": "Andile Gushmani",
-          "votedAt": "2026-08-27T08:10:00.000Z"
+          "memberId": "786c8fce-515b-4b72-94e2-31c9570dc6d5",
+          "memberName": "Swart S."
         },
         {
-          "memberId": "8ae9bf32-0b10-47be-8168-79fc2f69643c",
-          "memberName": "Sylvia Swart",
-          "votedAt": "2026-08-27T08:15:00.000Z"
+          "memberId": "df0ec2a8-04c6-46bb-a1c1-149f701adf89",
+          "memberName": "Du Preez H."
         },
         {
-          "memberId": "06d075a1-2b95-432d-9288-965708f903ae",
-          "memberName": "Hanlie Du Preez",
-          "votedAt": "2026-08-27T08:20:00.000Z"
+          "memberId": "83a62bbd-2fc0-4bde-a588-3f07007b7658",
+          "memberName": "Engelbrecht A."
         },
         {
-          "memberId": "025999c3-ee04-4090-92c4-9e36da6b32d3",
-          "memberName": "Anthony Engelbrecht",
-          "votedAt": "2026-08-27T08:25:00.000Z"
+          "memberId": "5f5b60c2-08c7-4935-a3d5-ff1bc9891f80",
+          "memberName": "Von Solms N."
         },
         {
-          "memberId": "6365f662-ff08-4775-8169-88bdb7c3f0d7",
-          "memberName": "Nellie Von Solms",
-          "votedAt": "2026-08-27T08:30:00.000Z"
+          "memberId": "27929da0-b124-475e-85dc-f693a49f361f",
+          "memberName": "Vorster S."
         },
         {
-          "memberId": "7c2333c0-5555-486f-afde-2d10af845f5c",
-          "memberName": "Stephen Vorster",
-          "votedAt": "2026-08-27T08:35:00.000Z"
+          "memberId": "8af5ef3a-631d-4b79-80d2-849b72b159d2",
+          "memberName": "Vorster C."
         },
         {
-          "memberId": "ec90f721-fa50-490f-b2e0-4b23cf936a4b",
-          "memberName": "Charlene Vorster",
-          "votedAt": "2026-08-27T08:40:00.000Z"
+          "memberId": "c4bccb05-1ec5-4f98-b325-b3463234db70",
+          "memberName": "Bekker B."
         },
         {
-          "memberId": "de699132-7c63-4eab-a5a0-0c8fa3e518c3",
-          "memberName": "Noncedo Williams",
-          "votedAt": "2026-08-27T08:45:00.000Z"
+          "memberId": "78aabfa5-2d6b-46d5-b974-e479a5dd7b51",
+          "memberName": "Belle S."
         },
         {
-          "memberId": "ca5d4a12-d2c7-4bd7-9366-6a254a5d2212",
-          "memberName": "Bennie Bekker",
-          "votedAt": "2026-08-27T08:50:00.000Z"
+          "memberId": "ecf4f718-bbe8-4ce4-9ec8-473f67e6e314",
+          "memberName": "Cock T."
         },
         {
-          "memberId": "65beef02-4e46-4f89-86c8-c64b8a0d6937",
-          "memberName": "Sakhile Belle",
-          "votedAt": "2026-08-27T08:55:00.000Z"
+          "memberId": "4eb050f4-0595-4e03-81d6-9f43b1f4a5b6",
+          "memberName": "Mathee V."
         },
         {
-          "memberId": "f7a6e5cf-e976-449d-a4a8-a10477aca9c0",
-          "memberName": "Tersia Cock",
-          "votedAt": "2026-08-27T09:00:00.000Z"
-        },
-        {
-          "memberId": "2e92b67d-59c5-4c7c-b490-f50b96d6d873",
-          "memberName": "Viljoen Mathee",
-          "votedAt": "2026-08-27T09:05:00.000Z"
-        },
-        {
-          "memberId": "c888f264-8296-4e0b-a1d9-4772dc43361c",
-          "memberName": "Marquin Scharneck",
-          "votedAt": "2026-08-27T09:10:00.000Z"
+          "memberId": "6ef618f8-6395-441c-b13a-312bb8a334a8",
+          "memberName": "Scharneck M."
         }
       ],
       "status": "endorsed",
@@ -254,55 +231,35 @@
     },
     {
       "id": "item-02",
-      "title": "Outstanding School Fees Collection & Class Permit Enforcement",
-      "description": "Strategy for debtor recovery, issuing monthly account statements via D6, and enforcing class entry permit criteria for accounts in arrears.",
-      "category": "Finances > Fee Collection & Debt Recovery",
+      "title": "Redeploy Maintenance Staff (Michael as Full-Time Handyman)",
+      "description": "Relocate and redeploy Michael to LGAA as full-time resident handyman under his official Department role (Bus Driver/Handyman).",
+      "category": "Human Resources & Staffing",
       "proposedBy": {
-        "memberId": "6b3b390c-fc6a-407f-8064-16ac66918d6a",
-        "memberName": "Andile Gushmani",
-        "memberRole": "SGB Treasurer"
+        "memberId": "b7b5aff5-95df-49d9-8c7c-45cd96b25728",
+        "memberName": "Marcelle Botha",
+        "memberRole": "Principal"
       },
-      "proposedAt": "2026-08-27T09:15:00.000Z",
+      "proposedAt": "2026-08-27T08:15:00.000Z",
       "votes": [
         {
-          "memberId": "7fd40e14-f2ab-47b3-a50b-e479a48e0602",
-          "memberName": "Kwezi Dyasi",
-          "votedAt": "2026-08-27T09:15:00.000Z"
+          "memberId": "1de32583-cb10-4cbe-b738-dac672b682ce",
+          "memberName": "Dyasi K."
         },
         {
-          "memberId": "81be2757-2624-4904-a355-9b0444bd8ff1",
-          "memberName": "Marcelle Botha",
-          "votedAt": "2026-08-27T09:20:00.000Z"
+          "memberId": "b7b5aff5-95df-49d9-8c7c-45cd96b25728",
+          "memberName": "Botha M."
         },
         {
-          "memberId": "6b3b390c-fc6a-407f-8064-16ac66918d6a",
-          "memberName": "Andile Gushmani",
-          "votedAt": "2026-08-27T09:25:00.000Z"
+          "memberId": "786c8fce-515b-4b72-94e2-31c9570dc6d5",
+          "memberName": "Swart S."
         },
         {
-          "memberId": "06d075a1-2b95-432d-9288-965708f903ae",
-          "memberName": "Hanlie Du Preez",
-          "votedAt": "2026-08-27T09:30:00.000Z"
+          "memberId": "27929da0-b124-475e-85dc-f693a49f361f",
+          "memberName": "Vorster S."
         },
         {
-          "memberId": "8ae9bf32-0b10-47be-8168-79fc2f69643c",
-          "memberName": "Sylvia Swart",
-          "votedAt": "2026-08-27T09:35:00.000Z"
-        },
-        {
-          "memberId": "de699132-7c63-4eab-a5a0-0c8fa3e518c3",
-          "memberName": "Noncedo Williams",
-          "votedAt": "2026-08-27T09:40:00.000Z"
-        },
-        {
-          "memberId": "7c2333c0-5555-486f-afde-2d10af845f5c",
-          "memberName": "Stephen Vorster",
-          "votedAt": "2026-08-27T09:45:00.000Z"
-        },
-        {
-          "memberId": "ca5d4a12-d2c7-4bd7-9366-6a254a5d2212",
-          "memberName": "Bennie Bekker",
-          "votedAt": "2026-08-27T09:50:00.000Z"
+          "memberId": "c4bccb05-1ec5-4f98-b325-b3463234db70",
+          "memberName": "Bekker B."
         }
       ],
       "status": "endorsed",
@@ -312,55 +269,39 @@
     },
     {
       "id": "item-03",
-      "title": "Academic Performance & Grade 12 National Senior Certificate (NSC) Support",
-      "description": "SMT presentation on Term 2 & 3 learner assessments, winter school intervention camps, and targeted subject support programs.",
-      "category": "Curriculum & Academic Performance",
+      "title": "Standardised Debt Repayment Form & Upfront Cash Rule",
+      "description": "Implement mandatory standardized debt acknowledgement and repayment form; require upfront cash payment before drafting payment arrangements.",
+      "category": "Finances > Fee Collection & Debt Recovery",
       "proposedBy": {
-        "memberId": "81be2757-2624-4904-a355-9b0444bd8ff1",
-        "memberName": "Marcelle Botha",
-        "memberRole": "Principal"
+        "memberId": "27929da0-b124-475e-85dc-f693a49f361f",
+        "memberName": "Stephen Vorster",
+        "memberRole": "Admin Clerk"
       },
-      "proposedAt": "2026-08-27T10:25:00.000Z",
+      "proposedAt": "2026-08-27T08:30:00.000Z",
       "votes": [
         {
-          "memberId": "81be2757-2624-4904-a355-9b0444bd8ff1",
-          "memberName": "Marcelle Botha",
-          "votedAt": "2026-08-27T10:25:00.000Z"
+          "memberId": "1de32583-cb10-4cbe-b738-dac672b682ce",
+          "memberName": "Dyasi K."
         },
         {
-          "memberId": "8ae9bf32-0b10-47be-8168-79fc2f69643c",
-          "memberName": "Sylvia Swart",
-          "votedAt": "2026-08-27T10:30:00.000Z"
+          "memberId": "b7b5aff5-95df-49d9-8c7c-45cd96b25728",
+          "memberName": "Botha M."
         },
         {
-          "memberId": "65beef02-4e46-4f89-86c8-c64b8a0d6937",
-          "memberName": "Sakhile Belle",
-          "votedAt": "2026-08-27T10:35:00.000Z"
+          "memberId": "786c8fce-515b-4b72-94e2-31c9570dc6d5",
+          "memberName": "Swart S."
         },
         {
-          "memberId": "f7a6e5cf-e976-449d-a4a8-a10477aca9c0",
-          "memberName": "Tersia Cock",
-          "votedAt": "2026-08-27T10:40:00.000Z"
+          "memberId": "df0ec2a8-04c6-46bb-a1c1-149f701adf89",
+          "memberName": "Du Preez H."
         },
         {
-          "memberId": "2e92b67d-59c5-4c7c-b490-f50b96d6d873",
-          "memberName": "Viljoen Mathee",
-          "votedAt": "2026-08-27T10:45:00.000Z"
+          "memberId": "5f5b60c2-08c7-4935-a3d5-ff1bc9891f80",
+          "memberName": "Von Solms N."
         },
         {
-          "memberId": "c888f264-8296-4e0b-a1d9-4772dc43361c",
-          "memberName": "Marquin Scharneck",
-          "votedAt": "2026-08-27T10:50:00.000Z"
-        },
-        {
-          "memberId": "025999c3-ee04-4090-92c4-9e36da6b32d3",
-          "memberName": "Anthony Engelbrecht",
-          "votedAt": "2026-08-27T10:55:00.000Z"
-        },
-        {
-          "memberId": "6365f662-ff08-4775-8169-88bdb7c3f0d7",
-          "memberName": "Nellie Von Solms",
-          "votedAt": "2026-08-27T11:00:00.000Z"
+          "memberId": "27929da0-b124-475e-85dc-f693a49f361f",
+          "memberName": "Vorster S."
         }
       ],
       "status": "endorsed",
@@ -370,45 +311,35 @@
     },
     {
       "id": "item-04",
-      "title": "2026/2027 Capital Budget Allocation & Infrastructure Maintenance",
-      "description": "Review of hostel maintenance, security fencing, arts studio equipment upgrades, and departmental operational expenditure.",
-      "category": "Finances > Budget & Financial Management",
+      "title": "Small Claims Court Handover (R30k Statutory Limit)",
+      "description": "Hand over employed fee-debtors owing R20,000–R30,000 to Small Claims Court under new R30k statutory jurisdiction, and pursue emolument attachment orders.",
+      "category": "Finances > Fee Collection & Debt Recovery",
       "proposedBy": {
-        "memberId": "7fd40e14-f2ab-47b3-a50b-e479a48e0602",
+        "memberId": "1de32583-cb10-4cbe-b738-dac672b682ce",
         "memberName": "Kwezi Dyasi",
         "memberRole": "SGB Chairperson"
       },
-      "proposedAt": "2026-08-27T09:55:00.000Z",
+      "proposedAt": "2026-08-27T08:45:00.000Z",
       "votes": [
         {
-          "memberId": "7fd40e14-f2ab-47b3-a50b-e479a48e0602",
-          "memberName": "Kwezi Dyasi",
-          "votedAt": "2026-08-27T09:55:00.000Z"
+          "memberId": "1de32583-cb10-4cbe-b738-dac672b682ce",
+          "memberName": "Dyasi K."
         },
         {
-          "memberId": "6b3b390c-fc6a-407f-8064-16ac66918d6a",
-          "memberName": "Andile Gushmani",
-          "votedAt": "2026-08-27T10:00:00.000Z"
+          "memberId": "b7b5aff5-95df-49d9-8c7c-45cd96b25728",
+          "memberName": "Botha M."
         },
         {
-          "memberId": "81be2757-2624-4904-a355-9b0444bd8ff1",
-          "memberName": "Marcelle Botha",
-          "votedAt": "2026-08-27T10:05:00.000Z"
+          "memberId": "df0ec2a8-04c6-46bb-a1c1-149f701adf89",
+          "memberName": "Du Preez H."
         },
         {
-          "memberId": "06d075a1-2b95-432d-9288-965708f903ae",
-          "memberName": "Hanlie Du Preez",
-          "votedAt": "2026-08-27T10:10:00.000Z"
+          "memberId": "27929da0-b124-475e-85dc-f693a49f361f",
+          "memberName": "Vorster S."
         },
         {
-          "memberId": "ca5d4a12-d2c7-4bd7-9366-6a254a5d2212",
-          "memberName": "Bennie Bekker",
-          "votedAt": "2026-08-27T10:15:00.000Z"
-        },
-        {
-          "memberId": "025999c3-ee04-4090-92c4-9e36da6b32d3",
-          "memberName": "Anthony Engelbrecht",
-          "votedAt": "2026-08-27T10:20:00.000Z"
+          "memberId": "5f5b60c2-08c7-4935-a3d5-ff1bc9891f80",
+          "memberName": "Von Solms N."
         }
       ],
       "status": "endorsed",
@@ -418,40 +349,35 @@
     },
     {
       "id": "item-05",
-      "title": "Tots Academy (Preschool) Integration & Early Childhood Development",
-      "description": "Report on Grade R curriculum resources, playground security improvements, and administrative integration with the main school campus.",
-      "category": "Learner Welfare & Support",
+      "title": "Lady Grey Music Festival Coordination & Viability",
+      "description": "Review logistical, artistic, and financial arrangements for year-end execution of the Lady Grey Music Festival.",
+      "category": "Parent & Community Engagement",
       "proposedBy": {
-        "memberId": "ec90f721-fa50-490f-b2e0-4b23cf936a4b",
-        "memberName": "Charlene Vorster",
-        "memberRole": "Tots Academy (Preschool) Rep"
+        "memberId": "83a62bbd-2fc0-4bde-a588-3f07007b7658",
+        "memberName": "Anthony Engelbrecht",
+        "memberRole": "SGB Educator Rep"
       },
-      "proposedAt": "2026-08-27T11:05:00.000Z",
+      "proposedAt": "2026-08-27T09:00:00.000Z",
       "votes": [
         {
-          "memberId": "ec90f721-fa50-490f-b2e0-4b23cf936a4b",
-          "memberName": "Charlene Vorster",
-          "votedAt": "2026-08-27T11:05:00.000Z"
+          "memberId": "1de32583-cb10-4cbe-b738-dac672b682ce",
+          "memberName": "Dyasi K."
         },
         {
-          "memberId": "81be2757-2624-4904-a355-9b0444bd8ff1",
-          "memberName": "Marcelle Botha",
-          "votedAt": "2026-08-27T11:10:00.000Z"
+          "memberId": "b7b5aff5-95df-49d9-8c7c-45cd96b25728",
+          "memberName": "Botha M."
         },
         {
-          "memberId": "7fd40e14-f2ab-47b3-a50b-e479a48e0602",
-          "memberName": "Kwezi Dyasi",
-          "votedAt": "2026-08-27T11:15:00.000Z"
+          "memberId": "83a62bbd-2fc0-4bde-a588-3f07007b7658",
+          "memberName": "Engelbrecht A."
         },
         {
-          "memberId": "de699132-7c63-4eab-a5a0-0c8fa3e518c3",
-          "memberName": "Noncedo Williams",
-          "votedAt": "2026-08-27T11:20:00.000Z"
+          "memberId": "4eb050f4-0595-4e03-81d6-9f43b1f4a5b6",
+          "memberName": "Mathee V."
         },
         {
-          "memberId": "ca5d4a12-d2c7-4bd7-9366-6a254a5d2212",
-          "memberName": "Bennie Bekker",
-          "votedAt": "2026-08-27T11:25:00.000Z"
+          "memberId": "6ef618f8-6395-441c-b13a-312bb8a334a8",
+          "memberName": "Scharneck M."
         }
       ],
       "status": "endorsed",
@@ -461,49 +387,616 @@
     },
     {
       "id": "item-06",
-      "title": "Establishment of Specialized SGB Governance & Finance Sub-Committees",
-      "description": "Formal constitution of Finance, Maintenance, and Disciplinary sub-committees in line with Section 30 of SASA.",
-      "category": "Governance & Policy",
+      "title": "Decentralised Event Fundraising & 'Gig Economy' Sub-Committees",
+      "description": "Empower autonomous event-specific fundraising sub-committees with clear proposal submission protocols.",
+      "category": "Finances > Fundraising & Alternative Revenue",
       "proposedBy": {
-        "memberId": "7fd40e14-f2ab-47b3-a50b-e479a48e0602",
-        "memberName": "Kwezi Dyasi",
-        "memberRole": "SGB Chairperson"
+        "memberId": "ecf4f718-bbe8-4ce4-9ec8-473f67e6e314",
+        "memberName": "Tersia Cock",
+        "memberRole": "SMT"
       },
-      "proposedAt": "2026-08-27T11:30:00.000Z",
+      "proposedAt": "2026-08-27T09:15:00.000Z",
       "votes": [
         {
-          "memberId": "7fd40e14-f2ab-47b3-a50b-e479a48e0602",
-          "memberName": "Kwezi Dyasi",
-          "votedAt": "2026-08-27T11:30:00.000Z"
+          "memberId": "1de32583-cb10-4cbe-b738-dac672b682ce",
+          "memberName": "Dyasi K."
         },
         {
-          "memberId": "81be2757-2624-4904-a355-9b0444bd8ff1",
-          "memberName": "Marcelle Botha",
-          "votedAt": "2026-08-27T11:35:00.000Z"
+          "memberId": "b7b5aff5-95df-49d9-8c7c-45cd96b25728",
+          "memberName": "Botha M."
         },
         {
-          "memberId": "6b3b390c-fc6a-407f-8064-16ac66918d6a",
-          "memberName": "Andile Gushmani",
-          "votedAt": "2026-08-27T11:40:00.000Z"
+          "memberId": "ecf4f718-bbe8-4ce4-9ec8-473f67e6e314",
+          "memberName": "Cock T."
         },
         {
-          "memberId": "025999c3-ee04-4090-92c4-9e36da6b32d3",
-          "memberName": "Anthony Engelbrecht",
-          "votedAt": "2026-08-27T11:45:00.000Z"
+          "memberId": "786c8fce-515b-4b72-94e2-31c9570dc6d5",
+          "memberName": "Swart S."
         },
         {
-          "memberId": "7c2333c0-5555-486f-afde-2d10af845f5c",
-          "memberName": "Stephen Vorster",
-          "votedAt": "2026-08-27T11:50:00.000Z"
+          "memberId": "df0ec2a8-04c6-46bb-a1c1-149f701adf89",
+          "memberName": "Du Preez H."
         }
       ],
       "status": "endorsed",
       "isResolved": false,
       "resolution": null,
       "comments": []
+    },
+    {
+      "id": "item-07",
+      "title": "Standardised Flat School Fee Structure Across All Grades",
+      "description": "Model and balance school fee structure into a single flat, equitable rate across primary and secondary phases.",
+      "category": "Finances > Fee Collection & Debt Recovery",
+      "proposedBy": {
+        "memberId": "1de32583-cb10-4cbe-b738-dac672b682ce",
+        "memberName": "Kwezi Dyasi",
+        "memberRole": "SGB Chairperson"
+      },
+      "proposedAt": "2026-08-27T09:30:00.000Z",
+      "votes": [
+        {
+          "memberId": "1de32583-cb10-4cbe-b738-dac672b682ce",
+          "memberName": "Dyasi K."
+        },
+        {
+          "memberId": "b7b5aff5-95df-49d9-8c7c-45cd96b25728",
+          "memberName": "Botha M."
+        },
+        {
+          "memberId": "df0ec2a8-04c6-46bb-a1c1-149f701adf89",
+          "memberName": "Du Preez H."
+        },
+        {
+          "memberId": "786c8fce-515b-4b72-94e2-31c9570dc6d5",
+          "memberName": "Swart S."
+        }
+      ],
+      "status": "seconded",
+      "isResolved": false,
+      "resolution": null,
+      "comments": []
+    },
+    {
+      "id": "item-08",
+      "title": "Integration of Incidental Levies into Monthly Contracts",
+      "description": "Consolidate art supplies, hospitality levies, and stationery into 11-month monthly fee contracts to eliminate January cash-flow spikes.",
+      "category": "Finances > Fee Collection & Debt Recovery",
+      "proposedBy": {
+        "memberId": "df0ec2a8-04c6-46bb-a1c1-149f701adf89",
+        "memberName": "Hanlie Du Preez",
+        "memberRole": "Finance Officer"
+      },
+      "proposedAt": "2026-08-27T09:45:00.000Z",
+      "votes": [
+        {
+          "memberId": "1de32583-cb10-4cbe-b738-dac672b682ce",
+          "memberName": "Dyasi K."
+        },
+        {
+          "memberId": "b7b5aff5-95df-49d9-8c7c-45cd96b25728",
+          "memberName": "Botha M."
+        },
+        {
+          "memberId": "df0ec2a8-04c6-46bb-a1c1-149f701adf89",
+          "memberName": "Du Preez H."
+        },
+        {
+          "memberId": "27929da0-b124-475e-85dc-f693a49f361f",
+          "memberName": "Vorster S."
+        }
+      ],
+      "status": "seconded",
+      "isResolved": false,
+      "resolution": null,
+      "comments": []
+    },
+    {
+      "id": "item-09",
+      "title": "Parent Supply Policy (Toilet Paper & Printing Paper Consumables)",
+      "description": "Policy requiring parent supply of 1 toilet roll per month and 1 ream of paper per term per learner; structured Grade 1 stationery pack.",
+      "category": "Communication & Administration",
+      "proposedBy": {
+        "memberId": "27929da0-b124-475e-85dc-f693a49f361f",
+        "memberName": "Stephen Vorster",
+        "memberRole": "Admin Clerk"
+      },
+      "proposedAt": "2026-08-27T10:00:00.000Z",
+      "votes": [
+        {
+          "memberId": "1de32583-cb10-4cbe-b738-dac672b682ce",
+          "memberName": "Dyasi K."
+        },
+        {
+          "memberId": "b7b5aff5-95df-49d9-8c7c-45cd96b25728",
+          "memberName": "Botha M."
+        },
+        {
+          "memberId": "27929da0-b124-475e-85dc-f693a49f361f",
+          "memberName": "Vorster S."
+        },
+        {
+          "memberId": "ecf4f718-bbe8-4ce4-9ec8-473f67e6e314",
+          "memberName": "Cock T."
+        },
+        {
+          "memberId": "8af5ef3a-631d-4b79-80d2-849b72b159d2",
+          "memberName": "Vorster C."
+        }
+      ],
+      "status": "endorsed",
+      "isResolved": false,
+      "resolution": null,
+      "comments": []
+    },
+    {
+      "id": "item-10",
+      "title": "LGAA Talent Scholarship Programme Establishment",
+      "description": "Establish merit scholarship capped at 2–3 enrolled learners meeting strict academic and arts performance criteria.",
+      "category": "Governance & Policy",
+      "proposedBy": {
+        "memberId": "b7b5aff5-95df-49d9-8c7c-45cd96b25728",
+        "memberName": "Marcelle Botha",
+        "memberRole": "Principal"
+      },
+      "proposedAt": "2026-08-27T10:15:00.000Z",
+      "votes": [
+        {
+          "memberId": "1de32583-cb10-4cbe-b738-dac672b682ce",
+          "memberName": "Dyasi K."
+        },
+        {
+          "memberId": "b7b5aff5-95df-49d9-8c7c-45cd96b25728",
+          "memberName": "Botha M."
+        },
+        {
+          "memberId": "786c8fce-515b-4b72-94e2-31c9570dc6d5",
+          "memberName": "Swart S."
+        },
+        {
+          "memberId": "83a62bbd-2fc0-4bde-a588-3f07007b7658",
+          "memberName": "Engelbrecht A."
+        }
+      ],
+      "status": "seconded",
+      "isResolved": false,
+      "resolution": null,
+      "comments": []
+    },
+    {
+      "id": "item-11",
+      "title": "Passion Play Revival Strategic Roadmap (2028 Target)",
+      "description": "Long-term production revival targeting 2028 with dedicated, ring-fenced community and sponsor funding streams.",
+      "category": "Parent & Community Engagement",
+      "proposedBy": {
+        "memberId": "83a62bbd-2fc0-4bde-a588-3f07007b7658",
+        "memberName": "Anthony Engelbrecht",
+        "memberRole": "SGB Educator Rep"
+      },
+      "proposedAt": "2026-08-27T10:30:00.000Z",
+      "votes": [
+        {
+          "memberId": "1de32583-cb10-4cbe-b738-dac672b682ce",
+          "memberName": "Dyasi K."
+        },
+        {
+          "memberId": "83a62bbd-2fc0-4bde-a588-3f07007b7658",
+          "memberName": "Engelbrecht A."
+        },
+        {
+          "memberId": "4eb050f4-0595-4e03-81d6-9f43b1f4a5b6",
+          "memberName": "Mathee V."
+        }
+      ],
+      "status": "seconded",
+      "isResolved": false,
+      "resolution": null,
+      "comments": []
+    },
+    {
+      "id": "item-12",
+      "title": "Mandatory FET Art Subjects Enforcement (Minimum 2 Arts)",
+      "description": "Re-enforce compulsory minimum of 2 art subjects for all Grades 10–12 learners to safeguard school's statutory Art Focus designation.",
+      "category": "Curriculum & Academic Performance",
+      "proposedBy": {
+        "memberId": "786c8fce-515b-4b72-94e2-31c9570dc6d5",
+        "memberName": "Sylvia Swart",
+        "memberRole": "Deputy Principal"
+      },
+      "proposedAt": "2026-08-27T10:45:00.000Z",
+      "votes": [
+        {
+          "memberId": "1de32583-cb10-4cbe-b738-dac672b682ce",
+          "memberName": "Dyasi K."
+        },
+        {
+          "memberId": "b7b5aff5-95df-49d9-8c7c-45cd96b25728",
+          "memberName": "Botha M."
+        },
+        {
+          "memberId": "786c8fce-515b-4b72-94e2-31c9570dc6d5",
+          "memberName": "Swart S."
+        },
+        {
+          "memberId": "83a62bbd-2fc0-4bde-a588-3f07007b7658",
+          "memberName": "Engelbrecht A."
+        },
+        {
+          "memberId": "5f5b60c2-08c7-4935-a3d5-ff1bc9891f80",
+          "memberName": "Von Solms N."
+        },
+        {
+          "memberId": "6ef618f8-6395-441c-b13a-312bb8a334a8",
+          "memberName": "Scharneck M."
+        }
+      ],
+      "status": "endorsed",
+      "isResolved": false,
+      "resolution": null,
+      "comments": []
+    },
+    {
+      "id": "item-13",
+      "title": "SGB Educator Contract Restructuring (Part-Time & Hourly Terms)",
+      "description": "Align SGB educator contracts to part-time/hourly basis for low-enrolment art subjects to achieve staff budget sustainability.",
+      "category": "Human Resources & Staffing",
+      "proposedBy": {
+        "memberId": "b7b5aff5-95df-49d9-8c7c-45cd96b25728",
+        "memberName": "Marcelle Botha",
+        "memberRole": "Principal"
+      },
+      "proposedAt": "2026-08-27T11:00:00.000Z",
+      "votes": [
+        {
+          "memberId": "1de32583-cb10-4cbe-b738-dac672b682ce",
+          "memberName": "Dyasi K."
+        },
+        {
+          "memberId": "b7b5aff5-95df-49d9-8c7c-45cd96b25728",
+          "memberName": "Botha M."
+        },
+        {
+          "memberId": "df0ec2a8-04c6-46bb-a1c1-149f701adf89",
+          "memberName": "Du Preez H."
+        },
+        {
+          "memberId": "786c8fce-515b-4b72-94e2-31c9570dc6d5",
+          "memberName": "Swart S."
+        }
+      ],
+      "status": "seconded",
+      "isResolved": false,
+      "resolution": null,
+      "comments": []
+    },
+    {
+      "id": "item-14",
+      "title": "School Restructuring & Primary Phase Enrolment Expansion",
+      "description": "Expand primary school to 2 parallel classes (Gr 1–2 in 2027) while curating high school into 1 focused class per grade.",
+      "category": "Governance & Policy",
+      "proposedBy": {
+        "memberId": "b7b5aff5-95df-49d9-8c7c-45cd96b25728",
+        "memberName": "Marcelle Botha",
+        "memberRole": "Principal"
+      },
+      "proposedAt": "2026-08-27T11:15:00.000Z",
+      "votes": [
+        {
+          "memberId": "1de32583-cb10-4cbe-b738-dac672b682ce",
+          "memberName": "Dyasi K."
+        },
+        {
+          "memberId": "b7b5aff5-95df-49d9-8c7c-45cd96b25728",
+          "memberName": "Botha M."
+        },
+        {
+          "memberId": "786c8fce-515b-4b72-94e2-31c9570dc6d5",
+          "memberName": "Swart S."
+        },
+        {
+          "memberId": "8af5ef3a-631d-4b79-80d2-849b72b159d2",
+          "memberName": "Vorster C."
+        },
+        {
+          "memberId": "ecf4f718-bbe8-4ce4-9ec8-473f67e6e314",
+          "memberName": "Cock T."
+        }
+      ],
+      "status": "endorsed",
+      "isResolved": false,
+      "resolution": null,
+      "comments": []
+    },
+    {
+      "id": "item-15",
+      "title": "Matric Farewell 2026 Event Confirmation (23 September 2026)",
+      "description": "Confirm execution of Matric Farewell on 23 September 2026 prior to practical examinations commencement.",
+      "category": "Parent & Community Engagement",
+      "proposedBy": {
+        "memberId": "6ef618f8-6395-441c-b13a-312bb8a334a8",
+        "memberName": "Marquin Scharneck",
+        "memberRole": "SMT"
+      },
+      "proposedAt": "2026-08-27T11:30:00.000Z",
+      "votes": [
+        {
+          "memberId": "1de32583-cb10-4cbe-b738-dac672b682ce",
+          "memberName": "Dyasi K."
+        },
+        {
+          "memberId": "b7b5aff5-95df-49d9-8c7c-45cd96b25728",
+          "memberName": "Botha M."
+        },
+        {
+          "memberId": "6ef618f8-6395-441c-b13a-312bb8a334a8",
+          "memberName": "Scharneck M."
+        },
+        {
+          "memberId": "78aabfa5-2d6b-46d5-b974-e479a5dd7b51",
+          "memberName": "Belle S."
+        }
+      ],
+      "status": "seconded",
+      "isResolved": false,
+      "resolution": null,
+      "comments": []
+    },
+    {
+      "id": "item-16",
+      "title": "Matric Farewell Debt Clearance & 50% Arrears Protocol",
+      "description": "Tie farewell ticket issuance to fee compliance handled privately by teachers: full payment for <R1,500 debt and 50% minimum settlement for substantial arrears.",
+      "category": "Finances > Fee Collection & Debt Recovery",
+      "proposedBy": {
+        "memberId": "6ef618f8-6395-441c-b13a-312bb8a334a8",
+        "memberName": "Marquin Scharneck",
+        "memberRole": "SMT"
+      },
+      "proposedAt": "2026-08-27T11:45:00.000Z",
+      "votes": [
+        {
+          "memberId": "1de32583-cb10-4cbe-b738-dac672b682ce",
+          "memberName": "Dyasi K."
+        },
+        {
+          "memberId": "b7b5aff5-95df-49d9-8c7c-45cd96b25728",
+          "memberName": "Botha M."
+        },
+        {
+          "memberId": "df0ec2a8-04c6-46bb-a1c1-149f701adf89",
+          "memberName": "Du Preez H."
+        },
+        {
+          "memberId": "6ef618f8-6395-441c-b13a-312bb8a334a8",
+          "memberName": "Scharneck M."
+        },
+        {
+          "memberId": "27929da0-b124-475e-85dc-f693a49f361f",
+          "memberName": "Vorster S."
+        }
+      ],
+      "status": "endorsed",
+      "isResolved": false,
+      "resolution": null,
+      "comments": []
+    },
+    {
+      "id": "item-17",
+      "title": "AGM Standing Language Protocol (English & Self-Arranged Translators)",
+      "description": "Reaffirm standing resolution that AGM official language is English, and require translation notice explicitly printed on parent invitations.",
+      "category": "Governance & Policy",
+      "proposedBy": {
+        "memberId": "27929da0-b124-475e-85dc-f693a49f361f",
+        "memberName": "Stephen Vorster",
+        "memberRole": "Admin Clerk"
+      },
+      "proposedAt": "2026-08-27T12:00:00.000Z",
+      "votes": [
+        {
+          "memberId": "1de32583-cb10-4cbe-b738-dac672b682ce",
+          "memberName": "Dyasi K."
+        },
+        {
+          "memberId": "b7b5aff5-95df-49d9-8c7c-45cd96b25728",
+          "memberName": "Botha M."
+        },
+        {
+          "memberId": "27929da0-b124-475e-85dc-f693a49f361f",
+          "memberName": "Vorster S."
+        }
+      ],
+      "status": "seconded",
+      "isResolved": false,
+      "resolution": null,
+      "comments": []
+    },
+    {
+      "id": "item-18",
+      "title": "School Uniform Jersey Supplier Quality Management",
+      "description": "Retain favourable R250 jersey supplier while enforcing quality control rectification on off-centre logo embroidery prior to balance payment.",
+      "category": "Infrastructure & Maintenance",
+      "proposedBy": {
+        "memberId": "27929da0-b124-475e-85dc-f693a49f361f",
+        "memberName": "Stephen Vorster",
+        "memberRole": "Admin Clerk"
+      },
+      "proposedAt": "2026-08-27T12:15:00.000Z",
+      "votes": [
+        {
+          "memberId": "1de32583-cb10-4cbe-b738-dac672b682ce",
+          "memberName": "Dyasi K."
+        },
+        {
+          "memberId": "27929da0-b124-475e-85dc-f693a49f361f",
+          "memberName": "Vorster S."
+        },
+        {
+          "memberId": "4eb050f4-0595-4e03-81d6-9f43b1f4a5b6",
+          "memberName": "Mathee V."
+        }
+      ],
+      "status": "seconded",
+      "isResolved": false,
+      "resolution": null,
+      "comments": []
     }
   ],
-  "documents": [],
+  "documents": [
+    {
+      "id": "bde837a1-b49e-4a36-ad06-428ba740ef77",
+      "filename": "Principals Training on Financial Management July - August 2026 FINAL.pdf",
+      "title": "Principals Training on Financial Management",
+      "tags": [
+        "Financial & Budget Reports",
+        "Finances",
+        "Principal",
+        "PDF"
+      ]
+    },
+    {
+      "id": "ced3af05-a95e-4cc0-b252-2c563954530e",
+      "filename": "The Constitution of South Africa.pdf",
+      "title": "The Constitution of South Africa",
+      "tags": [
+        "Policies",
+        "Constitution",
+        "South Africa",
+        "Legal",
+        "Government",
+        "PDF"
+      ]
+    },
+    {
+      "id": "00848ac7-0fc1-46ad-a25e-d4cc5893217d",
+      "filename": "SGB Constitution.pdf",
+      "title": "SGB Constitution",
+      "tags": [
+        "Policies",
+        "SGB",
+        "Constitution",
+        "01_SGB_Constitution",
+        "PDF"
+      ]
+    },
+    {
+      "id": "22ddf805-99fc-47be-b0df-060b4d62c997",
+      "filename": "BELA Act.pdf",
+      "title": "Basic Education Laws Amendment (BELA) Act",
+      "tags": [
+        "Policies",
+        "Legal",
+        "Government",
+        "PDF"
+      ]
+    },
+    {
+      "id": "fb8bf10b-7dc5-4ebe-b1e3-6cae160e0451",
+      "filename": "Personnel Administrative Measures (PAM).pdf",
+      "title": "Personnel Administrative Measures (PAM)",
+      "tags": [
+        "Policies",
+        "Personnel",
+        "Human Resources & Staffing",
+        "PDF"
+      ]
+    },
+    {
+      "id": "ae442d27-49d3-424d-910a-0dd4e8f21de5",
+      "filename": "Children's Act.pdf",
+      "title": "Children's Act 38 of 2005",
+      "tags": [
+        "Policies",
+        "Children",
+        "Legal",
+        "PDF"
+      ]
+    },
+    {
+      "id": "9888ecf8-7e21-4e46-bafb-c358f4e0e5c5",
+      "filename": "CONSTITUTION OF THE SCHOOL GOVERNING BODY.pdf",
+      "title": "CONSTITUTION OF THE SCHOOL GOVERNING BODY (Formatted)",
+      "tags": [
+        "Policies",
+        "PDF",
+        "Formatted",
+        "01_SGB_Constitution",
+        "Stephen Vorster"
+      ]
+    },
+    {
+      "id": "6eea173b-c3e0-4ed7-a731-2c7c7f10c046",
+      "filename": "SCHOOL MISSION STATEMENT.pdf",
+      "title": "SCHOOL MISSION STATEMENT",
+      "tags": [
+        "Policies",
+        "02_School_Mission_Statement",
+        "Formatted",
+        "PDF",
+        "Stephen Vorster"
+      ]
+    }
+  ],
+  "attendance": {
+    "1de32583-cb10-4cbe-b738-dac672b682ce": {
+      "status": "Present",
+      "timeIn": "10:00"
+    },
+    "b7b5aff5-95df-49d9-8c7c-45cd96b25728": {
+      "status": "Present",
+      "timeIn": "10:00"
+    },
+    "786c8fce-515b-4b72-94e2-31c9570dc6d5": {
+      "status": "Present",
+      "timeIn": "10:00"
+    },
+    "b7111b59-a434-4b8c-a772-55e24981a426": {
+      "status": "Absent",
+      "timeIn": "10:00"
+    },
+    "df0ec2a8-04c6-46bb-a1c1-149f701adf89": {
+      "status": "Present",
+      "timeIn": "10:00"
+    },
+    "83a62bbd-2fc0-4bde-a588-3f07007b7658": {
+      "status": "Present",
+      "timeIn": "10:00"
+    },
+    "5f5b60c2-08c7-4935-a3d5-ff1bc9891f80": {
+      "status": "Present",
+      "timeIn": "10:00"
+    },
+    "27929da0-b124-475e-85dc-f693a49f361f": {
+      "status": "Present",
+      "timeIn": "10:00"
+    },
+    "8af5ef3a-631d-4b79-80d2-849b72b159d2": {
+      "status": "Present",
+      "timeIn": "10:00"
+    },
+    "77f226f7-2cc2-45e3-88bc-57e375834355": {
+      "status": "Absent",
+      "timeIn": "10:00"
+    },
+    "c4bccb05-1ec5-4f98-b325-b3463234db70": {
+      "status": "Present",
+      "timeIn": "10:00"
+    },
+    "78aabfa5-2d6b-46d5-b974-e479a5dd7b51": {
+      "status": "Present",
+      "timeIn": "10:00"
+    },
+    "ecf4f718-bbe8-4ce4-9ec8-473f67e6e314": {
+      "status": "Present",
+      "timeIn": "10:00"
+    },
+    "4eb050f4-0595-4e03-81d6-9f43b1f4a5b6": {
+      "status": "Present",
+      "timeIn": "10:00"
+    },
+    "6ef618f8-6395-441c-b13a-312bb8a334a8": {
+      "status": "Present",
+      "timeIn": "10:00"
+    }
+  },
   "categories": [
     "Finances > Fee Collection & Debt Recovery",
     "Finances > Budget & Financial Management",
@@ -532,7 +1025,19 @@
     "Term 2",
     "Term 3",
     "Term 4",
-    "Stephen Vorster"
+    "Stephen Vorster",
+    "Constitution",
+    "South Africa",
+    "Legal",
+    "Government",
+    "Personnel",
+    "Children",
+    "SGB",
+    "Principal",
+    "PDF",
+    "Formatted",
+    "01_SGB_Constitution",
+    "02_School_Mission_Statement"
   ],
   "meetingInfo": {
     "title": "SGB/SMT Strategy Meeting",
