@@ -1630,7 +1630,7 @@ textarea:focus {
     object-fit: contain;
 }
 
-/* ΓöÇΓöÇ Tablet & Desktop Breakpoints ΓöÇΓöÇ */
+/* ── Tablet & Desktop Breakpoints ── */
 @media (min-width: 640px) {
     .view-container {
         padding: 1.25rem;
@@ -1678,7 +1678,7 @@ textarea:focus {
     }
 }
     
-/* ΓöÇΓöÇ Main Navigation Tabs (Segmented Control) ΓöÇΓöÇ */
+/* ── Main Navigation Tabs (Segmented Control) ── */
 .main-tabs-nav {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -1812,7 +1812,7 @@ textarea:focus {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* ΓöÇΓöÇ Search Input in Action Bar ΓöÇΓöÇ */
+/* ── Search Input in Action Bar ── */
 .search-input-wrapper {
     flex: 1;
     max-width: 320px;
@@ -1836,7 +1836,7 @@ textarea:focus {
     box-shadow: 0 0 0 3px rgba(12,79,242,0.15);
 }
 
-/* ΓöÇΓöÇ File Drop Zone ΓöÇΓöÇ */
+/* ── File Drop Zone ── */
 .file-drop-zone {
     border: 2px dashed #94B3FA;
     background: #F8FAFF;
@@ -1885,7 +1885,7 @@ textarea:focus {
     color: var(--text-muted);
 }
 
-/* ΓöÇΓöÇ Upload Progress Bar ΓöÇΓöÇ */
+/* ── Upload Progress Bar ── */
 .upload-progress-wrapper {
     margin-top: 0.85rem;
     display: flex;
@@ -1919,7 +1919,7 @@ textarea:focus {
     color: var(--text-muted);
 }
 
-/* ΓöÇΓöÇ Documents Grid & Cards ΓöÇΓöÇ */
+/* ── Documents Grid & Cards ── */
 .documents-grid {
     display: grid;
     grid-template-columns: 1fr;
@@ -2778,7 +2778,7 @@ textarea:focus {
     color: var(--white);
 }
 
-/* ΓöÇΓöÇ File Vault Tags System ΓöÇΓöÇ */
+/* ── File Vault Tags System ── */
 .doc-tag-picker {
     display: flex;
     flex-wrap: wrap;
@@ -3023,7 +3023,7 @@ textarea:focus {
     white-space: nowrap;
 }
 
-/* ΓöÇΓöÇ Rich Text Editor ΓöÇΓöÇ */
+/* ── Rich Text Editor ── */
 .rich-editor-wrapper {
     border: 1px solid var(--border-color);
     border-radius: 8px;
@@ -3239,7 +3239,7 @@ textarea:focus {
     .modal-header .modal-actions { display: none; }
 }
 
-/* ΓöÇΓöÇ Theme Toggle Switch Button ΓöÇΓöÇ */
+/* ── Theme Toggle Switch Button ── */
 .btn-theme-toggle {
     display: inline-flex;
     align-items: center;
@@ -3296,9 +3296,9 @@ textarea:focus {
     margin-right: auto;
 }
 
-/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
-   ΓöÇΓöÇ DARK MODE COMPONENT OVERRIDES ([data-theme="dark"]) ΓöÇΓöÇ
-   ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */
+/* ═════════════════════════════════════════════════════════════════════
+   ── DARK MODE COMPONENT OVERRIDES ([data-theme="dark"]) ──
+   ═════════════════════════════════════════════════════════════════════ */
 
 [data-theme="dark"] body {
     background-color: var(--bg-color);

@@ -1,9 +1,9 @@
-﻿// ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
-// SGB/SMT Strategy Meeting ΓÇö Agenda Builder
+﻿// ─────────────────────────────────────────────────────
+// SGB/SMT Strategy Meeting — Agenda Builder
 // Client-side Application (Authenticated)
-// ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ─────────────────────────────────────────────────────
 
-// ΓöÇΓöÇ State ΓöÇΓöÇ
+// ── State ──
 const state = {
     token: null,     // session token
     member: null,    // { id, name, title, role }
@@ -82,7 +82,7 @@ function formatShortName(fullName, title = '') {
     return extractedTitle ? `${extractedTitle} ${formatted}` : formatted;
 }
 
-// ΓöÇΓöÇ API Layer (all requests include auth token) ΓöÇΓöÇ
+// ── API Layer (all requests include auth token) ──
 function authHeaders() {
     const headers = { 'Content-Type': 'application/json' };
     if (state.token) {
@@ -367,7 +367,7 @@ const api = {
         return res.json();
     },
 
-    // ΓöÇΓöÇ Category API Methods (Admin) ΓöÇΓöÇ
+    // ── Category API Methods (Admin) ──
     async addAgendaCategory(name, parent = null) {
         const res = await fetch('/api/categories/agenda', {
             method: 'POST',
@@ -437,7 +437,7 @@ const api = {
     }
 };
 
-// ΓöÇΓöÇ DOM Elements ΓöÇΓöÇ
+// ── DOM Elements ──
 const els = {
     loginView:        document.getElementById('login-view'),
     mainView:         document.getElementById('main-view'),
@@ -578,7 +578,7 @@ const els = {
     refreshCountdown: document.getElementById('refresh-countdown')
 };
 
-// ΓöÇΓöÇ Theme Management (Light / Dark Mode) ΓöÇΓöÇ
+// ── Theme Management (Light / Dark Mode) ──
 function initTheme() {
     let current = 'light';
     try {
@@ -622,12 +622,12 @@ function setTheme(theme, save = true) {
 function toggleTheme() {
     const nextTheme = state.theme === 'dark' ? 'light' : 'dark';
     setTheme(nextTheme, true);
-    showToast(nextTheme === 'dark' ? '≡ƒîÖ Dark Mode enabled' : 'ΓÿÇ∩╕Å Light Mode enabled');
+    showToast(nextTheme === 'dark' ? '🌙 Dark Mode enabled' : '☀️ Light Mode enabled');
 }
 
 function updateThemeToggleUI() {
     const isDark = state.theme === 'dark';
-    const icon = isDark ? 'ΓÿÇ∩╕Å' : '≡ƒîÖ';
+    const icon = isDark ? '☀️' : '🌙';
     const textApp = isDark ? 'Light' : 'Dark';
     const textLogin = isDark ? 'Light Mode' : 'Dark Mode';
 
@@ -648,7 +648,7 @@ function updateThemeToggleUI() {
     }
 }
 
-// ΓöÇΓöÇ Initialisation ΓöÇΓöÇ
+// ── Initialisation ──
 async function init() {
     initTheme();
     setupEventListeners();
@@ -667,7 +667,7 @@ async function init() {
                 await loadData();
                 startPolling();
             } else {
-                // Session expired ΓÇö clear and show login
+                // Session expired — clear and show login
                 localStorage.removeItem('agenda_token');
                 state.token = null;
                 await loadMemberList();
@@ -689,7 +689,7 @@ async function loadMemberList() {
         members.forEach(m => {
             const opt = document.createElement('option');
             opt.value = m.id;
-            opt.textContent = `${formatShortName(m.name, m.title)} ΓÇö ${m.role}`;
+            opt.textContent = `${formatShortName(m.name, m.title)} — ${m.role}`;
             els.loginMember.appendChild(opt);
         });
     } catch (error) {
@@ -698,7 +698,7 @@ async function loadMemberList() {
     }
 }
 
-// ΓöÇΓöÇ Event Listeners ΓöÇΓöÇ
+// ── Event Listeners ──
 function setupEventListeners() {
     if (els.btnThemeToggleApp) {
         els.btnThemeToggleApp.addEventListener('click', toggleTheme);
@@ -1164,7 +1164,7 @@ function setupEventListeners() {
     setupEditDocRichTextEditor();
 }
 
-// ΓöÇΓöÇ Handlers ΓöÇΓöÇ
+// ── Handlers ──
 async function handleLogin(e) {
     e.preventDefault();
     els.loginError.textContent = '';
@@ -1546,7 +1546,7 @@ async function submitCommentForItem(itemId) {
     }
 }
 
-// ΓöÇΓöÇ Views ΓöÇΓöÇ
+// ── Views ──
 function showMainView() {
     els.loginView.classList.remove('active');
     els.mainView.classList.add('active');
@@ -1566,7 +1566,7 @@ function updateAdminVisibility() {
     });
 }
 
-// ΓöÇΓöÇ Data Loading ΓöÇΓöÇ
+// ── Data Loading ──
 async function loadData() {
     try {
         // Save current focused textarea if any
@@ -1633,7 +1633,7 @@ async function loadData() {
     }
 }
 
-// ΓöÇΓöÇ Rendering ΓöÇΓöÇ
+// ── Rendering ──
 function renderItems() {
     let filtered = state.items.filter(item => {
         const matchCat = state.filters.category === 'All' || 
@@ -1691,10 +1691,10 @@ function renderItems() {
         const otherVoterNames = otherVotes.map(v => formatShortName(v.memberName)).join(', ');
 
         const typeLabels = {
-            idea: '≡ƒÆí Idea / Solution',
-            action: '≡ƒÄ» Action Step',
-            question: 'Γ¥ô Question',
-            comment: '≡ƒÆ¼ Discussion'
+            idea: '💡 Idea / Solution',
+            action: '🎯 Action Step',
+            question: '❓ Question',
+            comment: '💬 Discussion'
         };
 
         return `
@@ -1725,14 +1725,14 @@ function renderItems() {
                 ${isResolved && item.resolution ? `
                     <div class="item-resolution-banner">
                         <div class="res-banner-header">
-                            <span class="res-banner-badge">Γ£à RESOLUTION / AGREED SOLUTION</span>
+                            <span class="res-banner-badge">✅ RESOLUTION / AGREED SOLUTION</span>
                             ${(isProposer || (item.resolution.resolvedBy && item.resolution.resolvedBy.memberId === state.member.id)) ? `
                                 <button class="btn-res-unresolve" data-item-id="${item.id}" title="Reopen this topic / clear resolution">Reopen</button>
                             ` : ''}
                         </div>
                         <div class="res-banner-body">${escapeHTML(item.resolution.solutionText)}</div>
                         <div class="res-banner-meta">
-                            Resolved by <strong>${escapeHTML(formatShortName(item.resolution.resolvedBy ? item.resolution.resolvedBy.memberName : 'Member'))}</strong> ΓÇó ${timeAgo(item.resolution.resolvedAt)}
+                            Resolved by <strong>${escapeHTML(formatShortName(item.resolution.resolvedBy ? item.resolution.resolvedBy.memberName : 'Member'))}</strong> • ${timeAgo(item.resolution.resolvedAt)}
                         </div>
                     </div>
                 ` : ''}
@@ -1742,7 +1742,7 @@ function renderItems() {
                 <div class="item-meta">
                     <div class="proposer-info">
                         <strong>${escapeHTML(formatShortName(item.proposedBy.memberName))}</strong>
-                        <span>${escapeHTML(item.proposedBy.memberRole)} ΓÇó ${timeAgo(item.proposedAt)}</span>
+                        <span>${escapeHTML(item.proposedBy.memberRole)} • ${timeAgo(item.proposedAt)}</span>
                         ${otherVotes.length > 0 ? `
                             <span class="voters-preview">
                                 Supported by: <strong>${escapeHTML(otherVoterNames)}</strong>
@@ -1753,16 +1753,16 @@ function renderItems() {
                         <div class="item-actions-left">
                             ${isProposer ? `<button class="btn-delete" data-id="${item.id}">Withdraw</button>` : ''}
                             <button class="btn-toggle-comments ${commentCount > 0 ? 'has-comments' : ''} ${isOpen ? 'active' : ''}" data-id="${item.id}">
-                                <span class="comment-icon">≡ƒÆ¼</span>
+                                <span class="comment-icon">💬</span>
                                 <span class="comment-count-label">${commentCount > 0 ? `${commentCount} ${commentCount === 1 ? 'Comment' : 'Comments'}` : 'Brainstorm'}</span>
-                                <span class="comment-chevron">${isOpen ? 'Γû▓' : 'Γû╝'}</span>
+                                <span class="comment-chevron">${isOpen ? '▲' : '▼'}</span>
                             </button>
                         </div>
                         <div class="vote-info">
                             <button class="btn-vote ${hasVoted ? 'voted' : ''}"
                                     data-id="${item.id}"
                                     title="${hasVoted ? 'Click to withdraw your support vote' : 'Click to second / support this proposal'}">
-                                <span class="icon">${hasVoted ? 'Γ£ô' : 'Γåæ'}</span> ${voteCount} ${voteCount === 1 ? 'Vote' : 'Votes'}
+                                <span class="icon">${hasVoted ? '✓' : '↑'}</span> ${voteCount} ${voteCount === 1 ? 'Vote' : 'Votes'}
                             </button>
                         </div>
                     </div>
@@ -1774,7 +1774,7 @@ function renderItems() {
                         <h4>Brainstorming & Discussion <span class="comments-counter">(${commentCount})</span></h4>
                         ${!isResolved && isProposer ? `
                             <button class="btn-resolve-direct" data-id="${item.id}" title="Mark this issue as resolved with an agreed decision or plan">
-                                Γ£à Mark as Resolved
+                                ✅ Mark as Resolved
                             </button>
                         ` : ''}
                     </div>
@@ -1783,7 +1783,7 @@ function renderItems() {
                     <div class="comments-list">
                         ${commentCount === 0 ? `
                             <div class="comments-empty-hint">
-                                <span class="empty-sparkle">≡ƒÆí</span>
+                                <span class="empty-sparkle">💡</span>
                                 <p>No brainstorm ideas or comments yet. Share your thoughts or propose a solution below!</p>
                             </div>
                         ` : comments.map(c => {
@@ -1793,7 +1793,7 @@ function renderItems() {
                             const canDelete = isCommentAuthor || isProposer;
                             const isSol = Boolean(c.isSolution);
                             const type = isEditing ? editState.type : (c.type || 'comment');
-                            const typeLabel = typeLabels[type] || '≡ƒÆ¼ Discussion';
+                            const typeLabel = typeLabels[type] || '💬 Discussion';
 
                             return `
                                 <div class="comment-item ${isSol ? 'is-solution' : ''}" id="comment-${c.id}">
@@ -1803,21 +1803,21 @@ function renderItems() {
                                             <div class="comment-author-info">
                                                 <strong class="comment-author-name">${escapeHTML(formatShortName(c.memberName))}</strong>
                                                 <span class="comment-author-role">${escapeHTML(c.memberRole || 'Member')}</span>
-                                                <span class="comment-time">ΓÇó ${timeAgo(c.createdAt)}${c.editedAt ? ' <em class="comment-edited-hint">(edited)</em>' : ''}</span>
+                                                <span class="comment-time">• ${timeAgo(c.createdAt)}${c.editedAt ? ' <em class="comment-edited-hint">(edited)</em>' : ''}</span>
                                             </div>
                                             <div class="comment-tag-wrapper">
                                                 <span class="comment-type-badge type-${type}">${typeLabel}</span>
-                                                ${isSol ? '<span class="badge-solution-pill">Γ¡É Accepted Solution</span>' : ''}
+                                                ${isSol ? '<span class="badge-solution-pill">⭐ Accepted Solution</span>' : ''}
                                             </div>
                                         </div>
                                         ${isEditing ? `
                                             <div class="comment-edit-box">
                                                 <div class="composer-type-selector composer-type-selector--edit">
                                                     <span class="composer-type-label">Tag:</span>
-                                                    <button type="button" class="composer-type-btn ${editState.type === 'idea' ? 'selected' : ''}" data-edit-comment-id="${c.id}" data-type="idea">≡ƒÆí Idea</button>
-                                                    <button type="button" class="composer-type-btn ${editState.type === 'action' ? 'selected' : ''}" data-edit-comment-id="${c.id}" data-type="action">≡ƒÄ» Action</button>
-                                                    <button type="button" class="composer-type-btn ${editState.type === 'question' ? 'selected' : ''}" data-edit-comment-id="${c.id}" data-type="question">Γ¥ô Question</button>
-                                                    <button type="button" class="composer-type-btn ${editState.type === 'comment' ? 'selected' : ''}" data-edit-comment-id="${c.id}" data-type="comment">≡ƒÆ¼ Discussion</button>
+                                                    <button type="button" class="composer-type-btn ${editState.type === 'idea' ? 'selected' : ''}" data-edit-comment-id="${c.id}" data-type="idea">💡 Idea</button>
+                                                    <button type="button" class="composer-type-btn ${editState.type === 'action' ? 'selected' : ''}" data-edit-comment-id="${c.id}" data-type="action">🎯 Action</button>
+                                                    <button type="button" class="composer-type-btn ${editState.type === 'question' ? 'selected' : ''}" data-edit-comment-id="${c.id}" data-type="question">❓ Question</button>
+                                                    <button type="button" class="composer-type-btn ${editState.type === 'comment' ? 'selected' : ''}" data-edit-comment-id="${c.id}" data-type="comment">💬 Discussion</button>
                                                 </div>
                                                 <textarea class="comment-textarea comment-edit-textarea" id="comment-edit-input-${c.id}" data-comment-id="${c.id}" rows="2">${escapeHTML(editState.content)}</textarea>
                                                 <div class="comment-edit-actions">
@@ -1830,12 +1830,12 @@ function renderItems() {
                                             <div class="comment-footer-actions">
                                                 ${(!isResolved && (isProposer || isCommentAuthor)) ? `
                                                     <button class="btn-mark-solution" data-item-id="${item.id}" data-comment-id="${c.id}" data-comment-text="${escapeHTML(c.content)}" title="Accept this comment as the resolution">
-                                                        Γ¡É Accept as Solution
+                                                        ⭐ Accept as Solution
                                                     </button>
                                                 ` : ''}
                                                 ${isCommentAuthor ? `
                                                     <button class="btn-edit-comment" data-item-id="${item.id}" data-comment-id="${c.id}" title="Edit your comment">
-                                                        Γ£Å∩╕Å Edit
+                                                        ✏️ Edit
                                                     </button>
                                                 ` : ''}
                                                 ${canDelete ? `
@@ -1856,16 +1856,16 @@ function renderItems() {
                         <div class="composer-type-selector">
                             <span class="composer-type-label">Tag as:</span>
                             <button type="button" class="composer-type-btn ${selectedType === 'idea' ? 'selected' : ''}" data-item-id="${item.id}" data-type="idea">
-                                ≡ƒÆí Idea
+                                💡 Idea
                             </button>
                             <button type="button" class="composer-type-btn ${selectedType === 'action' ? 'selected' : ''}" data-item-id="${item.id}" data-type="action">
-                                ≡ƒÄ» Action
+                                🎯 Action
                             </button>
                             <button type="button" class="composer-type-btn ${selectedType === 'question' ? 'selected' : ''}" data-item-id="${item.id}" data-type="question">
-                                Γ¥ô Question
+                                ❓ Question
                             </button>
                             <button type="button" class="composer-type-btn ${selectedType === 'comment' ? 'selected' : ''}" data-item-id="${item.id}" data-type="comment">
-                                ≡ƒÆ¼ Discussion
+                                💬 Discussion
                             </button>
                         </div>
                         <div class="composer-input-row">
@@ -1899,7 +1899,7 @@ function updateStats(stats = null) {
     if (els.tabDocsBadge)   els.tabDocsBadge.textContent = state.documents.length;
 }
 
-// ΓöÇΓöÇ 3-Level Category Hierarchy System ΓöÇΓöÇ
+// ── 3-Level Category Hierarchy System ──
 function parseCategoryHierarchy(categories = []) {
     const tree = [];
     const map = new Map(); // path -> node
@@ -1958,7 +1958,7 @@ function renderCategoryBadge(categoryStr, customClass = '') {
     const crumbs = parts.map((p, idx) => {
         const isLast = idx === parts.length - 1;
         return `<span class="cat-crumb ${isLast ? 'cat-crumb-last' : 'cat-crumb-parent'}">${escapeHTML(p)}</span>`;
-    }).join('<span class="cat-crumb-sep">ΓÇ║</span>');
+    }).join('<span class="cat-crumb-sep">›</span>');
     
     return `<span class="${customClass} cat-badge-nested" title="${escapeHTML(categoryStr)}">${crumbs}</span>`;
 }
@@ -1972,17 +1972,17 @@ function renderCategorySelectOptions(categories, selectEl, promptText = 'Select 
 
     tree.forEach(l1 => {
         if (l1.children.length === 0) {
-            html += `<option value="${escapeHTML(l1.path)}">≡ƒôü ${escapeHTML(l1.name)}</option>`;
+            html += `<option value="${escapeHTML(l1.path)}">📁 ${escapeHTML(l1.name)}</option>`;
         } else {
-            html += `<optgroup label="≡ƒôü ${escapeHTML(l1.name)}">`;
-            html += `<option value="${escapeHTML(l1.path)}">≡ƒôü ${escapeHTML(l1.name)} (General / Main)</option>`;
+            html += `<optgroup label="📁 ${escapeHTML(l1.name)}">`;
+            html += `<option value="${escapeHTML(l1.path)}">📁 ${escapeHTML(l1.name)} (General / Main)</option>`;
             l1.children.forEach(l2 => {
                 if (l2.children.length === 0) {
-                    html += `<option value="${escapeHTML(l2.path)}">&nbsp;&nbsp;Γå│ ≡ƒôé ${escapeHTML(l2.name)}</option>`;
+                    html += `<option value="${escapeHTML(l2.path)}">&nbsp;&nbsp;↳ 📂 ${escapeHTML(l2.name)}</option>`;
                 } else {
-                    html += `<option value="${escapeHTML(l2.path)}">&nbsp;&nbsp;Γå│ ≡ƒôé ${escapeHTML(l2.name)} (Overview)</option>`;
+                    html += `<option value="${escapeHTML(l2.path)}">&nbsp;&nbsp;↳ 📂 ${escapeHTML(l2.name)} (Overview)</option>`;
                     l2.children.forEach(l3 => {
-                        html += `<option value="${escapeHTML(l3.path)}">&nbsp;&nbsp;&nbsp;&nbsp;Γå│ ≡ƒôä ${escapeHTML(l3.name)}</option>`;
+                        html += `<option value="${escapeHTML(l3.path)}">&nbsp;&nbsp;&nbsp;&nbsp;↳ 📄 ${escapeHTML(l3.name)}</option>`;
                     });
                 }
             });
@@ -2005,17 +2005,17 @@ function renderCategoryFilterOptions(categories, selectEl, allPrompt = 'All Cate
 
     tree.forEach(l1 => {
         if (l1.children.length === 0) {
-            html += `<option value="${escapeHTML(l1.path)}">≡ƒôü ${escapeHTML(l1.name)}</option>`;
+            html += `<option value="${escapeHTML(l1.path)}">📁 ${escapeHTML(l1.name)}</option>`;
         } else {
-            html += `<optgroup label="≡ƒôü ${escapeHTML(l1.name)}">`;
-            html += `<option value="${escapeHTML(l1.path)}">≡ƒôü All "${escapeHTML(l1.name)}"</option>`;
+            html += `<optgroup label="📁 ${escapeHTML(l1.name)}">`;
+            html += `<option value="${escapeHTML(l1.path)}">📁 All "${escapeHTML(l1.name)}"</option>`;
             l1.children.forEach(l2 => {
                 if (l2.children.length === 0) {
-                    html += `<option value="${escapeHTML(l2.path)}">&nbsp;&nbsp;Γå│ ≡ƒôé ${escapeHTML(l2.name)}</option>`;
+                    html += `<option value="${escapeHTML(l2.path)}">&nbsp;&nbsp;↳ 📂 ${escapeHTML(l2.name)}</option>`;
                 } else {
-                    html += `<option value="${escapeHTML(l2.path)}">&nbsp;&nbsp;Γå│ ≡ƒôé All "${escapeHTML(l2.name)}"</option>`;
+                    html += `<option value="${escapeHTML(l2.path)}">&nbsp;&nbsp;↳ 📂 All "${escapeHTML(l2.name)}"</option>`;
                     l2.children.forEach(l3 => {
-                        html += `<option value="${escapeHTML(l3.path)}">&nbsp;&nbsp;&nbsp;&nbsp;Γå│ ≡ƒôä ${escapeHTML(l3.name)}</option>`;
+                        html += `<option value="${escapeHTML(l3.path)}">&nbsp;&nbsp;&nbsp;&nbsp;↳ 📄 ${escapeHTML(l3.name)}</option>`;
                     });
                 }
             });
@@ -2031,7 +2031,7 @@ function renderCategoryFilterOptions(categories, selectEl, allPrompt = 'All Cate
     }
 }
 
-// ΓöÇΓöÇ Category Dropdowns & Dynamic Options ΓöÇΓöÇ
+// ── Category Dropdowns & Dynamic Options ──
 function updateCategoryDropdowns() {
     updateAdminVisibility();
 
@@ -2044,7 +2044,7 @@ function updateCategoryDropdowns() {
     renderDocTagFilterStrip();
 }
 
-// ΓöÇΓöÇ File Vault Tag Rendering Helpers ΓöÇΓöÇ
+// ── File Vault Tag Rendering Helpers ──
 function isContributorTagName(tag, doc = null) {
     if (!tag) return false;
     const cleanTag = tag.trim().toLowerCase();
@@ -2079,7 +2079,7 @@ function renderDocTagPicker() {
         const isSelected = isCurrentUploader || (state.selectedUploadTags || []).some(t => t.toLowerCase() === tag.toLowerCase());
         if (isCurrentUploader) {
             return `<label class="doc-tag-chip-label doc-tag-chip-uploader selected locked" data-tag="${escapeHTML(tag)}" title="Your contributor tag is automatically assigned to this upload and cannot be removed">
-                ≡ƒæñ ${escapeHTML(tag)} <span class="tag-locked-icon" title="Cannot be removed">≡ƒöÆ</span>
+                👤 ${escapeHTML(tag)} <span class="tag-locked-icon" title="Cannot be removed">🔒</span>
             </label>`;
         }
         return `<label class="doc-tag-chip-label ${isSelected ? 'selected' : ''}" data-tag="${escapeHTML(tag)}">
@@ -2101,7 +2101,7 @@ function renderDocTagFilterStrip() {
         }).length;
         if (count === 0 && !isActive) return;
         const isContributor = isContributorTagName(tag);
-        html += `<button type="button" class="tag-filter-chip ${isContributor ? 'tag-filter-chip-uploader' : ''} ${isActive ? 'active' : ''}" data-tag="${escapeHTML(tag)}">${isContributor ? '≡ƒæñ ' : ''}${escapeHTML(tag)} <span style="opacity:0.65;font-size:0.7rem;margin-left:0.2rem;">${count}</span></button>`;
+        html += `<button type="button" class="tag-filter-chip ${isContributor ? 'tag-filter-chip-uploader' : ''} ${isActive ? 'active' : ''}" data-tag="${escapeHTML(tag)}">${isContributor ? '👤 ' : ''}${escapeHTML(tag)} <span style="opacity:0.65;font-size:0.7rem;margin-left:0.2rem;">${count}</span></button>`;
     });
     els.docTagFilterStrip.innerHTML = html;
 }
@@ -2124,12 +2124,12 @@ function renderDocTagManager() {
                 const isContributor = isContributorTagName(tag);
                 return `
                     <div class="doc-tag-manager-row ${isContributor ? 'doc-tag-manager-row-contributor' : ''}">
-                        <span class="doc-tag-pill ${isContributor ? 'doc-tag-pill-uploader' : ''}">${isContributor ? '≡ƒæñ ' : ''}${escapeHTML(tag)}</span>
+                        <span class="doc-tag-pill ${isContributor ? 'doc-tag-pill-uploader' : ''}">${isContributor ? '👤 ' : ''}${escapeHTML(tag)}</span>
                         <span class="doc-tag-manager-count">${count > 0 ? count + ' file' + (count > 1 ? 's' : '') : 'unused'}</span>
                         ${isContributor ? `
-                            <span class="doc-tag-contributor-badge" title="Contributor tag (cannot be deleted)">≡ƒöÆ Protected</span>
+                            <span class="doc-tag-contributor-badge" title="Contributor tag (cannot be deleted)">🔒 Protected</span>
                         ` : `
-                            <button type="button" class="btn-cat-delete" data-path="${escapeHTML(tag)}" title="Delete tag">≡ƒùæ∩╕Å</button>
+                            <button type="button" class="btn-cat-delete" data-path="${escapeHTML(tag)}" title="Delete tag">🗑️</button>
                         `}
                     </div>
                 `;
@@ -2138,7 +2138,7 @@ function renderDocTagManager() {
     `;
 }
 
-// ΓöÇΓöÇ Category Management Modal Logic (Admin) ΓöÇΓöÇ
+// ── Category Management Modal Logic (Admin) ──
 function openCategoryModal(type = 'agenda') {
     state.activeCategoryModalType = type;
     if (!els.categoryModal) {
@@ -2205,7 +2205,7 @@ function updateCategoryBuilderSelectors(preselectL1 = null, preselectL2 = null) 
     if (els.catParentL1) {
         let l1Html = `<option value="__NEW__">+ New Main Category (Level 1)</option>`;
         tree.forEach(node => {
-            l1Html += `<option value="${escapeHTML(node.path)}">≡ƒôü ${escapeHTML(node.name)}</option>`;
+            l1Html += `<option value="${escapeHTML(node.path)}">📁 ${escapeHTML(node.name)}</option>`;
         });
         els.catParentL1.innerHTML = l1Html;
         if (preselectL1 && tree.some(n => n.path === preselectL1)) {
@@ -2242,7 +2242,7 @@ function updateL2Selector(preselectL2 = null) {
     let l2Html = `<option value="__NEW__">+ New Subcategory under [${escapeHTML(l1Node ? l1Node.name : selectedL1)}] (Level 2)</option>`;
     if (l1Node && l1Node.children) {
         l1Node.children.forEach(child => {
-            l2Html += `<option value="${escapeHTML(child.path)}">≡ƒôé ${escapeHTML(child.name)}</option>`;
+            l2Html += `<option value="${escapeHTML(child.path)}">📂 ${escapeHTML(child.name)}</option>`;
         });
     }
     els.catParentL2.innerHTML = l2Html;
@@ -2269,10 +2269,10 @@ function updateTargetPreview() {
         els.catTargetPath.textContent = 'New Main Category (Level 1)';
         els.newCategoryInput.placeholder = 'Enter main category name (e.g. Governance & Legal)...';
     } else if (selectedL2 === '__NEW__') {
-        els.catTargetPath.textContent = `${selectedL1} ΓÇ║ [New Subcategory (Level 2)]`;
+        els.catTargetPath.textContent = `${selectedL1} › [New Subcategory (Level 2)]`;
         els.newCategoryInput.placeholder = `Enter subcategory name under "${selectedL1}"...`;
     } else {
-        els.catTargetPath.textContent = `${selectedL2} ΓÇ║ [New Topic (Level 3)]`;
+        els.catTargetPath.textContent = `${selectedL2} › [New Topic (Level 3)]`;
         els.newCategoryInput.placeholder = `Enter topic name under "${selectedL2}"...`;
     }
 }
@@ -2309,16 +2309,16 @@ function renderCategoryTree() {
         html += `
             <div class="cat-tree-node level-1" draggable="true" data-path="${escapeHTML(l1.path)}" data-level="1">
                 <div class="cat-tree-info">
-                    <span class="cat-drag-handle" title="Drag to nest this category under another">Γá┐</span>
-                    <span class="cat-tree-icon">≡ƒôü</span>
+                    <span class="cat-drag-handle" title="Drag to nest this category under another">⠿</span>
+                    <span class="cat-tree-icon">📁</span>
                     <span class="cat-tree-title">${escapeHTML(l1.name)}</span>
                     <span class="cat-tree-level-tag tag-l1">Level 1</span>
                     ${l1Count > 0 ? `<span class="doc-size-badge">${l1Count} ${isAgenda ? 'items' : 'files'}</span>` : ''}
                 </div>
                 <div class="cat-tree-actions">
                     <button type="button" class="btn-cat-add-sub" data-l1="${escapeHTML(l1.path)}" data-l2="__NEW__" title="Add Subcategory (Level 2) under this">+ Sub (L2)</button>
-                    <button type="button" class="btn-cat-move" data-path="${escapeHTML(l1.path)}" title="Move / Nest under another category">Γçä Move</button>
-                    <button type="button" class="btn-cat-delete" data-path="${escapeHTML(l1.path)}" title="Delete category & subcategories">≡ƒùæ∩╕Å</button>
+                    <button type="button" class="btn-cat-move" data-path="${escapeHTML(l1.path)}" title="Move / Nest under another category">⇄ Move</button>
+                    <button type="button" class="btn-cat-delete" data-path="${escapeHTML(l1.path)}" title="Delete category & subcategories">🗑️</button>
                 </div>
             </div>
         `;
@@ -2331,16 +2331,16 @@ function renderCategoryTree() {
             html += `
                 <div class="cat-tree-node level-2" draggable="true" data-path="${escapeHTML(l2.path)}" data-level="2">
                     <div class="cat-tree-info">
-                        <span class="cat-drag-handle" title="Drag to nest under another category or drag to top to un-nest">Γá┐</span>
-                        <span class="cat-tree-icon">≡ƒôé</span>
+                        <span class="cat-drag-handle" title="Drag to nest under another category or drag to top to un-nest">⠿</span>
+                        <span class="cat-tree-icon">📂</span>
                         <span class="cat-tree-title">${escapeHTML(l2.name)}</span>
                         <span class="cat-tree-level-tag tag-l2">Level 2</span>
                         ${l2Count > 0 ? `<span class="doc-size-badge">${l2Count}</span>` : ''}
                     </div>
                     <div class="cat-tree-actions">
                         <button type="button" class="btn-cat-add-sub" data-l1="${escapeHTML(l1.path)}" data-l2="${escapeHTML(l2.path)}" title="Add Topic (Level 3) under this">+ Sub (L3)</button>
-                        <button type="button" class="btn-cat-move" data-path="${escapeHTML(l2.path)}" title="Move / Nest under another category">Γçä Move</button>
-                        <button type="button" class="btn-cat-delete" data-path="${escapeHTML(l2.path)}" title="Delete subcategory">≡ƒùæ∩╕Å</button>
+                        <button type="button" class="btn-cat-move" data-path="${escapeHTML(l2.path)}" title="Move / Nest under another category">⇄ Move</button>
+                        <button type="button" class="btn-cat-delete" data-path="${escapeHTML(l2.path)}" title="Delete subcategory">🗑️</button>
                     </div>
                 </div>
             `;
@@ -2353,15 +2353,15 @@ function renderCategoryTree() {
                 html += `
                     <div class="cat-tree-node level-3" draggable="true" data-path="${escapeHTML(l3.path)}" data-level="3">
                         <div class="cat-tree-info">
-                            <span class="cat-drag-handle" title="Drag to move under another category">Γá┐</span>
-                            <span class="cat-tree-icon">≡ƒôä</span>
+                            <span class="cat-drag-handle" title="Drag to move under another category">⠿</span>
+                            <span class="cat-tree-icon">📄</span>
                             <span class="cat-tree-title">${escapeHTML(l3.name)}</span>
                             <span class="cat-tree-level-tag tag-l3">Level 3</span>
                             ${l3Count > 0 ? `<span class="doc-size-badge">${l3Count}</span>` : ''}
                         </div>
                         <div class="cat-tree-actions">
-                            <button type="button" class="btn-cat-move" data-path="${escapeHTML(l3.path)}" title="Move / Nest under another category">Γçä Move</button>
-                            <button type="button" class="btn-cat-delete" data-path="${escapeHTML(l3.path)}" title="Delete topic">≡ƒùæ∩╕Å</button>
+                            <button type="button" class="btn-cat-move" data-path="${escapeHTML(l3.path)}" title="Move / Nest under another category">⇄ Move</button>
+                            <button type="button" class="btn-cat-delete" data-path="${escapeHTML(l3.path)}" title="Delete topic">🗑️</button>
                         </div>
                     </div>
                 `;
@@ -2529,15 +2529,15 @@ async function promptMoveCategory(sourcePath) {
 
     // Collect valid targets (exclude self and descendants)
     const options = [
-        { label: 'Γ¼å∩╕Å [Top Level / Main Category (Level 1)]', value: '__ROOT__' }
+        { label: '⬆️ [Top Level / Main Category (Level 1)]', value: '__ROOT__' }
     ];
 
     tree.forEach(l1 => {
         if (l1.path.toLowerCase() !== srcLower && !l1.path.toLowerCase().startsWith(srcLower + ' > ')) {
-            options.push({ label: `≡ƒôü ${l1.name} (Level 1 Parent)`, value: l1.path });
+            options.push({ label: `📁 ${l1.name} (Level 1 Parent)`, value: l1.path });
             l1.children.forEach(l2 => {
                 if (l2.path.toLowerCase() !== srcLower && !l2.path.toLowerCase().startsWith(srcLower + ' > ')) {
-                    options.push({ label: `  Γå│ ≡ƒôé ${l1.name} > ${l2.name} (Level 2 Parent)`, value: l2.path });
+                    options.push({ label: `  ↳ 📂 ${l1.name} > ${l2.name} (Level 2 Parent)`, value: l2.path });
                 }
             });
         }
@@ -2708,7 +2708,7 @@ async function handleDeleteCategory(name) {
     }
 }
 
-// ΓöÇΓöÇ Tab Navigation ΓöÇΓöÇ
+// ── Tab Navigation ──
 function switchTab(tabName) {
     state.activeTab = tabName;
     
@@ -2735,7 +2735,7 @@ function switchTab(tabName) {
 }
 window.switchTab = switchTab;
 
-// ΓöÇΓöÇ Document Vault Rendering & Helpers ΓöÇΓöÇ
+// ── Document Vault Rendering & Helpers ──
 function formatBytes(bytes) {
     if (!bytes || bytes === 0) return '0 B';
     const k = 1024;
@@ -2927,9 +2927,9 @@ function renderDocuments() {
                         <div class="doc-meta-badges">
                             ${docTags.length > 0 ? `<div class="doc-tags-row">${docTags.map(t => {
                                 const isContributor = (uploaderName && t.trim().toLowerCase() === uploaderName.toLowerCase()) || isContributorTagName(t, doc);
-                                return `<span class="doc-tag-pill ${isContributor ? 'doc-tag-pill-uploader' : ''}" title="${isContributor ? 'Contributor: ' + escapeHTML(formatShortName(t)) : 'Tag: ' + escapeHTML(t)}">${isContributor ? '≡ƒæñ ' : ''}${escapeHTML(isContributor ? formatShortName(t) : t)}</span>`;
+                                return `<span class="doc-tag-pill ${isContributor ? 'doc-tag-pill-uploader' : ''}" title="${isContributor ? 'Contributor: ' + escapeHTML(formatShortName(t)) : 'Tag: ' + escapeHTML(t)}">${isContributor ? '👤 ' : ''}${escapeHTML(isContributor ? formatShortName(t) : t)}</span>`;
                             }).join('')}</div>` : ''}
-                            ${!isAvailable ? '<span class="doc-warning-badge" title="This file was uploaded prior to database persistence and needs to be re-uploaded">ΓÜá∩╕Å Re-upload Needed</span>' : ''}
+                            ${!isAvailable ? '<span class="doc-warning-badge" title="This file was uploaded prior to database persistence and needs to be re-uploaded">⚠️∩╕Å Re-upload Needed</span>' : ''}
                             <span class="doc-size-badge">${formatBytes(doc.size)}</span>
                         </div>
                     </div>
@@ -2942,7 +2942,7 @@ function renderDocuments() {
                         ${hasDescription ? `
                             <div class="doc-expand-row">
                                 <button type="button" class="btn-toggle-doc-desc ${isDocOpen ? 'active' : ''}" data-doc-id="${doc.id}" title="${isDocOpen ? 'Hide notes & summary' : 'View notes & summary'}">
-                                    <span class="toggle-doc-icon">${isDocOpen ? 'Γû▓' : 'Γû╝'}</span>
+                                    <span class="toggle-doc-icon">${isDocOpen ? '▲' : '▼'}</span>
                                     <span class="toggle-doc-label">${isDocOpen ? 'Hide Notes & Summary' : 'View Notes & Summary'}</span>
                                 </button>
                             </div>
@@ -2956,7 +2956,7 @@ function renderDocuments() {
                 <div class="doc-card-bottom">
                     <div class="doc-uploader">
                         <span class="doc-uploader-name">${escapeHTML(formatShortName(doc.uploadedBy?.memberName) || 'Member')}</span>
-                        <span>${escapeHTML(doc.uploadedBy?.memberRole || 'Member')} ΓÇó ${timeAgo(doc.uploadedAt)}</span>
+                        <span>${escapeHTML(doc.uploadedBy?.memberRole || 'Member')} • ${timeAgo(doc.uploadedAt)}</span>
                     </div>
                     <div class="doc-actions-group">
                         ${isAvailable ? `
@@ -2993,7 +2993,7 @@ function renderDocuments() {
     }).join('');
 }
 
-// ΓöÇΓöÇ Rich Text Sanitizer & Editor Setup ΓöÇΓöÇ
+// ── Rich Text Sanitizer & Editor Setup ──
 function cleanPastedHtml(rawHtml) {
     if (!rawHtml || typeof rawHtml !== 'string') return '';
 
@@ -3286,7 +3286,7 @@ function setupRichTextEditor() {
     }
 }
 
-// ΓöÇΓöÇ Edit Document Modal Logic ΓöÇΓöÇ
+// ── Edit Document Modal Logic ──
 function openEditDocModal(docId) {
     const doc = (state.documents || []).find(d => d.id === docId);
     if (!doc || !els.editDocModal) return;
@@ -3351,7 +3351,7 @@ function renderEditDocTagPicker() {
         if (isDocUploader) {
             return `
                 <label class="doc-tag-chip-label doc-tag-chip-uploader selected locked" data-tag="${escapeHTML(tag)}" title="Contributor tag is permanently assigned to this document and cannot be removed">
-                    ≡ƒæñ ${escapeHTML(tag)} <span class="tag-locked-icon" title="Cannot be removed">≡ƒöÆ</span>
+                    👤 ${escapeHTML(tag)} <span class="tag-locked-icon" title="Cannot be removed">🔒</span>
                 </label>
             `;
         }
@@ -3545,7 +3545,7 @@ async function handleSaveEditDoc(e) {
     }
 }
 
-// ΓöÇΓöÇ Upload Form Logic ΓöÇΓöÇ
+// ── Upload Form Logic ──
 function toggleUploadForm() {
     if (!els.uploadDocContainer) return;
     const isCollapsed = els.uploadDocContainer.classList.contains('collapsed');
@@ -3610,7 +3610,7 @@ function handleSelectedFile(file) {
 
     if (els.docFileError) els.docFileError.textContent = '';
     if (els.dropZoneTitle) els.dropZoneTitle.textContent = file.name;
-    if (els.dropZoneHint)  els.dropZoneHint.textContent = `${formatBytes(file.size)} ΓÇó Ready to upload`;
+    if (els.dropZoneHint)  els.dropZoneHint.textContent = `${formatBytes(file.size)} • Ready to upload`;
 
     // Auto-populate Title if empty
     if (els.docTitle && !els.docTitle.value.trim()) {
@@ -3692,7 +3692,7 @@ async function handleSubmitUpload(e) {
     }
 }
 
-// ΓöÇΓöÇ Live Countdown ΓöÇΓöÇ
+// ── Live Countdown ──
 let countdownInterval = null;
 
 function startCountdown() {
@@ -3726,7 +3726,7 @@ function startCountdown() {
 // Legacy alias (called from init)
 function updateDays() { /* replaced by startCountdown */ }
 
-// ΓöÇΓöÇ Info Modals (Members, Items, Voting Breakdown) ΓöÇΓöÇ
+// ── Info Modals (Members, Items, Voting Breakdown) ──
 function getInitials(name) {
     if (!name) return '';
     const parts = name.trim().split(/\s+/);
@@ -3794,10 +3794,10 @@ function showItemsModal() {
                 <div class="modal-item-card" onclick="scrollToItem('${item.id}')">
                     <div class="modal-item-info">
                         <div class="modal-item-title">${idx + 1}. ${escapeHTML(item.title)}</div>
-                        <div class="modal-item-sub">${escapeHTML(item.category)} ΓÇó By ${escapeHTML(formatShortName(item.proposedBy.memberName))}</div>
+                        <div class="modal-item-sub">${escapeHTML(item.category)} • By ${escapeHTML(formatShortName(item.proposedBy.memberName))}</div>
                     </div>
                     <div class="modal-vote-pill">
-                        Γåæ ${item.votes.length}
+                        ↑ ${item.votes.length}
                     </div>
                 </div>
             `).join('')}
@@ -3822,7 +3822,7 @@ function showVotesModal() {
                 <div class="modal-member-card" style="flex-direction:column;align-items:flex-start;gap:0.4rem;" onclick="scrollToItem('${item.id}')">
                     <div style="display:flex;justify-content:space-between;width:100%;align-items:center;">
                         <strong style="color:var(--primary);font-size:0.88rem;">${escapeHTML(item.title)}</strong>
-                        <span class="modal-vote-pill">Γåæ ${item.votes.length}</span>
+                        <span class="modal-vote-pill">↑ ${item.votes.length}</span>
                     </div>
                     <div style="font-size:0.75rem;color:var(--text-muted);">
                         Voters: <strong>${escapeHTML(item.votes.map(v => formatShortName(v.memberName)).join(', '))}</strong>
@@ -3848,7 +3848,7 @@ window.scrollToItem = function(itemId) {
     }, 150);
 };
 
-// ΓöÇΓöÇ Export Modal ΓöÇΓöÇ
+// ── Export Modal ──
 async function showExportModal() {
     try {
         const data = await api.getExport();
@@ -3860,9 +3860,9 @@ async function showExportModal() {
             <div class="print-agenda-header">
                 <h1>${escapeHTML(meetingInfo.title)}</h1>
                 <h3>School Governing Body & School Management Team</h3>
-                <p><strong>Date:</strong> 27 August 2026 ΓÇö 10:00</p>
+                <p><strong>Date:</strong> 27 August 2026 — 10:00</p>
                 <p><strong>Venue:</strong> Staff Room</p>
-                <p><strong>Type:</strong> Strategy Meeting ΓÇö Way Forward</p>
+                <p><strong>Type:</strong> Strategy Meeting — Way Forward</p>
                 <p><strong>Members:</strong> ${members.map(m => formatShortName(m.name, m.title)).join(', ')}</p>
                 <p><em>Agenda generated on ${new Date().toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' })}</em></p>
             </div>
@@ -3884,14 +3884,14 @@ async function showExportModal() {
                 html += `
                     <div class="print-item ${isResolved ? 'print-item-resolved' : ''}">
                         <h4>${itemNumber}. ${escapeHTML(item.title)}
-                            <small>(${isResolved ? 'Resolved ΓÇó ' : ''}${statusLabel} ΓÇö ${item.votes.length} ${item.votes.length === 1 ? 'vote' : 'votes'})</small>
+                            <small>(${isResolved ? 'Resolved • ' : ''}${statusLabel} — ${item.votes.length} ${item.votes.length === 1 ? 'vote' : 'votes'})</small>
                         </h4>
-                        <p class="print-meta"><em>Proposed by: ${escapeHTML(formatShortName(item.proposedBy.memberName))} (${escapeHTML(item.proposedBy.memberRole)}) ┬╖ ${escapeHTML(item.category)}</em></p>
+                        <p class="print-meta"><em>Proposed by: ${escapeHTML(formatShortName(item.proposedBy.memberName))} (${escapeHTML(item.proposedBy.memberRole)}) · ${escapeHTML(item.category)}</em></p>
                         <p class="print-desc">${escapeHTML(item.description)}</p>
 
                         ${isResolved && item.resolution ? `
                             <div class="print-resolution-box">
-                                <strong>Γ£à Resolution / Agreed Plan:</strong> ${escapeHTML(item.resolution.solutionText)}
+                                <strong>✅ Resolution / Agreed Plan:</strong> ${escapeHTML(item.resolution.solutionText)}
                                 <span class="print-res-by">(Resolved by ${escapeHTML(formatShortName(item.resolution.resolvedBy ? item.resolution.resolvedBy.memberName : 'Member'))})</span>
                             </div>
                         ` : ''}
@@ -3905,7 +3905,7 @@ async function showExportModal() {
                                             <strong>${escapeHTML(formatShortName(c.memberName))}</strong>
                                             <span class="print-tag">[${escapeHTML(c.type || 'comment')}]</span>:
                                             ${escapeHTML(c.content)}
-                                            ${c.isSolution ? ' <em>(Γ¡É Accepted Solution)</em>' : ''}
+                                            ${c.isSolution ? ' <em>(⭐ Accepted Solution)</em>' : ''}
                                         </li>
                                     `).join('')}
                                 </ul>
@@ -3923,7 +3923,7 @@ async function showExportModal() {
     }
 }
 
-// ΓöÇΓöÇ Utilities ΓöÇΓöÇ
+// ── Utilities ──
 function escapeHTML(str) {
     if (!str) return '';
     return str.replace(/[&<>'"]/g,
@@ -3969,7 +3969,7 @@ function showToast(message, isError = false) {
     }, 3000);
 }
 
-// ΓöÇΓöÇ Polling ΓöÇΓöÇ
+// ── Polling ──
 let pollTimer = null;
 async function checkAppVersion() {
     try {
@@ -4017,7 +4017,7 @@ function stopPolling() {
     if (countdownTimer) clearInterval(countdownTimer);
 }
 
-// ΓöÇΓöÇ Mobile & Browser Back-Button Management ΓöÇΓöÇ
+// ── Mobile & Browser Back-Button Management ──
 let lastBackPressTime = 0;
 
 function initHistoryNavigation() {
@@ -4105,5 +4105,5 @@ function handleBackNavigation() {
     }
 }
 
-// ΓöÇΓöÇ Start ΓöÇΓöÇ
+// ── Start ──
 init();

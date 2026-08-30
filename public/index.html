@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SGB/SMT Strategy Meeting ΓÇö Agenda Builder</title>
+    <title>SGB/SMT Strategy Meeting — Agenda Builder</title>
     <meta name="description" content="Collaborative agenda builder for the SGB/SMT Strategy Meeting on 27 August 2026">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -33,7 +33,7 @@
     <main id="login-view" class="view-container active">
         <div class="theme-toggle-floating">
             <button type="button" class="btn-theme-toggle" id="btn-theme-toggle-login" title="Toggle Light / Dark Mode" aria-label="Toggle Light / Dark Mode">
-                <span class="theme-toggle-icon">≡ƒîÖ</span>
+                <span class="theme-toggle-icon">🌙</span>
                 <span class="theme-toggle-text">Dark Mode</span>
             </button>
         </div>
@@ -58,7 +58,7 @@
             </form>
             <div class="login-extra-actions" style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border); text-align: center;">
                 <a href="/doc-formatter.html?_v=2026082403" target="_blank" class="btn btn-secondary btn-block" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; text-decoration: none;">
-                    <span class="icon">≡ƒôæ</span> <strong>Document Formatter Studio Γåù</strong>
+                    <span class="icon">📝</span> <strong>Document Formatter Studio ↗</strong>
                 </a>
             </div>
         </div>
@@ -72,15 +72,15 @@
                     <img src="logo.svg" alt="LGAA Logo" class="header-logo">
                     <div>
                         <h1>SGB/SMT Strategy Meeting</h1>
-                        <span class="subtitle">Agenda Builder ΓÇó 27 Aug 2026 @ 10:00 ┬╖ Staff Room</span>
+                        <span class="subtitle">Agenda Builder • 27 Aug 2026 @ 10:00 • Staff Room</span>
                     </div>
                 </div>
                 <div class="user-info">
                     <button type="button" id="btn-header-doc-formatter" class="btn btn-secondary btn-sm" title="Open Legal & Multi-Level Document Formatter Studio in a new window" style="font-weight: 600;">
-                        <span class="icon">≡ƒôæ</span> Document Formatter Γåù
+                        <span class="icon">📝</span> Document Formatter ↗
                     </button>
                     <button type="button" class="btn-theme-toggle" id="btn-theme-toggle-app" title="Toggle Light / Dark Mode" aria-label="Toggle Light / Dark Mode">
-                        <span class="theme-toggle-icon">≡ƒîÖ</span>
+                        <span class="theme-toggle-icon">🌙</span>
                         <span class="theme-toggle-text">Dark</span>
                     </button>
                     <div class="user-details">
@@ -123,18 +123,18 @@
         <!-- Navigation Tabs -->
         <nav class="main-tabs-nav" aria-label="Main Views">
             <button type="button" class="tab-nav-btn active" id="tab-btn-agenda" data-tab="agenda" onclick="switchTab('agenda')">
-                <span class="tab-nav-icon">≡ƒôï</span>
+                <span class="tab-nav-icon">📋</span>
                 <span class="tab-nav-text">Agenda &amp; Discussion</span>
                 <span class="tab-nav-badge" id="tab-agenda-badge">0</span>
             </button>
             <button type="button" class="tab-nav-btn" id="tab-btn-documents" data-tab="documents" onclick="switchTab('documents')">
-                <span class="tab-nav-icon">≡ƒôü</span>
+                <span class="tab-nav-icon">📁</span>
                 <span class="tab-nav-text">Shared Files &amp; Vault</span>
                 <span class="tab-nav-badge" id="tab-docs-badge">0</span>
             </button>
             <button type="button" class="tab-nav-btn tab-nav-btn--studio" id="tab-btn-formatter" title="Open Document Formatter Studio in a new window">
-                <span class="tab-nav-icon">≡ƒôæ</span>
-                <span class="tab-nav-text">Document Formatter Γåù</span>
+                <span class="tab-nav-icon">📝</span>
+                <span class="tab-nav-text">Document Formatter ↗</span>
             </button>
         </nav>
 
@@ -146,10 +146,10 @@
                         <span class="icon">+</span> Propose New Item
                     </button>
                     <button id="btn-export" class="btn btn-secondary">
-                        <span class="icon">≡ƒôï</span> View Agenda
+                        <span class="icon">📋</span> View Agenda
                     </button>
                     <button type="button" id="btn-open-doc-formatter-agenda" class="btn btn-secondary admin-only hidden" title="Open Legal & Multi-Level Document Formatter Studio">
-                        <span class="icon">≡ƒôæ</span> Document Formatter
+                        <span class="icon">📝</span> Document Formatter
                     </button>
                 </div>
 
@@ -194,7 +194,7 @@
                             <option value="newest">Sort: Newest First</option>
                             <option value="oldest">Sort: Oldest First</option>
                         </select>
-                        <button type="button" class="btn btn-outline btn-sm btn-manage-categories admin-only hidden" id="btn-manage-agenda-cats" title="Manage Agenda Categories">ΓÜÖ∩╕Å Categories</button>
+                        <button type="button" class="btn btn-outline btn-sm btn-manage-categories admin-only hidden" id="btn-manage-agenda-cats" title="Manage Agenda Categories">⚙️ Categories</button>
                     </div>
                     <div class="status-filters" id="status-filters">
                         <button class="status-btn active" data-status="All">All</button>
@@ -221,13 +221,13 @@
             <div id="tab-view-documents" class="tab-view">
                 <div class="actions-bar">
                     <button id="btn-toggle-upload" class="btn btn-primary">
-                        <span class="icon">Γ¼å∩╕Å</span> Upload File / Document
+                        <span class="icon">⬆️</span> Upload File / Document
                     </button>
                     <button type="button" id="btn-open-doc-formatter" class="btn btn-secondary admin-only hidden" title="Open Legal & Multi-Level Document Formatter Studio">
-                        <span class="icon">≡ƒôæ</span> Document Formatter Studio
+                        <span class="icon">📝</span> Document Formatter Studio
                     </button>
                     <div class="search-input-wrapper">
-                        <input type="search" id="doc-search-input" class="search-input" placeholder="≡ƒöì Search files or authors...">
+                        <input type="search" id="doc-search-input" class="search-input" placeholder="🔍 Search files or authors...">
                     </div>
                 </div>
 
@@ -241,7 +241,7 @@
                                 <div class="file-drop-zone" id="file-drop-zone" role="button" tabindex="0">
                                     <input type="file" id="doc-file-input" required class="file-input-hidden">
                                     <div class="drop-zone-content" id="drop-zone-content">
-                                        <span class="drop-icon">≡ƒôü</span>
+                                        <span class="drop-icon">📁</span>
                                         <strong class="drop-title" id="drop-zone-title">Click to browse or drag &amp; drop file here</strong>
                                         <span class="drop-hint" id="drop-zone-hint">PDF, Word, Excel, PowerPoint, Images (100MB) or Videos (500MB)</span>
                                     </div>
@@ -255,7 +255,7 @@
                             <div class="form-group">
                                 <div class="form-label-row">
                                     <label>Tags <span class="required">*</span></label>
-                                    <button type="button" class="btn-link-action admin-only hidden" id="btn-manage-doc-tags">ΓÜÖ∩╕Å Manage Tags</button>
+                                    <button type="button" class="btn-link-action admin-only hidden" id="btn-manage-doc-tags">⚙️ Manage Tags</button>
                                 </div>
                                 <div class="doc-tag-picker" id="doc-tag-picker">
                                     <!-- Tag checkboxes injected by JS -->
@@ -319,7 +319,7 @@
                                         <span class="toolbar-divider"></span>
 
                                         <!-- Lists & Indentation -->
-                                        <button type="button" class="toolbar-btn" data-command="insertUnorderedList" title="Bullet List (ΓÇó)">
+                                        <button type="button" class="toolbar-btn" data-command="insertUnorderedList" title="Bullet List (•)">
                                             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h2v2H4zm0 5h2v2H4zm0 5h2v2H4zm5-11h11v2H9zm0 5h11v2H9zm0 5h11v2H9z"/></svg>
                                         </button>
                                         <button type="button" class="toolbar-btn" data-command="insertOrderedList" title="Numbered List (1, 2, 3)">
@@ -373,9 +373,9 @@
                                 <option value="newest">Sort: Newest First</option>
                                 <option value="oldest">Sort: Oldest First</option>
                                 <option value="size">Sort: Largest Size</option>
-                                <option value="title">Sort: Name (AΓÇôZ)</option>
+                                <option value="title">Sort: Name (A–Z)</option>
                             </select>
-                            <button type="button" class="btn btn-outline btn-sm btn-manage-categories admin-only hidden" id="btn-manage-doc-tags-modal" title="Manage File Vault Tags">ΓÜÖ∩╕Å Tags</button>
+                            <button type="button" class="btn btn-outline btn-sm btn-manage-categories admin-only hidden" id="btn-manage-doc-tags-modal" title="Manage File Vault Tags">⚙️ Tags</button>
                         </div>
                     </div>
                 </div>
@@ -461,10 +461,10 @@
                 
                 <div class="category-list-header">
                     <span><span id="category-modal-list-title">Hierarchy Structure</span> (<span id="category-modal-count">0</span>)</span>
-                    <span class="cat-drag-tip-text" id="cat-drag-tip">≡ƒÆí Drag & drop rows to nest</span>
+                    <span class="cat-drag-tip-text" id="cat-drag-tip">💡 Drag & drop rows to nest</span>
                 </div>
                 <div class="cat-drop-root-zone hidden" id="cat-drop-root-zone" data-path="__ROOT__">
-                    <span>Γ¼å∩╕Å Drop here to move to Top Level (Level 1)</span>
+                    <span>⬆️ Drop here to move to Top Level (Level 1)</span>
                 </div>
                 <div class="category-tree-container" id="category-tree-container">
                     <!-- 3-level tree or tags injected here -->
@@ -477,7 +477,7 @@
     <div id="edit-doc-modal" class="modal">
         <div class="modal-content modal-content--compact edit-doc-modal-dialog">
             <div class="modal-header">
-                <h2>Γ£Å∩╕Å Edit Document</h2>
+                <h2>✏️ Edit Document</h2>
                 <button id="btn-close-edit-doc-modal" class="btn-modal-close" aria-label="Close" title="Close">&times;</button>
             </div>
             <div class="modal-body edit-doc-modal-body">
@@ -551,7 +551,7 @@
 
                                 <span class="toolbar-divider"></span>
 
-                                <button type="button" class="toolbar-btn" data-command="insertUnorderedList" title="Bullet List (ΓÇó)">
+                                <button type="button" class="toolbar-btn" data-command="insertUnorderedList" title="Bullet List (•)">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h2v2H4zm0 5h2v2H4zm0 5h2v2H4zm5-11h11v2H9zm0 5h11v2H9z"/></svg>
                                 </button>
                                 <button type="button" class="toolbar-btn" data-command="insertOrderedList" title="Numbered List (1, 2, 3)">

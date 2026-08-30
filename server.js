@@ -103,7 +103,7 @@ const upload = multer({
   }
 });
 
-// ΓöÇΓöÇ PIN Generation ΓöÇΓöÇ
+// ── PIN Generation ──
 function generatePin(existingPins) {
   let pin;
   do {
@@ -132,7 +132,7 @@ const FIXED_PINS = {
   "Noncedo Williams": "9830"
 };
 
-// ΓöÇΓöÇ Read members from Excel ΓöÇΓöÇ
+// ── Read members from Excel ──
 function readMembersFromExcel() {
   const workbook = XLSX.readFile(EXCEL_FILE);
   const sheet = workbook.Sheets[workbook.SheetNames[0]];
@@ -193,7 +193,7 @@ function readMembersFromExcel() {
   return members;
 }
 
-// ΓöÇΓöÇ Sync members from Excel into the store ΓöÇΓöÇ
+// ── Sync members from Excel into the store ──
 async function syncMembersFromExcel() {
   try {
     const freshMembers = readMembersFromExcel();
@@ -216,7 +216,7 @@ async function syncMembersFromExcel() {
       }
     }
 
-    // Remove members no longer in the Excel (optional ΓÇö comment out to keep them)
+    // Remove members no longer in the Excel (optional — comment out to keep them)
     const freshNames = new Set(freshMembers.map(m => m.name));
     const before = store.members.length;
     store.members = store.members.filter(m => freshNames.has(m.name));
@@ -232,18 +232,18 @@ async function syncMembersFromExcel() {
     };
 
     await storeHelper.write(store);
-    console.log(`≡ƒöä Members synced from Excel: +${added} added, ~${updated} updated, -${removed} removed. Total: ${store.members.length}`);
+    console.log(`🔄 Members synced from Excel: +${added} added, ~${updated} updated, -${removed} removed. Total: ${store.members.length}`);
     return { added, updated, removed, total: store.members.length };
   } catch (err) {
-    console.error('Γ¥î Failed to sync members from Excel:', err.message);
+    console.error('❌ Failed to sync members from Excel:', err.message);
     throw err;
   }
 }
 
-// ΓöÇΓöÇ Watch UserDetails.xlsx for changes (local dev) ΓöÇΓöÇ
+// ── Watch UserDetails.xlsx for changes (local dev) ──
 function startExcelWatcher() {
   if (!fsSync.existsSync(EXCEL_FILE)) {
-    console.warn(`ΓÜá∩╕Å  Excel file not found at ${EXCEL_FILE} ΓÇö watcher not started`);
+    console.warn(`⚠️∩╕Å  Excel file not found at ${EXCEL_FILE} — watcher not started`);
     return;
   }
 
@@ -253,7 +253,7 @@ function startExcelWatcher() {
     // Debounce: Excel writes the file multiple times on save
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(async () => {
-      console.log(`≡ƒôé UserDetails.xlsx changed ΓÇö syncing members...`);
+      console.log(`📂 UserDetails.xlsx changed — syncing members...`);
       try {
         await syncMembersFromExcel();
       } catch (e) {
@@ -262,17 +262,17 @@ function startExcelWatcher() {
     }, 800);
   });
 
-  console.log(`≡ƒæü∩╕Å  Watching ${EXCEL_FILE} for changes...`);
+  console.log(`👁️  Watching ${EXCEL_FILE} for changes...`);
 }
 
-// ΓöÇΓöÇ Dual Database Layer (PostgreSQL when DATABASE_URL is set, else JSON File) ΓöÇΓöÇ
+// ── Dual Database Layer (PostgreSQL when DATABASE_URL is set, else JSON File) ──
 let pool = null;
 if (process.env.DATABASE_URL) {
   pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }
   });
-  console.log('≡ƒÉÿ PostgreSQL connected ΓÇö persistent cloud database active');
+  console.log('🐘 PostgreSQL connected — persistent cloud database active');
 }
 
 function migrateFinanceCategories(store) {
@@ -385,7 +385,7 @@ const storeHelper = {
       
       const res = await pool.query('SELECT data FROM app_store WHERE id = $1', ['main_store']);
       if (res.rows.length === 0) {
-        console.log('≡ƒôè Seeding initial data into PostgreSQL...');
+        console.log('📊 Seeding initial data into PostgreSQL...');
         const members = readMembersFromExcel();
         const initialStore = {
           members,
@@ -402,10 +402,10 @@ const storeHelper = {
         };
         migrateFinanceCategories(initialStore);
         await pool.query('INSERT INTO app_store (id, data) VALUES ($1, $2)', ['main_store', JSON.stringify(initialStore)]);
-        console.log(`Γ£à ${members.length} members initialized in PostgreSQL`);
+        console.log(`✅ ${members.length} members initialized in PostgreSQL`);
       }
 
-      console.log('Γ£à Persistent store loaded ΓÇö syncing member details from Excel...');
+      console.log('✅ Persistent store loaded — syncing member details from Excel...');
       // Always sync titles/roles/contacts from Excel so spreadsheet changes apply on redeploy
       await syncMembersFromExcel();
 
@@ -427,7 +427,7 @@ const storeHelper = {
             });
             if (currentStore.documents.length !== beforeCount) {
               await pool.query('UPDATE app_store SET data = $1 WHERE id = $2', [JSON.stringify(currentStore), 'main_store']);
-              console.log(`≡ƒº╣ Cleaned up ${beforeCount - currentStore.documents.length} corrupt/orphan document records from PostgreSQL store`);
+              console.log(`🧹 Cleaned up ${beforeCount - currentStore.documents.length} corrupt/orphan document records from PostgreSQL store`);
             }
           }
         }
@@ -522,17 +522,17 @@ const storeHelper = {
   }
 };
 
-// ΓöÇΓöÇ Status Logic ΓöÇΓöÇ
+// ── Status Logic ──
 function determineStatus(voteCount) {
   if (voteCount >= 5) return 'endorsed';
   if (voteCount >= 2) return 'seconded';
   return 'proposed';
 }
 
-// ΓöÇΓöÇ Express App ΓöÇΓöÇ
+// ── Express App ──
 const app = express();
 app.use(express.json());
-// ΓöÇΓöÇ Direct Zero-Cache Route for Doc Formatter ΓöÇΓöÇ
+// ── Direct Zero-Cache Route for Doc Formatter ──
 app.get(['/doc-formatter', '/doc-formatter.html'], (req, res) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
   res.setHeader('Pragma', 'no-cache');
@@ -559,7 +559,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// ΓöÇΓöÇ Auth Middleware ΓöÇΓöÇ
+// ── Auth Middleware ──
 async function requireAuth(req, res, next) {
   let token = null;
   const authHeader = req.headers.authorization;
@@ -590,7 +590,7 @@ async function requireAuth(req, res, next) {
   next();
 }
 
-// ΓöÇΓöÇ Public Endpoints ΓöÇΓöÇ
+// ── Public Endpoints ──
 
 const APP_VERSION = '20260826-01';
 
@@ -684,7 +684,7 @@ app.post('/api/logout', requireAuth, async (req, res) => {
   }
 });
 
-// ΓöÇΓöÇ Protected Endpoints ΓöÇΓöÇ
+// ── Protected Endpoints ──
 
 // Get all members (authenticated)
 app.get('/api/members', requireAuth, async (req, res) => {
@@ -862,7 +862,7 @@ app.delete('/api/items/:id', requireAuth, async (req, res) => {
   }
 });
 
-// ΓöÇΓöÇ Comments & Brainstorming Endpoints ΓöÇΓöÇ
+// ── Comments & Brainstorming Endpoints ──
 
 // Add comment to an item
 app.post('/api/items/:id/comments', requireAuth, async (req, res) => {
@@ -1209,7 +1209,7 @@ function sendDocumentErrorResponse(res, req, doc, message) {
 </head>
 <body>
   <div class="error-card">
-    <div class="error-icon">≡ƒôüΓÜá∩╕Å</div>
+    <div class="error-icon">📁⚠️∩╕Å</div>
     <h1>Document Not Available</h1>
     <div class="highlight-box">
       <div class="highlight-title">${escapeHtml(docTitle)}</div>
@@ -1228,7 +1228,7 @@ function sendDocumentErrorResponse(res, req, doc, message) {
   return res.status(404).json({ error: message || 'File not found on server. Please re-upload this document.' });
 }
 
-// ΓöÇΓöÇ Shared Documents & Files Endpoints ΓöÇΓöÇ
+// ── Shared Documents & Files Endpoints ──
 
 // List all documents
 app.get('/api/documents', requireAuth, async (req, res) => {
@@ -1660,7 +1660,7 @@ app.delete('/api/documents/:id', requireAuth, async (req, res) => {
   }
 });
 
-// ΓöÇΓöÇ Category Management Endpoints (Admin Only) ΓöÇΓöÇ
+// ── Category Management Endpoints (Admin Only) ──
 
 // Get all categories
 app.get('/api/categories', requireAuth, (req, res) => {
@@ -1989,7 +1989,7 @@ app.get('/api/export', requireAuth, async (req, res) => {
   }
 });
 
-// ΓöÇΓöÇ Admin Legal Document Formatter Studio API ΓöÇΓöÇ
+// ── Admin Legal Document Formatter Studio API ──
 
 // GET /api/doc-formatter/presets: retrieve all available presets
 app.get('/api/doc-formatter/presets', async (req, res) => {
@@ -2038,7 +2038,7 @@ app.post('/api/doc-formatter/presets', async (req, res) => {
   }
 });
 
-// ΓöÇΓöÇ Document Project Sessions API (Save / Load Documents) ΓöÇΓöÇ
+// ── Document Project Sessions API (Save / Load Documents) ──
 
 // GET /api/doc-formatter/documents: retrieve all saved document projects
 app.get('/api/doc-formatter/documents', async (req, res) => {
@@ -2172,21 +2172,21 @@ app.delete('/api/doc-formatter/documents/:id', async (req, res) => {
   }
 });
 
-// ΓöÇΓöÇ OOXML numbering-aware DOCX text extractor ΓöÇΓöÇ
+// ── OOXML numbering-aware DOCX text extractor ──
 // Reads document.xml + numbering.xml from the DOCX zip and reconstructs
 // list number prefixes (e.g. "3.", "3.1", "3.1.1") for all numbered paragraphs.
 async function extractDocxWithNumbering(docxBuf) {
   const AdmZip = (await import('adm-zip')).default;
   const zip = new AdmZip(docxBuf);
 
-  // Parse numbering.xml to build abstractNum ΓåÆ level format map
+  // Parse numbering.xml to build abstractNum → level format map
   const numXmlEntry = zip.getEntry('word/numbering.xml');
   const docXmlEntry = zip.getEntry('word/document.xml');
   if (!docXmlEntry) throw new Error('No document.xml found');
 
-  // ΓöÇΓöÇ Parse numbering definitions ΓöÇΓöÇ
-  const abstractNums = {};   // abstractNumId ΓåÆ { lvl: { numFmt, lvlText, start } }
-  const numIdMap = {};       // numId ΓåÆ abstractNumId
+  // ── Parse numbering definitions ──
+  const abstractNums = {};   // abstractNumId → { lvl: { numFmt, lvlText, start } }
+  const numIdMap = {};       // numId → abstractNumId
 
   if (numXmlEntry) {
     const numXml = numXmlEntry.getData().toString('utf8');
@@ -2206,7 +2206,7 @@ async function extractDocxWithNumbering(docxBuf) {
         };
       }
     }
-    // num blocks (numId ΓåÆ abstractNumId)
+    // num blocks (numId → abstractNumId)
     const numBlocks = [...numXml.matchAll(/<w:num\s+[^>]*w:numId="(\d+)"[^>]*>([\s\S]*?)<\/w:num>/g)];
     for (const [, nid, nbody] of numBlocks) {
       const abM = nbody.match(/<w:abstractNumId\s+[^>]*w:val="(\d+)"/);
@@ -2214,12 +2214,12 @@ async function extractDocxWithNumbering(docxBuf) {
     }
   }
 
-  // ΓöÇΓöÇ Parse document.xml paragraphs ΓöÇΓöÇ
+  // ── Parse document.xml paragraphs ──
   const docXml = docXmlEntry.getData().toString('utf8');
   const paragraphs = [...docXml.matchAll(/<w:p[\s>]([\s\S]*?)<\/w:p>/g)];
 
   // Track current count per numId+ilvl
-  const counters = {};  // `${numId}_${ilvl}` ΓåÆ current value
+  const counters = {};  // `${numId}_${ilvl}` → current value
 
   const lines = [];
   for (const [, pBody] of paragraphs) {
@@ -2397,7 +2397,7 @@ app.post('/api/doc-formatter/spellcheck', async (req, res) => {
   }
 });
 
-// ΓöÇΓöÇ SGB Functionality Audit Directory Resolution & Helper ΓöÇΓöÇ
+// ── SGB Functionality Audit Directory Resolution & Helper ──
 const SGB_AUDIT_BASE_DIR = path.join(__dirname, 'SGB_Functionality_Audit_2026');
 
 const SGB_AUDIT_FOLDER_MAP = [
@@ -2720,7 +2720,7 @@ app.get('/api/admin/pins', async (req, res) => {
   }
 });
 
-// ΓöÇΓöÇ SGB Functionality Audit Watcher & Evidence API ΓöÇΓöÇ
+// ── SGB Functionality Audit Watcher & Evidence API ──
 app.get('/api/audit/status', async (req, res) => {
   try {
     const running = isAuditWatcherRunning();
@@ -2769,7 +2769,7 @@ app.post('/api/audit/regenerate/:folderId', async (req, res) => {
   }
 });
 
-// ΓöÇΓöÇ Start Server ΓöÇΓöÇ
+// ── Start Server ──
 const PORT = process.env.PORT || 3000;
 
 storeHelper.init().then(() => {
@@ -2780,7 +2780,7 @@ storeHelper.init().then(() => {
   startAuditWatcher();
 
   app.listen(PORT, () => {
-    console.log(`≡ƒÜÇ SGB/SMT Agenda Builder running on port ${PORT}`);
+    console.log(`🚀 SGB/SMT Agenda Builder running on port ${PORT}`);
   });
 }).catch(err => {
   console.error('Failed to start server:', err);

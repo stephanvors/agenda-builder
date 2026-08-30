@@ -153,9 +153,9 @@
   ],
   "sessions": [
     {
-      "token": "e3969143-dd61-4c1e-ab04-57c511fdc02c",
+      "token": "8b88322b-1feb-4fba-aee7-c913e02483af",
       "memberId": "27929da0-b124-475e-85dc-f693a49f361f",
-      "createdAt": "2026-08-30T07:16:34.753Z"
+      "createdAt": "2026-08-30T07:18:02.626Z"
     }
   ],
   "agendaItems": [
@@ -840,101 +840,7 @@
       "comments": []
     }
   ],
-  "documents": [
-    {
-      "id": "bde837a1-b49e-4a36-ad06-428ba740ef77",
-      "filename": "Principals Training on Financial Management July - August 2026 FINAL.pdf",
-      "title": "Principals Training on Financial Management",
-      "tags": [
-        "Financial & Budget Reports",
-        "Finances",
-        "Principal",
-        "PDF"
-      ]
-    },
-    {
-      "id": "ced3af05-a95e-4cc0-b252-2c563954530e",
-      "filename": "The Constitution of South Africa.pdf",
-      "title": "The Constitution of South Africa",
-      "tags": [
-        "Policies",
-        "Constitution",
-        "South Africa",
-        "Legal",
-        "Government",
-        "PDF"
-      ]
-    },
-    {
-      "id": "00848ac7-0fc1-46ad-a25e-d4cc5893217d",
-      "filename": "SGB Constitution.pdf",
-      "title": "SGB Constitution",
-      "tags": [
-        "Policies",
-        "SGB",
-        "Constitution",
-        "01_SGB_Constitution",
-        "PDF"
-      ]
-    },
-    {
-      "id": "22ddf805-99fc-47be-b0df-060b4d62c997",
-      "filename": "BELA Act.pdf",
-      "title": "Basic Education Laws Amendment (BELA) Act",
-      "tags": [
-        "Policies",
-        "Legal",
-        "Government",
-        "PDF"
-      ]
-    },
-    {
-      "id": "fb8bf10b-7dc5-4ebe-b1e3-6cae160e0451",
-      "filename": "Personnel Administrative Measures (PAM).pdf",
-      "title": "Personnel Administrative Measures (PAM)",
-      "tags": [
-        "Policies",
-        "Personnel",
-        "Human Resources & Staffing",
-        "PDF"
-      ]
-    },
-    {
-      "id": "ae442d27-49d3-424d-910a-0dd4e8f21de5",
-      "filename": "Children's Act.pdf",
-      "title": "Children's Act 38 of 2005",
-      "tags": [
-        "Policies",
-        "Children",
-        "Legal",
-        "PDF"
-      ]
-    },
-    {
-      "id": "9888ecf8-7e21-4e46-bafb-c358f4e0e5c5",
-      "filename": "CONSTITUTION OF THE SCHOOL GOVERNING BODY.pdf",
-      "title": "CONSTITUTION OF THE SCHOOL GOVERNING BODY (Formatted)",
-      "tags": [
-        "Policies",
-        "PDF",
-        "Formatted",
-        "01_SGB_Constitution",
-        "Stephen Vorster"
-      ]
-    },
-    {
-      "id": "6eea173b-c3e0-4ed7-a731-2c7c7f10c046",
-      "filename": "SCHOOL MISSION STATEMENT.pdf",
-      "title": "SCHOOL MISSION STATEMENT",
-      "tags": [
-        "Policies",
-        "02_School_Mission_Statement",
-        "Formatted",
-        "PDF",
-        "Stephen Vorster"
-      ]
-    }
-  ],
+  "documents": [],
   "attendance": {
     "1de32583-cb10-4cbe-b738-dac672b682ce": {
       "status": "Present",
