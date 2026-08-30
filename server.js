@@ -473,6 +473,28 @@ const storeHelper = {
         } catch (cleanErr) {
           console.error('Error cleaning orphan document records on startup:', cleanErr.message);
         }
+
+        // Always sync archives from disk store if DB archives is empty
+        if (fsSync.existsSync(STORE_FILE)) {
+          try {
+            const diskData = JSON.parse(fsSync.readFileSync(STORE_FILE, 'utf8'));
+            if (Array.isArray(diskData.archives) && diskData.archives.length > 0) {
+              const currentStoreRes = await pool.query('SELECT data FROM app_store WHERE id = $1', ['main_store']);
+              if (currentStoreRes.rows.length > 0) {
+                const raw = currentStoreRes.rows[0].data;
+                const cs = typeof raw === 'string' ? JSON.parse(raw) : raw;
+                if (!Array.isArray(cs.archives) || cs.archives.length === 0) {
+                  cs.archives = diskData.archives;
+                  await pool.query('UPDATE app_store SET data = $1 WHERE id = $2', [JSON.stringify(cs), 'main_store']);
+                  console.log(`✅ Synced ${diskData.archives.length} archive(s) from store.json to PostgreSQL database`);
+                }
+              }
+            }
+          } catch (e) {
+            console.error('Error syncing archives on init:', e.message);
+          }
+        }
+
         return;
       } catch (pgInitErr) {
         console.warn('⚠️ PostgreSQL initialization failed, falling back to disk storage:', pgInitErr.message);
@@ -512,8 +534,8 @@ const storeHelper = {
       categories: [...DEFAULT_CATEGORIES],
       documentTags: [...DEFAULT_DOCUMENT_TAGS],
       meetingInfo: {
-        title: 'SGB/SMT Strategy Meeting',
-        date: '2026-08-27',
+        title: 'SGB & SMT Ordinary Meeting',
+        date: '2026-09-24',
         school: 'LGAA'
       }
     };
@@ -522,6 +544,14 @@ const storeHelper = {
   },
 
   async read() {
+    let diskStore = null;
+    try {
+      if (fsSync.existsSync(STORE_FILE)) {
+        const data = fsSync.readFileSync(STORE_FILE, 'utf-8');
+        diskStore = JSON.parse(data);
+      }
+    } catch (e) {}
+
     let store = null;
     if (pool) {
       try {
@@ -533,26 +563,35 @@ const storeHelper = {
         console.warn('⚠️ PostgreSQL read failed, falling back to disk:', dbErr.message);
       }
     }
-    if (!store) {
-      try {
-        const data = await fs.readFile(STORE_FILE, 'utf-8');
-        store = JSON.parse(data);
-      } catch (fsErr) {
-        store = {
-          members: readMembersFromExcel(),
-          sessions: [],
-          agendaItems: [],
-          documents: [],
-          archives: [],
-          categories: [...DEFAULT_CATEGORIES],
-          documentTags: [...DEFAULT_DOCUMENT_TAGS],
-          meetingInfo: {
-            title: 'SGB/SMT Strategy Meeting',
-            date: '2026-08-27',
-            school: 'LGAA'
-          }
-        };
+
+    const dbHasArchives = store && Array.isArray(store.archives) && store.archives.length > 0;
+    const diskHasArchives = diskStore && Array.isArray(diskStore.archives) && diskStore.archives.length > 0;
+
+    if (diskStore && store && !dbHasArchives && diskHasArchives) {
+      store.archives = diskStore.archives;
+      if (pool) {
+        try {
+          await pool.query('UPDATE app_store SET data = $1 WHERE id = $2', [JSON.stringify(store), 'main_store']);
+          console.log('🔄 Synced disk archives to PostgreSQL store');
+        } catch (e) {}
       }
+    }
+
+    if (!store) {
+      store = diskStore || {
+        members: readMembersFromExcel(),
+        sessions: [],
+        agendaItems: [],
+        documents: [],
+        archives: [],
+        categories: [...DEFAULT_CATEGORIES],
+        documentTags: [...DEFAULT_DOCUMENT_TAGS],
+        meetingInfo: {
+          title: 'SGB & SMT Ordinary Meeting',
+          date: '2026-09-24',
+          school: 'LGAA'
+        }
+      };
     }
     if (!Array.isArray(store.documents)) {
       store.documents = [];
