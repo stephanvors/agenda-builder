@@ -134,7 +134,7 @@
       "id": "ec90f721-fa50-490f-b2e0-4b23cf936a4b",
       "name": "Charlene Vorster",
       "title": "Mrs",
-      "role": "SGB Tots Academy",
+      "role": "Tots Academy (Preschool) Rep",
       "contact": "0836535007",
       "email": "charlene.vorster30@gmail.com",
       "pin": "7791",
@@ -153,16 +153,16 @@
   ],
   "sessions": [
     {
-      "token": "b6158b52-2dc7-476c-82fa-cbfaf3cc1c59",
+      "token": "0ae07a51-0742-4399-94b1-3b5c4f15b476",
       "memberId": "7c2333c0-5555-486f-afde-2d10af845f5c",
-      "createdAt": "2026-08-30T06:06:11.908Z"
+      "createdAt": "2026-08-30T06:47:57.019Z"
     }
   ],
   "agendaItems": [
     {
       "id": "item-01",
       "title": "Adoption & Promulgation of Revised SGB Constitution (2026)",
-      "description": "Formal clause-by-clause review and unanimous adoption of the School Governing Body Constitution under SASA Act 84 of 1996 and EC Education Act 2000.",
+      "description": "Formal clause-by-clause review and adoption of the School Governing Body Constitution under SASA Act 84 of 1996 and EC Education Act 2000.",
       "category": "Governance & Policy",
       "proposedBy": {
         "memberId": "7fd40e14-f2ab-47b3-a50b-e479a48e0602",
@@ -248,17 +248,8 @@
         }
       ],
       "status": "endorsed",
-      "isResolved": true,
-      "resolution": {
-        "solutionText": "The 2026 SGB Constitution is hereby officially adopted as the binding governance framework for Lady Grey Arts Academy. Approved by two-thirds statutory majority.",
-        "commentId": null,
-        "resolvedBy": {
-          "memberId": "7fd40e14-f2ab-47b3-a50b-e479a48e0602",
-          "memberName": "Kwezi Dyasi",
-          "memberRole": "SGB Chairperson"
-        },
-        "resolvedAt": "2026-08-27T10:45:00.000Z"
-      },
+      "isResolved": false,
+      "resolution": null,
       "comments": []
     },
     {
@@ -315,85 +306,19 @@
         }
       ],
       "status": "endorsed",
-      "isResolved": true,
-      "resolution": {
-        "solutionText": "Debtor collection protocols ratified. Finance office instructed to issue formal statements and execute class entry permit eligibility checks based on arrears aging.",
-        "commentId": null,
-        "resolvedBy": {
-          "memberId": "6b3b390c-fc6a-407f-8064-16ac66918d6a",
-          "memberName": "Andile Gushmani",
-          "memberRole": "SGB Treasurer"
-        },
-        "resolvedAt": "2026-08-27T11:30:00.000Z"
-      },
+      "isResolved": false,
+      "resolution": null,
       "comments": []
     },
     {
       "id": "item-03",
-      "title": "2026/2027 Capital Budget Allocation & Infrastructure Maintenance",
-      "description": "Review of hostel maintenance, security fencing, arts studio equipment upgrades, and departmental operational expenditure.",
-      "category": "Finances > Budget & Financial Management",
-      "proposedBy": {
-        "memberId": "81be2757-2624-4904-a355-9b0444bd8ff1",
-        "memberName": "Marcelle Botha",
-        "memberRole": "Principal"
-      },
-      "proposedAt": "2026-08-27T09:55:00.000Z",
-      "votes": [
-        {
-          "memberId": "7fd40e14-f2ab-47b3-a50b-e479a48e0602",
-          "memberName": "Kwezi Dyasi",
-          "votedAt": "2026-08-27T09:55:00.000Z"
-        },
-        {
-          "memberId": "6b3b390c-fc6a-407f-8064-16ac66918d6a",
-          "memberName": "Andile Gushmani",
-          "votedAt": "2026-08-27T10:00:00.000Z"
-        },
-        {
-          "memberId": "81be2757-2624-4904-a355-9b0444bd8ff1",
-          "memberName": "Marcelle Botha",
-          "votedAt": "2026-08-27T10:05:00.000Z"
-        },
-        {
-          "memberId": "06d075a1-2b95-432d-9288-965708f903ae",
-          "memberName": "Hanlie Du Preez",
-          "votedAt": "2026-08-27T10:10:00.000Z"
-        },
-        {
-          "memberId": "ca5d4a12-d2c7-4bd7-9366-6a254a5d2212",
-          "memberName": "Bennie Bekker",
-          "votedAt": "2026-08-27T10:15:00.000Z"
-        },
-        {
-          "memberId": "025999c3-ee04-4090-92c4-9e36da6b32d3",
-          "memberName": "Anthony Engelbrecht",
-          "votedAt": "2026-08-27T10:20:00.000Z"
-        }
-      ],
-      "status": "endorsed",
-      "isResolved": true,
-      "resolution": {
-        "solutionText": "Infrastructure prioritization schedule approved. Excelsior Hostel urgent repairs and campus IT upgrades allocated from Q3/Q4 capital budget.",
-        "commentId": null,
-        "resolvedBy": {
-          "memberId": "81be2757-2624-4904-a355-9b0444bd8ff1",
-          "memberName": "Marcelle Botha",
-          "memberRole": "Principal"
-        },
-        "resolvedAt": "2026-08-27T12:15:00.000Z"
-      },
-      "comments": []
-    },
-    {
-      "id": "item-04",
       "title": "Academic Performance & Grade 12 National Senior Certificate (NSC) Support",
       "description": "SMT presentation on Term 2 & 3 learner assessments, winter school intervention camps, and targeted subject support programs.",
       "category": "Curriculum & Academic Performance",
       "proposedBy": {
-        "memberId": "8ae9bf32-0b10-47be-8168-79fc2f69643c",
-        "memberName": "Sylvia Swart",
-        "memberRole": "Deputy Principal"
+        "memberId": "81be2757-2624-4904-a355-9b0444bd8ff1",
+        "memberName": "Marcelle Botha",
+        "memberRole": "Principal"
       },
       "proposedAt": "2026-08-27T10:25:00.000Z",
       "votes": [
@@ -439,17 +364,56 @@
         }
       ],
       "status": "endorsed",
-      "isResolved": true,
-      "resolution": {
-        "solutionText": "Term 3 Grade 12 weekend tuition and intensive practical assessment portfolio timetable endorsed by SGB and SMT.",
-        "commentId": null,
-        "resolvedBy": {
-          "memberId": "8ae9bf32-0b10-47be-8168-79fc2f69643c",
-          "memberName": "Sylvia Swart",
-          "memberRole": "Deputy Principal"
-        },
-        "resolvedAt": "2026-08-27T12:50:00.000Z"
+      "isResolved": false,
+      "resolution": null,
+      "comments": []
+    },
+    {
+      "id": "item-04",
+      "title": "2026/2027 Capital Budget Allocation & Infrastructure Maintenance",
+      "description": "Review of hostel maintenance, security fencing, arts studio equipment upgrades, and departmental operational expenditure.",
+      "category": "Finances > Budget & Financial Management",
+      "proposedBy": {
+        "memberId": "7fd40e14-f2ab-47b3-a50b-e479a48e0602",
+        "memberName": "Kwezi Dyasi",
+        "memberRole": "SGB Chairperson"
       },
+      "proposedAt": "2026-08-27T09:55:00.000Z",
+      "votes": [
+        {
+          "memberId": "7fd40e14-f2ab-47b3-a50b-e479a48e0602",
+          "memberName": "Kwezi Dyasi",
+          "votedAt": "2026-08-27T09:55:00.000Z"
+        },
+        {
+          "memberId": "6b3b390c-fc6a-407f-8064-16ac66918d6a",
+          "memberName": "Andile Gushmani",
+          "votedAt": "2026-08-27T10:00:00.000Z"
+        },
+        {
+          "memberId": "81be2757-2624-4904-a355-9b0444bd8ff1",
+          "memberName": "Marcelle Botha",
+          "votedAt": "2026-08-27T10:05:00.000Z"
+        },
+        {
+          "memberId": "06d075a1-2b95-432d-9288-965708f903ae",
+          "memberName": "Hanlie Du Preez",
+          "votedAt": "2026-08-27T10:10:00.000Z"
+        },
+        {
+          "memberId": "ca5d4a12-d2c7-4bd7-9366-6a254a5d2212",
+          "memberName": "Bennie Bekker",
+          "votedAt": "2026-08-27T10:15:00.000Z"
+        },
+        {
+          "memberId": "025999c3-ee04-4090-92c4-9e36da6b32d3",
+          "memberName": "Anthony Engelbrecht",
+          "votedAt": "2026-08-27T10:20:00.000Z"
+        }
+      ],
+      "status": "endorsed",
+      "isResolved": false,
+      "resolution": null,
       "comments": []
     },
     {
@@ -460,7 +424,7 @@
       "proposedBy": {
         "memberId": "ec90f721-fa50-490f-b2e0-4b23cf936a4b",
         "memberName": "Charlene Vorster",
-        "memberRole": "SGB Tots Academy"
+        "memberRole": "Tots Academy (Preschool) Rep"
       },
       "proposedAt": "2026-08-27T11:05:00.000Z",
       "votes": [
@@ -491,17 +455,8 @@
         }
       ],
       "status": "endorsed",
-      "isResolved": true,
-      "resolution": {
-        "solutionText": "Tots Academy resource allocation confirmed. Dedicated maintenance and safety perimeter fencing prioritized for immediate execution.",
-        "commentId": null,
-        "resolvedBy": {
-          "memberId": "ec90f721-fa50-490f-b2e0-4b23cf936a4b",
-          "memberName": "Charlene Vorster",
-          "memberRole": "SGB Tots Academy"
-        },
-        "resolvedAt": "2026-08-27T13:20:00.000Z"
-      },
+      "isResolved": false,
+      "resolution": null,
       "comments": []
     },
     {
@@ -543,17 +498,8 @@
         }
       ],
       "status": "endorsed",
-      "isResolved": true,
-      "resolution": {
-        "solutionText": "Sub-committee structures formally constituted and terms of reference approved. Monthly reporting schedule established.",
-        "commentId": null,
-        "resolvedBy": {
-          "memberId": "7fd40e14-f2ab-47b3-a50b-e479a48e0602",
-          "memberName": "Kwezi Dyasi",
-          "memberRole": "SGB Chairperson"
-        },
-        "resolvedAt": "2026-08-27T13:45:00.000Z"
-      },
+      "isResolved": false,
+      "resolution": null,
       "comments": []
     }
   ],
@@ -591,6 +537,8 @@
   "meetingInfo": {
     "title": "SGB/SMT Strategy Meeting",
     "date": "2026-08-27",
-    "school": "LGAA"
+    "time": "10:00",
+    "venue": "Staff Room",
+    "school": "Lady Grey Arts Academy"
   }
 }
