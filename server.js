@@ -1,4 +1,4 @@
-import express from 'express';
+﻿import express from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs/promises';
 import fsSync from 'fs';
@@ -12,7 +12,6 @@ import XLSX from 'xlsx';
 import pg from 'pg';
 import multer from 'multer';
 import mammoth from 'mammoth';
-import AdmZip from 'adm-zip';
 import { parseRawText, buildFormattedDocx, convertDocxToPdf, generatePrintableHtml } from './formatterEngine.js';
 import { checkDocText } from './spellcheckerEngine.js';
 import { startAuditWatcher, isAuditWatcherRunning, scanAndSyncAllFolders, findCoreSourceDocInFolder } from './auditWatcher.js';
@@ -69,19 +68,11 @@ function isAdminMember(member) {
 
 // Video formats allowed up to 500MB
 const VIDEO_EXTENSIONS = new Set(['.mp4', '.m4v', '.mov', '.webm', '.mkv', '.avi', '.wmv', '.flv', '.3gp']);
-// Audio formats allowed up to 500MB
-const AUDIO_EXTENSIONS = new Set(['.mp3', '.m4a', '.wav', '.aac', '.ogg', '.webm', '.flac', '.opus', '.wma', '.mp4', '.m4v']);
 
 function isVideoFile(mimetype, filename) {
   if (mimetype && mimetype.startsWith('video/')) return true;
   const ext = path.extname(filename || '').toLowerCase();
   return VIDEO_EXTENSIONS.has(ext);
-}
-
-function isAudioFile(mimetype, filename) {
-  if (mimetype && (mimetype.startsWith('audio/') || mimetype === 'video/mp4' || mimetype === 'video/webm')) return true;
-  const ext = path.extname(filename || '').toLowerCase();
-  return AUDIO_EXTENSIONS.has(ext);
 }
 
 // Multer disk storage configuration
@@ -112,28 +103,7 @@ const upload = multer({
   }
 });
 
-const archiveUpload = multer({
-  storage,
-  limits: {
-    fileSize: 500 * 1024 * 1024 // 500 MB limit per file
-  },
-  fileFilter: (req, file, cb) => {
-    const blockedExts = ['.exe', '.bat', '.cmd', '.sh', '.msi', '.vbs', '.js', '.mjs', '.ps1'];
-    const ext = path.extname(file.originalname).toLowerCase();
-    if (blockedExts.includes(ext)) {
-      return cb(new Error('Executable file types are blocked for security'));
-    }
-    cb(null, true);
-  }
-}).fields([
-  { name: 'audioFiles', maxCount: 10 },
-  { name: 'minutesFiles', maxCount: 5 },
-  { name: 'transcriptFiles', maxCount: 5 },
-  { name: 'signedRegisterFiles', maxCount: 5 },
-  { name: 'resolutionFiles', maxCount: 5 }
-]);
-
-// ── PIN Generation ──
+// ΓöÇΓöÇ PIN Generation ΓöÇΓöÇ
 function generatePin(existingPins) {
   let pin;
   do {
@@ -162,7 +132,7 @@ const FIXED_PINS = {
   "Noncedo Williams": "9830"
 };
 
-// ── Read members from Excel ──
+// ΓöÇΓöÇ Read members from Excel ΓöÇΓöÇ
 function readMembersFromExcel() {
   const workbook = XLSX.readFile(EXCEL_FILE);
   const sheet = workbook.Sheets[workbook.SheetNames[0]];
@@ -223,7 +193,7 @@ function readMembersFromExcel() {
   return members;
 }
 
-// ── Sync members from Excel into the store ──
+// ΓöÇΓöÇ Sync members from Excel into the store ΓöÇΓöÇ
 async function syncMembersFromExcel() {
   try {
     const freshMembers = readMembersFromExcel();
@@ -246,33 +216,34 @@ async function syncMembersFromExcel() {
       }
     }
 
-    // Remove members no longer in the Excel (optional — comment out to keep them)
+    // Remove members no longer in the Excel (optional ΓÇö comment out to keep them)
     const freshNames = new Set(freshMembers.map(m => m.name));
     const before = store.members.length;
     store.members = store.members.filter(m => freshNames.has(m.name));
     const removed = before - store.members.length;
 
-    // Ensure meetingInfo has required defaults if not set
+    // Ensure meetingInfo has the current date
     store.meetingInfo = {
       title: 'SGB/SMT Strategy Meeting',
       date: '2026-08-27',
       school: 'LGAA',
-      ...(store.meetingInfo || {})
+      ...(store.meetingInfo || {}),
+      date: '2026-08-27'
     };
 
     await storeHelper.write(store);
-    console.log(`🔄 Members synced from Excel: +${added} added, ~${updated} updated, -${removed} removed. Total: ${store.members.length}`);
+    console.log(`≡ƒöä Members synced from Excel: +${added} added, ~${updated} updated, -${removed} removed. Total: ${store.members.length}`);
     return { added, updated, removed, total: store.members.length };
   } catch (err) {
-    console.error('❌ Failed to sync members from Excel:', err.message);
+    console.error('Γ¥î Failed to sync members from Excel:', err.message);
     throw err;
   }
 }
 
-// ── Watch UserDetails.xlsx for changes (local dev) ──
+// ΓöÇΓöÇ Watch UserDetails.xlsx for changes (local dev) ΓöÇΓöÇ
 function startExcelWatcher() {
   if (!fsSync.existsSync(EXCEL_FILE)) {
-    console.warn(`⚠️  Excel file not found at ${EXCEL_FILE} — watcher not started`);
+    console.warn(`ΓÜá∩╕Å  Excel file not found at ${EXCEL_FILE} ΓÇö watcher not started`);
     return;
   }
 
@@ -282,7 +253,7 @@ function startExcelWatcher() {
     // Debounce: Excel writes the file multiple times on save
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(async () => {
-      console.log(`📂 UserDetails.xlsx changed — syncing members...`);
+      console.log(`≡ƒôé UserDetails.xlsx changed ΓÇö syncing members...`);
       try {
         await syncMembersFromExcel();
       } catch (e) {
@@ -291,23 +262,17 @@ function startExcelWatcher() {
     }, 800);
   });
 
-  console.log(`👁️  Watching ${EXCEL_FILE} for changes...`);
+  console.log(`≡ƒæü∩╕Å  Watching ${EXCEL_FILE} for changes...`);
 }
 
-// ── Dual Database Layer (PostgreSQL when DATABASE_URL is set, else JSON File) ──
+// ΓöÇΓöÇ Dual Database Layer (PostgreSQL when DATABASE_URL is set, else JSON File) ΓöÇΓöÇ
 let pool = null;
 if (process.env.DATABASE_URL) {
   pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
-    connectionTimeoutMillis: 5000,
-    idleTimeoutMillis: 30000,
-    max: 10
+    ssl: { rejectUnauthorized: false }
   });
-  pool.on('error', (err) => {
-    console.error('⚠️ PostgreSQL pool error:', err.message);
-  });
-  console.log('🐘 PostgreSQL pool initialized');
+  console.log('≡ƒÉÿ PostgreSQL connected ΓÇö persistent cloud database active');
 }
 
 function migrateFinanceCategories(store) {
@@ -403,102 +368,73 @@ function migrateFinanceCategories(store) {
 const storeHelper = {
   async init() {
     if (pool) {
-      try {
-        // Initialize PostgreSQL tables
-        await pool.query(`
-          CREATE TABLE IF NOT EXISTS app_store (
-            id VARCHAR(50) PRIMARY KEY,
-            data JSONB NOT NULL
-          );
-          CREATE TABLE IF NOT EXISTS app_files (
-            id VARCHAR(100) PRIMARY KEY,
-            filename TEXT,
-            mimetype TEXT,
-            file_data BYTEA,
-            created_at TIMESTAMPTZ DEFAULT NOW()
-          );
-        `);
-        
-        const res = await pool.query('SELECT data FROM app_store WHERE id = $1', ['main_store']);
-        if (res.rows.length === 0) {
-          console.log('📊 Seeding initial data into PostgreSQL...');
-          const members = readMembersFromExcel();
-          const initialStore = {
-            members,
-            sessions: [],
-            agendaItems: [],
-            documents: [],
-            archives: [],
-            categories: [...DEFAULT_CATEGORIES],
-            documentTags: [...DEFAULT_DOCUMENT_TAGS],
-            meetingInfo: {
-              title: 'SGB/SMT Strategy Meeting',
-              date: '2026-08-27',
-              time: '10:00',
-              venue: 'Staff Room',
-              school: 'Lady Grey Arts Academy'
-            }
-          };
-          migrateFinanceCategories(initialStore);
-          await pool.query('INSERT INTO app_store (id, data) VALUES ($1, $2)', ['main_store', JSON.stringify(initialStore)]);
-          console.log(`✅ ${members.length} members initialized in PostgreSQL`);
-        }
-
-        console.log('✅ Persistent store loaded — syncing member details from Excel...');
-        // Always sync titles/roles/contacts from Excel so spreadsheet changes apply on redeploy
-        await syncMembersFromExcel();
-
-        // Clean up orphan and corrupted (< 500 bytes) document records in PostgreSQL
-        try {
-          await pool.query('DELETE FROM app_files WHERE LENGTH(file_data) < 500');
-          const fileRows = await pool.query('SELECT id FROM app_files WHERE LENGTH(file_data) >= 500');
-          const validIds = new Set(fileRows.rows.map(r => r.id));
-          const storeRes = await pool.query('SELECT data FROM app_store WHERE id = $1', ['main_store']);
-          if (storeRes.rows.length > 0) {
-            const rawData = storeRes.rows[0].data;
-            const currentStore = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
-            if (Array.isArray(currentStore.documents) && currentStore.documents.length > 0) {
-              const beforeCount = currentStore.documents.length;
-              currentStore.documents = currentStore.documents.filter(d => {
-                const inDb = validIds.has(d.id);
-                const onDisk = Boolean(d.storedName && fsSync.existsSync(path.join(UPLOADS_DIR, d.storedName)) && fsSync.statSync(path.join(UPLOADS_DIR, d.storedName)).size >= 500);
-                return inDb || onDisk;
-              });
-              if (currentStore.documents.length !== beforeCount) {
-                await pool.query('UPDATE app_store SET data = $1 WHERE id = $2', [JSON.stringify(currentStore), 'main_store']);
-                console.log(`🧹 Cleaned up ${beforeCount - currentStore.documents.length} corrupt/orphan document records from PostgreSQL store`);
-              }
-            }
+      // Initialize PostgreSQL tables
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS app_store (
+          id VARCHAR(50) PRIMARY KEY,
+          data JSONB NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS app_files (
+          id VARCHAR(100) PRIMARY KEY,
+          filename TEXT,
+          mimetype TEXT,
+          file_data BYTEA,
+          created_at TIMESTAMPTZ DEFAULT NOW()
+        );
+      `);
+      
+      const res = await pool.query('SELECT data FROM app_store WHERE id = $1', ['main_store']);
+      if (res.rows.length === 0) {
+        console.log('≡ƒôè Seeding initial data into PostgreSQL...');
+        const members = readMembersFromExcel();
+        const initialStore = {
+          members,
+          sessions: [],
+          agendaItems: [],
+          documents: [],
+          categories: [...DEFAULT_CATEGORIES],
+          documentTags: [...DEFAULT_DOCUMENT_TAGS],
+          meetingInfo: {
+            title: 'SGB/SMT Strategy Meeting',
+            date: '2026-08-27',
+            school: 'LGAA'
           }
-        } catch (cleanErr) {
-          console.error('Error cleaning orphan document records on startup:', cleanErr.message);
-        }
-
-        // Always sync archives from disk store if DB archives is empty
-        if (fsSync.existsSync(STORE_FILE)) {
-          try {
-            const diskData = JSON.parse(fsSync.readFileSync(STORE_FILE, 'utf8'));
-            if (Array.isArray(diskData.archives) && diskData.archives.length > 0) {
-              const currentStoreRes = await pool.query('SELECT data FROM app_store WHERE id = $1', ['main_store']);
-              if (currentStoreRes.rows.length > 0) {
-                const raw = currentStoreRes.rows[0].data;
-                const cs = typeof raw === 'string' ? JSON.parse(raw) : raw;
-                if (!Array.isArray(cs.archives) || cs.archives.length === 0) {
-                  cs.archives = diskData.archives;
-                  await pool.query('UPDATE app_store SET data = $1 WHERE id = $2', [JSON.stringify(cs), 'main_store']);
-                  console.log(`✅ Synced ${diskData.archives.length} archive(s) from store.json to PostgreSQL database`);
-                }
-              }
-            }
-          } catch (e) {
-            console.error('Error syncing archives on init:', e.message);
-          }
-        }
-
-        return;
-      } catch (pgInitErr) {
-        console.warn('⚠️ PostgreSQL initialization failed, falling back to disk storage:', pgInitErr.message);
+        };
+        migrateFinanceCategories(initialStore);
+        await pool.query('INSERT INTO app_store (id, data) VALUES ($1, $2)', ['main_store', JSON.stringify(initialStore)]);
+        console.log(`Γ£à ${members.length} members initialized in PostgreSQL`);
       }
+
+      console.log('Γ£à Persistent store loaded ΓÇö syncing member details from Excel...');
+      // Always sync titles/roles/contacts from Excel so spreadsheet changes apply on redeploy
+      await syncMembersFromExcel();
+
+      // Clean up orphan and corrupted (< 500 bytes) document records in PostgreSQL
+      try {
+        await pool.query('DELETE FROM app_files WHERE LENGTH(file_data) < 500');
+        const fileRows = await pool.query('SELECT id FROM app_files WHERE LENGTH(file_data) >= 500');
+        const validIds = new Set(fileRows.rows.map(r => r.id));
+        const storeRes = await pool.query('SELECT data FROM app_store WHERE id = $1', ['main_store']);
+        if (storeRes.rows.length > 0) {
+          const rawData = storeRes.rows[0].data;
+          const currentStore = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
+          if (Array.isArray(currentStore.documents) && currentStore.documents.length > 0) {
+            const beforeCount = currentStore.documents.length;
+            currentStore.documents = currentStore.documents.filter(d => {
+              const inDb = validIds.has(d.id);
+              const onDisk = Boolean(d.storedName && fsSync.existsSync(path.join(UPLOADS_DIR, d.storedName)) && fsSync.statSync(path.join(UPLOADS_DIR, d.storedName)).size >= 500);
+              return inDb || onDisk;
+            });
+            if (currentStore.documents.length !== beforeCount) {
+              await pool.query('UPDATE app_store SET data = $1 WHERE id = $2', [JSON.stringify(currentStore), 'main_store']);
+              console.log(`≡ƒº╣ Cleaned up ${beforeCount - currentStore.documents.length} corrupt/orphan document records from PostgreSQL store`);
+            }
+          }
+        }
+      } catch (cleanErr) {
+        console.error('Error cleaning orphan document records on startup:', cleanErr.message);
+      }
+      return;
     }
 
     // JSON file fallback
@@ -513,10 +449,6 @@ const storeHelper = {
       const data = await fs.readFile(STORE_FILE, 'utf-8');
       const store = JSON.parse(data);
       if (store.members && store.members.length > 0 && store.members[0].pin) {
-        if (!Array.isArray(store.archives)) {
-          store.archives = [];
-          await fs.writeFile(STORE_FILE, JSON.stringify(store, null, 2));
-        }
         if (migrateFinanceCategories(store)) {
           await fs.writeFile(STORE_FILE, JSON.stringify(store, null, 2));
         }
@@ -530,12 +462,11 @@ const storeHelper = {
       sessions: [],
       agendaItems: [],
       documents: [],
-      archives: [],
       categories: [...DEFAULT_CATEGORIES],
       documentTags: [...DEFAULT_DOCUMENT_TAGS],
       meetingInfo: {
-        title: 'SGB & SMT Ordinary Meeting',
-        date: '2026-09-24',
+        title: 'SGB/SMT Strategy Meeting',
+        date: '2026-08-27',
         school: 'LGAA'
       }
     };
@@ -544,60 +475,19 @@ const storeHelper = {
   },
 
   async read() {
-    let diskStore = null;
-    try {
-      if (fsSync.existsSync(STORE_FILE)) {
-        const data = fsSync.readFileSync(STORE_FILE, 'utf-8');
-        diskStore = JSON.parse(data);
-      }
-    } catch (e) {}
-
     let store = null;
     if (pool) {
-      try {
-        const res = await pool.query('SELECT data FROM app_store WHERE id = $1', ['main_store']);
-        if (res.rows.length > 0) {
-          store = typeof res.rows[0].data === 'string' ? JSON.parse(res.rows[0].data) : res.rows[0].data;
-        }
-      } catch (dbErr) {
-        console.warn('⚠️ PostgreSQL read failed, falling back to disk:', dbErr.message);
+      const res = await pool.query('SELECT data FROM app_store WHERE id = $1', ['main_store']);
+      if (res.rows.length > 0) {
+        store = typeof res.rows[0].data === 'string' ? JSON.parse(res.rows[0].data) : res.rows[0].data;
       }
     }
-
-    const dbHasArchives = store && Array.isArray(store.archives) && store.archives.length > 0;
-    const diskHasArchives = diskStore && Array.isArray(diskStore.archives) && diskStore.archives.length > 0;
-
-    if (diskStore && store && !dbHasArchives && diskHasArchives) {
-      store.archives = diskStore.archives;
-      if (pool) {
-        try {
-          await pool.query('UPDATE app_store SET data = $1 WHERE id = $2', [JSON.stringify(store), 'main_store']);
-          console.log('🔄 Synced disk archives to PostgreSQL store');
-        } catch (e) {}
-      }
-    }
-
     if (!store) {
-      store = diskStore || {
-        members: readMembersFromExcel(),
-        sessions: [],
-        agendaItems: [],
-        documents: [],
-        archives: [],
-        categories: [...DEFAULT_CATEGORIES],
-        documentTags: [...DEFAULT_DOCUMENT_TAGS],
-        meetingInfo: {
-          title: 'SGB & SMT Ordinary Meeting',
-          date: '2026-09-24',
-          school: 'LGAA'
-        }
-      };
+      const data = await fs.readFile(STORE_FILE, 'utf-8');
+      store = JSON.parse(data);
     }
     if (!Array.isArray(store.documents)) {
       store.documents = [];
-    }
-    if (!Array.isArray(store.archives)) {
-      store.archives = [];
     }
     if (!Array.isArray(store.categories) || store.categories.length === 0) {
       store.categories = [...DEFAULT_CATEGORIES];
@@ -622,34 +512,27 @@ const storeHelper = {
 
   async write(data) {
     if (pool) {
-      try {
-        await pool.query(
-          'INSERT INTO app_store (id, data) VALUES ($1, $2) ON CONFLICT (id) DO UPDATE SET data = $2',
-          ['main_store', JSON.stringify(data)]
-        );
-      } catch (dbErr) {
-        console.error('⚠️ PostgreSQL store write error (falling back to disk):', dbErr.message);
-      }
+      await pool.query(
+        'INSERT INTO app_store (id, data) VALUES ($1, $2) ON CONFLICT (id) DO UPDATE SET data = $2',
+        ['main_store', JSON.stringify(data)]
+      );
+      return;
     }
-    try {
-      await fs.writeFile(STORE_FILE, JSON.stringify(data, null, 2));
-    } catch (fsErr) {
-      console.error('⚠️ Disk store write error:', fsErr.message);
-    }
+    await fs.writeFile(STORE_FILE, JSON.stringify(data, null, 2));
   }
 };
 
-// ── Status Logic ──
+// ΓöÇΓöÇ Status Logic ΓöÇΓöÇ
 function determineStatus(voteCount) {
   if (voteCount >= 5) return 'endorsed';
   if (voteCount >= 2) return 'seconded';
   return 'proposed';
 }
 
-// ── Express App ──
+// ΓöÇΓöÇ Express App ΓöÇΓöÇ
 const app = express();
 app.use(express.json());
-// ── Direct Zero-Cache Route for Doc Formatter ──
+// ΓöÇΓöÇ Direct Zero-Cache Route for Doc Formatter ΓöÇΓöÇ
 app.get(['/doc-formatter', '/doc-formatter.html'], (req, res) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
   res.setHeader('Pragma', 'no-cache');
@@ -676,7 +559,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// ── Auth Middleware ──
+// ΓöÇΓöÇ Auth Middleware ΓöÇΓöÇ
 async function requireAuth(req, res, next) {
   let token = null;
   const authHeader = req.headers.authorization;
@@ -707,7 +590,7 @@ async function requireAuth(req, res, next) {
   next();
 }
 
-// ── Public Endpoints ──
+// ΓöÇΓöÇ Public Endpoints ΓöÇΓöÇ
 
 const APP_VERSION = '20260826-01';
 
@@ -801,7 +684,7 @@ app.post('/api/logout', requireAuth, async (req, res) => {
   }
 });
 
-// ── Protected Endpoints ──
+// ΓöÇΓöÇ Protected Endpoints ΓöÇΓöÇ
 
 // Get all members (authenticated)
 app.get('/api/members', requireAuth, async (req, res) => {
@@ -979,7 +862,7 @@ app.delete('/api/items/:id', requireAuth, async (req, res) => {
   }
 });
 
-// ── Comments & Brainstorming Endpoints ──
+// ΓöÇΓöÇ Comments & Brainstorming Endpoints ΓöÇΓöÇ
 
 // Add comment to an item
 app.post('/api/items/:id/comments', requireAuth, async (req, res) => {
@@ -1326,7 +1209,7 @@ function sendDocumentErrorResponse(res, req, doc, message) {
 </head>
 <body>
   <div class="error-card">
-    <div class="error-icon">📁⚠️</div>
+    <div class="error-icon">≡ƒôüΓÜá∩╕Å</div>
     <h1>Document Not Available</h1>
     <div class="highlight-box">
       <div class="highlight-title">${escapeHtml(docTitle)}</div>
@@ -1345,7 +1228,7 @@ function sendDocumentErrorResponse(res, req, doc, message) {
   return res.status(404).json({ error: message || 'File not found on server. Please re-upload this document.' });
 }
 
-// ── Shared Documents & Files Endpoints ──
+// ΓöÇΓöÇ Shared Documents & Files Endpoints ΓöÇΓöÇ
 
 // List all documents
 app.get('/api/documents', requireAuth, async (req, res) => {
@@ -1479,7 +1362,11 @@ app.post('/api/documents/upload', requireAuth, (req, res) => {
             [newDoc.id, req.file.originalname, req.file.mimetype, fileBuffer]
           );
         } catch (dbErr) {
-          console.warn('⚠️ Warning: Could not store file binary in PostgreSQL (fallback to disk):', dbErr.message);
+          console.error('Failed to store file binary in PostgreSQL:', dbErr);
+          if (req.file && req.file.path) {
+            try { await fs.unlink(req.file.path); } catch { /* ignore */ }
+          }
+          return res.status(500).json({ error: 'Failed to persist document binary into database. ' + (dbErr.message || '') });
         }
       }
 
@@ -1773,7 +1660,7 @@ app.delete('/api/documents/:id', requireAuth, async (req, res) => {
   }
 });
 
-// ── Category Management Endpoints (Admin Only) ──
+// ΓöÇΓöÇ Category Management Endpoints (Admin Only) ΓöÇΓöÇ
 
 // Get all categories
 app.get('/api/categories', requireAuth, (req, res) => {
@@ -2078,24 +1965,6 @@ app.get('/api/stats', requireAuth, async (req, res) => {
   }
 });
 
-// Helper to categorize governance members into SGB/SMT components
-function getMemberComponent(role) {
-  const r = (role || '').toLowerCase();
-  if (r.includes('educator') || r.includes('teacher') || r.includes('tots') || r.includes('preschool') || r.includes('grade r')) {
-    return 'Educator Component';
-  }
-  if (r.includes('parent') || r.includes('chairperson') || r.includes('treasurer')) {
-    return 'Parent Component';
-  }
-  if (r.includes('principal') || r.includes('deputy') || r.includes('smt') || r.includes('management')) {
-    return 'Management / SMT Component';
-  }
-  if (r.includes('non') || r.includes('finance') || r.includes('clerk') || r.includes('admin') || r.includes('staff')) {
-    return 'Non-Teaching Staff & Secretariat Component';
-  }
-  return 'General Governance Component';
-}
-
 // Export
 app.get('/api/export', requireAuth, async (req, res) => {
   try {
@@ -2120,1294 +1989,7 @@ app.get('/api/export', requireAuth, async (req, res) => {
   }
 });
 
-// GET /api/attendance: retrieve formal attendance roster & quorum statistics
-app.get('/api/attendance', requireAuth, async (req, res) => {
-  try {
-    const store = req.store;
-    const members = store.members || [];
-    const savedAttendance = store.attendance || {};
-
-    const componentsMap = {
-      'Parent Component': [],
-      'Management / SMT Component': [],
-      'Educator Component': [],
-      'Non-Teaching Staff & Secretariat Component': []
-    };
-
-    let totalMembers = members.length;
-    let presentCount = 0;
-    let apologyCount = 0;
-    let absentCount = 0;
-
-    members.forEach((m, idx) => {
-      const comp = getMemberComponent(m.role);
-      if (!componentsMap[comp]) {
-        componentsMap[comp] = [];
-      }
-      const saved = savedAttendance[m.id] || savedAttendance[m.name] || {};
-      const status = saved.status || 'Present';
-      const timeIn = saved.timeIn || '10:00';
-
-      if (status === 'Present') presentCount++;
-      else if (status === 'Apology') apologyCount++;
-      else absentCount++;
-
-      componentsMap[comp].push({
-        id: m.id || `member-${idx + 1}`,
-        index: idx + 1,
-        name: m.name,
-        title: m.title || '',
-        role: m.role || '',
-        component: comp,
-        email: m.email || '',
-        contact: m.contact || '',
-        status: status,
-        timeIn: timeIn,
-        signature: 'Signed'
-      });
-    });
-
-    const quorumThreshold = Math.floor(totalMembers / 2) + 1;
-    const isQuorate = presentCount >= quorumThreshold;
-    const quorumPercentage = totalMembers > 0 ? ((presentCount / totalMembers) * 100).toFixed(1) + '%' : '100.0%';
-
-    res.json({
-      schoolInfo: {
-        name: 'LADY GREY ARTS ACADEMY',
-        department: 'EASTERN CAPE DEPARTMENT OF EDUCATION',
-        district: 'JOE GQABI DISTRICT • EKHEPHINI CIRCUIT • CMC MALETSWAI',
-        emis: '200600985',
-        address: '18 Brummer Street, Lady Grey, 9755',
-        contact: 'Tel: 051 603 0046 | admin@lgaa.co.za'
-      },
-      meetingInfo: {
-        title: store.meetingInfo?.title || 'SGB & SMT Strategy Meeting — Way Forward',
-        date: store.meetingInfo?.date || '2026-08-27',
-        dateFormatted: '27 August 2026',
-        time: '10:00 SAST',
-        venue: 'School Staff Room / Boardroom',
-        chairperson: 'Mr. Kwezi Dyasi (SGB Chairperson)',
-        secretary: 'Mr. Stephen Vorster (Admin Clerk / Secretariat)',
-        type: 'Joint Ordinary SGB & SMT Strategic Governance Sitting'
-      },
-      stats: {
-        totalMembers,
-        presentCount,
-        apologyCount,
-        absentCount,
-        quorumThreshold,
-        isQuorate,
-        quorumPercentage,
-        statutoryBasis: 'Section 12(1) & 18(1) of South African Schools Act (Act No. 84 of 1996)'
-      },
-      components: Object.entries(componentsMap)
-        .filter(([_, list]) => list.length > 0)
-        .map(([name, list]) => ({ name, members: list })),
-      certifiers: [
-        { role: 'SGB CHAIRPERSON', name: 'Mr. K. Dyasi', title: 'Mr' },
-        { role: 'SCHOOL PRINCIPAL', name: 'Ms. M. Botha', title: 'Ms' },
-        { role: 'SGB SECRETARIAT / ADMIN', name: 'Mr. S. Vorster', title: 'Mr' }
-      ],
-      lastSaved: store.attendanceLastSaved || null,
-      generatedAt: new Date().toISOString()
-    });
-  } catch (error) {
-    console.error('Error fetching attendance:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// POST /api/attendance: save / commit updated attendance roster to database
-app.post('/api/attendance', requireAuth, async (req, res) => {
-  try {
-    const store = req.store;
-    const body = req.body || {};
-    let attendanceMap = store.attendance || {};
-
-    if (body.attendance && typeof body.attendance === 'object') {
-      attendanceMap = { ...attendanceMap, ...body.attendance };
-    } else if (Array.isArray(body.components)) {
-      body.components.forEach(comp => {
-        (comp.members || []).forEach(m => {
-          if (m.id || m.name) {
-            attendanceMap[m.id || m.name] = {
-              status: m.status || 'Present',
-              timeIn: m.timeIn || '10:00',
-              updatedAt: new Date().toISOString()
-            };
-          }
-        });
-      });
-    } else if (Array.isArray(body.roster)) {
-      body.roster.forEach(m => {
-        if (m.id || m.name) {
-          attendanceMap[m.id || m.name] = {
-            status: m.status || 'Present',
-            timeIn: m.timeIn || '10:00',
-            updatedAt: new Date().toISOString()
-          };
-        }
-      });
-    }
-
-    store.attendance = attendanceMap;
-    store.attendanceLastSaved = new Date().toISOString();
-    store.attendanceSavedBy = {
-      id: req.member.id,
-      name: req.member.name
-    };
-
-    await storeHelper.write(store);
-    res.json({ ok: true, message: 'Attendance register saved successfully', lastSaved: store.attendanceLastSaved });
-  } catch (error) {
-    console.error('Error saving attendance:', error);
-    res.status(500).json({ error: 'Failed to save attendance record' });
-  }
-});
-
-// GET /api/attendance/docx: generate and download official attendance register Word document
-app.get('/api/attendance/docx', requireAuth, async (req, res) => {
-  try {
-    const store = req.store;
-    const members = store.members || [];
-    const meetingDate = store.meetingInfo?.date || '2026-08-27';
-    const totalMembers = members.length;
-    const quorumThreshold = Math.floor(totalMembers / 2) + 1;
-
-    const parents = members.filter(m => getMemberComponent(m.role) === 'Parent Component');
-    const management = members.filter(m => getMemberComponent(m.role) === 'Management / SMT Component');
-    const educators = members.filter(m => getMemberComponent(m.role) === 'Educator Component');
-    const nonTeaching = members.filter(m => getMemberComponent(m.role) === 'Non-Teaching Staff & Secretariat Component');
-
-    let rosterText = '2. ATTENDANCE ROSTER BY GOVERNANCE COMPONENT\n\n';
-    rosterText += '2.1 Parent Component:\n';
-    parents.forEach(m => {
-      rosterText += `• ${m.title ? m.title + ' ' : ''}${m.name} (${m.role}) — Present (Signed)\n`;
-    });
-    rosterText += '\n2.2 Management / SMT Component:\n';
-    management.forEach(m => {
-      rosterText += `• ${m.title ? m.title + ' ' : ''}${m.name} (${m.role}) — Present (Signed)\n`;
-    });
-    rosterText += '\n2.3 Educator Component:\n';
-    educators.forEach(m => {
-      rosterText += `• ${m.title ? m.title + ' ' : ''}${m.name} (${m.role}) — Present (Signed)\n`;
-    });
-    rosterText += '\n2.4 Non-Teaching Staff & Secretariat Component:\n';
-    nonTeaching.forEach(m => {
-      rosterText += `• ${m.title ? m.title + ' ' : ''}${m.name} (${m.role}) — Present (Signed)\n`;
-    });
-
-    const rawText = `
-1. RECORD OF ATTENDANCE AND DECLARATION OF QUORUM
-1.1 Meeting Type: Joint Ordinary SGB & SMT Strategic Governance Sitting.
-1.2 Meeting Date: 27 August 2026 | Time: 10:00 SAST | Venue: School Staff Room / Boardroom.
-1.3 Statutory Basis: In terms of Section 12 & Section 18 of the South African Schools Act, 1996 (Act No. 84 of 1996) and the SGB Constitution, a majority of voting members (>50%) constitutes a binding quorum.
-1.4 Total SGB & SMT Members: ${totalMembers} Members | Members Present: ${totalMembers} Members | Quorum Required: ${quorumThreshold} Members.
-1.5 Quorum Status: Legally Quorate (100.0% attendance recorded) and fully constituted to adopt binding governance resolutions.
-
-${rosterText.trim()}
-
-3. RECORD OF APOLOGIES AND LEAVE OF ABSENCE
-3.1 No formal apologies were tendered; full governance attendance recorded.
-
-4. ATTENDANCE VERIFICATION & QUORUM CERTIFICATION
-We hereby certify that the attendance recorded above represents the true, accurate, and complete record of attendance of the SGB and SMT meeting held on 27 August 2026.
-`;
-
-    const config = {
-      documentTitle: 'SGB & SMT OFFICIAL MEETING ATTENDANCE REGISTER',
-      documentSubtitle: 'LADY GREY ARTS ACADEMY • STRATEGY MEETING OF 27 AUGUST 2026',
-      typography: {
-        fontFamily: 'Aptos',
-        lineSpacing: 1.2,
-        spaceBeforePt: 4,
-        spaceAfterPt: 0,
-        paragraphSpacingPt: 0,
-        titleSizePt: 14,
-        subtitleSizePt: 11,
-        bodySizePt: 10,
-        primaryColor: '#0C2340',
-        secondaryColor: '#A6192E',
-        textColor: '#1A1A1A'
-      },
-      pageSetup: {
-        paperSize: 'A4',
-        borderStyle: 'none',
-        leftMarginMm: 12,
-        rightMarginMm: 12,
-        topMarginMm: 12,
-        bottomMarginMm: 12
-      },
-      header: {
-        frequency: 'first_page_only',
-        sourceMode: 'structured',
-        layout: 'lgaa_official',
-        showColorBar: true,
-        title: 'LADY GREY ARTS ACADEMY',
-        subtitle: 'School Governing Body & School Management Team',
-        contact: '18 Brummer Street, Lady Grey, 9755 | Tel: 051 603 0046 | admin@lgaa.co.za',
-        emis: 'EMIS: 200600985 | District: Joe Gqabi | Circuit: Ekhephini | CMC: Maletswai',
-        badgeText: 'SGB',
-        badgeSubtext: 'ATTENDANCE'
-      },
-      footer: {
-        pageNumberFormat: 'x_slash_y',
-        alignment: 'center',
-        showTopDivider: true,
-        customText: 'Official SGB/SMT Governance Attendance Register'
-      },
-      components: {
-        metadataTable: { enabled: false },
-        signatures: {
-          enabled: true,
-          title: 'ATTENDANCE VERIFICATION & RECORD OF QUORUM',
-          introText: 'Certified as an accurate and binding record of attendance and quorum verification for the SGB/SMT Strategy Meeting of 27 August 2026:',
-          signers: [
-            { role: 'SGB CHAIRPERSON', name: 'Mr. K. Dyasi', date: '27 August 2026' },
-            { role: 'SCHOOL PRINCIPAL', name: 'Ms. M. Botha', date: '27 August 2026' },
-            { role: 'SGB SECRETARIAT / ADMIN', name: 'Mr. S. Vorster', date: '27 August 2026' }
-          ],
-          showSchoolStamp: true,
-          showDistrictStamp: false
-        }
-      }
-    };
-
-    const parsedBlocks = parseRawText(rawText);
-    const docxBuffer = await buildFormattedDocx(config, parsedBlocks);
-
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-    res.setHeader('Content-Disposition', `attachment; filename="03_Signed_Attendance_Register_${meetingDate}.docx"`);
-    res.send(docxBuffer);
-  } catch (error) {
-    console.error('Error generating attendance DOCX:', error);
-    res.status(500).json({ error: 'Failed to generate attendance document' });
-  }
-});
-
-// ── Meeting Info & Meeting Archives API ──
-
-// GET /api/meeting-info: retrieve current active meeting information
-app.get('/api/meeting-info', async (req, res) => {
-  try {
-    const store = await storeHelper.read();
-    res.json(store.meetingInfo || {
-      title: 'SGB/SMT Strategy Meeting',
-      date: '2026-08-27',
-      time: '10:00 SAST',
-      venue: 'School Staff Room / Boardroom',
-      school: 'Lady Grey Arts Academy'
-    });
-  } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// PUT /api/meeting-info: update current active meeting information (Admin / Secretariat)
-app.put('/api/meeting-info', requireAuth, async (req, res) => {
-  try {
-    const store = req.store;
-    const { title, date, time, venue, school, chairperson, secretary, type, summary } = req.body;
-    store.meetingInfo = {
-      ...(store.meetingInfo || {}),
-      ...(title ? { title: title.trim() } : {}),
-      ...(date ? { date: date.trim() } : {}),
-      ...(time ? { time: time.trim() } : {}),
-      ...(venue ? { venue: venue.trim() } : {}),
-      ...(school ? { school: school.trim() } : {}),
-      ...(chairperson ? { chairperson: chairperson.trim() } : {}),
-      ...(secretary ? { secretary: secretary.trim() } : {}),
-      ...(type ? { type: type.trim() } : {}),
-      ...(summary !== undefined ? { summary: summary.trim() } : {})
-    };
-    await storeHelper.write(store);
-    res.json(store.meetingInfo);
-  } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// Helper to fetch file buffer from database or disk
-async function getFileBufferFromRecord(fileRecord) {
-  if (!fileRecord) return null;
-  if (pool && fileRecord.id) {
-    try {
-      const dbRes = await pool.query('SELECT file_data, mimetype FROM app_files WHERE id = $1', [fileRecord.id]);
-      if (dbRes.rows.length > 0 && dbRes.rows[0].file_data) {
-        return { buffer: dbRes.rows[0].file_data, mimeType: dbRes.rows[0].mimetype || fileRecord.mimeType };
-      }
-    } catch (e) {
-      console.error('Error fetching file buffer from DB:', e.message);
-    }
-  }
-  if (fileRecord.storedName) {
-    const filePath = path.join(UPLOADS_DIR, fileRecord.storedName);
-    if (fsSync.existsSync(filePath)) {
-      const buffer = await fs.readFile(filePath);
-      return { buffer, mimeType: fileRecord.mimeType || 'application/octet-stream' };
-    }
-  }
-  return null;
-}
-
-// Helper to generate formal DOCX meeting minutes dossier
-async function generateArchiveMinutesDocx(archive) {
-  const meetingInfo = archive.meetingInfo || {};
-  const meetingDate = meetingInfo.date || '2026-08-27';
-  const meetingTitle = meetingInfo.title || 'SGB & SMT Strategy Meeting';
-  const stats = archive.stats || {};
-  const agendaItems = Array.isArray(archive.agendaSnapshot) ? archive.agendaSnapshot : [];
-  const resolutions = Array.isArray(archive.resolutions) ? archive.resolutions : [];
-  const attendance = archive.attendance || {};
-  const components = Array.isArray(attendance.components) ? attendance.components : [];
-
-  let text = `
-1. RECORD OF MEETING, STATUTORY MANDATE & QUORUM CERTIFICATION
-1.1 Meeting Title: ${meetingTitle.toUpperCase()}.
-1.2 Date & Time: ${meetingDate} | ${meetingInfo.time || '10:00 SAST'} | Venue: ${meetingInfo.venue || 'School Staff Room / Boardroom'}.
-1.3 Convening Authority: ${meetingInfo.type || 'Joint Ordinary SGB & SMT Strategic Governance Sitting'}.
-1.4 Statutory Authority: Convened in terms of Section 12 & Section 18 of the South African Schools Act (Act No. 84 of 1996) and the LGAA SGB Constitution.
-1.5 Quorum Status: ${stats.isQuorate !== false ? 'Legally Quorate (>50% majority established)' : 'Non-Quorate'}. Total Members: ${stats.totalMembers || 15} | Present: ${stats.presentCount || 15} | Apologies: ${stats.apologyCount || 0}.
-
-2. ATTENDANCE ROSTER BY GOVERNANCE COMPONENT
-`;
-
-  if (components.length > 0) {
-    components.forEach((comp, idx) => {
-      text += `\n2.${idx + 1} ${comp.name}:\n`;
-      (comp.members || []).forEach(m => {
-        text += `• ${m.title ? m.title + ' ' : ''}${m.name} (${m.role}) — Status: ${m.status || 'Present'}\n`;
-      });
-    });
-  } else {
-    text += `\n2.1 General Governance Sitting: Full attendance certified in formal register.\n`;
-  }
-
-  text += `
-3. RECORD OF PROCEEDINGS & AGENDA DELIBERATIONS
-`;
-
-  if (agendaItems.length === 0) {
-    text += `3.1 No formal items submitted for this sitting.\n`;
-  } else {
-    agendaItems.forEach((item, idx) => {
-      const voteCount = Array.isArray(item.votes) ? item.votes.length : 0;
-      const statusLabel = item.status ? (item.status.charAt(0).toUpperCase() + item.status.slice(1)) : 'Proposed';
-      text += `\n3.${idx + 1} Topic: ${item.title}\n`;
-      text += `• Category: ${item.category || 'General'} | Status: ${statusLabel} (${voteCount} votes)\n`;
-      text += `• Proposed by: ${item.proposedBy?.memberName || 'Member'} (${item.proposedBy?.memberRole || 'Governance'})\n`;
-      text += `• Summary of Discussion: ${item.description || 'Deliberated by sitting.'}\n`;
-      
-      if (item.isResolved && item.resolution) {
-        text += `• Agreed Resolution: ${item.resolution.solutionText}\n`;
-      }
-      if (Array.isArray(item.comments) && item.comments.length > 0) {
-        text += `• Key Deliberation Points:\n`;
-        item.comments.forEach(c => {
-          text += `   - [${c.type || 'Note'}] ${c.memberName}: ${c.content}${c.isSolution ? ' (Accepted Solution)' : ''}\n`;
-        });
-      }
-    });
-  }
-
-  text += `
-4. FORMAL GOVERNANCE RESOLUTIONS, DECISIONS & ACTION PLAN
-`;
-
-  if (resolutions.length === 0) {
-    text += `4.1 All strategic matters noted for ongoing governance monitoring.\n`;
-  } else {
-    resolutions.forEach((res, idx) => {
-      text += `\n4.${idx + 1} Resolution / Decision: ${res.itemTitle || res.title || ('Resolution ' + (idx + 1))}\n`;
-      text += `• Decision Outcome: ${res.decision || 'Adopted'}\n`;
-      text += `• Formal Text: ${res.resolutionText || res.text || 'Resolution adopted by consensus.'}\n`;
-      if (Array.isArray(res.actionItems) && res.actionItems.length > 0) {
-        text += `• Action Items & Execution Deadlines:\n`;
-        res.actionItems.forEach((act, aIdx) => {
-          text += `   ${idx + 1}.${aIdx + 1} Task: ${act.task} | Responsible: ${act.assignee || 'Assigned Officer'} | Due: ${act.dueDate || 'Immediate'} | Status: ${act.status || 'Pending'}\n`;
-        });
-      }
-    });
-  }
-
-  if (archive.transcript?.text) {
-    text += `
-5. EXECUTIVE SUMMARY OF AUDIO TRANSCRIPT
-${archive.transcript.text.trim()}
-`;
-  }
-
-  text += `
-6. FORMAL SIGN-OFF & CERTIFICATION OF MINUTES
-We, the undersigned executive office-bearers, hereby confirm that these minutes and resolutions constitute a true, binding, and accurate record of the sitting held on ${meetingDate}.
-`;
-
-  const config = {
-    documentTitle: 'OFFICIAL MEETING MINUTES & GOVERNANCE DOSSIER',
-    documentSubtitle: `LADY GREY ARTS ACADEMY • ${meetingTitle.toUpperCase()} (${meetingDate})`,
-    typography: {
-      fontFamily: 'Aptos',
-      lineSpacing: 1.2,
-      spaceBeforePt: 4,
-      spaceAfterPt: 0,
-      paragraphSpacingPt: 0,
-      titleSizePt: 14,
-      subtitleSizePt: 11,
-      bodySizePt: 10,
-      primaryColor: '#0C2340',
-      secondaryColor: '#A6192E',
-      textColor: '#1A1A1A'
-    },
-    pageSetup: {
-      paperSize: 'A4',
-      borderStyle: 'none',
-      leftMarginMm: 12,
-      rightMarginMm: 12,
-      topMarginMm: 12,
-      bottomMarginMm: 12
-    },
-    header: {
-      frequency: 'first_page_only',
-      sourceMode: 'structured',
-      layout: 'lgaa_official',
-      showColorBar: true,
-      title: 'LADY GREY ARTS ACADEMY',
-      subtitle: 'School Governing Body & School Management Team',
-      contact: '18 Brummer Street, Lady Grey, 9755 | Tel: 051 603 0046 | admin@lgaa.co.za',
-      emis: 'EMIS: 200600985 | District: Joe Gqabi | Circuit: Ekhephini | CMC: Maletswai',
-      badgeText: 'MINUTES',
-      badgeSubtext: 'OFFICIAL'
-    },
-    footer: {
-      pageNumberFormat: 'x_slash_y',
-      alignment: 'center',
-      showTopDivider: true,
-      customText: `Official SGB/SMT Meeting Dossier • ${meetingDate}`
-    },
-    components: {
-      metadataTable: { enabled: false },
-      signatures: {
-        enabled: true,
-        title: 'ADOPTION OF MINUTES & GOVERNANCE CERTIFICATION',
-        introText: `Certified and signed on this day for the meeting held on ${meetingDate}:`,
-        signers: [
-          { role: 'SGB CHAIRPERSON', name: 'Mr. K. Dyasi', date: meetingDate },
-          { role: 'SCHOOL PRINCIPAL', name: 'Ms. M. Botha', date: meetingDate },
-          { role: 'SGB SECRETARIAT / ADMIN', name: 'Mr. S. Vorster', date: meetingDate }
-        ],
-        showSchoolStamp: true,
-        showDistrictStamp: false
-      }
-    }
-  };
-
-  const parsedBlocks = parseRawText(text);
-  return await buildFormattedDocx(config, parsedBlocks);
-}
-
-// GET /api/archives: list all meeting archives (sorted newest first)
-app.get('/api/archives', requireAuth, async (req, res) => {
-  try {
-    const store = req.store;
-    const archives = Array.isArray(store.archives) ? store.archives : [];
-    
-    const summaries = archives.map(arch => ({
-      id: arch.id,
-      archiveNumber: arch.archiveNumber,
-      archivedAt: arch.archivedAt,
-      archivedBy: arch.archivedBy,
-      lastModifiedAt: arch.lastModifiedAt,
-      lastModifiedBy: arch.lastModifiedBy,
-      meetingInfo: arch.meetingInfo,
-      stats: arch.stats,
-      hasMinutes: Array.isArray(arch.minutesFiles) && arch.minutesFiles.length > 0,
-      minutesCount: Array.isArray(arch.minutesFiles) ? arch.minutesFiles.length : 0,
-      minutesFiles: arch.minutesFiles || [],
-      hasAudio: Array.isArray(arch.audioFiles) && arch.audioFiles.length > 0,
-      audioCount: Array.isArray(arch.audioFiles) ? arch.audioFiles.length : 0,
-      hasTranscript: Boolean((arch.transcript?.text && arch.transcript.text.trim()) || (Array.isArray(arch.transcript?.files) && arch.transcript.files.length > 0)),
-      hasSignedRegister: Array.isArray(arch.signedAttendanceFiles) && arch.signedAttendanceFiles.length > 0,
-      resolutionsCount: Array.isArray(arch.resolutions) ? arch.resolutions.length : 0,
-      itemsCount: Array.isArray(arch.agendaSnapshot) ? arch.agendaSnapshot.length : 0,
-      documentsCount: Array.isArray(arch.vaultDocuments) ? arch.vaultDocuments.length : 0,
-      notes: arch.notes || ''
-    })).sort((a, b) => new Date(b.meetingInfo?.date || b.archivedAt) - new Date(a.meetingInfo?.date || a.archivedAt));
-
-    res.json(summaries);
-  } catch (error) {
-    console.error('Error fetching archives:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// GET /api/archives/:id: retrieve single complete archive dossier
-app.get('/api/archives/:id', requireAuth, async (req, res) => {
-  try {
-    const store = req.store;
-    const archives = Array.isArray(store.archives) ? store.archives : [];
-    const arch = archives.find(a => a.id === req.params.id);
-    if (!arch) {
-      return res.status(404).json({ error: 'Meeting archive not found' });
-    }
-    res.json(arch);
-  } catch (error) {
-    console.error('Error fetching archive dossier:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// POST /api/archives/conclude: conclude active meeting, upload assets, archive and reset workspace
-app.post('/api/archives/conclude', requireAuth, (req, res) => {
-  archiveUpload(req, res, async (err) => {
-    if (err instanceof multer.MulterError) {
-      return res.status(400).json({ error: `Upload error: ${err.message}` });
-    } else if (err) {
-      return res.status(400).json({ error: err.message });
-    }
-
-    try {
-      const member = req.member;
-      const store = req.store;
-
-      // Parse JSON fields from request
-      let parsedMeetingInfo = {};
-      try {
-        parsedMeetingInfo = typeof req.body.meetingInfo === 'string' ? JSON.parse(req.body.meetingInfo) : (req.body.meetingInfo || {});
-      } catch { parsedMeetingInfo = {}; }
-
-      let parsedResolutions = [];
-      try {
-        parsedResolutions = typeof req.body.resolutions === 'string' ? JSON.parse(req.body.resolutions) : (req.body.resolutions || []);
-      } catch { parsedResolutions = []; }
-
-      let parsedAttendance = null;
-      try {
-        parsedAttendance = typeof req.body.attendanceData === 'string' ? JSON.parse(req.body.attendanceData) : (req.body.attendanceData || null);
-      } catch { parsedAttendance = null; }
-
-      let parsedNextMeetingInfo = {};
-      try {
-        parsedNextMeetingInfo = typeof req.body.nextMeetingInfo === 'string' ? JSON.parse(req.body.nextMeetingInfo) : (req.body.nextMeetingInfo || {});
-      } catch { parsedNextMeetingInfo = {}; }
-
-      const transcriptText = (req.body.transcriptText || '').trim();
-      const notes = (req.body.notes || '').trim();
-      const clearVault = req.body.clearVault !== 'false';
-
-      // Helper to process uploaded files and save to PostgreSQL if active
-      const mapUploadedFiles = async (filesList) => {
-        if (!Array.isArray(filesList) || filesList.length === 0) return [];
-        const result = [];
-        for (const f of filesList) {
-          const fileId = uuidv4();
-          const ext = path.extname(f.originalname).toLowerCase().replace(/^\./, '');
-          const fileObj = {
-            id: fileId,
-            originalName: f.originalname,
-            storedName: f.filename,
-            size: f.size,
-            mimeType: f.mimetype || 'application/octet-stream',
-            extension: ext,
-            uploadedAt: new Date().toISOString()
-          };
-
-          if (pool) {
-            try {
-              const fileBuf = await fs.readFile(f.path);
-              await pool.query(
-                'INSERT INTO app_files (id, filename, mimetype, file_data) VALUES ($1, $2, $3, $4) ON CONFLICT (id) DO UPDATE SET filename = $2, mimetype = $3, file_data = $4',
-                [fileId, f.originalname, f.mimetype, fileBuf]
-              );
-            } catch (dbErr) {
-              console.error('Error persisting archive file to DB:', dbErr.message);
-            }
-          }
-          result.push(fileObj);
-        }
-        return result;
-      };
-
-      const audioFilesList = await mapUploadedFiles(req.files?.audioFiles);
-      const minutesFilesList = await mapUploadedFiles(req.files?.minutesFiles);
-      const transcriptFilesList = await mapUploadedFiles(req.files?.transcriptFiles);
-      const signedRegisterFilesList = await mapUploadedFiles(req.files?.signedRegisterFiles);
-      const resolutionFilesList = await mapUploadedFiles(req.files?.resolutionFiles);
-
-      // Deep copy snapshots of active meeting
-      const agendaSnapshot = JSON.parse(JSON.stringify(store.agendaItems || []));
-      const vaultDocuments = JSON.parse(JSON.stringify(store.documents || []));
-      const currentMeetingInfo = store.meetingInfo || {};
-
-      // Auto-compile resolutions from resolved agenda items if not already added
-      agendaSnapshot.forEach((item, idx) => {
-        if (item.isResolved && item.resolution && item.resolution.solutionText) {
-          const alreadyExists = parsedResolutions.some(r => r.itemId === item.id || (r.itemTitle && r.itemTitle.toLowerCase() === item.title.toLowerCase()));
-          if (!alreadyExists) {
-            parsedResolutions.push({
-              id: uuidv4(),
-              itemId: item.id,
-              itemTitle: item.title,
-              resolutionText: item.resolution.solutionText,
-              decision: 'Adopted',
-              actionItems: [],
-              resolvedBy: item.resolution.resolvedBy || {
-                memberId: member.id,
-                memberName: member.name,
-                memberRole: member.role
-              },
-              resolvedAt: item.resolution.resolvedAt || new Date().toISOString()
-            });
-          }
-        }
-      });
-
-      // Prepare attendance snapshot
-      if (!parsedAttendance || !Array.isArray(parsedAttendance.components)) {
-        const membersList = store.members || [];
-        const componentsMap = {
-          'Parent Component': [],
-          'Management / SMT Component': [],
-          'Educator Component': [],
-          'Non-Teaching Staff & Secretariat Component': []
-        };
-        membersList.forEach((m, idx) => {
-          const comp = getMemberComponent(m.role);
-          if (!componentsMap[comp]) componentsMap[comp] = [];
-          componentsMap[comp].push({
-            id: m.id || `member-${idx + 1}`,
-            name: m.name,
-            title: m.title || '',
-            role: m.role || '',
-            component: comp,
-            status: 'Present',
-            timeIn: '10:00',
-            signature: 'Signed'
-          });
-        });
-        parsedAttendance = {
-          components: Object.entries(componentsMap)
-            .filter(([_, list]) => list.length > 0)
-            .map(([name, list]) => ({ name, members: list })),
-          quorumThreshold: Math.floor(membersList.length / 2) + 1,
-          totalMembers: membersList.length,
-          presentCount: membersList.length,
-          apologyCount: 0,
-          absentCount: 0,
-          isQuorate: true
-        };
-      }
-
-      // Calculate attendance statistics
-      let totalAttCount = 0;
-      let presentAttCount = 0;
-      let apologyAttCount = 0;
-      let absentAttCount = 0;
-
-      if (Array.isArray(parsedAttendance.components)) {
-        parsedAttendance.components.forEach(g => {
-          (g.members || []).forEach(m => {
-            totalAttCount++;
-            if (m.status === 'Present') presentAttCount++;
-            else if (m.status === 'Apology') apologyAttCount++;
-            else absentAttCount++;
-          });
-        });
-      }
-
-      const totalMembers = totalAttCount || store.members.length;
-      const quorumThreshold = Math.floor(totalMembers / 2) + 1;
-      const isQuorate = presentAttCount >= quorumThreshold;
-      const quorumPercentage = totalMembers > 0 ? ((presentAttCount / totalMembers) * 100).toFixed(1) + '%' : '100.0%';
-
-      const meetingDate = parsedMeetingInfo.date || currentMeetingInfo.date || new Date().toISOString().split('T')[0];
-
-      // Build complete archive record
-      const newArchive = {
-        id: uuidv4(),
-        archiveNumber: (store.archives ? store.archives.length : 0) + 1,
-        archivedAt: new Date().toISOString(),
-        archivedBy: {
-          memberId: member.id,
-          memberName: member.name,
-          memberRole: member.role
-        },
-        meetingInfo: {
-          title: parsedMeetingInfo.title || currentMeetingInfo.title || 'SGB/SMT Strategy Meeting',
-          date: meetingDate,
-          time: parsedMeetingInfo.time || currentMeetingInfo.time || '10:00 SAST',
-          venue: parsedMeetingInfo.venue || currentMeetingInfo.venue || 'School Staff Room / Boardroom',
-          school: parsedMeetingInfo.school || currentMeetingInfo.school || 'Lady Grey Arts Academy',
-          chairperson: parsedMeetingInfo.chairperson || currentMeetingInfo.chairperson || 'Mr. Kwezi Dyasi (SGB Chairperson)',
-          secretary: parsedMeetingInfo.secretary || currentMeetingInfo.secretary || 'Mr. Stephen Vorster (Admin Clerk / Secretariat)',
-          type: parsedMeetingInfo.type || currentMeetingInfo.type || 'Joint Ordinary SGB & SMT Strategic Governance Sitting',
-          summary: parsedMeetingInfo.summary || notes || ''
-        },
-        stats: {
-          totalMembers,
-          presentCount: presentAttCount,
-          apologyCount: apologyAttCount,
-          absentCount: absentAttCount,
-          quorumThreshold,
-          isQuorate,
-          quorumPercentage,
-          totalItems: agendaSnapshot.length,
-          totalVotes: agendaSnapshot.reduce((s, i) => s + (Array.isArray(i.votes) ? i.votes.length : 0), 0),
-          totalResolutions: parsedResolutions.length,
-          totalMinutesFiles: minutesFilesList.length,
-          totalAudioFiles: audioFilesList.length,
-          totalVaultDocuments: vaultDocuments.length
-        },
-        agendaSnapshot,
-        resolutions: parsedResolutions,
-        attendance: parsedAttendance,
-        minutesFiles: minutesFilesList,
-        audioFiles: audioFilesList,
-        transcript: {
-          text: transcriptText,
-          files: transcriptFilesList
-        },
-        signedAttendanceFiles: signedRegisterFilesList,
-        resolutionFiles: resolutionFilesList,
-        vaultDocuments,
-        notes,
-        lastModifiedAt: new Date().toISOString(),
-        lastModifiedBy: {
-          memberId: member.id,
-          memberName: member.name,
-          memberRole: member.role
-        }
-      };
-
-      if (!Array.isArray(store.archives)) {
-        store.archives = [];
-      }
-      store.archives.unshift(newArchive);
-
-      // ── RESET WORKSPACE FOR NEXT MEETING ──
-      store.agendaItems = [];
-      if (clearVault) {
-        store.documents = [];
-      }
-
-      // Configure next meeting info
-      const nextDate = parsedNextMeetingInfo.date || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-      store.meetingInfo = {
-        title: parsedNextMeetingInfo.title || 'SGB & SMT Ordinary Meeting',
-        date: nextDate,
-        time: parsedNextMeetingInfo.time || '10:00 SAST',
-        venue: parsedNextMeetingInfo.venue || 'School Staff Room / Boardroom',
-        school: parsedNextMeetingInfo.school || 'Lady Grey Arts Academy',
-        chairperson: parsedNextMeetingInfo.chairperson || 'Mr. Kwezi Dyasi (SGB Chairperson)',
-        secretary: parsedNextMeetingInfo.secretary || 'Mr. Stephen Vorster (Admin Clerk / Secretariat)'
-      };
-
-      await storeHelper.write(store);
-
-      console.log(`🏁 Meeting "${newArchive.meetingInfo.title}" on ${newArchive.meetingInfo.date} successfully concluded and archived by ${member.name}. System reset for next meeting on ${store.meetingInfo.date}.`);
-
-      res.status(201).json({
-        message: 'Meeting successfully concluded and archived. Workspace reset for next meeting.',
-        archiveId: newArchive.id,
-        archive: newArchive,
-        nextMeetingInfo: store.meetingInfo
-      });
-    } catch (error) {
-      console.error('Error concluding meeting:', error);
-      res.status(500).json({ error: 'Failed to conclude and archive meeting: ' + error.message });
-    }
-  });
-});
-
-// PUT /api/archives/:id: update an existing archive (modify resolutions, transcript text, notes, attendance)
-app.put('/api/archives/:id', requireAuth, async (req, res) => {
-  try {
-    const store = req.store;
-    const member = req.member;
-    const archives = Array.isArray(store.archives) ? store.archives : [];
-    const arch = archives.find(a => a.id === req.params.id);
-
-    if (!arch) {
-      return res.status(404).json({ error: 'Meeting archive not found' });
-    }
-
-    const { meetingInfo, notes, transcriptText, resolutions, attendanceData } = req.body;
-
-    if (meetingInfo && typeof meetingInfo === 'object') {
-      arch.meetingInfo = {
-        ...arch.meetingInfo,
-        ...meetingInfo
-      };
-    }
-
-    if (notes !== undefined) {
-      arch.notes = (notes || '').trim();
-    }
-
-    if (transcriptText !== undefined) {
-      if (!arch.transcript) arch.transcript = { text: '', files: [] };
-      arch.transcript.text = (transcriptText || '').trim();
-    }
-
-    if (Array.isArray(resolutions)) {
-      arch.resolutions = resolutions;
-      if (arch.stats) {
-        arch.stats.totalResolutions = resolutions.length;
-      }
-    }
-
-    if (attendanceData && typeof attendanceData === 'object') {
-      arch.attendance = attendanceData;
-    }
-
-    arch.lastModifiedAt = new Date().toISOString();
-    arch.lastModifiedBy = {
-      memberId: member.id,
-      memberName: member.name,
-      memberRole: member.role
-    };
-
-    await storeHelper.write(store);
-    res.json({ message: 'Archive updated successfully', archive: arch });
-  } catch (error) {
-    console.error('Error updating archive:', error);
-    res.status(500).json({ error: 'Failed to update archive: ' + error.message });
-  }
-});
-
-// POST /api/archives/:id/files: upload additional files to an existing archive
-app.post('/api/archives/:id/files', requireAuth, (req, res) => {
-  archiveUpload(req, res, async (err) => {
-    if (err instanceof multer.MulterError) {
-      return res.status(400).json({ error: `Upload error: ${err.message}` });
-    } else if (err) {
-      return res.status(400).json({ error: err.message });
-    }
-
-    try {
-      const store = req.store;
-      const member = req.member;
-      const archives = Array.isArray(store.archives) ? store.archives : [];
-      const arch = archives.find(a => a.id === req.params.id);
-
-      if (!arch) {
-        return res.status(404).json({ error: 'Meeting archive not found' });
-      }
-
-      const mapUploadedFiles = async (filesList) => {
-        if (!Array.isArray(filesList) || filesList.length === 0) return [];
-        const result = [];
-        for (const f of filesList) {
-          const fileId = uuidv4();
-          const ext = path.extname(f.originalname).toLowerCase().replace(/^\./, '');
-          const fileObj = {
-            id: fileId,
-            originalName: f.originalname,
-            storedName: f.filename,
-            size: f.size,
-            mimeType: f.mimetype || 'application/octet-stream',
-            extension: ext,
-            uploadedAt: new Date().toISOString()
-          };
-
-          if (pool) {
-            try {
-              const fileBuf = await fs.readFile(f.path);
-              await pool.query(
-                'INSERT INTO app_files (id, filename, mimetype, file_data) VALUES ($1, $2, $3, $4) ON CONFLICT (id) DO UPDATE SET filename = $2, mimetype = $3, file_data = $4',
-                [fileId, f.originalname, f.mimetype, fileBuf]
-              );
-            } catch (dbErr) {
-              console.error('Error saving file binary in DB:', dbErr.message);
-            }
-          }
-          result.push(fileObj);
-        }
-        return result;
-      };
-
-      const newAudio = await mapUploadedFiles(req.files?.audioFiles);
-      const newMinutes = await mapUploadedFiles(req.files?.minutesFiles);
-      const newTranscripts = await mapUploadedFiles(req.files?.transcriptFiles);
-      const newRegisters = await mapUploadedFiles(req.files?.signedRegisterFiles);
-      const newResolutions = await mapUploadedFiles(req.files?.resolutionFiles);
-
-      if (!Array.isArray(arch.audioFiles)) arch.audioFiles = [];
-      arch.audioFiles.push(...newAudio);
-
-      if (!Array.isArray(arch.minutesFiles)) arch.minutesFiles = [];
-      arch.minutesFiles.push(...newMinutes);
-
-      if (!arch.transcript) arch.transcript = { text: '', files: [] };
-      if (!Array.isArray(arch.transcript.files)) arch.transcript.files = [];
-      arch.transcript.files.push(...newTranscripts);
-
-      if (!Array.isArray(arch.signedAttendanceFiles)) arch.signedAttendanceFiles = [];
-      arch.signedAttendanceFiles.push(...newRegisters);
-
-      if (!Array.isArray(arch.resolutionFiles)) arch.resolutionFiles = [];
-      arch.resolutionFiles.push(...newResolutions);
-
-      if (arch.stats) {
-        arch.stats.totalAudioFiles = arch.audioFiles.length;
-        arch.stats.totalMinutesFiles = arch.minutesFiles.length;
-      }
-
-      arch.lastModifiedAt = new Date().toISOString();
-      arch.lastModifiedBy = {
-        memberId: member.id,
-        memberName: member.name,
-        memberRole: member.role
-      };
-
-      await storeHelper.write(store);
-      res.json({ message: 'Files added to archive successfully', archive: arch });
-    } catch (error) {
-      console.error('Error attaching files to archive:', error);
-      res.status(500).json({ error: 'Failed to attach files: ' + error.message });
-    }
-  });
-});
-
-// DELETE /api/archives/:id/files/:fileId: delete a specific file from an archive
-app.delete('/api/archives/:id/files/:fileId', requireAuth, async (req, res) => {
-  try {
-    const store = req.store;
-    const member = req.member;
-    const { id, fileId } = req.params;
-    const archives = Array.isArray(store.archives) ? store.archives : [];
-    const arch = archives.find(a => a.id === id);
-
-    if (!arch) {
-      return res.status(404).json({ error: 'Meeting archive not found' });
-    }
-
-    let removed = false;
-    let storedFilename = null;
-
-    if (Array.isArray(arch.audioFiles)) {
-      const idx = arch.audioFiles.findIndex(f => f.id === fileId);
-      if (idx !== -1) {
-        storedFilename = arch.audioFiles[idx].storedName;
-        arch.audioFiles.splice(idx, 1);
-        removed = true;
-      }
-    }
-    if (!removed && Array.isArray(arch.minutesFiles)) {
-      const idx = arch.minutesFiles.findIndex(f => f.id === fileId);
-      if (idx !== -1) {
-        storedFilename = arch.minutesFiles[idx].storedName;
-        arch.minutesFiles.splice(idx, 1);
-        removed = true;
-      }
-    }
-    if (!removed && arch.transcript && Array.isArray(arch.transcript.files)) {
-      const idx = arch.transcript.files.findIndex(f => f.id === fileId);
-      if (idx !== -1) {
-        storedFilename = arch.transcript.files[idx].storedName;
-        arch.transcript.files.splice(idx, 1);
-        removed = true;
-      }
-    }
-    if (!removed && Array.isArray(arch.signedAttendanceFiles)) {
-      const idx = arch.signedAttendanceFiles.findIndex(f => f.id === fileId);
-      if (idx !== -1) {
-        storedFilename = arch.signedAttendanceFiles[idx].storedName;
-        arch.signedAttendanceFiles.splice(idx, 1);
-        removed = true;
-      }
-    }
-    if (!removed && Array.isArray(arch.resolutionFiles)) {
-      const idx = arch.resolutionFiles.findIndex(f => f.id === fileId);
-      if (idx !== -1) {
-        storedFilename = arch.resolutionFiles[idx].storedName;
-        arch.resolutionFiles.splice(idx, 1);
-        removed = true;
-      }
-    }
-
-    if (!removed) {
-      return res.status(404).json({ error: 'File not found in archive' });
-    }
-
-    if (pool) {
-      try { await pool.query('DELETE FROM app_files WHERE id = $1', [fileId]); } catch {}
-    }
-    if (storedFilename) {
-      try {
-        const filePath = path.join(UPLOADS_DIR, storedFilename);
-        if (fsSync.existsSync(filePath)) await fs.unlink(filePath);
-      } catch {}
-    }
-
-    if (arch.stats) {
-      arch.stats.totalAudioFiles = (arch.audioFiles || []).length;
-    }
-
-    arch.lastModifiedAt = new Date().toISOString();
-    arch.lastModifiedBy = {
-      memberId: member.id,
-      memberName: member.name,
-      memberRole: member.role
-    };
-
-    await storeHelper.write(store);
-    res.json({ message: 'File deleted from archive', archive: arch });
-  } catch (error) {
-    console.error('Error deleting archive file:', error);
-    res.status(500).json({ error: 'Failed to delete file' });
-  }
-});
-
-// DELETE /api/archives/:id: delete an entire archive (Admin only)
-app.delete('/api/archives/:id', requireAuth, async (req, res) => {
-  try {
-    const store = req.store;
-    const member = req.member;
-    if (!isAdminMember(member)) {
-      return res.status(403).json({ error: 'Only administrators can delete meeting archives' });
-    }
-
-    const archives = Array.isArray(store.archives) ? store.archives : [];
-    const idx = archives.findIndex(a => a.id === req.params.id);
-    if (idx === -1) {
-      return res.status(404).json({ error: 'Meeting archive not found' });
-    }
-
-    const [deletedArchive] = archives.splice(idx, 1);
-
-    // Clean up associated file binaries
-    const allFileIds = [
-      ...(deletedArchive.audioFiles || []).map(f => f.id),
-      ...(deletedArchive.transcript?.files || []).map(f => f.id),
-      ...(deletedArchive.signedAttendanceFiles || []).map(f => f.id),
-      ...(deletedArchive.resolutionFiles || []).map(f => f.id)
-    ];
-
-    if (pool && allFileIds.length > 0) {
-      try {
-        await pool.query('DELETE FROM app_files WHERE id = ANY($1::text[])', [allFileIds]);
-      } catch {}
-    }
-
-    await storeHelper.write(store);
-    res.json({ message: 'Meeting archive deleted successfully', id: req.params.id });
-  } catch (error) {
-    console.error('Error deleting archive:', error);
-    res.status(500).json({ error: 'Failed to delete archive' });
-  }
-});
-
-// GET /api/archives/:id/audio/:fileId/stream: stream audio with HTTP 206 Range support
-app.get('/api/archives/:id/audio/:fileId/stream', requireAuth, async (req, res) => {
-  try {
-    const store = req.store;
-    const archives = Array.isArray(store.archives) ? store.archives : [];
-    const arch = archives.find(a => a.id === req.params.id);
-    if (!arch) return res.status(404).json({ error: 'Archive not found' });
-
-    const fileRec = (arch.audioFiles || []).find(f => f.id === req.params.fileId);
-    if (!fileRec) return res.status(404).json({ error: 'Audio recording not found' });
-
-    const fileData = await getFileBufferFromRecord(fileRec);
-    if (!fileData || !fileData.buffer) {
-      return res.status(404).json({ error: 'Audio file buffer not found on server' });
-    }
-
-    const { buffer, mimeType } = fileData;
-    const fileSize = buffer.length;
-    const range = req.headers.range;
-
-    if (range) {
-      const parts = range.replace(/bytes=/, "").split("-");
-      const start = parseInt(parts[0], 10);
-      const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
-      const chunksize = (end - start) + 1;
-      const chunk = buffer.subarray(start, end + 1);
-      res.writeHead(206, {
-        'Content-Range': `bytes ${start}-${end}/${fileSize}`,
-        'Accept-Ranges': 'bytes',
-        'Content-Length': chunksize,
-        'Content-Type': mimeType || 'audio/mpeg',
-      });
-      res.end(chunk);
-    } else {
-      res.setHeader('Content-Type', mimeType || 'audio/mpeg');
-      res.setHeader('Content-Length', fileSize);
-      res.setHeader('Accept-Ranges', 'bytes');
-      res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(fileRec.originalName)}"`);
-      res.end(buffer);
-    }
-  } catch (error) {
-    console.error('Error streaming audio:', error);
-    res.status(500).json({ error: 'Failed to stream audio file' });
-  }
-});
-
-// GET /api/archives/:id/files/:fileId/download: download any archive file
-app.get('/api/archives/:id/files/:fileId/download', requireAuth, async (req, res) => {
-  try {
-    const store = req.store;
-    const archives = Array.isArray(store.archives) ? store.archives : [];
-    const arch = archives.find(a => a.id === req.params.id);
-    if (!arch) return res.status(404).json({ error: 'Archive not found' });
-
-    const allFiles = [
-      ...(arch.minutesFiles || []),
-      ...(arch.audioFiles || []),
-      ...(arch.transcript?.files || []),
-      ...(arch.signedAttendanceFiles || []),
-      ...(arch.resolutionFiles || []),
-      ...(arch.vaultDocuments || [])
-    ];
-
-    const fileRec = allFiles.find(f => f.id === req.params.fileId);
-    if (!fileRec) return res.status(404).json({ error: 'File not found in archive' });
-
-    const fileData = await getFileBufferFromRecord(fileRec);
-    if (!fileData || !fileData.buffer) {
-      return res.status(404).json({ error: 'File data not found on server' });
-    }
-
-    res.setHeader('Content-Type', fileData.mimeType || 'application/octet-stream');
-    res.setHeader('Content-Length', fileData.buffer.length);
-    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(fileRec.originalName || 'file')}"`);
-    res.end(fileData.buffer);
-  } catch (error) {
-    console.error('Error downloading archive file:', error);
-    res.status(500).json({ error: 'Failed to download file' });
-  }
-});
-
-// GET /api/archives/:id/export/docx: generate and download comprehensive meeting minutes DOCX
-app.get('/api/archives/:id/export/docx', requireAuth, async (req, res) => {
-  try {
-    const store = req.store;
-    const archives = Array.isArray(store.archives) ? store.archives : [];
-    const arch = archives.find(a => a.id === req.params.id);
-    if (!arch) return res.status(404).json({ error: 'Archive not found' });
-
-    const docxBuffer = await generateArchiveMinutesDocx(arch);
-    const meetingDate = arch.meetingInfo?.date || '2026-08-27';
-    const safeTitle = (arch.meetingInfo?.title || 'Meeting').replace(/[^a-zA-Z0-9_\-]/g, '_');
-
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-    res.setHeader('Content-Disposition', `attachment; filename="04_Minutes_of_SGB_Meeting_${meetingDate}_${safeTitle}.docx"`);
-    res.send(docxBuffer);
-  } catch (error) {
-    console.error('Error generating archive minutes DOCX:', error);
-    res.status(500).json({ error: 'Failed to generate meeting minutes document' });
-  }
-});
-
-// GET /api/archives/:id/export/zip: package and download complete meeting dossier ZIP pack
-app.get('/api/archives/:id/export/zip', requireAuth, async (req, res) => {
-  try {
-    const store = req.store;
-    const archives = Array.isArray(store.archives) ? store.archives : [];
-    const arch = archives.find(a => a.id === req.params.id);
-    if (!arch) return res.status(404).json({ error: 'Archive not found' });
-
-    const zip = new AdmZip();
-    const meetingDate = arch.meetingInfo?.date || '2026-08-27';
-    const safeTitle = (arch.meetingInfo?.title || 'Meeting').replace(/[^a-zA-Z0-9_\-]/g, '_');
-
-    // 1. Add Generated Minutes DOCX and Uploaded Minutes Documents
-    try {
-      const minutesDocxBuf = await generateArchiveMinutesDocx(arch);
-      zip.addFile(`01_Official_Minutes_and_Resolutions_${meetingDate}.docx`, minutesDocxBuf);
-    } catch (docErr) {
-      console.warn('Could not generate DOCX for ZIP:', docErr.message);
-    }
-
-    for (const mf of (arch.minutesFiles || [])) {
-      const fileData = await getFileBufferFromRecord(mf);
-      if (fileData && fileData.buffer) {
-        zip.addFile(`01_Adopted_Minutes_Documents/${mf.originalName}`, fileData.buffer);
-      }
-    }
-
-    // 2. Add Transcript text or docs
-    if (arch.transcript?.text && arch.transcript.text.trim()) {
-      zip.addFile(`02_Meeting_Transcript_${meetingDate}.txt`, Buffer.from(arch.transcript.text, 'utf8'));
-    }
-    for (const tf of (arch.transcript?.files || [])) {
-      const fileData = await getFileBufferFromRecord(tf);
-      if (fileData && fileData.buffer) {
-        zip.addFile(`02_Transcript_Documents/${tf.originalName}`, fileData.buffer);
-      }
-    }
-
-    // 3. Add Signed Attendance Register files
-    for (const rf of (arch.signedAttendanceFiles || [])) {
-      const fileData = await getFileBufferFromRecord(rf);
-      if (fileData && fileData.buffer) {
-        zip.addFile(`03_Signed_Attendance_Registers/${rf.originalName}`, fileData.buffer);
-      }
-    }
-
-    // 4. Add Resolution documents
-    for (const resF of (arch.resolutionFiles || [])) {
-      const fileData = await getFileBufferFromRecord(resF);
-      if (fileData && fileData.buffer) {
-        zip.addFile(`04_Formal_Resolutions/${resF.originalName}`, fileData.buffer);
-      }
-    }
-
-    // 5. Add Audio Recordings
-    for (const af of (arch.audioFiles || [])) {
-      const fileData = await getFileBufferFromRecord(af);
-      if (fileData && fileData.buffer) {
-        zip.addFile(`Audio_Recordings/${af.originalName}`, fileData.buffer);
-      }
-    }
-
-    // 6. Add Vault Supporting Documents
-    for (const vd of (arch.vaultDocuments || [])) {
-      const fileData = await getFileBufferFromRecord(vd);
-      if (fileData && fileData.buffer) {
-        zip.addFile(`Supporting_Documents/${vd.originalName}`, fileData.buffer);
-      }
-    }
-
-    // 7. Add Manifest
-    const stats = arch.stats || {};
-    const manifestText = `========================================================================
-LADY GREY ARTS ACADEMY — SGB & SMT MEETING ARCHIVE DOSSIER
-========================================================================
-Meeting Title: ${arch.meetingInfo?.title || 'SGB/SMT Meeting'}
-Meeting Date:  ${meetingDate} | ${arch.meetingInfo?.time || '10:00 SAST'}
-Venue:         ${arch.meetingInfo?.venue || 'School Staff Room / Boardroom'}
-Type:          ${arch.meetingInfo?.type || 'Strategic Governance Sitting'}
-Chairperson:   ${arch.meetingInfo?.chairperson || 'Mr. K. Dyasi'}
-Secretariat:   ${arch.meetingInfo?.secretary || 'Mr. S. Vorster'}
-
-STATISTICS & QUORUM:
-- Total Members:     ${stats.totalMembers || 0}
-- Present:           ${stats.presentCount || 0} (${stats.quorumPercentage || '100%'})
-- Apologies:         ${stats.apologyCount || 0}
-- Quorum Status:     ${stats.isQuorate !== false ? 'QUORATE (Binding Governance Decisions)' : 'NON-QUORATE'}
-- Proposed Items:    ${stats.totalItems || 0}
-- Formal Decisions:  ${stats.totalResolutions || 0}
-- Audio Recordings:  ${stats.totalAudioFiles || 0}
-- Vault Documents:   ${stats.totalVaultDocuments || 0}
-
-Archived By:   ${arch.archivedBy?.memberName || 'Secretariat'} (${arch.archivedBy?.memberRole || 'Admin'})
-Archived Date: ${arch.archivedAt}
-========================================================================
-`;
-    zip.addFile(`00_MEETING_ARCHIVE_MANIFEST.txt`, Buffer.from(manifestText, 'utf8'));
-
-    const zipBuffer = zip.toBuffer();
-    res.setHeader('Content-Type', 'application/zip');
-    res.setHeader('Content-Disposition', `attachment; filename="LGAA_Meeting_Dossier_${meetingDate}_${safeTitle}.zip"`);
-    res.send(zipBuffer);
-  } catch (error) {
-    console.error('Error generating archive ZIP:', error);
-    res.status(500).json({ error: 'Failed to generate meeting pack ZIP: ' + error.message });
-  }
-});
-
-// ── Admin Legal Document Formatter Studio API ──
+// ΓöÇΓöÇ Admin Legal Document Formatter Studio API ΓöÇΓöÇ
 
 // GET /api/doc-formatter/presets: retrieve all available presets
 app.get('/api/doc-formatter/presets', async (req, res) => {
@@ -3456,7 +2038,7 @@ app.post('/api/doc-formatter/presets', async (req, res) => {
   }
 });
 
-// ── Document Project Sessions API (Save / Load Documents) ──
+// ΓöÇΓöÇ Document Project Sessions API (Save / Load Documents) ΓöÇΓöÇ
 
 // GET /api/doc-formatter/documents: retrieve all saved document projects
 app.get('/api/doc-formatter/documents', async (req, res) => {
@@ -3590,21 +2172,21 @@ app.delete('/api/doc-formatter/documents/:id', async (req, res) => {
   }
 });
 
-// ── OOXML numbering-aware DOCX text extractor ──
+// ΓöÇΓöÇ OOXML numbering-aware DOCX text extractor ΓöÇΓöÇ
 // Reads document.xml + numbering.xml from the DOCX zip and reconstructs
 // list number prefixes (e.g. "3.", "3.1", "3.1.1") for all numbered paragraphs.
 async function extractDocxWithNumbering(docxBuf) {
   const AdmZip = (await import('adm-zip')).default;
   const zip = new AdmZip(docxBuf);
 
-  // Parse numbering.xml to build abstractNum → level format map
+  // Parse numbering.xml to build abstractNum ΓåÆ level format map
   const numXmlEntry = zip.getEntry('word/numbering.xml');
   const docXmlEntry = zip.getEntry('word/document.xml');
   if (!docXmlEntry) throw new Error('No document.xml found');
 
-  // ── Parse numbering definitions ──
-  const abstractNums = {};   // abstractNumId → { lvl: { numFmt, lvlText, start } }
-  const numIdMap = {};       // numId → abstractNumId
+  // ΓöÇΓöÇ Parse numbering definitions ΓöÇΓöÇ
+  const abstractNums = {};   // abstractNumId ΓåÆ { lvl: { numFmt, lvlText, start } }
+  const numIdMap = {};       // numId ΓåÆ abstractNumId
 
   if (numXmlEntry) {
     const numXml = numXmlEntry.getData().toString('utf8');
@@ -3624,7 +2206,7 @@ async function extractDocxWithNumbering(docxBuf) {
         };
       }
     }
-    // num blocks (numId → abstractNumId)
+    // num blocks (numId ΓåÆ abstractNumId)
     const numBlocks = [...numXml.matchAll(/<w:num\s+[^>]*w:numId="(\d+)"[^>]*>([\s\S]*?)<\/w:num>/g)];
     for (const [, nid, nbody] of numBlocks) {
       const abM = nbody.match(/<w:abstractNumId\s+[^>]*w:val="(\d+)"/);
@@ -3632,12 +2214,12 @@ async function extractDocxWithNumbering(docxBuf) {
     }
   }
 
-  // ── Parse document.xml paragraphs ──
+  // ΓöÇΓöÇ Parse document.xml paragraphs ΓöÇΓöÇ
   const docXml = docXmlEntry.getData().toString('utf8');
   const paragraphs = [...docXml.matchAll(/<w:p[\s>]([\s\S]*?)<\/w:p>/g)];
 
   // Track current count per numId+ilvl
-  const counters = {};  // `${numId}_${ilvl}` → current value
+  const counters = {};  // `${numId}_${ilvl}` ΓåÆ current value
 
   const lines = [];
   for (const [, pBody] of paragraphs) {
@@ -3815,7 +2397,7 @@ app.post('/api/doc-formatter/spellcheck', async (req, res) => {
   }
 });
 
-// ── SGB Functionality Audit Directory Resolution & Helper ──
+// ΓöÇΓöÇ SGB Functionality Audit Directory Resolution & Helper ΓöÇΓöÇ
 const SGB_AUDIT_BASE_DIR = path.join(__dirname, 'SGB_Functionality_Audit_2026');
 
 const SGB_AUDIT_FOLDER_MAP = [
@@ -4138,7 +2720,7 @@ app.get('/api/admin/pins', async (req, res) => {
   }
 });
 
-// ── SGB Functionality Audit Watcher & Evidence API ──
+// ΓöÇΓöÇ SGB Functionality Audit Watcher & Evidence API ΓöÇΓöÇ
 app.get('/api/audit/status', async (req, res) => {
   try {
     const running = isAuditWatcherRunning();
@@ -4187,7 +2769,7 @@ app.post('/api/audit/regenerate/:folderId', async (req, res) => {
   }
 });
 
-// ── Start Server ──
+// ΓöÇΓöÇ Start Server ΓöÇΓöÇ
 const PORT = process.env.PORT || 3000;
 
 storeHelper.init().then(() => {
@@ -4198,7 +2780,7 @@ storeHelper.init().then(() => {
   startAuditWatcher();
 
   app.listen(PORT, () => {
-    console.log(`🚀 SGB/SMT Agenda Builder running on port ${PORT}`);
+    console.log(`≡ƒÜÇ SGB/SMT Agenda Builder running on port ${PORT}`);
   });
 }).catch(err => {
   console.error('Failed to start server:', err);

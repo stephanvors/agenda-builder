@@ -1,58 +1,9 @@
-// ─────────────────────────────────────────────────────
-// SGB/SMT Strategy Meeting — Agenda Builder
+﻿// ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// SGB/SMT Strategy Meeting ΓÇö Agenda Builder
 // Client-side Application (Authenticated)
-// ─────────────────────────────────────────────────────
+// ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
-// ─────────────────────────────────────────────────────
-
-// ── Minimal Vector SVG Icons (Pure Outline) ──
-const SVG_ICONS = {
-    doc: `<svg class="ui-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`,
-    docSm: `<svg class="ui-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`,
-    docLg: `<svg class="ui-icon" viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`,
-    pdf: `<svg class="ui-icon" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M10 12h4"/><path d="M10 16h4"/></svg>`,
-    word: `<svg class="ui-icon" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><polyline points="9 13 10.5 17 12 13 13.5 17 15 13"/></svg>`,
-    audio: `<svg class="ui-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>`,
-    audioLg: `<svg class="ui-icon" viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>`,
-    transcript: `<svg class="ui-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`,
-    transcriptLg: `<svg class="ui-icon" viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`,
-    resolutions: `<svg class="ui-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M3 7l4 8h10l4-8"/><circle cx="5" cy="15" r="2"/><circle cx="19" cy="15" r="2"/></svg>`,
-    resolutionsLg: `<svg class="ui-icon" viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M3 7l4 8h10l4-8"/><circle cx="5" cy="15" r="2"/><circle cx="19" cy="15" r="2"/></svg>`,
-    agenda: `<svg class="ui-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 12h6"/><path d="M9 16h4"/></svg>`,
-    agendaLg: `<svg class="ui-icon" viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 12h6"/><path d="M9 16h4"/></svg>`,
-    signed: `<svg class="ui-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 14l2 2 4-4"/></svg>`,
-    vault: `<svg class="ui-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>`,
-    vaultLg: `<svg class="ui-icon" viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>`,
-    folder: `<svg class="ui-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>`,
-    folderOpen: `<svg class="ui-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><polygon points="22 19 20 9 2 9 4 19 22 19"/></svg>`,
-    calendar: `<svg class="ui-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`,
-    pin: `<svg class="ui-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`,
-    clock: `<svg class="ui-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
-    users: `<svg class="ui-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
-    user: `<svg class="ui-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
-    edit: `<svg class="ui-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>`,
-    trash: `<svg class="ui-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>`,
-    trashLg: `<svg class="ui-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>`,
-    download: `<svg class="ui-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`,
-    box: `<svg class="ui-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>`,
-    check: `<svg class="ui-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
-    checkCircle: `<svg class="ui-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`,
-    alert: `<svg class="ui-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
-    paperclip: `<svg class="ui-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>`,
-    eye: `<svg class="ui-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`,
-    lock: `<svg class="ui-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`,
-    flag: `<svg class="ui-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
-    sun: `<svg class="ui-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`,
-    moon: `<svg class="ui-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`,
-    idea: `<svg class="ui-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .5 2.5 1.5 3.5.76.76 1.23 1.52 1.41 2.5"/></svg>`,
-    action: `<svg class="ui-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>`,
-    question: `<svg class="ui-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
-    comment: `<svg class="ui-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`,
-    star: `<svg class="ui-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
-    arrowUp: `<svg class="ui-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>`
-};
-
-// ── State ──
+// ΓöÇΓöÇ State ΓöÇΓöÇ
 const state = {
     token: null,     // session token
     member: null,    // { id, name, title, role }
@@ -80,24 +31,7 @@ const state = {
     openDocs: new Set(),     // doc IDs with expanded description drawers (starts collapsed by default)
     activeCommentType: {},   // { [itemId]: 'idea' | 'action' | 'question' | 'comment' }
     commentDrafts: {},       // { [itemId]: 'draft text' }
-    editingComments: {},     // { [commentId]: { content: '...', type: '...' } }
-
-    // ── Meeting Archives & Conclude State ──
-    archives: [],            // past meeting archives
-    meetingInfo: null,       // current active meeting info { title, date, time, venue, school }
-    activeArchive: null,     // archive currently viewed in dossier modal
-    editingArchive: null,    // archive currently edited in edit modal
-    concludeStep: 1,         // current step in conclude wizard (1..5)
-    selectedConcludeAudios: [], // files selected for audio upload
-    selectedConcludeMinutes: [], // files selected for minutes upload
-    concludeResolutions: [], // dynamic resolutions array in wizard
-    concludeAttendance: null, // dynamic attendance roster in wizard
-    archiveFilters: {
-        filter: 'all',       // 'all' | 'audio' | 'transcript' | 'signed' | 'resolutions'
-        sort: 'newest',      // 'newest' | 'oldest' | 'items' | 'resolutions'
-        search: ''
-    },
-    dossierActiveTab: 'overview' // 'overview' | 'minutes' | 'audio' | 'transcript' | 'resolutions' | 'agenda' | 'attendance' | 'files'
+    editingComments: {}      // { [commentId]: { content: '...', type: '...' } }
 };
 
 // Check if current user has Admin privileges
@@ -148,7 +82,7 @@ function formatShortName(fullName, title = '') {
     return extractedTitle ? `${extractedTitle} ${formatted}` : formatted;
 }
 
-// ── API Layer (all requests include auth token) ──
+// ΓöÇΓöÇ API Layer (all requests include auth token) ΓöÇΓöÇ
 function authHeaders() {
     const headers = { 'Content-Type': 'application/json' };
     if (state.token) {
@@ -358,13 +292,6 @@ const api = {
         return res.json();
     },
 
-    async getAttendance() {
-        const res = await fetch('/api/attendance', { headers: authHeaders() });
-        if (res.status === 401) { handleSessionExpired(); return null; }
-        if (!res.ok) throw new Error('Failed to load attendance register');
-        return res.json();
-    },
-
     async getDocuments() {
         const res = await fetch('/api/documents', { headers: authHeaders() });
         if (res.status === 401) { handleSessionExpired(); return { documents: [], tags: [] }; }
@@ -440,29 +367,7 @@ const api = {
         return res.json();
     },
 
-    // ── Attendance Register API Methods ──
-    async getAttendance() {
-        const res = await fetch('/api/attendance', { headers: authHeaders() });
-        if (res.status === 401) { handleSessionExpired(); return null; }
-        if (!res.ok) throw new Error('Failed to load attendance register');
-        return res.json();
-    },
-
-    async saveAttendance(payload) {
-        const res = await fetch('/api/attendance', {
-            method: 'POST',
-            headers: authHeaders(),
-            body: JSON.stringify(payload)
-        });
-        if (res.status === 401) { handleSessionExpired(); return null; }
-        if (!res.ok) {
-            const err = await res.json();
-            throw new Error(err.error || 'Failed to save attendance register');
-        }
-        return res.json();
-    },
-
-    // ── Category API Methods (Admin) ──
+    // ΓöÇΓöÇ Category API Methods (Admin) ΓöÇΓöÇ
     async addAgendaCategory(name, parent = null) {
         const res = await fetch('/api/categories/agenda', {
             method: 'POST',
@@ -529,143 +434,10 @@ const api = {
             throw new Error(err.error || 'Failed to move category');
         }
         return res.json();
-    },
-
-    // ── Meeting Archives API Methods ──
-    async getArchives() {
-        const res = await fetch('/api/archives', { headers: authHeaders() });
-        if (res.status === 401) { handleSessionExpired(); return []; }
-        if (!res.ok) throw new Error('Failed to load archives');
-        return res.json();
-    },
-
-    async getArchive(archiveId) {
-        const res = await fetch(`/api/archives/${archiveId}`, { headers: authHeaders() });
-        if (res.status === 401) { handleSessionExpired(); return null; }
-        if (!res.ok) throw new Error('Failed to load meeting archive');
-        return res.json();
-    },
-
-    concludeMeeting(formData, onProgress) {
-        return new Promise((resolve, reject) => {
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', '/api/archives/conclude');
-            if (state.token) {
-                xhr.setRequestHeader('Authorization', `Bearer ${state.token}`);
-            }
-
-            if (xhr.upload && onProgress) {
-                xhr.upload.onprogress = (e) => {
-                    if (e.lengthComputable) {
-                        const percent = Math.round((e.loaded / e.total) * 100);
-                        onProgress(percent);
-                    }
-                };
-            }
-
-            xhr.onload = () => {
-                if (xhr.status === 401) {
-                    handleSessionExpired();
-                    return reject(new Error('Session expired'));
-                }
-                try {
-                    const data = JSON.parse(xhr.responseText);
-                    if (xhr.status >= 200 && xhr.status < 300) {
-                        resolve(data);
-                    } else {
-                        reject(new Error(data.error || 'Failed to conclude and archive meeting'));
-                    }
-                } catch {
-                    reject(new Error('Failed to conclude and archive meeting'));
-                }
-            };
-
-            xhr.onerror = () => reject(new Error('Network error during archive packaging'));
-            xhr.send(formData);
-        });
-    },
-
-    async updateArchive(archiveId, payload) {
-        const res = await fetch(`/api/archives/${archiveId}`, {
-            method: 'PUT',
-            headers: authHeaders(),
-            body: JSON.stringify(payload)
-        });
-        if (res.status === 401) { handleSessionExpired(); return null; }
-        if (!res.ok) {
-            const err = await res.json();
-            throw new Error(err.error || 'Failed to update archive');
-        }
-        return res.json();
-    },
-
-    uploadArchiveFiles(archiveId, formData, onProgress) {
-        return new Promise((resolve, reject) => {
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', `/api/archives/${archiveId}/files`);
-            if (state.token) {
-                xhr.setRequestHeader('Authorization', `Bearer ${state.token}`);
-            }
-
-            if (xhr.upload && onProgress) {
-                xhr.upload.onprogress = (e) => {
-                    if (e.lengthComputable) {
-                        const percent = Math.round((e.loaded / e.total) * 100);
-                        onProgress(percent);
-                    }
-                };
-            }
-
-            xhr.onload = () => {
-                if (xhr.status === 401) {
-                    handleSessionExpired();
-                    return reject(new Error('Session expired'));
-                }
-                try {
-                    const data = JSON.parse(xhr.responseText);
-                    if (xhr.status >= 200 && xhr.status < 300) {
-                        resolve(data);
-                    } else {
-                        reject(new Error(data.error || 'Upload failed'));
-                    }
-                } catch {
-                    reject(new Error('Upload failed'));
-                }
-            };
-
-            xhr.onerror = () => reject(new Error('Network error during file upload'));
-            xhr.send(formData);
-        });
-    },
-
-    async deleteArchiveFile(archiveId, fileId) {
-        const res = await fetch(`/api/archives/${archiveId}/files/${fileId}`, {
-            method: 'DELETE',
-            headers: authHeaders()
-        });
-        if (res.status === 401) { handleSessionExpired(); return null; }
-        if (!res.ok) {
-            const err = await res.json();
-            throw new Error(err.error || 'Failed to delete file from archive');
-        }
-        return res.json();
-    },
-
-    async deleteArchive(archiveId) {
-        const res = await fetch(`/api/archives/${archiveId}`, {
-            method: 'DELETE',
-            headers: authHeaders()
-        });
-        if (res.status === 401) { handleSessionExpired(); return null; }
-        if (!res.ok) {
-            const err = await res.json();
-            throw new Error(err.error || 'Failed to delete archive');
-        }
-        return res.json();
     }
 };
 
-// ── DOM Elements ──
+// ΓöÇΓöÇ DOM Elements ΓöÇΓöÇ
 const els = {
     loginView:        document.getElementById('login-view'),
     mainView:         document.getElementById('main-view'),
@@ -686,22 +458,17 @@ const els = {
     statItems:        document.getElementById('stat-items'),
     statVotes:        document.getElementById('stat-votes'),
     statDocs:         document.getElementById('stat-docs'),
-    statArchives:     document.getElementById('stat-archives'),
     statCardMembers:  document.getElementById('stat-card-members'),
     statCardItems:    document.getElementById('stat-card-items'),
     statCardVotes:    document.getElementById('stat-card-votes'),
     statCardDocs:     document.getElementById('stat-card-docs'),
-    statCardArchives: document.getElementById('stat-card-archives'),
 
     tabBtnAgenda:     document.getElementById('tab-btn-agenda'),
     tabBtnDocuments:  document.getElementById('tab-btn-documents'),
-    tabBtnArchives:   document.getElementById('tab-btn-archives'),
     tabAgendaBadge:   document.getElementById('tab-agenda-badge'),
     tabDocsBadge:     document.getElementById('tab-docs-badge'),
-    tabArchivesBadge: document.getElementById('tab-archives-badge'),
     tabViewAgenda:    document.getElementById('tab-view-agenda'),
     tabViewDocuments: document.getElementById('tab-view-documents'),
-    tabViewArchives:  document.getElementById('tab-view-archives'),
 
     infoModal:        document.getElementById('info-modal'),
     infoModalTitle:   document.getElementById('info-modal-title'),
@@ -808,119 +575,10 @@ const els = {
     btnCloseModal:    document.getElementById('btn-close-modal'),
     printableAgenda:  document.getElementById('printable-agenda'),
 
-    btnAttendance:             document.getElementById('btn-attendance'),
-    attendanceModal:           document.getElementById('attendance-modal'),
-    printableAttendance:       document.getElementById('printable-attendance'),
-    btnPrintAttendance:        document.getElementById('btn-print-attendance'),
-    btnCloseAttendanceModal:   document.getElementById('btn-close-attendance-modal'),
-    btnSwitchToAttendance:     document.getElementById('btn-switch-to-attendance'),
-    btnSwitchToAgenda:         document.getElementById('btn-switch-to-agenda'),
-    btnDownloadAttendanceDocx: document.getElementById('btn-download-attendance-docx'),
-
-    // Meeting Archives & Conclude Wizard Elements
-    btnConcludeMeeting:       document.getElementById('btn-conclude-meeting'),
-    btnConcludeFromArchives:  document.getElementById('btn-conclude-from-archives'),
-    archiveSearchInput:       document.getElementById('archive-search-input'),
-    archiveFilterChips:       document.getElementById('archive-filter-chips'),
-    sortArchives:             document.getElementById('sort-archives'),
-    archivesContainer:        document.getElementById('archives-container'),
-    archivesEmptyState:       document.getElementById('archives-empty-state'),
-
-    // Conclude Wizard Modal
-    concludeModal:            document.getElementById('conclude-modal'),
-    concludeModalSubtitle:    document.getElementById('conclude-modal-subtitle'),
-    btnCloseConcludeModal:    document.getElementById('btn-close-conclude-modal'),
-    concludeWizardStepper:    document.getElementById('conclude-wizard-stepper'),
-    concludeMeetingForm:      document.getElementById('conclude-meeting-form'),
-    concludeStep1:            document.getElementById('conclude-step-1'),
-    concludeStep2:            document.getElementById('conclude-step-2'),
-    concludeStep3:            document.getElementById('conclude-step-3'),
-    concludeStep4:            document.getElementById('conclude-step-4'),
-    concludeStep5:            document.getElementById('conclude-step-5'),
-    concludeStep6:            document.getElementById('conclude-step-6'),
-    concludeMeetingTitle:     document.getElementById('conclude-meeting-title'),
-    concludeMeetingDate:      document.getElementById('conclude-meeting-date'),
-    concludeMeetingTime:      document.getElementById('conclude-meeting-time'),
-    concludeMeetingVenue:     document.getElementById('conclude-meeting-venue'),
-    concludeStatsSummaryCard: document.getElementById('conclude-stats-summary-card'),
-    concludeMeetingNotes:     document.getElementById('conclude-meeting-notes'),
-    concludeAudioDropZone:    document.getElementById('conclude-audio-drop-zone'),
-    concludeAudioInput:       document.getElementById('conclude-audio-input'),
-    concludeAudioDropTitle:   document.getElementById('conclude-audio-drop-title'),
-    concludeAudioTray:        document.getElementById('conclude-audio-tray'),
-    concludeMinutesDropZone:  document.getElementById('conclude-minutes-drop-zone'),
-    concludeMinutesFileInput: document.getElementById('conclude-minutes-file-input'),
-    concludeMinutesDropTitle: document.getElementById('conclude-minutes-drop-title'),
-    concludeMinutesTray:      document.getElementById('conclude-minutes-tray'),
-    concludeTranscriptFileInput: document.getElementById('conclude-transcript-file-input'),
-    concludeTranscriptText:   document.getElementById('conclude-transcript-text'),
-    concludeResCount:         document.getElementById('conclude-res-count'),
-    btnAddResolutionRow:      document.getElementById('btn-add-resolution-row'),
-    concludeResolutionsList:  document.getElementById('conclude-resolutions-list'),
-    concludeResolutionFileInput: document.getElementById('conclude-resolution-file-input'),
-    concludeSignedRegDropZone:document.getElementById('conclude-signed-reg-drop-zone'),
-    concludeSignedRegInput:   document.getElementById('conclude-signed-reg-input'),
-    concludeSignedRegTitle:   document.getElementById('conclude-signed-reg-title'),
-    concludeSignedRegError:   document.getElementById('conclude-signed-reg-error'),
-    concludeAttendanceReviewBox: document.getElementById('conclude-attendance-review-box'),
-    nextMeetingTitle:         document.getElementById('next-meeting-title'),
-    nextMeetingDate:          document.getElementById('next-meeting-date'),
-    nextMeetingTime:          document.getElementById('next-meeting-time'),
-    nextMeetingVenue:         document.getElementById('next-meeting-venue'),
-    concludeClearVault:       document.getElementById('conclude-clear-vault'),
-    concludeProgressWrapper:  document.getElementById('conclude-progress-wrapper'),
-    concludeProgressFill:     document.getElementById('conclude-progress-fill'),
-    concludeProgressText:     document.getElementById('conclude-progress-text'),
-    concludeProgressPercent:  document.getElementById('conclude-progress-percent'),
-    btnConcludePrev:          document.getElementById('btn-conclude-prev'),
-    btnConcludeNext:          document.getElementById('btn-conclude-next'),
-    btnConcludeSubmit:        document.getElementById('btn-conclude-submit'),
-    btnConcludeCancel:        document.getElementById('btn-conclude-cancel'),
-
-    // Archive Dossier Viewer Modal
-    archiveDossierModal:      document.getElementById('archive-dossier-modal'),
-    dossierModalTitle:        document.getElementById('dossier-modal-title'),
-    dossierModalSubtitle:     document.getElementById('dossier-modal-subtitle'),
-    btnDossierEdit:           document.getElementById('btn-dossier-edit'),
-    btnDossierDownloadDocx:   document.getElementById('btn-dossier-download-docx'),
-    btnDossierDownloadZip:    document.getElementById('btn-dossier-download-zip'),
-    btnDossierPrint:          document.getElementById('btn-dossier-print'),
-    btnCloseDossierModal:     document.getElementById('btn-close-dossier-modal'),
-    dossierTabsStrip:         document.getElementById('dossier-tabs-strip'),
-    dossierModalBody:         document.getElementById('dossier-modal-body'),
-    dossierMinutesTabCount:   document.getElementById('dossier-minutes-tab-count'),
-    dossierAudioTabCount:     document.getElementById('dossier-audio-tab-count'),
-    dossierResTabCount:       document.getElementById('dossier-res-tab-count'),
-    dossierItemsTabCount:     document.getElementById('dossier-items-tab-count'),
-    dossierFilesTabCount:     document.getElementById('dossier-files-tab-count'),
-
-    // Edit Archive Modal
-    editArchiveModal:         document.getElementById('edit-archive-modal'),
-    editArchiveModalSubtitle: document.getElementById('edit-archive-modal-subtitle'),
-    btnCloseEditArchiveModal: document.getElementById('btn-close-edit-archive-modal'),
-    editArchiveForm:          document.getElementById('edit-archive-form'),
-    editArchiveId:            document.getElementById('edit-archive-id'),
-    editArchiveTitle:         document.getElementById('edit-archive-title'),
-    editArchiveDate:          document.getElementById('edit-archive-date'),
-    editArchiveTime:          document.getElementById('edit-archive-time'),
-    editArchiveVenue:         document.getElementById('edit-archive-venue'),
-    editArchiveNotes:         document.getElementById('edit-archive-notes'),
-    editArchiveResolutionsList: document.getElementById('edit-archive-resolutions-list'),
-    btnEditAddResolutionRow:  document.getElementById('btn-edit-add-resolution-row'),
-    editArchiveTranscript:    document.getElementById('edit-archive-transcript'),
-    editArchiveExistingFiles: document.getElementById('edit-archive-existing-files'),
-    editArchiveNewAudio:      document.getElementById('edit-archive-new-audio'),
-    editArchiveNewMinutes:    document.getElementById('edit-archive-new-minutes'),
-    editArchiveNewSigned:     document.getElementById('edit-archive-new-signed'),
-    editArchiveNewTranscript: document.getElementById('edit-archive-new-transcript'),
-    editArchiveNewResolution: document.getElementById('edit-archive-new-resolution'),
-    btnCancelEditArchive:     document.getElementById('btn-cancel-edit-archive'),
-    btnSaveEditArchive:       document.getElementById('btn-save-edit-archive'),
-
     refreshCountdown: document.getElementById('refresh-countdown')
 };
 
-// ── Theme Management (Light / Dark Mode) ──
+// ΓöÇΓöÇ Theme Management (Light / Dark Mode) ΓöÇΓöÇ
 function initTheme() {
     let current = 'light';
     try {
@@ -964,18 +622,19 @@ function setTheme(theme, save = true) {
 function toggleTheme() {
     const nextTheme = state.theme === 'dark' ? 'light' : 'dark';
     setTheme(nextTheme, true);
-    showToast(nextTheme === 'dark' ? 'Dark Mode enabled' : 'Light Mode enabled');
+    showToast(nextTheme === 'dark' ? '≡ƒîÖ Dark Mode enabled' : 'ΓÿÇ∩╕Å Light Mode enabled');
 }
 
 function updateThemeToggleUI() {
     const isDark = state.theme === 'dark';
+    const icon = isDark ? 'ΓÿÇ∩╕Å' : '≡ƒîÖ';
     const textApp = isDark ? 'Light' : 'Dark';
     const textLogin = isDark ? 'Light Mode' : 'Dark Mode';
 
     if (els.btnThemeToggleApp) {
         const iconSpan = els.btnThemeToggleApp.querySelector('.theme-toggle-icon');
         const textSpan = els.btnThemeToggleApp.querySelector('.theme-toggle-text');
-        if (iconSpan) iconSpan.innerHTML = isDark ? SVG_ICONS.sun : SVG_ICONS.moon;
+        if (iconSpan) iconSpan.textContent = icon;
         if (textSpan) textSpan.textContent = textApp;
         els.btnThemeToggleApp.setAttribute('title', isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode');
     }
@@ -983,13 +642,13 @@ function updateThemeToggleUI() {
     if (els.btnThemeToggleLogin) {
         const iconSpan = els.btnThemeToggleLogin.querySelector('.theme-toggle-icon');
         const textSpan = els.btnThemeToggleLogin.querySelector('.theme-toggle-text');
-        if (iconSpan) iconSpan.innerHTML = isDark ? SVG_ICONS.sun : SVG_ICONS.moon;
+        if (iconSpan) iconSpan.textContent = icon;
         if (textSpan) textSpan.textContent = textLogin;
         els.btnThemeToggleLogin.setAttribute('title', isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode');
     }
 }
 
-// ── Initialisation ──
+// ΓöÇΓöÇ Initialisation ΓöÇΓöÇ
 async function init() {
     initTheme();
     setupEventListeners();
@@ -1008,7 +667,7 @@ async function init() {
                 await loadData();
                 startPolling();
             } else {
-                // Session expired — clear and show login
+                // Session expired ΓÇö clear and show login
                 localStorage.removeItem('agenda_token');
                 state.token = null;
                 await loadMemberList();
@@ -1030,7 +689,7 @@ async function loadMemberList() {
         members.forEach(m => {
             const opt = document.createElement('option');
             opt.value = m.id;
-            opt.textContent = `${formatShortName(m.name, m.title)} — ${m.role}`;
+            opt.textContent = `${formatShortName(m.name, m.title)} ΓÇö ${m.role}`;
             els.loginMember.appendChild(opt);
         });
     } catch (error) {
@@ -1039,7 +698,7 @@ async function loadMemberList() {
     }
 }
 
-// ── Event Listeners ──
+// ΓöÇΓöÇ Event Listeners ΓöÇΓöÇ
 function setupEventListeners() {
     if (els.btnThemeToggleApp) {
         els.btnThemeToggleApp.addEventListener('click', toggleTheme);
@@ -1479,39 +1138,6 @@ function setupEventListeners() {
         if (e.target === els.modal) els.modal.classList.remove('active');
     });
 
-    if (els.btnAttendance) {
-        els.btnAttendance.addEventListener('click', showAttendanceModal);
-    }
-    if (els.btnCloseAttendanceModal) {
-        els.btnCloseAttendanceModal.addEventListener('click', closeAttendanceModal);
-    }
-    if (els.btnPrintAttendance) {
-        els.btnPrintAttendance.addEventListener('click', () => window.print());
-    }
-    if (els.attendanceModal) {
-        els.attendanceModal.addEventListener('click', (e) => {
-            if (e.target === els.attendanceModal) closeAttendanceModal();
-        });
-    }
-    if (els.btnSwitchToAttendance) {
-        els.btnSwitchToAttendance.addEventListener('click', () => {
-            els.modal.classList.remove('active');
-            showAttendanceModal();
-        });
-    }
-    if (els.btnSwitchToAgenda) {
-        els.btnSwitchToAgenda.addEventListener('click', () => {
-            closeAttendanceModal();
-            showExportModal();
-        });
-    }
-    if (els.btnDownloadAttendanceDocx) {
-        els.btnDownloadAttendanceDocx.addEventListener('click', () => {
-            const token = encodeURIComponent(state.token || '');
-            window.location.href = `/api/attendance/docx?token=${token}`;
-        });
-    }
-
     const openDocFormatter = () => {
         const token = encodeURIComponent(state.token || '');
         const timestamp = Date.now();
@@ -1538,7 +1164,7 @@ function setupEventListeners() {
     setupEditDocRichTextEditor();
 }
 
-// ── Handlers ──
+// ΓöÇΓöÇ Handlers ΓöÇΓöÇ
 async function handleLogin(e) {
     e.preventDefault();
     els.loginError.textContent = '';
@@ -1920,7 +1546,7 @@ async function submitCommentForItem(itemId) {
     }
 }
 
-// ── Views ──
+// ΓöÇΓöÇ Views ΓöÇΓöÇ
 function showMainView() {
     els.loginView.classList.remove('active');
     els.mainView.classList.add('active');
@@ -1940,7 +1566,7 @@ function updateAdminVisibility() {
     });
 }
 
-// ── Data Loading ──
+// ΓöÇΓöÇ Data Loading ΓöÇΓöÇ
 async function loadData() {
     try {
         // Save current focused textarea if any
@@ -1953,19 +1579,12 @@ async function loadData() {
             activeSelectionEnd = document.activeElement.selectionEnd;
         }
 
-        const [items, stats, docData, archives, meetingInfo] = await Promise.all([
+        const [items, stats, docData] = await Promise.all([
             api.getItems(),
             api.getStats(),
-            api.getDocuments(),
-            api.getArchives().catch(() => []),
-            api.getMeetingInfo().catch(() => null)
+            api.getDocuments()
         ]);
         state.items = items;
-        state.archives = Array.isArray(archives) ? archives : [];
-        if (meetingInfo) {
-            state.meetingInfo = meetingInfo;
-            updateMeetingHeaderInfo(meetingInfo);
-        }
         if (docData && Array.isArray(docData.documents)) {
             state.documents = docData.documents.map(d => {
                 const uploader = (d.uploadedBy?.memberName || '').trim();
@@ -1998,9 +1617,6 @@ async function loadData() {
 
         renderItems();
         renderDocuments();
-        if (state.activeTab === 'archives') {
-            renderArchives();
-        }
 
         // Restore focus if appropriate
         if (activeInputId) {
@@ -2017,7 +1633,7 @@ async function loadData() {
     }
 }
 
-// ── Rendering ──
+// ΓöÇΓöÇ Rendering ΓöÇΓöÇ
 function renderItems() {
     let filtered = state.items.filter(item => {
         const matchCat = state.filters.category === 'All' || 
@@ -2075,10 +1691,10 @@ function renderItems() {
         const otherVoterNames = otherVotes.map(v => formatShortName(v.memberName)).join(', ');
 
         const typeLabels = {
-            idea: 'Idea / Solution',
-            action: 'Action Step',
-            question: 'Question',
-            comment: 'Discussion'
+            idea: '≡ƒÆí Idea / Solution',
+            action: '≡ƒÄ» Action Step',
+            question: 'Γ¥ô Question',
+            comment: '≡ƒÆ¼ Discussion'
         };
 
         return `
@@ -2109,14 +1725,14 @@ function renderItems() {
                 ${isResolved && item.resolution ? `
                     <div class="item-resolution-banner">
                         <div class="res-banner-header">
-                            <span class="res-banner-badge" style="display: flex; align-items: center; gap: 0.35rem;">${SVG_ICONS.check} RESOLUTION / AGREED SOLUTION</span>
+                            <span class="res-banner-badge">Γ£à RESOLUTION / AGREED SOLUTION</span>
                             ${(isProposer || (item.resolution.resolvedBy && item.resolution.resolvedBy.memberId === state.member.id)) ? `
                                 <button class="btn-res-unresolve" data-item-id="${item.id}" title="Reopen this topic / clear resolution">Reopen</button>
                             ` : ''}
                         </div>
                         <div class="res-banner-body">${escapeHTML(item.resolution.solutionText)}</div>
                         <div class="res-banner-meta">
-                            Resolved by <strong>${escapeHTML(formatShortName(item.resolution.resolvedBy ? item.resolution.resolvedBy.memberName : 'Member'))}</strong> • ${timeAgo(item.resolution.resolvedAt)}
+                            Resolved by <strong>${escapeHTML(formatShortName(item.resolution.resolvedBy ? item.resolution.resolvedBy.memberName : 'Member'))}</strong> ΓÇó ${timeAgo(item.resolution.resolvedAt)}
                         </div>
                     </div>
                 ` : ''}
@@ -2126,7 +1742,7 @@ function renderItems() {
                 <div class="item-meta">
                     <div class="proposer-info">
                         <strong>${escapeHTML(formatShortName(item.proposedBy.memberName))}</strong>
-                        <span>${escapeHTML(item.proposedBy.memberRole)} • ${timeAgo(item.proposedAt)}</span>
+                        <span>${escapeHTML(item.proposedBy.memberRole)} ΓÇó ${timeAgo(item.proposedAt)}</span>
                         ${otherVotes.length > 0 ? `
                             <span class="voters-preview">
                                 Supported by: <strong>${escapeHTML(otherVoterNames)}</strong>
@@ -2137,16 +1753,16 @@ function renderItems() {
                         <div class="item-actions-left">
                             ${isProposer ? `<button class="btn-delete" data-id="${item.id}">Withdraw</button>` : ''}
                             <button class="btn-toggle-comments ${commentCount > 0 ? 'has-comments' : ''} ${isOpen ? 'active' : ''}" data-id="${item.id}">
-                                <span class="comment-icon" style="display: inline-flex; align-items: center;">${SVG_ICONS.comment}</span>
+                                <span class="comment-icon">≡ƒÆ¼</span>
                                 <span class="comment-count-label">${commentCount > 0 ? `${commentCount} ${commentCount === 1 ? 'Comment' : 'Comments'}` : 'Brainstorm'}</span>
-                                <span class="comment-chevron">${isOpen ? '▲' : '▼'}</span>
+                                <span class="comment-chevron">${isOpen ? 'Γû▓' : 'Γû╝'}</span>
                             </button>
                         </div>
                         <div class="vote-info">
                             <button class="btn-vote ${hasVoted ? 'voted' : ''}"
                                     data-id="${item.id}"
                                     title="${hasVoted ? 'Click to withdraw your support vote' : 'Click to second / support this proposal'}">
-                                <span class="icon" style="display: inline-flex; align-items: center;">${hasVoted ? SVG_ICONS.check : SVG_ICONS.arrowUp}</span> ${voteCount} ${voteCount === 1 ? 'Vote' : 'Votes'}
+                                <span class="icon">${hasVoted ? 'Γ£ô' : 'Γåæ'}</span> ${voteCount} ${voteCount === 1 ? 'Vote' : 'Votes'}
                             </button>
                         </div>
                     </div>
@@ -2158,7 +1774,7 @@ function renderItems() {
                         <h4>Brainstorming & Discussion <span class="comments-counter">(${commentCount})</span></h4>
                         ${!isResolved && isProposer ? `
                             <button class="btn-resolve-direct" data-id="${item.id}" title="Mark this issue as resolved with an agreed decision or plan">
-                                ${SVG_ICONS.check} Mark as Resolved
+                                Γ£à Mark as Resolved
                             </button>
                         ` : ''}
                     </div>
@@ -2167,7 +1783,7 @@ function renderItems() {
                     <div class="comments-list">
                         ${commentCount === 0 ? `
                             <div class="comments-empty-hint">
-                                <span class="empty-sparkle" style="display: flex; align-items: center; justify-content: center;">${SVG_ICONS.idea}</span>
+                                <span class="empty-sparkle">≡ƒÆí</span>
                                 <p>No brainstorm ideas or comments yet. Share your thoughts or propose a solution below!</p>
                             </div>
                         ` : comments.map(c => {
@@ -2177,7 +1793,7 @@ function renderItems() {
                             const canDelete = isCommentAuthor || isProposer;
                             const isSol = Boolean(c.isSolution);
                             const type = isEditing ? editState.type : (c.type || 'comment');
-                            const typeLabel = typeLabels[type] || 'Discussion';
+                            const typeLabel = typeLabels[type] || '≡ƒÆ¼ Discussion';
 
                             return `
                                 <div class="comment-item ${isSol ? 'is-solution' : ''}" id="comment-${c.id}">
@@ -2187,21 +1803,21 @@ function renderItems() {
                                             <div class="comment-author-info">
                                                 <strong class="comment-author-name">${escapeHTML(formatShortName(c.memberName))}</strong>
                                                 <span class="comment-author-role">${escapeHTML(c.memberRole || 'Member')}</span>
-                                                <span class="comment-time">• ${timeAgo(c.createdAt)}${c.editedAt ? ' <em class="comment-edited-hint">(edited)</em>' : ''}</span>
+                                                <span class="comment-time">ΓÇó ${timeAgo(c.createdAt)}${c.editedAt ? ' <em class="comment-edited-hint">(edited)</em>' : ''}</span>
                                             </div>
                                             <div class="comment-tag-wrapper">
                                                 <span class="comment-type-badge type-${type}">${typeLabel}</span>
-                                                ${isSol ? `<span class="badge-solution-pill">${SVG_ICONS.star} Accepted Solution</span>` : ''}
+                                                ${isSol ? '<span class="badge-solution-pill">Γ¡É Accepted Solution</span>' : ''}
                                             </div>
                                         </div>
                                         ${isEditing ? `
                                             <div class="comment-edit-box">
                                                 <div class="composer-type-selector composer-type-selector--edit">
                                                     <span class="composer-type-label">Tag:</span>
-                                                    <button type="button" class="composer-type-btn ${editState.type === 'idea' ? 'selected' : ''}" data-edit-comment-id="${c.id}" data-type="idea">${SVG_ICONS.idea} Idea</button>
-                                                    <button type="button" class="composer-type-btn ${editState.type === 'action' ? 'selected' : ''}" data-edit-comment-id="${c.id}" data-type="action">${SVG_ICONS.action} Action</button>
-                                                    <button type="button" class="composer-type-btn ${editState.type === 'question' ? 'selected' : ''}" data-edit-comment-id="${c.id}" data-type="question">${SVG_ICONS.question} Question</button>
-                                                    <button type="button" class="composer-type-btn ${editState.type === 'comment' ? 'selected' : ''}" data-edit-comment-id="${c.id}" data-type="comment">${SVG_ICONS.comment} Discussion</button>
+                                                    <button type="button" class="composer-type-btn ${editState.type === 'idea' ? 'selected' : ''}" data-edit-comment-id="${c.id}" data-type="idea">≡ƒÆí Idea</button>
+                                                    <button type="button" class="composer-type-btn ${editState.type === 'action' ? 'selected' : ''}" data-edit-comment-id="${c.id}" data-type="action">≡ƒÄ» Action</button>
+                                                    <button type="button" class="composer-type-btn ${editState.type === 'question' ? 'selected' : ''}" data-edit-comment-id="${c.id}" data-type="question">Γ¥ô Question</button>
+                                                    <button type="button" class="composer-type-btn ${editState.type === 'comment' ? 'selected' : ''}" data-edit-comment-id="${c.id}" data-type="comment">≡ƒÆ¼ Discussion</button>
                                                 </div>
                                                 <textarea class="comment-textarea comment-edit-textarea" id="comment-edit-input-${c.id}" data-comment-id="${c.id}" rows="2">${escapeHTML(editState.content)}</textarea>
                                                 <div class="comment-edit-actions">
@@ -2214,12 +1830,12 @@ function renderItems() {
                                             <div class="comment-footer-actions">
                                                 ${(!isResolved && (isProposer || isCommentAuthor)) ? `
                                                     <button class="btn-mark-solution" data-item-id="${item.id}" data-comment-id="${c.id}" data-comment-text="${escapeHTML(c.content)}" title="Accept this comment as the resolution">
-                                                        ${SVG_ICONS.star} Accept as Solution
+                                                        Γ¡É Accept as Solution
                                                     </button>
                                                 ` : ''}
                                                 ${isCommentAuthor ? `
                                                     <button class="btn-edit-comment" data-item-id="${item.id}" data-comment-id="${c.id}" title="Edit your comment">
-                                                        ${SVG_ICONS.edit} Edit
+                                                        Γ£Å∩╕Å Edit
                                                     </button>
                                                 ` : ''}
                                                 ${canDelete ? `
@@ -2240,16 +1856,16 @@ function renderItems() {
                         <div class="composer-type-selector">
                             <span class="composer-type-label">Tag as:</span>
                             <button type="button" class="composer-type-btn ${selectedType === 'idea' ? 'selected' : ''}" data-item-id="${item.id}" data-type="idea">
-                                ${SVG_ICONS.idea} Idea
+                                ≡ƒÆí Idea
                             </button>
                             <button type="button" class="composer-type-btn ${selectedType === 'action' ? 'selected' : ''}" data-item-id="${item.id}" data-type="action">
-                                ${SVG_ICONS.action} Action
+                                ≡ƒÄ» Action
                             </button>
                             <button type="button" class="composer-type-btn ${selectedType === 'question' ? 'selected' : ''}" data-item-id="${item.id}" data-type="question">
-                                ${SVG_ICONS.question} Question
+                                Γ¥ô Question
                             </button>
                             <button type="button" class="composer-type-btn ${selectedType === 'comment' ? 'selected' : ''}" data-item-id="${item.id}" data-type="comment">
-                                ${SVG_ICONS.comment} Discussion
+                                ≡ƒÆ¼ Discussion
                             </button>
                         </div>
                         <div class="composer-input-row">
@@ -2279,13 +1895,11 @@ function updateStats(stats = null) {
     if (els.statMembers) els.statMembers.textContent = stats?.totalMembers ?? (state.members.length || 15);
     if (els.statVotes)   els.statVotes.textContent = state.items.reduce((sum, item) => sum + (Array.isArray(item.votes) ? item.votes.length : 0), 0);
     if (els.statDocs)    els.statDocs.textContent = stats?.totalDocuments ?? state.documents.length;
-    if (els.statArchives) els.statArchives.textContent = state.archives.length;
     if (els.tabAgendaBadge) els.tabAgendaBadge.textContent = state.items.length;
     if (els.tabDocsBadge)   els.tabDocsBadge.textContent = state.documents.length;
-    if (els.tabArchivesBadge) els.tabArchivesBadge.textContent = state.archives.length;
 }
 
-// ── 3-Level Category Hierarchy System ──
+// ΓöÇΓöÇ 3-Level Category Hierarchy System ΓöÇΓöÇ
 function parseCategoryHierarchy(categories = []) {
     const tree = [];
     const map = new Map(); // path -> node
@@ -2344,7 +1958,7 @@ function renderCategoryBadge(categoryStr, customClass = '') {
     const crumbs = parts.map((p, idx) => {
         const isLast = idx === parts.length - 1;
         return `<span class="cat-crumb ${isLast ? 'cat-crumb-last' : 'cat-crumb-parent'}">${escapeHTML(p)}</span>`;
-    }).join('<span class="cat-crumb-sep">›</span>');
+    }).join('<span class="cat-crumb-sep">ΓÇ║</span>');
     
     return `<span class="${customClass} cat-badge-nested" title="${escapeHTML(categoryStr)}">${crumbs}</span>`;
 }
@@ -2358,17 +1972,17 @@ function renderCategorySelectOptions(categories, selectEl, promptText = 'Select 
 
     tree.forEach(l1 => {
         if (l1.children.length === 0) {
-            html += `<option value="${escapeHTML(l1.path)}">${escapeHTML(l1.name)}</option>`;
+            html += `<option value="${escapeHTML(l1.path)}">≡ƒôü ${escapeHTML(l1.name)}</option>`;
         } else {
-            html += `<optgroup label="${escapeHTML(l1.name)}">`;
-            html += `<option value="${escapeHTML(l1.path)}">${escapeHTML(l1.name)} (General / Main)</option>`;
+            html += `<optgroup label="≡ƒôü ${escapeHTML(l1.name)}">`;
+            html += `<option value="${escapeHTML(l1.path)}">≡ƒôü ${escapeHTML(l1.name)} (General / Main)</option>`;
             l1.children.forEach(l2 => {
                 if (l2.children.length === 0) {
-                    html += `<option value="${escapeHTML(l2.path)}">&nbsp;&nbsp;↳ ${escapeHTML(l2.name)}</option>`;
+                    html += `<option value="${escapeHTML(l2.path)}">&nbsp;&nbsp;Γå│ ≡ƒôé ${escapeHTML(l2.name)}</option>`;
                 } else {
-                    html += `<option value="${escapeHTML(l2.path)}">&nbsp;&nbsp;↳ ${escapeHTML(l2.name)} (Overview)</option>`;
+                    html += `<option value="${escapeHTML(l2.path)}">&nbsp;&nbsp;Γå│ ≡ƒôé ${escapeHTML(l2.name)} (Overview)</option>`;
                     l2.children.forEach(l3 => {
-                        html += `<option value="${escapeHTML(l3.path)}">&nbsp;&nbsp;&nbsp;&nbsp;↳ ${escapeHTML(l3.name)}</option>`;
+                        html += `<option value="${escapeHTML(l3.path)}">&nbsp;&nbsp;&nbsp;&nbsp;Γå│ ≡ƒôä ${escapeHTML(l3.name)}</option>`;
                     });
                 }
             });
@@ -2391,17 +2005,17 @@ function renderCategoryFilterOptions(categories, selectEl, allPrompt = 'All Cate
 
     tree.forEach(l1 => {
         if (l1.children.length === 0) {
-            html += `<option value="${escapeHTML(l1.path)}">${escapeHTML(l1.name)}</option>`;
+            html += `<option value="${escapeHTML(l1.path)}">≡ƒôü ${escapeHTML(l1.name)}</option>`;
         } else {
-            html += `<optgroup label="${escapeHTML(l1.name)}">`;
-            html += `<option value="${escapeHTML(l1.path)}">All "${escapeHTML(l1.name)}"</option>`;
+            html += `<optgroup label="≡ƒôü ${escapeHTML(l1.name)}">`;
+            html += `<option value="${escapeHTML(l1.path)}">≡ƒôü All "${escapeHTML(l1.name)}"</option>`;
             l1.children.forEach(l2 => {
                 if (l2.children.length === 0) {
-                    html += `<option value="${escapeHTML(l2.path)}">&nbsp;&nbsp;↳ ${escapeHTML(l2.name)}</option>`;
+                    html += `<option value="${escapeHTML(l2.path)}">&nbsp;&nbsp;Γå│ ≡ƒôé ${escapeHTML(l2.name)}</option>`;
                 } else {
-                    html += `<option value="${escapeHTML(l2.path)}">&nbsp;&nbsp;↳ All "${escapeHTML(l2.name)}"</option>`;
+                    html += `<option value="${escapeHTML(l2.path)}">&nbsp;&nbsp;Γå│ ≡ƒôé All "${escapeHTML(l2.name)}"</option>`;
                     l2.children.forEach(l3 => {
-                        html += `<option value="${escapeHTML(l3.path)}">&nbsp;&nbsp;&nbsp;&nbsp;↳ ${escapeHTML(l3.name)}</option>`;
+                        html += `<option value="${escapeHTML(l3.path)}">&nbsp;&nbsp;&nbsp;&nbsp;Γå│ ≡ƒôä ${escapeHTML(l3.name)}</option>`;
                     });
                 }
             });
@@ -2417,7 +2031,7 @@ function renderCategoryFilterOptions(categories, selectEl, allPrompt = 'All Cate
     }
 }
 
-// ── Category Dropdowns & Dynamic Options ──
+// ΓöÇΓöÇ Category Dropdowns & Dynamic Options ΓöÇΓöÇ
 function updateCategoryDropdowns() {
     updateAdminVisibility();
 
@@ -2430,7 +2044,7 @@ function updateCategoryDropdowns() {
     renderDocTagFilterStrip();
 }
 
-// ── File Vault Tag Rendering Helpers ──
+// ΓöÇΓöÇ File Vault Tag Rendering Helpers ΓöÇΓöÇ
 function isContributorTagName(tag, doc = null) {
     if (!tag) return false;
     const cleanTag = tag.trim().toLowerCase();
@@ -2465,7 +2079,7 @@ function renderDocTagPicker() {
         const isSelected = isCurrentUploader || (state.selectedUploadTags || []).some(t => t.toLowerCase() === tag.toLowerCase());
         if (isCurrentUploader) {
             return `<label class="doc-tag-chip-label doc-tag-chip-uploader selected locked" data-tag="${escapeHTML(tag)}" title="Your contributor tag is automatically assigned to this upload and cannot be removed">
-                ${SVG_ICONS.user} <span>${escapeHTML(tag)}</span> <span class="tag-locked-icon" title="Cannot be removed">${SVG_ICONS.lock}</span>
+                ≡ƒæñ ${escapeHTML(tag)} <span class="tag-locked-icon" title="Cannot be removed">≡ƒöÆ</span>
             </label>`;
         }
         return `<label class="doc-tag-chip-label ${isSelected ? 'selected' : ''}" data-tag="${escapeHTML(tag)}">
@@ -2487,7 +2101,7 @@ function renderDocTagFilterStrip() {
         }).length;
         if (count === 0 && !isActive) return;
         const isContributor = isContributorTagName(tag);
-        html += `<button type="button" class="tag-filter-chip ${isContributor ? 'tag-filter-chip-uploader' : ''} ${isActive ? 'active' : ''}" data-tag="${escapeHTML(tag)}">${isContributor ? SVG_ICONS.user + ' ' : ''}<span>${escapeHTML(tag)}</span> <span style="opacity:0.65;font-size:0.7rem;margin-left:0.2rem;">${count}</span></button>`;
+        html += `<button type="button" class="tag-filter-chip ${isContributor ? 'tag-filter-chip-uploader' : ''} ${isActive ? 'active' : ''}" data-tag="${escapeHTML(tag)}">${isContributor ? '≡ƒæñ ' : ''}${escapeHTML(tag)} <span style="opacity:0.65;font-size:0.7rem;margin-left:0.2rem;">${count}</span></button>`;
     });
     els.docTagFilterStrip.innerHTML = html;
 }
@@ -2510,12 +2124,12 @@ function renderDocTagManager() {
                 const isContributor = isContributorTagName(tag);
                 return `
                     <div class="doc-tag-manager-row ${isContributor ? 'doc-tag-manager-row-contributor' : ''}">
-                        <span class="doc-tag-pill ${isContributor ? 'doc-tag-pill-uploader' : ''}">${isContributor ? SVG_ICONS.user + ' ' : ''}${escapeHTML(tag)}</span>
+                        <span class="doc-tag-pill ${isContributor ? 'doc-tag-pill-uploader' : ''}">${isContributor ? '≡ƒæñ ' : ''}${escapeHTML(tag)}</span>
                         <span class="doc-tag-manager-count">${count > 0 ? count + ' file' + (count > 1 ? 's' : '') : 'unused'}</span>
                         ${isContributor ? `
-                            <span class="doc-tag-contributor-badge" title="Contributor tag (cannot be deleted)">${SVG_ICONS.lock} Protected</span>
+                            <span class="doc-tag-contributor-badge" title="Contributor tag (cannot be deleted)">≡ƒöÆ Protected</span>
                         ` : `
-                            <button type="button" class="btn-cat-delete" data-path="${escapeHTML(tag)}" title="Delete tag">${SVG_ICONS.trash}</button>
+                            <button type="button" class="btn-cat-delete" data-path="${escapeHTML(tag)}" title="Delete tag">≡ƒùæ∩╕Å</button>
                         `}
                     </div>
                 `;
@@ -2524,7 +2138,7 @@ function renderDocTagManager() {
     `;
 }
 
-// ── Category Management Modal Logic (Admin) ──
+// ΓöÇΓöÇ Category Management Modal Logic (Admin) ΓöÇΓöÇ
 function openCategoryModal(type = 'agenda') {
     state.activeCategoryModalType = type;
     if (!els.categoryModal) {
@@ -2591,7 +2205,7 @@ function updateCategoryBuilderSelectors(preselectL1 = null, preselectL2 = null) 
     if (els.catParentL1) {
         let l1Html = `<option value="__NEW__">+ New Main Category (Level 1)</option>`;
         tree.forEach(node => {
-            l1Html += `<option value="${escapeHTML(node.path)}">${escapeHTML(node.name)}</option>`;
+            l1Html += `<option value="${escapeHTML(node.path)}">≡ƒôü ${escapeHTML(node.name)}</option>`;
         });
         els.catParentL1.innerHTML = l1Html;
         if (preselectL1 && tree.some(n => n.path === preselectL1)) {
@@ -2628,7 +2242,7 @@ function updateL2Selector(preselectL2 = null) {
     let l2Html = `<option value="__NEW__">+ New Subcategory under [${escapeHTML(l1Node ? l1Node.name : selectedL1)}] (Level 2)</option>`;
     if (l1Node && l1Node.children) {
         l1Node.children.forEach(child => {
-            l2Html += `<option value="${escapeHTML(child.path)}">${escapeHTML(child.name)}</option>`;
+            l2Html += `<option value="${escapeHTML(child.path)}">≡ƒôé ${escapeHTML(child.name)}</option>`;
         });
     }
     els.catParentL2.innerHTML = l2Html;
@@ -2655,10 +2269,10 @@ function updateTargetPreview() {
         els.catTargetPath.textContent = 'New Main Category (Level 1)';
         els.newCategoryInput.placeholder = 'Enter main category name (e.g. Governance & Legal)...';
     } else if (selectedL2 === '__NEW__') {
-        els.catTargetPath.textContent = `${selectedL1} › [New Subcategory (Level 2)]`;
+        els.catTargetPath.textContent = `${selectedL1} ΓÇ║ [New Subcategory (Level 2)]`;
         els.newCategoryInput.placeholder = `Enter subcategory name under "${selectedL1}"...`;
     } else {
-        els.catTargetPath.textContent = `${selectedL2} › [New Topic (Level 3)]`;
+        els.catTargetPath.textContent = `${selectedL2} ΓÇ║ [New Topic (Level 3)]`;
         els.newCategoryInput.placeholder = `Enter topic name under "${selectedL2}"...`;
     }
 }
@@ -2695,16 +2309,16 @@ function renderCategoryTree() {
         html += `
             <div class="cat-tree-node level-1" draggable="true" data-path="${escapeHTML(l1.path)}" data-level="1">
                 <div class="cat-tree-info">
-                    <span class="cat-drag-handle" title="Drag to nest this category under another">⠿</span>
-                    <span class="cat-tree-icon">${SVG_ICONS.folder}</span>
+                    <span class="cat-drag-handle" title="Drag to nest this category under another">Γá┐</span>
+                    <span class="cat-tree-icon">≡ƒôü</span>
                     <span class="cat-tree-title">${escapeHTML(l1.name)}</span>
                     <span class="cat-tree-level-tag tag-l1">Level 1</span>
                     ${l1Count > 0 ? `<span class="doc-size-badge">${l1Count} ${isAgenda ? 'items' : 'files'}</span>` : ''}
                 </div>
                 <div class="cat-tree-actions">
                     <button type="button" class="btn-cat-add-sub" data-l1="${escapeHTML(l1.path)}" data-l2="__NEW__" title="Add Subcategory (Level 2) under this">+ Sub (L2)</button>
-                    <button type="button" class="btn-cat-move" data-path="${escapeHTML(l1.path)}" title="Move / Nest under another category">⇄ Move</button>
-                    <button type="button" class="btn-cat-delete" data-path="${escapeHTML(l1.path)}" title="Delete category & subcategories">${SVG_ICONS.trash}</button>
+                    <button type="button" class="btn-cat-move" data-path="${escapeHTML(l1.path)}" title="Move / Nest under another category">Γçä Move</button>
+                    <button type="button" class="btn-cat-delete" data-path="${escapeHTML(l1.path)}" title="Delete category & subcategories">≡ƒùæ∩╕Å</button>
                 </div>
             </div>
         `;
@@ -2717,16 +2331,16 @@ function renderCategoryTree() {
             html += `
                 <div class="cat-tree-node level-2" draggable="true" data-path="${escapeHTML(l2.path)}" data-level="2">
                     <div class="cat-tree-info">
-                        <span class="cat-drag-handle" title="Drag to nest under another category or drag to top to un-nest">⠿</span>
-                        <span class="cat-tree-icon">${SVG_ICONS.folderOpen}</span>
+                        <span class="cat-drag-handle" title="Drag to nest under another category or drag to top to un-nest">Γá┐</span>
+                        <span class="cat-tree-icon">≡ƒôé</span>
                         <span class="cat-tree-title">${escapeHTML(l2.name)}</span>
                         <span class="cat-tree-level-tag tag-l2">Level 2</span>
                         ${l2Count > 0 ? `<span class="doc-size-badge">${l2Count}</span>` : ''}
                     </div>
                     <div class="cat-tree-actions">
                         <button type="button" class="btn-cat-add-sub" data-l1="${escapeHTML(l1.path)}" data-l2="${escapeHTML(l2.path)}" title="Add Topic (Level 3) under this">+ Sub (L3)</button>
-                        <button type="button" class="btn-cat-move" data-path="${escapeHTML(l2.path)}" title="Move / Nest under another category">⇄ Move</button>
-                        <button type="button" class="btn-cat-delete" data-path="${escapeHTML(l2.path)}" title="Delete subcategory">${SVG_ICONS.trash}</button>
+                        <button type="button" class="btn-cat-move" data-path="${escapeHTML(l2.path)}" title="Move / Nest under another category">Γçä Move</button>
+                        <button type="button" class="btn-cat-delete" data-path="${escapeHTML(l2.path)}" title="Delete subcategory">≡ƒùæ∩╕Å</button>
                     </div>
                 </div>
             `;
@@ -2739,15 +2353,15 @@ function renderCategoryTree() {
                 html += `
                     <div class="cat-tree-node level-3" draggable="true" data-path="${escapeHTML(l3.path)}" data-level="3">
                         <div class="cat-tree-info">
-                            <span class="cat-drag-handle" title="Drag to move under another category">⠿</span>
-                            <span class="cat-tree-icon">${SVG_ICONS.docSm}</span>
+                            <span class="cat-drag-handle" title="Drag to move under another category">Γá┐</span>
+                            <span class="cat-tree-icon">≡ƒôä</span>
                             <span class="cat-tree-title">${escapeHTML(l3.name)}</span>
                             <span class="cat-tree-level-tag tag-l3">Level 3</span>
                             ${l3Count > 0 ? `<span class="doc-size-badge">${l3Count}</span>` : ''}
                         </div>
                         <div class="cat-tree-actions">
-                            <button type="button" class="btn-cat-move" data-path="${escapeHTML(l3.path)}" title="Move / Nest under another category">⇄ Move</button>
-                            <button type="button" class="btn-cat-delete" data-path="${escapeHTML(l3.path)}" title="Delete topic">${SVG_ICONS.trash}</button>
+                            <button type="button" class="btn-cat-move" data-path="${escapeHTML(l3.path)}" title="Move / Nest under another category">Γçä Move</button>
+                            <button type="button" class="btn-cat-delete" data-path="${escapeHTML(l3.path)}" title="Delete topic">≡ƒùæ∩╕Å</button>
                         </div>
                     </div>
                 `;
@@ -2915,15 +2529,15 @@ async function promptMoveCategory(sourcePath) {
 
     // Collect valid targets (exclude self and descendants)
     const options = [
-        { label: '[Top Level / Main Category (Level 1)]', value: '__ROOT__' }
+        { label: 'Γ¼å∩╕Å [Top Level / Main Category (Level 1)]', value: '__ROOT__' }
     ];
 
     tree.forEach(l1 => {
         if (l1.path.toLowerCase() !== srcLower && !l1.path.toLowerCase().startsWith(srcLower + ' > ')) {
-            options.push({ label: `${l1.name} (Level 1 Parent)`, value: l1.path });
+            options.push({ label: `≡ƒôü ${l1.name} (Level 1 Parent)`, value: l1.path });
             l1.children.forEach(l2 => {
                 if (l2.path.toLowerCase() !== srcLower && !l2.path.toLowerCase().startsWith(srcLower + ' > ')) {
-                    options.push({ label: `  ↳ ${l1.name} > ${l2.name} (Level 2 Parent)`, value: l2.path });
+                    options.push({ label: `  Γå│ ≡ƒôé ${l1.name} > ${l2.name} (Level 2 Parent)`, value: l2.path });
                 }
             });
         }
@@ -3094,7 +2708,7 @@ async function handleDeleteCategory(name) {
     }
 }
 
-// ── Tab Navigation ──
+// ΓöÇΓöÇ Tab Navigation ΓöÇΓöÇ
 function switchTab(tabName) {
     state.activeTab = tabName;
     
@@ -3109,21 +2723,19 @@ function switchTab(tabName) {
 
     const agendaView = document.getElementById('tab-view-agenda');
     const docsView = document.getElementById('tab-view-documents');
-    const archivesView = document.getElementById('tab-view-archives');
 
-    if (agendaView) agendaView.classList.toggle('active', tabName === 'agenda');
-    if (docsView) docsView.classList.toggle('active', tabName === 'documents');
-    if (archivesView) archivesView.classList.toggle('active', tabName === 'archives');
-
-    if (tabName === 'documents') {
+    if (tabName === 'agenda') {
+        if (agendaView) agendaView.classList.add('active');
+        if (docsView) docsView.classList.remove('active');
+    } else {
+        if (agendaView) agendaView.classList.remove('active');
+        if (docsView) docsView.classList.add('active');
         renderDocuments();
-    } else if (tabName === 'archives') {
-        renderArchives();
     }
 }
 window.switchTab = switchTab;
 
-// ── Document Vault Rendering & Helpers ──
+// ΓöÇΓöÇ Document Vault Rendering & Helpers ΓöÇΓöÇ
 function formatBytes(bytes) {
     if (!bytes || bytes === 0) return '0 B';
     const k = 1024;
@@ -3315,9 +2927,9 @@ function renderDocuments() {
                         <div class="doc-meta-badges">
                             ${docTags.length > 0 ? `<div class="doc-tags-row">${docTags.map(t => {
                                 const isContributor = (uploaderName && t.trim().toLowerCase() === uploaderName.toLowerCase()) || isContributorTagName(t, doc);
-                                return `<span class="doc-tag-pill ${isContributor ? 'doc-tag-pill-uploader' : ''}" title="${isContributor ? 'Contributor: ' + escapeHTML(formatShortName(t)) : 'Tag: ' + escapeHTML(t)}">${isContributor ? SVG_ICONS.user + ' ' : ''}${escapeHTML(isContributor ? formatShortName(t) : t)}</span>`;
+                                return `<span class="doc-tag-pill ${isContributor ? 'doc-tag-pill-uploader' : ''}" title="${isContributor ? 'Contributor: ' + escapeHTML(formatShortName(t)) : 'Tag: ' + escapeHTML(t)}">${isContributor ? '≡ƒæñ ' : ''}${escapeHTML(isContributor ? formatShortName(t) : t)}</span>`;
                             }).join('')}</div>` : ''}
-                            ${!isAvailable ? `<span class="doc-warning-badge" title="This file was uploaded prior to database persistence and needs to be re-uploaded">${SVG_ICONS.alert} Re-upload Needed</span>` : ''}
+                            ${!isAvailable ? '<span class="doc-warning-badge" title="This file was uploaded prior to database persistence and needs to be re-uploaded">ΓÜá∩╕Å Re-upload Needed</span>' : ''}
                             <span class="doc-size-badge">${formatBytes(doc.size)}</span>
                         </div>
                     </div>
@@ -3330,7 +2942,7 @@ function renderDocuments() {
                         ${hasDescription ? `
                             <div class="doc-expand-row">
                                 <button type="button" class="btn-toggle-doc-desc ${isDocOpen ? 'active' : ''}" data-doc-id="${doc.id}" title="${isDocOpen ? 'Hide notes & summary' : 'View notes & summary'}">
-                                    <span class="toggle-doc-icon">${isDocOpen ? '▲' : '▼'}</span>
+                                    <span class="toggle-doc-icon">${isDocOpen ? 'Γû▓' : 'Γû╝'}</span>
                                     <span class="toggle-doc-label">${isDocOpen ? 'Hide Notes & Summary' : 'View Notes & Summary'}</span>
                                 </button>
                             </div>
@@ -3344,7 +2956,7 @@ function renderDocuments() {
                 <div class="doc-card-bottom">
                     <div class="doc-uploader">
                         <span class="doc-uploader-name">${escapeHTML(formatShortName(doc.uploadedBy?.memberName) || 'Member')}</span>
-                        <span>${escapeHTML(doc.uploadedBy?.memberRole || 'Member')} • ${timeAgo(doc.uploadedAt)}</span>
+                        <span>${escapeHTML(doc.uploadedBy?.memberRole || 'Member')} ΓÇó ${timeAgo(doc.uploadedAt)}</span>
                     </div>
                     <div class="doc-actions-group">
                         ${isAvailable ? `
@@ -3381,7 +2993,7 @@ function renderDocuments() {
     }).join('');
 }
 
-// ── Rich Text Sanitizer & Editor Setup ──
+// ΓöÇΓöÇ Rich Text Sanitizer & Editor Setup ΓöÇΓöÇ
 function cleanPastedHtml(rawHtml) {
     if (!rawHtml || typeof rawHtml !== 'string') return '';
 
@@ -3674,7 +3286,7 @@ function setupRichTextEditor() {
     }
 }
 
-// ── Edit Document Modal Logic ──
+// ΓöÇΓöÇ Edit Document Modal Logic ΓöÇΓöÇ
 function openEditDocModal(docId) {
     const doc = (state.documents || []).find(d => d.id === docId);
     if (!doc || !els.editDocModal) return;
@@ -3739,7 +3351,7 @@ function renderEditDocTagPicker() {
         if (isDocUploader) {
             return `
                 <label class="doc-tag-chip-label doc-tag-chip-uploader selected locked" data-tag="${escapeHTML(tag)}" title="Contributor tag is permanently assigned to this document and cannot be removed">
-                    ${SVG_ICONS.user} <span>${escapeHTML(tag)}</span> <span class="tag-locked-icon" title="Cannot be removed">${SVG_ICONS.lock}</span>
+                    ≡ƒæñ ${escapeHTML(tag)} <span class="tag-locked-icon" title="Cannot be removed">≡ƒöÆ</span>
                 </label>
             `;
         }
@@ -3933,7 +3545,7 @@ async function handleSaveEditDoc(e) {
     }
 }
 
-// ── Upload Form Logic ──
+// ΓöÇΓöÇ Upload Form Logic ΓöÇΓöÇ
 function toggleUploadForm() {
     if (!els.uploadDocContainer) return;
     const isCollapsed = els.uploadDocContainer.classList.contains('collapsed');
@@ -3998,7 +3610,7 @@ function handleSelectedFile(file) {
 
     if (els.docFileError) els.docFileError.textContent = '';
     if (els.dropZoneTitle) els.dropZoneTitle.textContent = file.name;
-    if (els.dropZoneHint)  els.dropZoneHint.textContent = `${formatBytes(file.size)} • Ready to upload`;
+    if (els.dropZoneHint)  els.dropZoneHint.textContent = `${formatBytes(file.size)} ΓÇó Ready to upload`;
 
     // Auto-populate Title if empty
     if (els.docTitle && !els.docTitle.value.trim()) {
@@ -4080,7 +3692,7 @@ async function handleSubmitUpload(e) {
     }
 }
 
-// ── Live Countdown ──
+// ΓöÇΓöÇ Live Countdown ΓöÇΓöÇ
 let countdownInterval = null;
 
 function startCountdown() {
@@ -4114,7 +3726,7 @@ function startCountdown() {
 // Legacy alias (called from init)
 function updateDays() { /* replaced by startCountdown */ }
 
-// ── Info Modals (Members, Items, Voting Breakdown) ──
+// ΓöÇΓöÇ Info Modals (Members, Items, Voting Breakdown) ΓöÇΓöÇ
 function getInitials(name) {
     if (!name) return '';
     const parts = name.trim().split(/\s+/);
@@ -4182,10 +3794,10 @@ function showItemsModal() {
                 <div class="modal-item-card" onclick="scrollToItem('${item.id}')">
                     <div class="modal-item-info">
                         <div class="modal-item-title">${idx + 1}. ${escapeHTML(item.title)}</div>
-                        <div class="modal-item-sub">${escapeHTML(item.category)} • By ${escapeHTML(formatShortName(item.proposedBy.memberName))}</div>
+                        <div class="modal-item-sub">${escapeHTML(item.category)} ΓÇó By ${escapeHTML(formatShortName(item.proposedBy.memberName))}</div>
                     </div>
                     <div class="modal-vote-pill">
-                        ↑ ${item.votes.length}
+                        Γåæ ${item.votes.length}
                     </div>
                 </div>
             `).join('')}
@@ -4210,7 +3822,7 @@ function showVotesModal() {
                 <div class="modal-member-card" style="flex-direction:column;align-items:flex-start;gap:0.4rem;" onclick="scrollToItem('${item.id}')">
                     <div style="display:flex;justify-content:space-between;width:100%;align-items:center;">
                         <strong style="color:var(--primary);font-size:0.88rem;">${escapeHTML(item.title)}</strong>
-                        <span class="modal-vote-pill">↑ ${item.votes.length}</span>
+                        <span class="modal-vote-pill">Γåæ ${item.votes.length}</span>
                     </div>
                     <div style="font-size:0.75rem;color:var(--text-muted);">
                         Voters: <strong>${escapeHTML(item.votes.map(v => formatShortName(v.memberName)).join(', '))}</strong>
@@ -4236,7 +3848,7 @@ window.scrollToItem = function(itemId) {
     }, 150);
 };
 
-// ── Export Modal ──
+// ΓöÇΓöÇ Export Modal ΓöÇΓöÇ
 async function showExportModal() {
     try {
         const data = await api.getExport();
@@ -4246,51 +3858,13 @@ async function showExportModal() {
 
         let html = `
             <div class="print-agenda-header">
-                <div class="print-header-top">
-                    <img src="logo.svg" alt="Lady Grey Arts Academy Logo" class="print-school-logo">
-                    <div class="print-header-titles">
-                        <div class="print-school-dept">EASTERN CAPE DEPARTMENT OF EDUCATION • JOE GQABI DISTRICT</div>
-                        <h1 class="print-school-name">LADY GREY ARTS ACADEMY</h1>
-                        <div class="print-school-sub">School Governing Body &amp; School Management Team</div>
-                    </div>
-                    <div class="print-header-badge">
-                        <span class="badge-title">OFFICIAL</span>
-                        <span class="badge-sub">AGENDA</span>
-                    </div>
-                </div>
-
-                <div class="print-meeting-card">
-                    <div class="print-meeting-title-row">
-                        <h2 class="print-meeting-title">${escapeHTML(meetingInfo.title || 'SGB & SMT Strategy Meeting')}</h2>
-                        <span class="print-badge-type">Strategic Planning &amp; Governance</span>
-                    </div>
-                    <div class="print-meta-grid">
-                        <div class="print-meta-cell">
-                            <span class="meta-label">Date &amp; Time:</span>
-                            <span class="meta-val">27 August 2026 — 10:00 SAST</span>
-                        </div>
-                        <div class="print-meta-cell">
-                            <span class="meta-label">Venue:</span>
-                            <span class="meta-val">School Staff Room / Boardroom</span>
-                        </div>
-                        <div class="print-meta-cell">
-                            <span class="meta-label">Constitution:</span>
-                            <span class="meta-val">Joint SGB &amp; SMT Sitting</span>
-                        </div>
-                        <div class="print-meta-cell">
-                            <span class="meta-label">Statutory Basis:</span>
-                            <span class="meta-val">SASA Act 84 of 1996 &amp; SGB Constitution</span>
-                        </div>
-                    </div>
-                    <div class="print-members-row">
-                        <strong>Convened Members (${members.length}):</strong>
-                        <span>${members.map(m => `<strong>${escapeHTML(formatShortName(m.name, m.title))}</strong> <small class="role-chip">(${escapeHTML(m.role)})</small>`).join(', ')}</span>
-                    </div>
-                </div>
-                <div class="print-generation-notice">
-                    <span>Official Notice &amp; Order of Proceedings</span>
-                    <span>Generated on ${new Date().toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
-                </div>
+                <h1>${escapeHTML(meetingInfo.title)}</h1>
+                <h3>School Governing Body & School Management Team</h3>
+                <p><strong>Date:</strong> 27 August 2026 ΓÇö 10:00</p>
+                <p><strong>Venue:</strong> Staff Room</p>
+                <p><strong>Type:</strong> Strategy Meeting ΓÇö Way Forward</p>
+                <p><strong>Members:</strong> ${members.map(m => formatShortName(m.name, m.title)).join(', ')}</p>
+                <p><em>Agenda generated on ${new Date().toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' })}</em></p>
             </div>
         `;
 
@@ -4310,14 +3884,14 @@ async function showExportModal() {
                 html += `
                     <div class="print-item ${isResolved ? 'print-item-resolved' : ''}">
                         <h4>${itemNumber}. ${escapeHTML(item.title)}
-                            <small>(${isResolved ? 'Resolved • ' : ''}${statusLabel} — ${item.votes.length} ${item.votes.length === 1 ? 'vote' : 'votes'})</small>
+                            <small>(${isResolved ? 'Resolved ΓÇó ' : ''}${statusLabel} ΓÇö ${item.votes.length} ${item.votes.length === 1 ? 'vote' : 'votes'})</small>
                         </h4>
-                        <p class="print-meta"><em>Proposed by: ${escapeHTML(formatShortName(item.proposedBy.memberName))} (${escapeHTML(item.proposedBy.memberRole)}) · ${escapeHTML(item.category)}</em></p>
+                        <p class="print-meta"><em>Proposed by: ${escapeHTML(formatShortName(item.proposedBy.memberName))} (${escapeHTML(item.proposedBy.memberRole)}) ┬╖ ${escapeHTML(item.category)}</em></p>
                         <p class="print-desc">${escapeHTML(item.description)}</p>
 
                         ${isResolved && item.resolution ? `
                             <div class="print-resolution-box">
-                                <strong>Resolution / Agreed Plan:</strong> ${escapeHTML(item.resolution.solutionText)}
+                                <strong>Γ£à Resolution / Agreed Plan:</strong> ${escapeHTML(item.resolution.solutionText)}
                                 <span class="print-res-by">(Resolved by ${escapeHTML(formatShortName(item.resolution.resolvedBy ? item.resolution.resolvedBy.memberName : 'Member'))})</span>
                             </div>
                         ` : ''}
@@ -4331,7 +3905,7 @@ async function showExportModal() {
                                             <strong>${escapeHTML(formatShortName(c.memberName))}</strong>
                                             <span class="print-tag">[${escapeHTML(c.type || 'comment')}]</span>:
                                             ${escapeHTML(c.content)}
-                                            ${c.isSolution ? ' <em>(⭐ Accepted Solution)</em>' : ''}
+                                            ${c.isSolution ? ' <em>(Γ¡É Accepted Solution)</em>' : ''}
                                         </li>
                                     `).join('')}
                                 </ul>
@@ -4340,32 +3914,6 @@ async function showExportModal() {
                     </div>
                 `;
             });
-
-            // Agenda Adoption & Sign-off Section
-            html += `
-                <div class="print-adoption-section">
-                    <div class="adoption-statement">
-                        <strong>Agenda Adoption &amp; Certification:</strong> In accordance with Section 7 of the SGB Constitution, this agenda was duly circulated and approved for formal adoption at the commencement of the meeting.
-                    </div>
-                    <div class="print-sign-grid print-sign-grid--3">
-                        <div class="print-sign-box">
-                            <div class="sign-line"></div>
-                            <div class="sign-name">Mr. K. Dyasi</div>
-                            <div class="sign-role">SGB Chairperson</div>
-                        </div>
-                        <div class="print-sign-box">
-                            <div class="sign-line"></div>
-                            <div class="sign-name">Ms. M. Botha</div>
-                            <div class="sign-role">School Principal</div>
-                        </div>
-                        <div class="print-sign-box">
-                            <div class="sign-line"></div>
-                            <div class="sign-name">Mr. S. Vorster</div>
-                            <div class="sign-role">SGB Secretariat / Admin</div>
-                        </div>
-                    </div>
-                </div>
-            `;
         }
 
         els.printableAgenda.innerHTML = html;
@@ -4375,346 +3923,7 @@ async function showExportModal() {
     }
 }
 
-// ── Attendance Register Modal ──
-let attendanceRosterState = null;
-
-async function showAttendanceModal() {
-    try {
-        const data = await api.getAttendance();
-        if (!data) return;
-
-        attendanceRosterState = data;
-        renderAttendanceModalContent();
-        els.attendanceModal.classList.add('active');
-    } catch (error) {
-        showToast('Failed to load formal attendance register', true);
-    }
-}
-
-function closeAttendanceModal() {
-    if (els.attendanceModal) {
-        els.attendanceModal.classList.remove('active');
-    }
-}
-
-function renderAttendanceModalContent() {
-    if (!attendanceRosterState) return;
-    const { schoolInfo, meetingInfo, stats, components } = attendanceRosterState;
-
-    // Calculate dynamic attendance stats
-    let totalCount = 0;
-    let presentCount = 0;
-    let apologyCount = 0;
-    let absentCount = 0;
-
-    components.forEach(group => {
-        group.members.forEach(m => {
-            totalCount++;
-            if (m.status === 'Present') presentCount++;
-            else if (m.status === 'Apology') apologyCount++;
-            else absentCount++;
-        });
-    });
-
-    const isQuorate = presentCount >= stats.quorumThreshold;
-    const quorumPercent = totalCount > 0 ? ((presentCount / totalCount) * 100).toFixed(1) : '100.0';
-
-    let html = `
-        <div class="print-agenda-header print-attendance-header">
-            <div class="print-header-top">
-                <img src="logo.svg" alt="Lady Grey Arts Academy Logo" class="print-school-logo">
-                <div class="print-header-titles">
-                    <div class="print-school-dept">${escapeHTML(schoolInfo.department)} • ${escapeHTML(schoolInfo.district)}</div>
-                    <h1 class="print-school-name">${escapeHTML(schoolInfo.name)}</h1>
-                    <div class="print-school-sub">School Governing Body &amp; School Management Team</div>
-                </div>
-                <div class="print-header-badge">
-                    <span class="badge-title">OFFICIAL</span>
-                    <span class="badge-sub">ATTENDANCE</span>
-                </div>
-            </div>
-
-            <div class="print-meeting-card">
-                <div class="print-meeting-title-row">
-                    <h2 class="print-meeting-title">OFFICIAL SGB &amp; SMT MEETING ATTENDANCE REGISTER</h2>
-                    <span class="print-badge-type">Statutory Quorum Declaration</span>
-                </div>
-                <div class="print-meta-grid">
-                    <div class="print-meta-cell">
-                        <span class="meta-label">
-                            <svg class="meta-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                            Date &amp; Time:
-                        </span>
-                        <span class="meta-val">${escapeHTML(meetingInfo.dateFormatted)} — ${escapeHTML(meetingInfo.time)}</span>
-                    </div>
-                    <div class="print-meta-cell">
-                        <span class="meta-label">
-                            <svg class="meta-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                            Venue:
-                        </span>
-                        <span class="meta-val">${escapeHTML(meetingInfo.venue)}</span>
-                    </div>
-                    <div class="print-meta-cell">
-                        <span class="meta-label">
-                            <svg class="meta-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M4 18h16M6 18v-7M10 18v-7M14 18v-7M18 18v-7M12 3L2 8h20L12 3z"/></svg>
-                            Meeting Type:
-                        </span>
-                        <span class="meta-val">${escapeHTML(meetingInfo.type)}</span>
-                    </div>
-                    <div class="print-meta-cell">
-                        <span class="meta-label">
-                            <svg class="meta-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M6 8l6-2 6 2M6 8L3 14h6L6 8zM18 8l-3 6h6l-3-6zM8 21h8"/></svg>
-                            Statutory Authority:
-                        </span>
-                        <span class="meta-val">SASA Act No. 84 of 1996 (Sections 12 &amp; 18)</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Quorum Summary Banner -->
-            <div class="quorum-summary-card ${isQuorate ? 'quorum-passed' : 'quorum-failed'}">
-                <div class="quorum-summary-main">
-                    <div class="quorum-status-pill">
-                        ${isQuorate 
-                            ? `<svg class="pill-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> DULY CONSTITUTED &amp; QUORATE` 
-                            : `<svg class="pill-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> NON-QUORATE SITTING`}
-                    </div>
-                    <div class="quorum-stats-text">
-                        <strong>Total Members:</strong> ${totalCount} &nbsp;|&nbsp; 
-                        <strong>Present:</strong> ${presentCount} (${quorumPercent}%) &nbsp;|&nbsp; 
-                        <strong>Apologies:</strong> ${apologyCount} &nbsp;|&nbsp; 
-                        <strong>Required Quorum (&gt;50%):</strong> ${stats.quorumThreshold} Members
-                    </div>
-                </div>
-                <div class="quorum-legal-note">
-                    ${isQuorate 
-                        ? 'Statutory quorum requirement satisfied. Meeting is legally empowered to adopt binding governance resolutions.' 
-                        : 'Quorum requirement not met. Decisions subject to subsequent ratification.'}
-                </div>
-            </div>
-        </div>
-
-        <!-- Attendance Roster by Component -->
-        <div class="attendance-roster-section">
-            <h3 class="attendance-section-title">1. RECORD OF ATTENDANCE BY GOVERNANCE COMPONENT</h3>
-    `;
-
-    let globalIndex = 1;
-    components.forEach((group) => {
-        html += `
-            <div class="attendance-component-block">
-                <h4 class="attendance-component-heading">${escapeHTML(group.name)}</h4>
-                <div class="table-responsive">
-                    <table class="attendance-table">
-                        <thead>
-                            <tr>
-                                <th style="width: 36px; text-align: center;">#</th>
-                                <th style="width: 25%;">Member Name &amp; Title</th>
-                                <th style="width: 28%;">Governance / SMT Role</th>
-                                <th style="width: 17%; text-align: center;">Status</th>
-                                <th style="width: 12%; text-align: center;">Time In</th>
-                                <th style="width: 18%; text-align: center;">Signature / Initial</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-        `;
-
-        group.members.forEach((member) => {
-            const memberIdx = globalIndex++;
-            const fullName = `${member.title ? member.title + ' ' : ''}${member.name}`;
-            html += `
-                <tr class="attendance-row ${member.status.toLowerCase()}">
-                    <td style="text-align: center; font-weight: 600; color: var(--text-muted);">${memberIdx}</td>
-                    <td>
-                        <strong>${escapeHTML(fullName)}</strong>
-                        ${member.email ? `<br><small class="text-muted">${escapeHTML(member.email)}</small>` : ''}
-                    </td>
-                    <td>
-                        <span class="member-role-text">${escapeHTML(member.role)}</span>
-                    </td>
-                    <td style="text-align: center;">
-                        <select class="attendance-status-select no-print" onchange="window.updateMemberAttendanceStatus('${escapeHTML(member.id)}', this.value)">
-                            <option value="Present" ${member.status === 'Present' ? 'selected' : ''}>Present</option>
-                            <option value="Apology" ${member.status === 'Apology' ? 'selected' : ''}>Apology</option>
-                            <option value="Absent" ${member.status === 'Absent' ? 'selected' : ''}>Absent</option>
-                        </select>
-                        <span class="attendance-print-status only-print ${member.status === 'Present' ? 'status-present' : 'status-apology'}">
-                            ${member.status === 'Present' ? 'Present' : (member.status === 'Apology' ? 'Apology' : 'Absent')}
-                        </span>
-                    </td>
-                    <td style="text-align: center;">
-                        ${member.status === 'Present' 
-                            ? `<input type="time" class="attendance-time-input no-print" value="${escapeHTML(member.timeIn || '10:00')}" onchange="window.updateMemberAttendanceTime('${escapeHTML(member.id)}', this.value)" title="Edit arrival time">
-                               <span class="attendance-print-time only-print" style="font-size: 0.88rem;">${escapeHTML(member.timeIn || '10:00')}</span>` 
-                            : '<span class="text-muted" style="font-size: 0.85rem;">—</span>'}
-                    </td>
-                    <td style="text-align: center;">
-                        ${member.status === 'Present' 
-                            ? `<div class="attendance-sig-space"><span class="attendance-signed-pill">Signed</span></div>` 
-                            : `<span class="text-muted" style="font-size: 0.8rem;">—</span>`}
-                    </td>
-                </tr>
-            `;
-        });
-
-        html += `
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        `;
-    });
-
-    html += `
-        </div>
-
-        <!-- Section 2: Apologies -->
-        <div class="attendance-apologies-block">
-            <h3 class="attendance-section-title">2. RECORD OF FORMAL APOLOGIES &amp; LEAVE OF ABSENCE</h3>
-            <div class="apologies-card">
-                ${apologyCount === 0 
-                    ? `<p class="apology-none-text">
-                        <svg class="apology-check-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                        <span>No formal apologies were tendered; full governance quorum recorded in attendance.</span>
-                       </p>`
-                    : `<ul class="apology-list">
-                        ${components.flatMap(g => g.members).filter(m => m.status === 'Apology').map(m => `
-                            <li><strong>${escapeHTML(m.title ? m.title + ' ' : '')}${escapeHTML(m.name)}</strong> (${escapeHTML(m.role)}): Formal apology tendered and recorded in terms of SGB meeting procedures.</li>
-                        `).join('')}
-                       </ul>`
-                }
-            </div>
-        </div>
-
-        <!-- Section 3: Verification & Certification -->
-        <div class="print-adoption-section print-attendance-certification">
-            <h3 class="attendance-section-title">3. VERIFICATION OF ATTENDANCE &amp; QUORUM CERTIFICATION</h3>
-            <p class="adoption-statement">
-                We, the undersigned executive office-bearers of the School Governing Body and School Management Team of Lady Grey Arts Academy, hereby certify that the above attendance roster represents an accurate, true, and complete record of the meeting held on <strong>27 August 2026</strong>.
-            </p>
-            <div class="print-sign-grid print-sign-grid--3">
-                <div class="print-sign-box">
-                    <div class="sign-line"></div>
-                    <div class="sign-name">Mr. K. Dyasi</div>
-                    <div class="sign-role">SGB Chairperson</div>
-                    <div class="sign-date">Date: 27 August 2026</div>
-                </div>
-                <div class="print-sign-box">
-                    <div class="sign-line"></div>
-                    <div class="sign-name">Ms. M. Botha</div>
-                    <div class="sign-role">School Principal</div>
-                    <div class="sign-date">Date: 27 August 2026</div>
-                </div>
-                <div class="print-sign-box">
-                    <div class="sign-line"></div>
-                    <div class="sign-name">Mr. S. Vorster</div>
-                    <div class="sign-role">SGB Secretariat / Admin</div>
-                    <div class="sign-date">Date: 27 August 2026</div>
-                </div>
-            </div>
-            <div class="cert-stamp-box">
-                <div class="stamp-border">
-                    <span>OFFICIAL SCHOOL STAMP</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Bottom Action Bar with Save Button -->
-        <div class="attendance-footer-actions no-print" style="margin-top: 1.75rem; display: flex; justify-content: space-between; align-items: center; padding-top: 1.25rem; border-top: 1px solid var(--border-color, #243048);">
-            <div class="attendance-last-saved-info" style="font-size: 0.82rem; color: var(--text-muted);">
-                ${attendanceRosterState.lastSaved ? `Last saved to database: ${new Date(attendanceRosterState.lastSaved).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'Unsaved changes in roster'}
-            </div>
-            <div style="display: flex; gap: 0.75rem;">
-                <button type="button" class="btn btn-success" id="btn-save-attendance-bottom" onclick="window.saveAttendanceToDatabase()">
-                    <svg class="btn-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-                    <span>Save Attendance Register</span>
-                </button>
-            </div>
-        </div>
-    `;
-
-    els.printableAttendance.innerHTML = html;
-}
-
-window.updateMemberAttendanceStatus = function(memberId, newStatus) {
-    if (!attendanceRosterState) return;
-    attendanceRosterState.components.forEach(group => {
-        group.members.forEach(m => {
-            if (m.id === memberId) {
-                m.status = newStatus;
-                if (newStatus === 'Present' && !m.timeIn) {
-                    m.timeIn = '10:00';
-                }
-            }
-        });
-    });
-    renderAttendanceModalContent();
-};
-
-window.updateMemberAttendanceTime = function(memberId, newTime) {
-    if (!attendanceRosterState) return;
-    attendanceRosterState.components.forEach(group => {
-        group.members.forEach(m => {
-            if (m.id === memberId) {
-                m.timeIn = newTime || '10:00';
-            }
-        });
-    });
-};
-
-window.saveAttendanceToDatabase = async function() {
-    if (!attendanceRosterState) return;
-    const saveBtns = [
-        document.getElementById('btn-save-attendance'),
-        document.getElementById('btn-save-attendance-bottom')
-    ].filter(Boolean);
-
-    saveBtns.forEach(b => {
-        b.disabled = true;
-        b.innerHTML = `
-            <svg class="btn-icon spin" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg>
-            <span>Saving...</span>
-        `;
-    });
-
-    try {
-        const res = await api.saveAttendance({ components: attendanceRosterState.components });
-        attendanceRosterState.lastSaved = res?.lastSaved || new Date().toISOString();
-        showToast('Attendance register saved to database!');
-        saveBtns.forEach(b => {
-            b.innerHTML = `
-                <svg class="btn-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                <span>Saved!</span>
-            `;
-        });
-        setTimeout(() => {
-            renderAttendanceModalContent();
-        }, 1500);
-    } catch (err) {
-        console.error('Error saving attendance:', err);
-        showToast(err.message || 'Failed to save attendance', true);
-        renderAttendanceModalContent();
-    }
-};
-
-// ── Utilities ──
-function getMemberComponent(role) {
-    const r = (role || '').toLowerCase();
-    if (r.includes('educator') || r.includes('teacher') || r.includes('tots') || r.includes('preschool') || r.includes('grade r')) {
-        return 'Educator Component';
-    }
-    if (r.includes('parent') || r.includes('chairperson') || r.includes('treasurer')) {
-        return 'Parent Component';
-    }
-    if (r.includes('principal') || r.includes('deputy') || r.includes('smt') || r.includes('management')) {
-        return 'Management / SMT Component';
-    }
-    if (r.includes('non') || r.includes('finance') || r.includes('clerk') || r.includes('admin') || r.includes('staff')) {
-        return 'Non-Teaching Staff & Secretariat Component';
-    }
-    return 'General Governance Component';
-}
-
+// ΓöÇΓöÇ Utilities ΓöÇΓöÇ
 function escapeHTML(str) {
     if (!str) return '';
     return str.replace(/[&<>'"]/g,
@@ -4760,7 +3969,7 @@ function showToast(message, isError = false) {
     }, 3000);
 }
 
-// ── Polling ──
+// ΓöÇΓöÇ Polling ΓöÇΓöÇ
 let pollTimer = null;
 async function checkAppVersion() {
     try {
@@ -4808,7 +4017,7 @@ function stopPolling() {
     if (countdownTimer) clearInterval(countdownTimer);
 }
 
-// ── Mobile & Browser Back-Button Management ──
+// ΓöÇΓöÇ Mobile & Browser Back-Button Management ΓöÇΓöÇ
 let lastBackPressTime = 0;
 
 function initHistoryNavigation() {
@@ -4869,28 +4078,7 @@ function handleBackNavigation() {
         return;
     }
 
-    // 5. Conclude Meeting Wizard Modal
-    if (els.concludeModal && els.concludeModal.classList.contains('active')) {
-        closeConcludeWizard();
-        rearmHistory();
-        return;
-    }
-
-    // 6. Archive Dossier Viewer Modal
-    if (els.archiveDossierModal && els.archiveDossierModal.classList.contains('active')) {
-        closeArchiveDossier();
-        rearmHistory();
-        return;
-    }
-
-    // 7. Edit Archive Modal
-    if (els.editArchiveModal && els.editArchiveModal.classList.contains('active')) {
-        closeEditArchiveModal();
-        rearmHistory();
-        return;
-    }
-
-    // 8. Any expanded comment / brainstorm drawers
+    // 5. Any expanded comment / brainstorm drawers
     if (state.openComments && state.openComments.size > 0) {
         state.openComments.clear();
         renderItems();
@@ -4898,14 +4086,14 @@ function handleBackNavigation() {
         return;
     }
 
-    // 9. In Documents Vault View or Archives View -> Switch back to Agenda view
-    if (state.activeTab === 'documents' || state.activeTab === 'archives') {
+    // 6. In Documents Vault View -> Switch back to Agenda view
+    if (state.activeTab === 'documents') {
         switchTab('agenda');
         rearmHistory();
         return;
     }
 
-    // 10. Base Screen (Main View or Login View) -> Double back to exit
+    // 7. Base Screen (Main View or Login View) -> Double back to exit
     const now = Date.now();
     if (now - lastBackPressTime < 2000) {
         // Double press within 2s -> Allow exit
@@ -4917,1770 +4105,5 @@ function handleBackNavigation() {
     }
 }
 
-// ═════════════════════════════════════════════════════════════════
-// ── MEETING ARCHIVES, CONCLUDE WIZARD & DOSSIER VIEWER MODULE ───
-// ═════════════════════════════════════════════════════════════════
-
-// Update Header, Login Screen, and countdown with dynamic meeting info
-function updateMeetingHeaderInfo(info) {
-    if (!info) return;
-    const headerSubtitle = document.querySelector('.header-title .subtitle');
-    if (headerSubtitle) {
-        const formattedDate = formatDateLong(info.date || '2026-08-27');
-        headerSubtitle.textContent = `${info.title || 'SGB/SMT Strategy Meeting'} • ${formattedDate} @ ${info.time || '10:00'} · ${info.venue || 'Staff Room'}`;
-    }
-    const loginDesc = document.querySelector('.login-card p');
-    if (loginDesc) {
-        const formattedDate = formatDateLong(info.date || '2026-08-27');
-        loginDesc.innerHTML = `Welcome to the collaborative agenda builder for our upcoming sitting on <strong>${formattedDate} at ${info.time || '10:00 SAST'}</strong> in the <strong>${info.venue || 'School Staff Room'}</strong>. Select your name and enter your secure PIN to continue.`;
-    }
-}
-
-function formatDateLong(dateStr) {
-    if (!dateStr) return '';
-    try {
-        const d = new Date(dateStr + 'T00:00:00');
-        if (isNaN(d.getTime())) return dateStr;
-        return d.toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' });
-    } catch {
-        return dateStr;
-    }
-}
-
-function formatDayOnly(dateStr) {
-    if (!dateStr) return '01';
-    try {
-        const d = new Date(dateStr + 'T00:00:00');
-        if (isNaN(d.getTime())) return '01';
-        return d.toLocaleDateString('en-ZA', { day: '2-digit' });
-    } catch {
-        return '01';
-    }
-}
-
-function formatMonthYearOnly(dateStr) {
-    if (!dateStr) return 'AUG 2026';
-    try {
-        const d = new Date(dateStr + 'T00:00:00');
-        if (isNaN(d.getTime())) return 'AUG 2026';
-        return d.toLocaleDateString('en-ZA', { month: 'short', year: 'numeric' }).toUpperCase();
-    } catch {
-        return 'AUG 2026';
-    }
-}
-
-// ── Render Meeting Archives List ──
-function renderArchives() {
-    if (!els.archivesContainer) return;
-
-    let list = Array.isArray(state.archives) ? [...state.archives] : [];
-
-    // Filter by search query
-    const query = (state.archiveFilters.search || '').toLowerCase().trim();
-    if (query) {
-        list = list.filter(a => {
-            const title = (a.meetingInfo?.title || '').toLowerCase();
-            const date = (a.meetingInfo?.date || '').toLowerCase();
-            const notes = (a.notes || '').toLowerCase();
-            const resTitles = (a.resolutions || []).map(r => (r.itemTitle || r.title || '').toLowerCase()).join(' ');
-            return title.includes(query) || date.includes(query) || notes.includes(query) || resTitles.includes(query);
-        });
-    }
-
-    // Filter by category chip
-    const filterType = state.archiveFilters.filter;
-    if (filterType === 'audio') {
-        list = list.filter(a => a.hasAudio || (Array.isArray(a.audioFiles) && a.audioFiles.length > 0));
-    } else if (filterType === 'transcript') {
-        list = list.filter(a => a.hasTranscript || Boolean(a.transcript?.text && a.transcript.text.trim()) || (Array.isArray(a.transcript?.files) && a.transcript.files.length > 0));
-    } else if (filterType === 'signed') {
-        list = list.filter(a => a.hasSignedRegister || (Array.isArray(a.signedAttendanceFiles) && a.signedAttendanceFiles.length > 0));
-    } else if (filterType === 'resolutions') {
-        list = list.filter(a => (a.resolutionsCount > 0) || (Array.isArray(a.resolutions) && a.resolutions.length > 0));
-    }
-
-    // Sort list
-    const sortType = state.archiveFilters.sort;
-    if (sortType === 'newest') {
-        list.sort((a, b) => new Date(b.meetingInfo?.date || b.archivedAt) - new Date(a.meetingInfo?.date || a.archivedAt));
-    } else if (sortType === 'oldest') {
-        list.sort((a, b) => new Date(a.meetingInfo?.date || a.archivedAt) - new Date(b.meetingInfo?.date || b.archivedAt));
-    } else if (sortType === 'items') {
-        list.sort((a, b) => (b.itemsCount || 0) - (a.itemsCount || 0));
-    } else if (sortType === 'resolutions') {
-        list.sort((a, b) => (b.resolutionsCount || 0) - (a.resolutionsCount || 0));
-    }
-
-    if (list.length === 0) {
-        els.archivesContainer.innerHTML = '';
-        if (els.archivesEmptyState) els.archivesEmptyState.classList.remove('hidden');
-        return;
-    }
-
-    if (els.archivesEmptyState) els.archivesEmptyState.classList.add('hidden');
-
-    const adminUser = isAdmin();
-
-    els.archivesContainer.innerHTML = list.map(arch => {
-        const meetingInfo = arch.meetingInfo || {};
-        const stats = arch.stats || {};
-        const meetingDate = meetingInfo.date || arch.archivedAt?.split('T')[0] || '2026-08-27';
-        const day = formatDayOnly(meetingDate);
-        const monthYear = formatMonthYearOnly(meetingDate);
-        const hasAudio = arch.hasAudio || (Array.isArray(arch.audioFiles) && arch.audioFiles.length > 0);
-        const audioCount = arch.audioCount || (Array.isArray(arch.audioFiles) ? arch.audioFiles.length : 0);
-        const hasSigned = arch.hasSignedRegister || (Array.isArray(arch.signedAttendanceFiles) && arch.signedAttendanceFiles.length > 0);
-        const resCount = arch.resolutionsCount || (Array.isArray(arch.resolutions) ? arch.resolutions.length : 0);
-        const itemsCount = arch.itemsCount || (Array.isArray(arch.agendaSnapshot) ? arch.agendaSnapshot.length : 0);
-
-        return `
-            <div class="archive-card" data-archive-id="${arch.id}">
-                <div>
-                    <div class="archive-card-header">
-                        <div class="archive-date-badge">
-                            <div class="archive-date-day">${day}</div>
-                            <div class="archive-date-month-year">${monthYear}</div>
-                        </div>
-                        <div class="archive-card-title-group">
-                            <h3 class="archive-card-title">${escapeHTML(meetingInfo.title || 'SGB/SMT Meeting')}</h3>
-                            <div class="archive-card-meta">
-                                <span>${SVG_ICONS.clock} ${escapeHTML(meetingInfo.time || '10:00 SAST')}</span>
-                                <span>${SVG_ICONS.pin} ${escapeHTML(meetingInfo.venue || 'Staff Room')}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="archive-badges-wrap">
-                        ${hasAudio ? `<span class="archive-badge archive-badge--audio">${SVG_ICONS.audio} ${audioCount} Audio${audioCount > 1 ? 's' : ''}</span>` : ''}
-                        ${hasSigned ? `<span class="archive-badge archive-badge--signed">${SVG_ICONS.signed} Signed Register</span>` : ''}
-                        <span class="archive-badge archive-badge--res">${SVG_ICONS.resolutions} ${resCount} Decision${resCount !== 1 ? 's' : ''}</span>
-                        <span class="archive-badge archive-badge--quorum">${SVG_ICONS.users} ${stats.presentCount ?? stats.totalMembers ?? 15} Present (${stats.quorumPercentage || '100%'})</span>
-                        <span class="archive-badge">${SVG_ICONS.agenda} ${itemsCount} Items</span>
-                    </div>
-
-                    ${arch.notes ? `<p class="archive-card-summary">${escapeHTML(arch.notes)}</p>` : `<p class="archive-card-summary" style="font-style: italic; color: var(--text-muted);">Official sitting concluded and archived. Dossier contains full deliberations, voting log, audio recordings, and adopted resolutions.</p>`}
-                </div>
-
-                <div class="archive-card-footer">
-                    <button type="button" class="btn btn-primary btn-sm btn-open-archive-dossier" data-id="${arch.id}">
-                        ${SVG_ICONS.folder} <span>Open Dossier</span>
-                    </button>
-                    <div class="archive-card-actions">
-                        <button type="button" class="btn btn-outline btn-sm btn-download-archive-docx" data-id="${arch.id}" title="Download Word Minutes (.docx)">
-                            ${SVG_ICONS.doc} <span>DOCX</span>
-                        </button>
-                        <button type="button" class="btn btn-outline btn-sm btn-download-archive-zip" data-id="${arch.id}" title="Download Full Dossier ZIP Pack">
-                            ${SVG_ICONS.box} <span>ZIP</span>
-                        </button>
-                        ${adminUser ? `
-                            <button type="button" class="btn btn-outline btn-sm btn-edit-archive-quick" data-id="${arch.id}" title="Edit Archive Particulars & Resolutions">
-                                ${SVG_ICONS.edit}
-                            </button>
-                            <button type="button" class="btn btn-outline btn-sm btn-delete-archive-quick" data-id="${arch.id}" title="Delete Archive (Admin Only)" style="color: var(--danger); border-color: rgba(239, 68, 68, 0.3);">
-                                ${SVG_ICONS.trash}
-                            </button>
-                        ` : ''}
-                    </div>
-                </div>
-            </div>
-        `;
-    }).join('');
-}
-
-// ── Conclude & Archive Meeting Wizard Logic ──
-function openConcludeWizard() {
-    state.concludeStep = 1;
-    state.selectedConcludeAudios = [];
-    state.selectedConcludeMinutes = [];
-    
-    // Pre-fill meeting metadata from current meetingInfo or defaults
-    const currentInfo = state.meetingInfo || {};
-    if (els.concludeMeetingTitle) els.concludeMeetingTitle.value = currentInfo.title || 'SGB/SMT Strategy Meeting';
-    if (els.concludeMeetingDate) els.concludeMeetingDate.value = currentInfo.date || '2026-08-27';
-    if (els.concludeMeetingTime) els.concludeMeetingTime.value = currentInfo.time || '10:00 SAST';
-    if (els.concludeMeetingVenue) els.concludeMeetingVenue.value = currentInfo.venue || 'School Staff Room / Boardroom';
-    if (els.concludeMeetingNotes) els.concludeMeetingNotes.value = currentInfo.summary || '';
-
-    // Render Stats Summary Card in Step 1
-    if (els.concludeStatsSummaryCard) {
-        const totalItems = state.items.length;
-        const totalVotes = state.items.reduce((sum, item) => sum + (Array.isArray(item.votes) ? item.votes.length : 0), 0);
-        const resolvedCount = state.items.filter(i => i.isResolved).length;
-        const docsCount = state.documents.length;
-        const membersCount = state.members.length || 15;
-
-        els.concludeStatsSummaryCard.innerHTML = `
-            <div class="conclude-stat-pill">
-                <span class="conclude-stat-pill-label">Proposed Topics</span>
-                <span class="conclude-stat-pill-val">${totalItems}</span>
-            </div>
-            <div class="conclude-stat-pill">
-                <span class="conclude-stat-pill-label">Total Votes</span>
-                <span class="conclude-stat-pill-val">${totalVotes}</span>
-            </div>
-            <div class="conclude-stat-pill">
-                <span class="conclude-stat-pill-label">Resolved Decisions</span>
-                <span class="conclude-stat-pill-val">${resolvedCount}</span>
-            </div>
-            <div class="conclude-stat-pill">
-                <span class="conclude-stat-pill-label">Supporting Files</span>
-                <span class="conclude-stat-pill-val">${docsCount}</span>
-            </div>
-            <div class="conclude-stat-pill">
-                <span class="conclude-stat-pill-label">Convened Members</span>
-                <span class="conclude-stat-pill-val">${membersCount}</span>
-            </div>
-        `;
-    }
-
-    // Step 2 Audio Tray Reset
-    if (els.concludeAudioTray) els.concludeAudioTray.innerHTML = '';
-    if (els.concludeAudioInput) els.concludeAudioInput.value = '';
-
-    // Step 3 Minutes & Transcript Reset
-    if (els.concludeMinutesTray) els.concludeMinutesTray.innerHTML = '';
-    if (els.concludeMinutesFileInput) els.concludeMinutesFileInput.value = '';
-    if (els.concludeMinutesDropTitle) els.concludeMinutesDropTitle.textContent = 'Click to upload Official Minutes Document (.docx, .pdf, .doc)';
-    if (els.concludeTranscriptFileInput) els.concludeTranscriptFileInput.value = '';
-    if (els.concludeTranscriptText) els.concludeTranscriptText.value = '';
-
-    // Step 4 Pre-populate Resolutions
-    state.concludeResolutions = [];
-    state.items.forEach(item => {
-        if (item.isResolved && item.resolution) {
-            state.concludeResolutions.push({
-                itemId: item.id,
-                itemTitle: item.title,
-                decision: 'Adopted',
-                resolutionText: item.resolution.solutionText || item.resolution.summary || '',
-                actionItems: [
-                    { task: `Execute resolution on "${item.title}"`, assignee: item.proposedBy?.memberName || '', dueDate: '', priority: 'High', status: 'Pending' }
-                ]
-            });
-        }
-    });
-
-    if (state.concludeResolutions.length === 0) {
-        state.concludeResolutions.push({
-            itemId: null,
-            itemTitle: 'Adoption of Agenda & Strategic Directives',
-            decision: 'Adopted',
-            resolutionText: 'The meeting unanimously resolved to adopt all deliberations and proceedings as official policy.',
-            actionItems: []
-        });
-    }
-    renderConcludeResolutions();
-
-    // Step 5 Attendance review pre-fill
-    renderConcludeAttendanceReview();
-
-    // Next Meeting setup pre-fill
-    const currentDate = currentInfo.date ? new Date(currentInfo.date) : new Date();
-    const nextDate = new Date(currentDate.getTime() + 30 * 24 * 60 * 60 * 1000);
-    const nextDateStr = nextDate.toISOString().split('T')[0];
-    if (els.nextMeetingDate) els.nextMeetingDate.value = nextDateStr;
-    if (els.nextMeetingTitle) els.nextMeetingTitle.value = 'SGB & SMT Ordinary Meeting';
-    if (els.nextMeetingTime) els.nextMeetingTime.value = '10:00 SAST';
-    if (els.nextMeetingVenue) els.nextMeetingVenue.value = 'School Staff Room / Boardroom';
-    if (els.concludeClearVault) els.concludeClearVault.checked = true;
-
-    if (els.concludeSignedRegInput) els.concludeSignedRegInput.value = '';
-    if (els.concludeSignedRegTitle) els.concludeSignedRegTitle.textContent = 'Click to upload official signed attendance scan / PDF';
-    if (els.concludeSignedRegError) els.concludeSignedRegError.textContent = '';
-    if (els.concludeProgressWrapper) els.concludeProgressWrapper.classList.add('hidden');
-
-    updateConcludeWizardStep(1);
-    if (els.concludeModal) els.concludeModal.classList.add('active');
-}
-
-function closeConcludeWizard() {
-    if (els.concludeModal) els.concludeModal.classList.remove('active');
-}
-
-function updateConcludeWizardStep(step) {
-    state.concludeStep = step;
-
-    // Update wizard nodes
-    document.querySelectorAll('.wizard-step-node').forEach(node => {
-        const s = parseInt(node.dataset.step, 10);
-        node.classList.toggle('active', s === step);
-        node.classList.toggle('completed', s < step);
-    });
-
-    // Update panels
-    for (let i = 1; i <= 6; i++) {
-        const panel = document.getElementById(`conclude-step-${i}`);
-        if (panel) panel.classList.toggle('active', i === step);
-    }
-
-    // Button states
-    if (els.btnConcludePrev) els.btnConcludePrev.style.visibility = step === 1 ? 'hidden' : 'visible';
-    if (els.btnConcludeNext) {
-        if (step === 6) {
-            els.btnConcludeNext.classList.add('hidden');
-            if (els.btnConcludeSubmit) els.btnConcludeSubmit.classList.remove('hidden');
-        } else {
-            els.btnConcludeNext.classList.remove('hidden');
-            if (els.btnConcludeSubmit) els.btnConcludeSubmit.classList.add('hidden');
-        }
-    }
-}
-
-// Render dynamic resolutions editor in Conclude Wizard
-function renderConcludeResolutions() {
-    if (!els.concludeResolutionsList) return;
-    if (els.concludeResCount) els.concludeResCount.textContent = state.concludeResolutions.length;
-
-    const membersList = state.members || [];
-
-    els.concludeResolutionsList.innerHTML = state.concludeResolutions.map((res, resIdx) => `
-        <div class="resolution-card-editor" data-res-index="${resIdx}">
-            <div class="resolution-card-top-row">
-                <input type="text" class="form-input res-edit-title" value="${escapeHTML(res.itemTitle || '')}" placeholder="Resolution / Decision Topic Title" required style="font-weight: 700;">
-                <select class="resolution-decision-select res-edit-decision">
-                    <option value="Adopted" ${res.decision === 'Adopted' ? 'selected' : ''}>Adopted</option>
-                    <option value="Approved" ${res.decision === 'Approved' ? 'selected' : ''}>Approved</option>
-                    <option value="Deferred" ${res.decision === 'Deferred' ? 'selected' : ''}>Deferred</option>
-                    <option value="Rejected" ${res.decision === 'Rejected' ? 'selected' : ''}>Rejected</option>
-                    <option value="Action Required" ${res.decision === 'Action Required' ? 'selected' : ''}>Action Required</option>
-                </select>
-                <button type="button" class="btn-link-action btn-remove-resolution" data-res-index="${resIdx}" style="color: var(--danger);" title="Remove resolution">✕</button>
-            </div>
-            
-            <textarea class="form-textarea res-edit-text" rows="2" placeholder="Record agreed binding resolution text...">${escapeHTML(res.resolutionText || '')}</textarea>
-
-            <div class="action-items-editor-box">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                    <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">Action Items &amp; Deadlines</span>
-                    <button type="button" class="btn-link-action btn-add-action-item" data-res-index="${resIdx}">+ Add Action Item</button>
-                </div>
-
-                <div class="action-items-list-container" data-res-index="${resIdx}">
-                    ${(res.actionItems || []).map((act, actIdx) => `
-                        <div class="action-item-row-edit" data-act-index="${actIdx}">
-                            <input type="text" class="form-input act-edit-task" placeholder="Task description..." value="${escapeHTML(act.task || '')}" required>
-                            <select class="form-input act-edit-assignee">
-                                <option value="">Select Assignee...</option>
-                                ${membersList.map(m => `<option value="${escapeHTML(m.name)}" ${act.assignee === m.name ? 'selected' : ''}>${escapeHTML(m.name)} (${escapeHTML(m.role)})</option>`).join('')}
-                            </select>
-                            <input type="date" class="form-input act-edit-due" value="${act.dueDate || ''}">
-                            <button type="button" class="btn-link-action btn-remove-action-item" data-res-index="${resIdx}" data-act-index="${actIdx}" style="color: var(--danger);">✕</button>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        </div>
-    `).join('');
-}
-
-// Render dynamic attendance verification checklist in Conclude Step 5
-function renderConcludeAttendanceReview() {
-    if (!els.concludeAttendanceReviewBox) return;
-
-    const membersList = state.members || [];
-    const componentsMap = {
-        'Parent Component': [],
-        'Management / SMT Component': [],
-        'Educator Component': [],
-        'Non-Teaching Staff & Secretariat Component': []
-    };
-
-    membersList.forEach((m, idx) => {
-        const comp = getMemberComponent(m.role);
-        if (!componentsMap[comp]) componentsMap[comp] = [];
-        componentsMap[comp].push({
-            id: m.id || `m-${idx}`,
-            name: m.name,
-            role: m.role,
-            status: 'Present'
-        });
-    });
-
-    state.concludeAttendance = {
-        components: Object.entries(componentsMap)
-            .filter(([_, list]) => list.length > 0)
-            .map(([name, list]) => ({ name, members: list }))
-    };
-
-    els.concludeAttendanceReviewBox.innerHTML = `
-        <div style="background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.75rem 1rem; margin-top: 1rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                <strong style="font-size: 0.88rem; display: flex; align-items: center; gap: 0.4rem;">${SVG_ICONS.users} Digital Attendance &amp; Quorum Verification (${membersList.length} Members)</strong>
-                <span class="badge badge--success" style="font-size: 0.75rem;">Quorate (Legally Valid)</span>
-            </div>
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0.5rem; max-height: 180px; overflow-y: auto; padding-right: 0.25rem;">
-                ${membersList.map((m, idx) => `
-                    <div style="display: flex; justify-content: space-between; align-items: center; background: var(--white); border: 1px solid var(--border-color); border-radius: 6px; padding: 0.35rem 0.65rem; font-size: 0.8rem;">
-                        <span style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 140px;">${escapeHTML(m.name)}</span>
-                        <select class="conclude-att-status-select" data-member-idx="${idx}" style="font-size: 0.75rem; padding: 0.15rem 0.35rem; border-radius: 4px; border: 1px solid var(--border-color);">
-                            <option value="Present" selected>Present</option>
-                            <option value="Apology">Apology</option>
-                            <option value="Absent">Absent</option>
-                        </select>
-                    </div>
-                `).join('')}
-            </div>
-        </div>
-    `;
-}
-
-// ── Open & Render Archive Dossier Modal ──
-async function openArchiveDossier(archiveId) {
-    try {
-        const arch = await api.getArchive(archiveId);
-        if (!arch) return;
-
-        state.activeArchive = arch;
-        state.dossierActiveTab = 'overview';
-
-        const meetingInfo = arch.meetingInfo || {};
-        const meetingDate = meetingInfo.date || '2026-08-27';
-
-        if (els.dossierModalTitle) els.dossierModalTitle.textContent = `${meetingInfo.title || 'SGB/SMT Strategy Meeting'}`;
-        if (els.dossierModalSubtitle) els.dossierModalSubtitle.textContent = `Official Meeting Dossier • ${formatDateLong(meetingDate)} • ${meetingInfo.venue || 'Staff Room'}`;
-
-        // Update dossier tab counts
-        const minutesCount = Array.isArray(arch.minutesFiles) ? arch.minutesFiles.length : 0;
-        const audioCount = Array.isArray(arch.audioFiles) ? arch.audioFiles.length : 0;
-        const resCount = Array.isArray(arch.resolutions) ? arch.resolutions.length : 0;
-        const itemsCount = Array.isArray(arch.agendaSnapshot) ? arch.agendaSnapshot.length : 0;
-        const filesCount = Array.isArray(arch.vaultDocuments) ? arch.vaultDocuments.length : 0;
-
-        if (els.dossierMinutesTabCount) els.dossierMinutesTabCount.textContent = minutesCount;
-        if (els.dossierAudioTabCount) els.dossierAudioTabCount.textContent = audioCount;
-        if (els.dossierResTabCount) els.dossierResTabCount.textContent = resCount;
-        if (els.dossierItemsTabCount) els.dossierItemsTabCount.textContent = itemsCount;
-        if (els.dossierFilesTabCount) els.dossierFilesTabCount.textContent = filesCount;
-
-        // Admin edit button visibility
-        if (els.btnDossierEdit) {
-            if (isAdmin()) els.btnDossierEdit.classList.remove('hidden');
-            else els.btnDossierEdit.classList.add('hidden');
-        }
-
-        renderDossierContent();
-
-        // Activate Overview tab strip button
-        document.querySelectorAll('.dossier-tab-btn').forEach(b => {
-            b.classList.toggle('active', b.dataset.dtab === 'overview');
-        });
-
-        if (els.archiveDossierModal) els.archiveDossierModal.classList.add('active');
-    } catch (error) {
-        console.error('Error opening archive dossier:', error);
-        showToast(error.message || 'Failed to open meeting dossier', true);
-    }
-}
-
-function closeArchiveDossier() {
-    // Pause any playing audio
-    if (els.archiveDossierModal) {
-        const audios = els.archiveDossierModal.querySelectorAll('audio');
-        audios.forEach(a => { try { a.pause(); } catch {} });
-        els.archiveDossierModal.classList.remove('active');
-    }
-}
-
-// Render active tab inside Dossier Modal
-function renderDossierContent() {
-    if (!els.dossierModalBody || !state.activeArchive) return;
-    const arch = state.activeArchive;
-    const tab = state.dossierActiveTab;
-
-    if (tab === 'overview') {
-        renderDossierOverview(arch);
-    } else if (tab === 'minutes') {
-        renderDossierMinutes(arch);
-    } else if (tab === 'audio') {
-        renderDossierAudio(arch);
-    } else if (tab === 'transcript') {
-        renderDossierTranscript(arch);
-    } else if (tab === 'resolutions') {
-        renderDossierResolutions(arch);
-    } else if (tab === 'agenda') {
-        renderDossierAgenda(arch);
-    } else if (tab === 'attendance') {
-        renderDossierAttendance(arch);
-    } else if (tab === 'files') {
-        renderDossierFiles(arch);
-    }
-}
-
-function renderDossierOverview(arch) {
-    const meetingInfo = arch.meetingInfo || {};
-    const stats = arch.stats || {};
-    const meetingDate = meetingInfo.date || '2026-08-27';
-
-    els.dossierModalBody.innerHTML = `
-        <div class="printable-area dossier-printable-view">
-            <!-- Official Header -->
-            <div class="letterhead" style="margin-bottom: 1.5rem;">
-                <div class="color-bar" style="height: 4px; background: linear-gradient(90deg, var(--primary), var(--accent)); margin-bottom: 1rem;"></div>
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div style="display: flex; align-items: center; gap: 1rem;">
-                        <img src="logo.svg" alt="LGAA Logo" style="width: 54px; height: 54px;">
-                        <div>
-                            <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--primary); margin: 0;">LADY GREY ARTS ACADEMY</h2>
-                            <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">School Governing Body &amp; School Management Team</span>
-                        </div>
-                    </div>
-                    <div style="text-align: right;">
-                        <span class="badge" style="background: var(--primary); color: #fff; font-size: 0.8rem; font-weight: 700; padding: 0.35rem 0.75rem;">OFFICIAL ARCHIVE</span>
-                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">EMIS: 200600985 • Joe Gqabi</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Meeting Overview Cards -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
-                <div style="background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 1.25rem;">
-                    <h4 style="font-size: 0.95rem; margin-bottom: 0.75rem; color: var(--primary); display: flex; align-items: center; gap: 0.4rem;">${SVG_ICONS.calendar} Meeting Particulars</h4>
-                    <div style="font-size: 0.85rem; line-height: 1.6;">
-                        <div><strong>Title:</strong> ${escapeHTML(meetingInfo.title || 'SGB/SMT Strategy Meeting')}</div>
-                        <div><strong>Date &amp; Time:</strong> ${formatDateLong(meetingDate)} @ ${escapeHTML(meetingInfo.time || '10:00 SAST')}</div>
-                        <div><strong>Venue:</strong> ${escapeHTML(meetingInfo.venue || 'School Staff Room / Boardroom')}</div>
-                        <div><strong>Chairperson:</strong> ${escapeHTML(meetingInfo.chairperson || 'Mr. Kwezi Dyasi')}</div>
-                        <div><strong>Secretariat:</strong> ${escapeHTML(meetingInfo.secretary || 'Mr. Stephen Vorster')}</div>
-                    </div>
-                </div>
-
-                <div style="background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 1.25rem;">
-                    <h4 style="font-size: 0.95rem; margin-bottom: 0.75rem; color: #059669; display: flex; align-items: center; gap: 0.4rem;">${SVG_ICONS.users} Quorum &amp; Legal Mandate</h4>
-                    <div style="font-size: 0.85rem; line-height: 1.6;">
-                        <div><strong>Statutory Authority:</strong> SASA Act 84 of 1996 (Sections 12 &amp; 18)</div>
-                        <div><strong>Quorum Certification:</strong> <span class="badge badge--success" style="font-size: 0.75rem;">Legally Quorate (${stats.quorumPercentage || '100%'})</span></div>
-                        <div><strong>Total Members:</strong> ${stats.totalMembers || 15} | <strong>Present:</strong> ${stats.presentCount || 15}</div>
-                        <div><strong>Apologies:</strong> ${stats.apologyCount || 0} | <strong>Absent:</strong> ${stats.absentCount || 0}</div>
-                        <div><strong>Archived By:</strong> ${escapeHTML(arch.archivedBy?.memberName || 'Secretariat')} on ${formatDateLong(arch.archivedAt?.split('T')[0])}</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Notes & Executive Summary -->
-            <div style="background: var(--white); border: 1px solid var(--border-color); border-radius: 10px; padding: 1.25rem; margin-bottom: 1.5rem;">
-                <h4 style="font-size: 0.95rem; margin-bottom: 0.5rem; color: var(--text-main); display: flex; align-items: center; gap: 0.4rem;">${SVG_ICONS.edit} Secretariat Executive Summary</h4>
-                <p style="font-size: 0.88rem; line-height: 1.6; color: var(--text-muted); margin: 0;">
-                    ${arch.notes ? escapeHTML(arch.notes) : 'All agenda items were formally deliberated in accordance with SGB statutory guidelines. The meeting arrived at binding governance resolutions and adopted actionable mandates.'}
-                </p>
-            </div>
-
-            <!-- Quick Action Downloads Strip -->
-            <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; justify-content: space-between; background: rgba(12, 79, 242, 0.05); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.75rem 1.25rem;">
-                <span style="font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 0.4rem;">${SVG_ICONS.download} Complete Governance Dossier Exports:</span>
-                <div style="display: flex; gap: 0.5rem;">
-                    <button type="button" class="btn btn-secondary btn-sm btn-download-archive-docx" data-id="${arch.id}">${SVG_ICONS.doc} Download Word Minutes</button>
-                    <button type="button" class="btn btn-primary btn-sm btn-download-archive-zip" data-id="${arch.id}">${SVG_ICONS.box} Download Full Dossier ZIP</button>
-                </div>
-            </div>
-        </div>
-    `;
-}
-
-function renderDossierMinutes(arch) {
-    const minutesFiles = Array.isArray(arch.minutesFiles) ? arch.minutesFiles : [];
-    const meetingDate = arch.meetingInfo?.date || '2026-08-27';
-
-    if (minutesFiles.length === 0) {
-        els.dossierModalBody.innerHTML = `
-            <div class="empty-state" style="padding: 3rem 1rem;">
-                <div class="empty-icon">${SVG_ICONS.docLg}</div>
-                <h3>Official Minutes Documents</h3>
-                <p>No minutes document was uploaded during meeting packaging.</p>
-                <div style="display: flex; justify-content: center; gap: 0.75rem; margin-top: 1.25rem; flex-wrap: wrap;">
-                    <button type="button" class="btn btn-primary btn-sm btn-download-archive-docx" data-id="${arch.id}">
-                        ${SVG_ICONS.doc} Download Auto-Generated Word Minutes (.docx)
-                    </button>
-                </div>
-            </div>
-        `;
-        return;
-    }
-
-    els.dossierModalBody.innerHTML = `
-        <div class="transcript-viewer-card">
-            <div class="transcript-toolbar">
-                <div style="display: flex; align-items: center; gap: 0.75rem;">
-                    <h3 style="font-size: 1.1rem; margin: 0; display: flex; align-items: center; gap: 0.4rem;">${SVG_ICONS.doc} Official Meeting Minutes Documents</h3>
-                    <span class="badge badge--success" style="font-size: 0.75rem;">${minutesFiles.length} Adopted Document${minutesFiles.length > 1 ? 's' : ''}</span>
-                </div>
-                <div style="display: flex; gap: 0.5rem;">
-                    <button type="button" class="btn btn-secondary btn-sm btn-download-archive-docx" data-id="${arch.id}">
-                        ${SVG_ICONS.doc} Generated Word Minutes (.docx)
-                    </button>
-                </div>
-            </div>
-
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-top: 1.25rem;">
-                ${minutesFiles.map(mf => {
-                    const downloadUrl = `/api/archives/${arch.id}/files/${mf.id}/download?token=${encodeURIComponent(state.token || '')}`;
-                    const isPdf = mf.extension === 'pdf' || (mf.originalName || '').toLowerCase().endsWith('.pdf');
-                    return `
-                        <div class="dossier-file-card" style="background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 1.25rem; display: flex; flex-direction: column; justify-content: space-between; gap: 0.75rem;">
-                            <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
-                                <div style="display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 8px; background: rgba(12,79,242,0.08); color: var(--primary);">${isPdf ? SVG_ICONS.pdf : SVG_ICONS.word}</div>
-                                <div style="flex: 1; min-width: 0;">
-                                    <div style="font-weight: 700; font-size: 0.92rem; word-break: break-word; color: var(--text-main);">${escapeHTML(mf.originalName)}</div>
-                                    <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.25rem;">
-                                        ${formatBytes(mf.size)} • Uploaded ${formatDateLong(mf.uploadedAt ? mf.uploadedAt.split('T')[0] : meetingDate)}
-                                    </div>
-                                </div>
-                            </div>
-                            <div style="display: flex; gap: 0.5rem; justify-content: flex-end; border-top: 1px solid var(--border-color); padding-top: 0.75rem;">
-                                ${isPdf ? `<a href="${downloadUrl}" target="_blank" class="btn btn-outline btn-sm">${SVG_ICONS.eye} Preview PDF</a>` : ''}
-                                <a href="${downloadUrl}" download="${escapeHTML(mf.originalName)}" class="btn btn-primary btn-sm">${SVG_ICONS.download} Download File</a>
-                            </div>
-                        </div>
-                    `;
-                }).join('')}
-            </div>
-        </div>
-    `;
-}
-
-function renderDossierAudio(arch) {
-    const audios = Array.isArray(arch.audioFiles) ? arch.audioFiles : [];
-    if (audios.length === 0) {
-        els.dossierModalBody.innerHTML = `
-            <div class="empty-state" style="padding: 3rem 1rem;">
-                <div class="empty-icon">${SVG_ICONS.audioLg}</div>
-                <h3>No Audio Recordings Attached</h3>
-                <p>No audio files were uploaded for this sitting. You can attach recordings by clicking <strong>Edit Archive</strong>.</p>
-            </div>
-        `;
-        return;
-    }
-
-    els.dossierModalBody.innerHTML = `
-        <div style="padding: 0.5rem 0;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                <h3 style="font-size: 1.1rem; margin: 0; display: flex; align-items: center; gap: 0.4rem;">${SVG_ICONS.audio} Official Audio Recordings (${audios.length})</h3>
-                <small style="color: var(--text-muted);">High-Fidelity in-browser playback with speed &amp; download controls</small>
-            </div>
-
-            <div class="audio-recordings-grid">
-                ${audios.map((af, idx) => {
-                    const streamUrl = `/api/archives/${arch.id}/audio/${af.id}/stream?token=${encodeURIComponent(state.token || '')}`;
-                    const downloadUrl = `/api/archives/${arch.id}/files/${af.id}/download?token=${encodeURIComponent(state.token || '')}`;
-                    return `
-                        <div class="audio-player-card">
-                            <div class="audio-player-card-header">
-                                <span class="audio-player-title" style="display: flex; align-items: center; gap: 0.4rem;">${SVG_ICONS.audio} Audio Part ${idx + 1}: ${escapeHTML(af.originalName)}</span>
-                                <span class="badge" style="font-size: 0.72rem;">${formatBytes(af.size)}</span>
-                            </div>
-                            <audio controls class="audio-native-player" preload="metadata" data-audio-id="${af.id}">
-                                <source src="${streamUrl}" type="${af.mimeType || 'audio/mpeg'}">
-                                Your browser does not support audio playback.
-                            </audio>
-                            <div class="audio-player-controls-row">
-                                <label style="font-size: 0.78rem; font-weight: 600; color: var(--text-muted);">Speed:</label>
-                                <select class="filter-select audio-speed-select" data-audio-id="${af.id}" style="padding: 0.25rem 0.5rem; font-size: 0.78rem;">
-                                    <option value="1">1.0x Normal</option>
-                                    <option value="1.25">1.25x Fast</option>
-                                    <option value="1.5">1.5x Rapid</option>
-                                    <option value="2">2.0x Double</option>
-                                </select>
-                                <a href="${downloadUrl}" download="${escapeHTML(af.originalName)}" class="btn btn-outline btn-sm" style="margin-left: auto; font-size: 0.78rem;">
-                                    ${SVG_ICONS.download} Download
-                                </a>
-                            </div>
-                        </div>
-                    `;
-                }).join('')}
-            </div>
-        </div>
-    `;
-
-    // Attach playback speed listeners
-    els.dossierModalBody.querySelectorAll('.audio-speed-select').forEach(sel => {
-        sel.addEventListener('change', (e) => {
-            const audioId = e.target.dataset.audioId;
-            const player = els.dossierModalBody.querySelector(`audio[data-audio-id="${audioId}"]`);
-            if (player) {
-                player.playbackRate = parseFloat(e.target.value);
-            }
-        });
-    });
-}
-
-function renderDossierTranscript(arch) {
-    const transcriptText = arch.transcript?.text || '';
-    const transcriptFiles = Array.isArray(arch.transcript?.files) ? arch.transcript.files : [];
-
-    if (!transcriptText && transcriptFiles.length === 0) {
-        els.dossierModalBody.innerHTML = `
-            <div class="empty-state" style="padding: 3rem 1rem;">
-                <div class="empty-icon">${SVG_ICONS.transcriptLg}</div>
-                <h3>No Transcript Available</h3>
-                <p>No transcript text or document was uploaded for this sitting. You can add one via <strong>Edit Archive</strong>.</p>
-            </div>
-        `;
-        return;
-    }
-
-    els.dossierModalBody.innerHTML = `
-        <div class="transcript-viewer-card">
-            <div class="transcript-toolbar">
-                <div style="display: flex; align-items: center; gap: 0.75rem;">
-                    <h3 style="font-size: 1.1rem; margin: 0; display: flex; align-items: center; gap: 0.4rem;">${SVG_ICONS.transcript} Meeting Deliberation Transcript</h3>
-                    ${transcriptFiles.length > 0 ? `<span class="badge" style="font-size: 0.75rem;">${transcriptFiles.length} Attached Document${transcriptFiles.length > 1 ? 's' : ''}</span>` : ''}
-                </div>
-                <div style="display: flex; gap: 0.5rem;">
-                    ${transcriptText ? `
-                        <button type="button" class="btn btn-outline btn-sm btn-copy-transcript">${SVG_ICONS.doc} Copy Text</button>
-                        <button type="button" class="btn btn-outline btn-sm btn-download-transcript-txt">${SVG_ICONS.download} Text (.txt)</button>
-                    ` : ''}
-                </div>
-            </div>
-
-            ${transcriptFiles.length > 0 ? `
-                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color);">
-                    ${transcriptFiles.map(tf => {
-                        const downloadUrl = `/api/archives/${arch.id}/files/${tf.id}/download?token=${encodeURIComponent(state.token || '')}`;
-                        return `
-                            <a href="${downloadUrl}" download="${escapeHTML(tf.originalName)}" class="btn btn-secondary btn-sm">
-                                ${SVG_ICONS.paperclip} ${escapeHTML(tf.originalName)} (${formatBytes(tf.size)})
-                            </a>
-                        `;
-                    }).join('')}
-                </div>
-            ` : ''}
-
-            <div class="transcript-body" id="dossier-transcript-content">${transcriptText ? escapeHTML(transcriptText) : '<em style="color: var(--text-muted);">Transcript documents attached above. Click to view or download.</em>'}</div>
-        </div>
-    `;
-
-    // Copy text trigger
-    const btnCopy = els.dossierModalBody.querySelector('.btn-copy-transcript');
-    if (btnCopy && transcriptText) {
-        btnCopy.addEventListener('click', async () => {
-            try {
-                await navigator.clipboard.writeText(transcriptText);
-                showToast('Transcript copied to clipboard!');
-            } catch {
-                showToast('Failed to copy to clipboard', true);
-            }
-        });
-    }
-
-    // Download TXT trigger
-    const btnDownloadTxt = els.dossierModalBody.querySelector('.btn-download-transcript-txt');
-    if (btnDownloadTxt && transcriptText) {
-        btnDownloadTxt.addEventListener('click', () => {
-            const blob = new Blob([transcriptText], { type: 'text/plain;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `Transcript_${arch.meetingInfo?.date || 'Meeting'}.txt`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        });
-    }
-}
-
-function renderDossierResolutions(arch) {
-    const resolutions = Array.isArray(arch.resolutions) ? arch.resolutions : [];
-    const resFiles = Array.isArray(arch.resolutionFiles) ? arch.resolutionFiles : [];
-
-    if (resolutions.length === 0 && resFiles.length === 0) {
-        els.dossierModalBody.innerHTML = `
-            <div class="empty-state" style="padding: 3rem 1rem;">
-                <div class="empty-icon">${SVG_ICONS.resolutionsLg}</div>
-                <h3>No Formal Resolutions Logged</h3>
-                <p>No resolutions were recorded for this sitting. You can add resolutions via <strong>Edit Archive</strong>.</p>
-            </div>
-        `;
-        return;
-    }
-
-    const decisionClassMap = {
-        'Adopted': 'decision-adopted',
-        'Approved': 'decision-approved',
-        'Deferred': 'decision-deferred',
-        'Rejected': 'decision-rejected',
-        'Action Required': 'decision-action'
-    };
-
-    els.dossierModalBody.innerHTML = `
-        <div style="padding: 0.5rem 0;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
-                <div>
-                    <h3 style="font-size: 1.15rem; margin: 0; display: flex; align-items: center; gap: 0.4rem;">${SVG_ICONS.resolutions} Formal Governance Resolutions &amp; Action Plan (${resolutions.length})</h3>
-                    <small style="color: var(--text-muted);">Adopted strategic decisions, mandates, and assignable tasks</small>
-                </div>
-                ${resFiles.length > 0 ? `
-                    <div style="display: flex; gap: 0.4rem;">
-                        ${resFiles.map(rf => {
-                            const downloadUrl = `/api/archives/${arch.id}/files/${rf.id}/download?token=${encodeURIComponent(state.token || '')}`;
-                            return `<a href="${downloadUrl}" download="${escapeHTML(rf.originalName)}" class="btn btn-secondary btn-sm">${SVG_ICONS.signed} Signed Resolution Document</a>`;
-                        }).join('')}
-                    </div>
-                ` : ''}
-            </div>
-
-            <div class="resolutions-matrix-grid">
-                ${resolutions.map((res, idx) => {
-                    const dec = res.decision || 'Adopted';
-                    const decClass = decisionClassMap[dec] || 'decision-adopted';
-                    const actionItems = Array.isArray(res.actionItems) ? res.actionItems : [];
-
-                    return `
-                        <div class="resolution-matrix-card">
-                            <div class="resolution-matrix-header">
-                                <div>
-                                    <span style="font-size: 0.78rem; font-weight: 700; color: var(--primary); text-transform: uppercase;">Resolution ${idx + 1}</span>
-                                    <h4 style="font-size: 1.05rem; font-weight: 700; margin: 0.15rem 0 0.35rem 0;">${escapeHTML(res.itemTitle || res.title || ('Resolution ' + (idx + 1)))}</h4>
-                                </div>
-                                <span class="resolution-decision-badge ${decClass}">${dec}</span>
-                            </div>
-
-                            <p style="font-size: 0.9rem; line-height: 1.6; color: var(--text-main); margin-bottom: 0.75rem;">
-                                ${escapeHTML(res.resolutionText || res.text || 'Resolution adopted by unanimous sitting consensus.')}
-                            </p>
-
-                            ${actionItems.length > 0 ? `
-                                <div style="margin-top: 0.75rem;">
-                                    <strong style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted);">Action Items &amp; Deadlines:</strong>
-                                    <table class="action-items-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Task</th>
-                                                <th>Responsible Person</th>
-                                                <th>Due Date</th>
-                                                <th>Status</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            ${actionItems.map(act => `
-                                                <tr>
-                                                    <td><strong>${escapeHTML(act.task || '')}</strong></td>
-                                                    <td>${escapeHTML(act.assignee || 'Assigned Officer')}</td>
-                                                    <td>${act.dueDate ? formatDateLong(act.dueDate) : 'Immediate'}</td>
-                                                    <td><span class="badge badge--success" style="font-size: 0.72rem;">${escapeHTML(act.status || 'Pending')}</span></td>
-                                                </tr>
-                                            `).join('')}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            ` : ''}
-                        </div>
-                    `;
-                }).join('')}
-            </div>
-        </div>
-    `;
-}
-
-function renderDossierAgenda(arch) {
-    const items = Array.isArray(arch.agendaSnapshot) ? arch.agendaSnapshot : [];
-
-    if (items.length === 0) {
-        els.dossierModalBody.innerHTML = `
-            <div class="empty-state" style="padding: 3rem 1rem;">
-                <div class="empty-icon">${SVG_ICONS.agendaLg}</div>
-                <h3>No Agenda Items Logged</h3>
-                <p>No agenda items were captured in this sitting snapshot.</p>
-            </div>
-        `;
-        return;
-    }
-
-    els.dossierModalBody.innerHTML = `
-        <div style="padding: 0.5rem 0;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                <h3 style="font-size: 1.15rem; margin: 0; display: flex; align-items: center; gap: 0.4rem;">${SVG_ICONS.agenda} Agenda Items &amp; Deliberations Log (${items.length})</h3>
-                <small style="color: var(--text-muted);">Complete record of topics, proposer, votes, and brainstorm comments</small>
-            </div>
-
-            <div style="display: flex; flex-direction: column; gap: 1rem;">
-                ${items.map((item, idx) => {
-                    const votes = Array.isArray(item.votes) ? item.votes : [];
-                    const comments = Array.isArray(item.comments) ? item.comments : [];
-                    return `
-                        <div style="background: var(--white); border: 1px solid var(--border-color); border-radius: 10px; padding: 1.25rem; box-shadow: var(--shadow-sm);">
-                            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem;">
-                                <div>
-                                    <span style="font-size: 0.75rem; font-weight: 700; color: var(--primary);">ITEM ${idx + 1} • ${escapeHTML(item.category || 'General')}</span>
-                                    <h4 style="font-size: 1.05rem; font-weight: 700; margin: 0.2rem 0;">${escapeHTML(item.title)}</h4>
-                                    <div style="font-size: 0.8rem; color: var(--text-muted);">
-                                        Proposed by: <strong>${escapeHTML(item.proposedBy?.memberName || 'Member')}</strong> (${escapeHTML(item.proposedBy?.memberRole || 'Governance')})
-                                    </div>
-                                </div>
-                                <div style="text-align: right;">
-                                    <span class="badge" style="background: rgba(12, 79, 242, 0.1); color: var(--primary); font-size: 0.8rem; font-weight: 700;">${votes.length} Votes</span>
-                                </div>
-                            </div>
-
-                            <p style="font-size: 0.88rem; line-height: 1.6; color: var(--text-main); margin: 0.75rem 0;">
-                                ${escapeHTML(item.description)}
-                            </p>
-
-                            ${item.isResolved && item.resolution ? `
-                                <div style="background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 6px; padding: 0.6rem 0.85rem; font-size: 0.84rem; color: #166534; margin: 0.5rem 0;">
-                                    <strong>Agreed Resolution:</strong> ${escapeHTML(item.resolution.solutionText || item.resolution.summary || '')}
-                                </div>
-                            ` : ''}
-
-                            ${comments.length > 0 ? `
-                                <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border-color);">
-                                    <strong style="font-size: 0.76rem; text-transform: uppercase; color: var(--text-muted);">Discussion Log (${comments.length}):</strong>
-                                    <div style="display: flex; flex-direction: column; gap: 0.4rem; margin-top: 0.4rem;">
-                                        ${comments.map(c => `
-                                            <div style="font-size: 0.82rem; background: var(--bg-color); border-radius: 6px; padding: 0.4rem 0.65rem;">
-                                                <strong>${escapeHTML(c.memberName)}:</strong> ${escapeHTML(c.content)}
-                                            </div>
-                                        `).join('')}
-                                    </div>
-                                </div>
-                            ` : ''}
-                        </div>
-                    `;
-                }).join('')}
-            </div>
-        </div>
-    `;
-}
-
-function renderDossierAttendance(arch) {
-    const signedFiles = Array.isArray(arch.signedAttendanceFiles) ? arch.signedAttendanceFiles : [];
-    const att = arch.attendance || {};
-    const components = Array.isArray(att.components) ? att.components : [];
-
-    els.dossierModalBody.innerHTML = `
-        <div style="padding: 0.5rem 0;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
-                <div>
-                    <h3 style="font-size: 1.15rem; margin: 0; display: flex; align-items: center; gap: 0.4rem;">${SVG_ICONS.signed} Official Attendance Register &amp; Statutory Quorum</h3>
-                    <small style="color: var(--text-muted);">Certified physical signed register scan and digital component roster</small>
-                </div>
-                ${signedFiles.length > 0 ? `
-                    <div style="display: flex; gap: 0.5rem;">
-                        ${signedFiles.map(sf => {
-                            const downloadUrl = `/api/archives/${arch.id}/files/${sf.id}/download?token=${encodeURIComponent(state.token || '')}`;
-                            return `<a href="${downloadUrl}" download="${escapeHTML(sf.originalName)}" class="btn btn-primary btn-sm">${SVG_ICONS.doc} Download Official Signed Register</a>`;
-                        }).join('')}
-                    </div>
-                ` : ''}
-            </div>
-
-            ${signedFiles.length > 0 ? `
-                <div style="background: rgba(16, 185, 129, 0.06); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 0.85rem 1.25rem; margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: space-between;">
-                    <div style="display: flex; align-items: center; gap: 0.75rem;">
-                        <div style="display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 6px; background: rgba(16, 185, 129, 0.15); color: #065F46;">${SVG_ICONS.signed}</div>
-                        <div>
-                            <strong style="font-size: 0.92rem; color: #065F46;">Official Signed Register Attached</strong>
-                            <div style="font-size: 0.78rem; color: var(--text-muted);">${escapeHTML(signedFiles[0].originalName)} (${formatBytes(signedFiles[0].size)})</div>
-                        </div>
-                    </div>
-                    <a href="/api/archives/${arch.id}/files/${signedFiles[0].id}/download?token=${encodeURIComponent(state.token || '')}" class="btn btn-secondary btn-sm" download>${SVG_ICONS.download} Open Document</a>
-                </div>
-            ` : `
-                <div style="background: #FEF3C7; border: 1px solid #FDE68A; border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1.25rem; font-size: 0.85rem; color: #92400E; display: flex; align-items: center; gap: 0.4rem;">
-                    ${SVG_ICONS.alert} No physical signed register scan attached yet. Upload scan via <strong>Edit Archive</strong>.
-                </div>
-            `}
-
-            <!-- Statutory Roster by Component -->
-            <div style="background: var(--white); border: 1px solid var(--border-color); border-radius: 10px; padding: 1.25rem;">
-                <h4 style="font-size: 0.95rem; margin-bottom: 0.75rem;">Governance Component Roster</h4>
-                ${components.length > 0 ? components.map(comp => `
-                    <div style="margin-bottom: 1rem;">
-                        <strong style="font-size: 0.82rem; color: var(--primary); text-transform: uppercase;">${escapeHTML(comp.name)}</strong>
-                        <table class="action-items-table" style="margin-top: 0.35rem;">
-                            <thead>
-                                <tr>
-                                    <th>Member Name</th>
-                                    <th>Governance Role</th>
-                                    <th>Attendance Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${(comp.members || []).map(m => `
-                                    <tr>
-                                        <td><strong>${escapeHTML(m.title ? m.title + ' ' : '')}${escapeHTML(m.name)}</strong></td>
-                                        <td>${escapeHTML(m.role || 'Member')}</td>
-                                        <td><span class="badge ${m.status === 'Present' ? 'badge--success' : (m.status === 'Apology' ? 'badge--warning' : 'badge--danger')}" style="font-size: 0.72rem;">${escapeHTML(m.status || 'Present')}</span></td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                `).join('') : `
-                    <p style="font-size: 0.85rem; color: var(--text-muted);">Full attendance certified in official signed register.</p>
-                `}
-            </div>
-        </div>
-    `;
-}
-
-function renderDossierFiles(arch) {
-    const files = Array.isArray(arch.vaultDocuments) ? arch.vaultDocuments : [];
-
-    if (files.length === 0) {
-        els.dossierModalBody.innerHTML = `
-            <div class="empty-state" style="padding: 3rem 1rem;">
-                <div class="empty-icon">${SVG_ICONS.vaultLg}</div>
-                <h3>No Vault Files Attached</h3>
-                <p>No supporting shared documents were active in the vault during this sitting.</p>
-            </div>
-        `;
-        return;
-    }
-
-    els.dossierModalBody.innerHTML = `
-        <div style="padding: 0.5rem 0;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                <h3 style="font-size: 1.15rem; margin: 0; display: flex; align-items: center; gap: 0.4rem;">${SVG_ICONS.vault} Supporting Documents Vault (${files.length})</h3>
-                <small style="color: var(--text-muted);">Supporting reports, financials, and proposals tabled during sitting</small>
-            </div>
-
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem;">
-                ${files.map(doc => {
-                    const downloadUrl = `/api/documents/${doc.id}/download?token=${encodeURIComponent(state.token || '')}`;
-                    return `
-                        <div style="background: var(--white); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; justify-content: space-between;">
-                            <div>
-                                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
-                                    <span style="display: flex; align-items: center; color: var(--primary);">${SVG_ICONS.doc}</span>
-                                    <strong style="font-size: 0.92rem; word-break: break-all;">${escapeHTML(doc.title || doc.originalName)}</strong>
-                                </div>
-                                <div style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.75rem;">
-                                    Size: ${formatBytes(doc.size)} • Type: ${(doc.extension || 'file').toUpperCase()}
-                                </div>
-                            </div>
-                            <a href="${downloadUrl}" download="${escapeHTML(doc.originalName)}" class="btn btn-outline btn-sm" style="text-align: center;">
-                                ${SVG_ICONS.download} Download File
-                            </a>
-                        </div>
-                    `;
-                }).join('')}
-            </div>
-        </div>
-    `;
-}
-
-// ── Edit Archived Meeting Logic ──
-async function openEditArchiveModal(archiveId) {
-    try {
-        const arch = await api.getArchive(archiveId);
-        if (!arch) return;
-
-        state.editingArchive = arch;
-        const meetingInfo = arch.meetingInfo || {};
-
-        if (els.editArchiveId) els.editArchiveId.value = arch.id;
-        if (els.editArchiveTitle) els.editArchiveTitle.value = meetingInfo.title || '';
-        if (els.editArchiveDate) els.editArchiveDate.value = meetingInfo.date || '';
-        if (els.editArchiveTime) els.editArchiveTime.value = meetingInfo.time || '10:00 SAST';
-        if (els.editArchiveVenue) els.editArchiveVenue.value = meetingInfo.venue || 'Staff Room';
-        if (els.editArchiveNotes) els.editArchiveNotes.value = arch.notes || '';
-        if (els.editArchiveTranscript) els.editArchiveTranscript.value = arch.transcript?.text || '';
-
-        // Reset file inputs
-        if (els.editArchiveNewAudio) els.editArchiveNewAudio.value = '';
-        if (els.editArchiveNewSigned) els.editArchiveNewSigned.value = '';
-        if (els.editArchiveNewTranscript) els.editArchiveNewTranscript.value = '';
-        if (els.editArchiveNewResolution) els.editArchiveNewResolution.value = '';
-
-        renderEditArchiveResolutions(arch.resolutions || []);
-        renderEditArchiveExistingFiles(arch);
-
-        if (els.editArchiveModal) els.editArchiveModal.classList.add('active');
-    } catch (error) {
-        console.error('Error opening edit archive:', error);
-        showToast(error.message || 'Failed to open edit modal', true);
-    }
-}
-
-function closeEditArchiveModal() {
-    if (els.editArchiveModal) els.editArchiveModal.classList.remove('active');
-    state.editingArchive = null;
-}
-
-function renderEditArchiveResolutions(resolutions) {
-    if (!els.editArchiveResolutionsList) return;
-    const membersList = state.members || [];
-
-    els.editArchiveResolutionsList.innerHTML = resolutions.map((res, resIdx) => `
-        <div class="resolution-card-editor" data-res-index="${resIdx}">
-            <div class="resolution-card-top-row">
-                <input type="text" class="form-input edit-res-title" value="${escapeHTML(res.itemTitle || res.title || '')}" placeholder="Resolution Title" required style="font-weight: 700;">
-                <select class="resolution-decision-select edit-res-decision">
-                    <option value="Adopted" ${res.decision === 'Adopted' ? 'selected' : ''}>Adopted</option>
-                    <option value="Approved" ${res.decision === 'Approved' ? 'selected' : ''}>Approved</option>
-                    <option value="Deferred" ${res.decision === 'Deferred' ? 'selected' : ''}>Deferred</option>
-                    <option value="Rejected" ${res.decision === 'Rejected' ? 'selected' : ''}>Rejected</option>
-                    <option value="Action Required" ${res.decision === 'Action Required' ? 'selected' : ''}>Action Required</option>
-                </select>
-                <button type="button" class="btn-link-action btn-edit-remove-resolution" data-res-index="${resIdx}" style="color: var(--danger);">✕</button>
-            </div>
-            
-            <textarea class="form-textarea edit-res-text" rows="2" placeholder="Resolution text...">${escapeHTML(res.resolutionText || res.text || '')}</textarea>
-
-            <div class="action-items-editor-box">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                    <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">Action Items</span>
-                    <button type="button" class="btn-link-action btn-edit-add-action-item" data-res-index="${resIdx}">+ Add Action Item</button>
-                </div>
-                <div class="edit-action-items-container" data-res-index="${resIdx}">
-                    ${(res.actionItems || []).map((act, actIdx) => `
-                        <div class="action-item-row-edit" data-act-index="${actIdx}">
-                            <input type="text" class="form-input edit-act-task" placeholder="Task..." value="${escapeHTML(act.task || '')}">
-                            <select class="form-input edit-act-assignee">
-                                <option value="">Assignee...</option>
-                                ${membersList.map(m => `<option value="${escapeHTML(m.name)}" ${act.assignee === m.name ? 'selected' : ''}>${escapeHTML(m.name)}</option>`).join('')}
-                            </select>
-                            <input type="date" class="form-input edit-act-due" value="${act.dueDate || ''}">
-                            <button type="button" class="btn-link-action btn-edit-remove-action-item" data-res-index="${resIdx}" data-act-index="${actIdx}" style="color: var(--danger);">✕</button>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        </div>
-    `).join('');
-}
-
-function renderEditArchiveExistingFiles(arch) {
-    if (!els.editArchiveExistingFiles) return;
-
-    const allFiles = [
-        ...(arch.minutesFiles || []).map(f => ({ ...f, typeLabel: 'Minutes Doc' })),
-        ...(arch.audioFiles || []).map(f => ({ ...f, typeLabel: 'Audio' })),
-        ...(arch.signedAttendanceFiles || []).map(f => ({ ...f, typeLabel: 'Signed Register' })),
-        ...(arch.transcript?.files || []).map(f => ({ ...f, typeLabel: 'Transcript Doc' })),
-        ...(arch.resolutionFiles || []).map(f => ({ ...f, typeLabel: 'Resolution Doc' }))
-    ];
-
-    if (allFiles.length === 0) {
-        els.editArchiveExistingFiles.innerHTML = `<p style="font-size: 0.84rem; color: var(--text-muted);">No files attached to this archive.</p>`;
-        return;
-    }
-
-    els.editArchiveExistingFiles.innerHTML = `
-        <div style="display: flex; flex-direction: column; gap: 0.4rem;">
-            ${allFiles.map(f => `
-                <div class="uploaded-file-chip">
-                    <div class="uploaded-file-chip-info">
-                        <span style="font-size: 0.8rem; font-weight: 700; color: var(--primary);">${f.typeLabel}:</span>
-                        <span>${escapeHTML(f.originalName)} (${formatBytes(f.size)})</span>
-                    </div>
-                    <button type="button" class="btn-link-action btn-delete-archive-file" data-archive-id="${arch.id}" data-file-id="${f.id}" style="color: var(--danger); font-size: 0.8rem;">
-                        ${SVG_ICONS.trash} Remove
-                    </button>
-                </div>
-            `).join('')}
-        </div>
-    `;
-}
-
-// ── Global Event Listeners for Archives Module ──
-function initArchivesModule() {
-    // Stat card archives click
-    if (els.statCardArchives) {
-        els.statCardArchives.addEventListener('click', () => switchTab('archives'));
-    }
-
-    // Conclude Meeting button triggers
-    if (els.btnConcludeMeeting) {
-        els.btnConcludeMeeting.addEventListener('click', openConcludeWizard);
-    }
-    if (els.btnConcludeFromArchives) {
-        els.btnConcludeFromArchives.addEventListener('click', openConcludeWizard);
-    }
-    if (els.btnCloseConcludeModal) {
-        els.btnCloseConcludeModal.addEventListener('click', closeConcludeWizard);
-    }
-    if (els.btnConcludeCancel) {
-        els.btnConcludeCancel.addEventListener('click', closeConcludeWizard);
-    }
-
-    // Wizard navigation
-    if (els.btnConcludeNext) {
-        els.btnConcludeNext.addEventListener('click', () => {
-            if (state.concludeStep < 6) {
-                updateConcludeWizardStep(state.concludeStep + 1);
-            }
-        });
-    }
-    if (els.btnConcludePrev) {
-        els.btnConcludePrev.addEventListener('click', () => {
-            if (state.concludeStep > 1) {
-                updateConcludeWizardStep(state.concludeStep - 1);
-            }
-        });
-    }
-
-    // Wizard Step Nodes click
-    document.querySelectorAll('.wizard-step-node').forEach(node => {
-        node.addEventListener('click', () => {
-            const step = parseInt(node.dataset.step, 10);
-            if (step) updateConcludeWizardStep(step);
-        });
-    });
-
-    // Step 2 Audio Dropzone & File Input
-    if (els.concludeAudioDropZone && els.concludeAudioInput) {
-        els.concludeAudioDropZone.addEventListener('click', () => els.concludeAudioInput.click());
-        els.concludeAudioInput.addEventListener('change', (e) => {
-            if (e.target.files && e.target.files.length > 0) {
-                Array.from(e.target.files).forEach(f => state.selectedConcludeAudios.push(f));
-                renderConcludeAudioTray();
-            }
-        });
-
-        els.concludeAudioDropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            els.concludeAudioDropZone.classList.add('dragover');
-        });
-        els.concludeAudioDropZone.addEventListener('dragleave', () => {
-            els.concludeAudioDropZone.classList.remove('dragover');
-        });
-        els.concludeAudioDropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            els.concludeAudioDropZone.classList.remove('dragover');
-            if (e.dataTransfer && e.dataTransfer.files.length > 0) {
-                Array.from(e.dataTransfer.files).forEach(f => state.selectedConcludeAudios.push(f));
-                renderConcludeAudioTray();
-            }
-        });
-    }
-
-    function renderConcludeAudioTray() {
-        if (!els.concludeAudioTray) return;
-        if (state.selectedConcludeAudios.length === 0) {
-            els.concludeAudioTray.innerHTML = '';
-            if (els.concludeAudioDropTitle) els.concludeAudioDropTitle.textContent = 'Click to browse or drag & drop audio files here';
-            return;
-        }
-
-        if (els.concludeAudioDropTitle) els.concludeAudioDropTitle.textContent = `${state.selectedConcludeAudios.length} Audio File(s) Selected — Click to add more`;
-
-        els.concludeAudioTray.innerHTML = state.selectedConcludeAudios.map((f, idx) => `
-            <div class="uploaded-file-chip">
-                <div class="uploaded-file-chip-info">
-                    <span style="display: inline-flex; align-items: center;">${SVG_ICONS.audio}</span>
-                    <span><strong>${escapeHTML(f.name)}</strong> (${formatBytes(f.size)})</span>
-                </div>
-                <button type="button" class="btn-link-action btn-remove-conclude-audio" data-index="${idx}" style="color: var(--danger);">✕ Remove</button>
-            </div>
-        `).join('');
-
-        els.concludeAudioTray.querySelectorAll('.btn-remove-conclude-audio').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const idx = parseInt(e.target.dataset.index, 10);
-                state.selectedConcludeAudios.splice(idx, 1);
-                renderConcludeAudioTray();
-            });
-        });
-    }
-
-    // Step 3 Minutes Document Dropzone & File Input
-    if (els.concludeMinutesDropZone && els.concludeMinutesFileInput) {
-        els.concludeMinutesDropZone.addEventListener('click', () => els.concludeMinutesFileInput.click());
-        els.concludeMinutesFileInput.addEventListener('change', (e) => {
-            if (e.target.files && e.target.files.length > 0) {
-                Array.from(e.target.files).forEach(f => state.selectedConcludeMinutes.push(f));
-                renderConcludeMinutesTray();
-            }
-        });
-
-        els.concludeMinutesDropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            els.concludeMinutesDropZone.classList.add('dragover');
-        });
-        els.concludeMinutesDropZone.addEventListener('dragleave', () => {
-            els.concludeMinutesDropZone.classList.remove('dragover');
-        });
-        els.concludeMinutesDropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            els.concludeMinutesDropZone.classList.remove('dragover');
-            if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-                Array.from(e.dataTransfer.files).forEach(f => state.selectedConcludeMinutes.push(f));
-                renderConcludeMinutesTray();
-            }
-        });
-    }
-
-    function renderConcludeMinutesTray() {
-        if (!els.concludeMinutesTray) return;
-        if (state.selectedConcludeMinutes.length === 0) {
-            els.concludeMinutesTray.innerHTML = '';
-            if (els.concludeMinutesDropTitle) els.concludeMinutesDropTitle.textContent = 'Click to upload Official Minutes Document (.docx, .pdf, .doc)';
-            return;
-        }
-
-        if (els.concludeMinutesDropTitle) els.concludeMinutesDropTitle.textContent = `${state.selectedConcludeMinutes.length} Minutes Document(s) Selected — Click to add more`;
-
-        els.concludeMinutesTray.innerHTML = state.selectedConcludeMinutes.map((f, idx) => `
-            <div class="uploaded-file-chip">
-                <div class="uploaded-file-chip-info">
-                    <span style="display: inline-flex; align-items: center;">${SVG_ICONS.doc}</span>
-                    <span><strong>${escapeHTML(f.name)}</strong> (${formatBytes(f.size)})</span>
-                </div>
-                <button type="button" class="btn-link-action btn-remove-conclude-minutes" data-index="${idx}" style="color: var(--danger);">✕ Remove</button>
-            </div>
-        `).join('');
-
-        els.concludeMinutesTray.querySelectorAll('.btn-remove-conclude-minutes').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const idx = parseInt(e.target.dataset.index, 10);
-                state.selectedConcludeMinutes.splice(idx, 1);
-                renderConcludeMinutesTray();
-            });
-        });
-    }
-
-    // Step 4 Add Resolution Button
-    if (els.btnAddResolutionRow) {
-        els.btnAddResolutionRow.addEventListener('click', () => {
-            state.concludeResolutions.push({
-                itemId: null,
-                itemTitle: 'New Governance Resolution',
-                decision: 'Adopted',
-                resolutionText: '',
-                actionItems: []
-            });
-            renderConcludeResolutions();
-        });
-    }
-
-    // Step 4 Resolution removal & action item management
-    if (els.concludeResolutionsList) {
-        els.concludeResolutionsList.addEventListener('click', (e) => {
-            if (e.target.classList.contains('btn-remove-resolution')) {
-                const idx = parseInt(e.target.dataset.resIndex, 10);
-                state.concludeResolutions.splice(idx, 1);
-                renderConcludeResolutions();
-            } else if (e.target.classList.contains('btn-add-action-item')) {
-                const idx = parseInt(e.target.dataset.resIndex, 10);
-                if (!Array.isArray(state.concludeResolutions[idx].actionItems)) {
-                    state.concludeResolutions[idx].actionItems = [];
-                }
-                state.concludeResolutions[idx].actionItems.push({
-                    task: '',
-                    assignee: '',
-                    dueDate: '',
-                    status: 'Pending'
-                });
-                renderConcludeResolutions();
-            } else if (e.target.classList.contains('btn-remove-action-item')) {
-                const resIdx = parseInt(e.target.dataset.resIndex, 10);
-                const actIdx = parseInt(e.target.dataset.actIndex, 10);
-                if (state.concludeResolutions[resIdx]?.actionItems) {
-                    state.concludeResolutions[resIdx].actionItems.splice(actIdx, 1);
-                    renderConcludeResolutions();
-                }
-            }
-        });
-
-        // Sync inputs back to state
-        els.concludeResolutionsList.addEventListener('input', (e) => {
-            const card = e.target.closest('.resolution-card-editor');
-            if (!card) return;
-            const resIdx = parseInt(card.dataset.resIndex, 10);
-            const res = state.concludeResolutions[resIdx];
-            if (!res) return;
-
-            if (e.target.classList.contains('res-edit-title')) res.itemTitle = e.target.value;
-            if (e.target.classList.contains('res-edit-decision')) res.decision = e.target.value;
-            if (e.target.classList.contains('res-edit-text')) res.resolutionText = e.target.value;
-
-            const actRow = e.target.closest('.action-item-row-edit');
-            if (actRow) {
-                const actIdx = parseInt(actRow.dataset.actIndex, 10);
-                const act = res.actionItems?.[actIdx];
-                if (act) {
-                    if (e.target.classList.contains('act-edit-task')) act.task = e.target.value;
-                    if (e.target.classList.contains('act-edit-assignee')) act.assignee = e.target.value;
-                    if (e.target.classList.contains('act-edit-due')) act.dueDate = e.target.value;
-                }
-            }
-        });
-    }
-
-    // Step 5 Signed Register Dropzone
-    if (els.concludeSignedRegDropZone && els.concludeSignedRegInput) {
-        els.concludeSignedRegDropZone.addEventListener('click', () => els.concludeSignedRegInput.click());
-        els.concludeSignedRegInput.addEventListener('change', (e) => {
-            if (e.target.files && e.target.files.length > 0) {
-                if (els.concludeSignedRegTitle) {
-                    els.concludeSignedRegTitle.textContent = `Selected: ${e.target.files[0].name} (${formatBytes(e.target.files[0].size)})`;
-                }
-                if (els.concludeSignedRegError) els.concludeSignedRegError.textContent = '';
-            }
-        });
-    }
-
-    // Step 5 Conclude Wizard Submit Handler
-    if (els.concludeMeetingForm) {
-        els.concludeMeetingForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const title = (els.concludeMeetingTitle?.value || '').trim();
-            const date = els.concludeMeetingDate?.value || '';
-
-            if (!title || !date) {
-                showToast('Please specify Meeting Title and Date', true);
-                updateConcludeWizardStep(1);
-                return;
-            }
-
-            const formData = new FormData();
-
-            // Meeting Info
-            const meetingInfo = {
-                title,
-                date,
-                time: (els.concludeMeetingTime?.value || '10:00 SAST').trim(),
-                venue: (els.concludeMeetingVenue?.value || 'School Staff Room / Boardroom').trim(),
-                notes: (els.concludeMeetingNotes?.value || '').trim()
-            };
-            formData.append('meetingInfo', JSON.stringify(meetingInfo));
-            formData.append('notes', meetingInfo.notes);
-
-            // Audio Files
-            state.selectedConcludeAudios.forEach(af => {
-                formData.append('audioFiles', af);
-            });
-
-            // Minutes Files
-            state.selectedConcludeMinutes.forEach(mf => {
-                formData.append('minutesFiles', mf);
-            });
-
-            // Transcript
-            if (els.concludeTranscriptFileInput?.files?.[0]) {
-                formData.append('transcriptFiles', els.concludeTranscriptFileInput.files[0]);
-            }
-            formData.append('transcriptText', (els.concludeTranscriptText?.value || '').trim());
-
-            // Resolutions
-            formData.append('resolutions', JSON.stringify(state.concludeResolutions));
-            if (els.concludeResolutionFileInput?.files?.[0]) {
-                formData.append('resolutionFiles', els.concludeResolutionFileInput.files[0]);
-            }
-
-            // Signed Attendance Register
-            if (els.concludeSignedRegInput?.files?.[0]) {
-                formData.append('signedRegisterFiles', els.concludeSignedRegInput.files[0]);
-            }
-
-            // Attendance Data
-            if (state.concludeAttendance) {
-                // Collect status selects
-                const selects = document.querySelectorAll('.conclude-att-status-select');
-                let memberIdx = 0;
-                (state.concludeAttendance.components || []).forEach(comp => {
-                    (comp.members || []).forEach(m => {
-                        const sel = document.querySelector(`.conclude-att-status-select[data-member-idx="${memberIdx}"]`);
-                        if (sel) m.status = sel.value;
-                        memberIdx++;
-                    });
-                });
-                formData.append('attendanceData', JSON.stringify(state.concludeAttendance));
-            }
-
-            // Next Meeting Setup
-            const nextMeetingInfo = {
-                title: (els.nextMeetingTitle?.value || 'SGB & SMT Ordinary Meeting').trim(),
-                date: els.nextMeetingDate?.value || '',
-                time: (els.nextMeetingTime?.value || '10:00 SAST').trim(),
-                venue: (els.nextMeetingVenue?.value || 'School Staff Room / Boardroom').trim()
-            };
-            formData.append('nextMeetingInfo', JSON.stringify(nextMeetingInfo));
-            formData.append('clearVault', String(els.concludeClearVault?.checked !== false));
-
-            // UI progress
-            if (els.concludeProgressWrapper) els.concludeProgressWrapper.classList.remove('hidden');
-            if (els.btnConcludeSubmit) els.btnConcludeSubmit.disabled = true;
-
-            try {
-                const res = await api.concludeMeeting(formData, (percent) => {
-                    if (els.concludeProgressFill) els.concludeProgressFill.style.width = `${percent}%`;
-                    if (els.concludeProgressPercent) els.concludeProgressPercent.textContent = `${percent}%`;
-                });
-
-                showToast('Meeting successfully concluded and archived!');
-                closeConcludeWizard();
-                await loadData();
-                switchTab('archives');
-                if (res.archiveId) {
-                    openArchiveDossier(res.archiveId);
-                }
-            } catch (error) {
-                console.error('Error concluding meeting:', error);
-                showToast(error.message || 'Failed to archive meeting', true);
-            } finally {
-                if (els.btnConcludeSubmit) els.btnConcludeSubmit.disabled = false;
-                if (els.concludeProgressWrapper) els.concludeProgressWrapper.classList.add('hidden');
-            }
-        });
-    }
-
-    // Dossier Modal Tab Strip click listener
-    if (els.dossierTabsStrip) {
-        els.dossierTabsStrip.addEventListener('click', (e) => {
-            const btn = e.target.closest('.dossier-tab-btn');
-            if (!btn) return;
-            state.dossierActiveTab = btn.dataset.dtab;
-            els.dossierTabsStrip.querySelectorAll('.dossier-tab-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            renderDossierContent();
-        });
-    }
-
-    // Dossier Modal Actions
-    if (els.btnCloseDossierModal) els.btnCloseDossierModal.addEventListener('click', closeArchiveDossier);
-    if (els.btnDossierPrint) els.btnDossierPrint.addEventListener('click', () => window.print());
-    if (els.btnDossierDownloadDocx) {
-        els.btnDossierDownloadDocx.addEventListener('click', () => {
-            if (state.activeArchive) {
-                window.location.href = `/api/archives/${state.activeArchive.id}/export/docx?token=${encodeURIComponent(state.token || '')}`;
-            }
-        });
-    }
-    if (els.btnDossierDownloadZip) {
-        els.btnDossierDownloadZip.addEventListener('click', () => {
-            if (state.activeArchive) {
-                window.location.href = `/api/archives/${state.activeArchive.id}/export/zip?token=${encodeURIComponent(state.token || '')}`;
-            }
-        });
-    }
-    if (els.btnDossierEdit) {
-        els.btnDossierEdit.addEventListener('click', () => {
-            if (state.activeArchive) {
-                closeArchiveDossier();
-                openEditArchiveModal(state.activeArchive.id);
-            }
-        });
-    }
-
-    // Edit Archive Modal Actions
-    if (els.btnCloseEditArchiveModal) els.btnCloseEditArchiveModal.addEventListener('click', closeEditArchiveModal);
-    if (els.btnCancelEditArchive) els.btnCancelEditArchive.addEventListener('click', closeEditArchiveModal);
-
-    if (els.btnEditAddResolutionRow) {
-        els.btnEditAddResolutionRow.addEventListener('click', () => {
-            if (!state.editingArchive) return;
-            if (!Array.isArray(state.editingArchive.resolutions)) state.editingArchive.resolutions = [];
-            state.editingArchive.resolutions.push({
-                itemTitle: 'New Formal Resolution',
-                decision: 'Adopted',
-                resolutionText: '',
-                actionItems: []
-            });
-            renderEditArchiveResolutions(state.editingArchive.resolutions);
-        });
-    }
-
-    if (els.editArchiveResolutionsList) {
-        els.editArchiveResolutionsList.addEventListener('click', (e) => {
-            if (e.target.classList.contains('btn-edit-remove-resolution')) {
-                const idx = parseInt(e.target.dataset.resIndex, 10);
-                if (state.editingArchive?.resolutions) {
-                    state.editingArchive.resolutions.splice(idx, 1);
-                    renderEditArchiveResolutions(state.editingArchive.resolutions);
-                }
-            } else if (e.target.classList.contains('btn-edit-add-action-item')) {
-                const idx = parseInt(e.target.dataset.resIndex, 10);
-                if (state.editingArchive?.resolutions?.[idx]) {
-                    if (!Array.isArray(state.editingArchive.resolutions[idx].actionItems)) {
-                        state.editingArchive.resolutions[idx].actionItems = [];
-                    }
-                    state.editingArchive.resolutions[idx].actionItems.push({
-                        task: '',
-                        assignee: '',
-                        dueDate: '',
-                        status: 'Pending'
-                    });
-                    renderEditArchiveResolutions(state.editingArchive.resolutions);
-                }
-            } else if (e.target.classList.contains('btn-edit-remove-action-item')) {
-                const resIdx = parseInt(e.target.dataset.resIndex, 10);
-                const actIdx = parseInt(e.target.dataset.actIndex, 10);
-                if (state.editingArchive?.resolutions?.[resIdx]?.actionItems) {
-                    state.editingArchive.resolutions[resIdx].actionItems.splice(actIdx, 1);
-                    renderEditArchiveResolutions(state.editingArchive.resolutions);
-                }
-            }
-        });
-    }
-
-    // Delete single file from archive in edit modal
-    if (els.editArchiveExistingFiles) {
-        els.editArchiveExistingFiles.addEventListener('click', async (e) => {
-            if (e.target.classList.contains('btn-delete-archive-file')) {
-                const { archiveId, fileId } = e.target.dataset;
-                if (confirm('Delete this file from the meeting archive?')) {
-                    try {
-                        const res = await api.deleteArchiveFile(archiveId, fileId);
-                        showToast('File removed from archive');
-                        state.editingArchive = res.archive;
-                        renderEditArchiveExistingFiles(res.archive);
-                        await loadData();
-                    } catch (error) {
-                        showToast(error.message || 'Failed to delete file', true);
-                    }
-                }
-            }
-        });
-    }
-
-    // Save Edit Archive Form
-    if (els.editArchiveForm) {
-        els.editArchiveForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const archiveId = els.editArchiveId?.value;
-            if (!archiveId) return;
-
-            // Collect resolutions
-            const resCards = els.editArchiveResolutionsList?.querySelectorAll('.resolution-card-editor') || [];
-            const updatedResolutions = [];
-            resCards.forEach(card => {
-                const title = card.querySelector('.edit-res-title')?.value || '';
-                const decision = card.querySelector('.edit-res-decision')?.value || 'Adopted';
-                const text = card.querySelector('.edit-res-text')?.value || '';
-                const actionItems = [];
-                card.querySelectorAll('.action-item-row-edit').forEach(actRow => {
-                    const task = actRow.querySelector('.edit-act-task')?.value || '';
-                    const assignee = actRow.querySelector('.edit-act-assignee')?.value || '';
-                    const dueDate = actRow.querySelector('.edit-act-due')?.value || '';
-                    if (task) actionItems.push({ task, assignee, dueDate, status: 'Pending' });
-                });
-                updatedResolutions.push({ itemTitle: title, decision, resolutionText: text, actionItems });
-            });
-
-            const payload = {
-                meetingInfo: {
-                    title: (els.editArchiveTitle?.value || '').trim(),
-                    date: els.editArchiveDate?.value || '',
-                    time: (els.editArchiveTime?.value || '').trim(),
-                    venue: (els.editArchiveVenue?.value || '').trim()
-                },
-                notes: (els.editArchiveNotes?.value || '').trim(),
-                transcriptText: (els.editArchiveTranscript?.value || '').trim(),
-                resolutions: updatedResolutions
-            };
-
-            try {
-                await api.updateArchive(archiveId, payload);
-
-                // Upload additional files if selected
-                const hasNewAudio = els.editArchiveNewAudio?.files?.length > 0;
-                const hasNewMinutes = els.editArchiveNewMinutes?.files?.length > 0;
-                const hasNewSigned = els.editArchiveNewSigned?.files?.length > 0;
-                const hasNewTranscript = els.editArchiveNewTranscript?.files?.length > 0;
-                const hasNewResolution = els.editArchiveNewResolution?.files?.length > 0;
-
-                if (hasNewAudio || hasNewMinutes || hasNewSigned || hasNewTranscript || hasNewResolution) {
-                    const formData = new FormData();
-                    if (hasNewAudio) {
-                        Array.from(els.editArchiveNewAudio.files).forEach(f => formData.append('audioFiles', f));
-                    }
-                    if (hasNewMinutes) {
-                        Array.from(els.editArchiveNewMinutes.files).forEach(f => formData.append('minutesFiles', f));
-                    }
-                    if (hasNewSigned) {
-                        formData.append('signedRegisterFiles', els.editArchiveNewSigned.files[0]);
-                    }
-                    if (hasNewTranscript) {
-                        formData.append('transcriptFiles', els.editArchiveNewTranscript.files[0]);
-                    }
-                    if (hasNewResolution) {
-                        formData.append('resolutionFiles', els.editArchiveNewResolution.files[0]);
-                    }
-                    await api.uploadArchiveFiles(archiveId, formData);
-                }
-
-                showToast('Archive updated successfully!');
-                closeEditArchiveModal();
-                await loadData();
-                openArchiveDossier(archiveId);
-            } catch (error) {
-                console.error('Error saving archive edits:', error);
-                showToast(error.message || 'Failed to update archive', true);
-            }
-        });
-    }
-
-    // Global click delegate for Archive cards
-    if (els.archivesContainer) {
-        els.archivesContainer.addEventListener('click', async (e) => {
-            const btnDossier = e.target.closest('.btn-open-archive-dossier');
-            if (btnDossier) {
-                openArchiveDossier(btnDossier.dataset.id);
-                return;
-            }
-
-            const btnDocx = e.target.closest('.btn-download-archive-docx');
-            if (btnDocx) {
-                window.location.href = `/api/archives/${btnDocx.dataset.id}/export/docx?token=${encodeURIComponent(state.token || '')}`;
-                return;
-            }
-
-            const btnZip = e.target.closest('.btn-download-archive-zip');
-            if (btnZip) {
-                window.location.href = `/api/archives/${btnZip.dataset.id}/export/zip?token=${encodeURIComponent(state.token || '')}`;
-                return;
-            }
-
-            const btnEdit = e.target.closest('.btn-edit-archive-quick');
-            if (btnEdit) {
-                openEditArchiveModal(btnEdit.dataset.id);
-                return;
-            }
-
-            const btnDelete = e.target.closest('.btn-delete-archive-quick');
-            if (btnDelete) {
-                const archiveId = btnDelete.dataset.id;
-                if (confirm('Are you sure you want to permanently delete this meeting archive? All recorded assets and audio will be removed.')) {
-                    try {
-                        await api.deleteArchive(archiveId);
-                        showToast('Meeting archive deleted');
-                        await loadData();
-                    } catch (error) {
-                        showToast(error.message || 'Failed to delete archive', true);
-                    }
-                }
-                return;
-            }
-
-            // Card body click
-            const card = e.target.closest('.archive-card');
-            if (card && !e.target.closest('button') && !e.target.closest('a')) {
-                openArchiveDossier(card.dataset.archiveId);
-            }
-        });
-    }
-
-    // Archive Search & Filters
-    if (els.archiveSearchInput) {
-        els.archiveSearchInput.addEventListener('input', (e) => {
-            state.archiveFilters.search = e.target.value;
-            renderArchives();
-        });
-    }
-
-    if (els.archiveFilterChips) {
-        els.archiveFilterChips.addEventListener('click', (e) => {
-            const chip = e.target.closest('.tag-filter-chip');
-            if (!chip) return;
-            state.archiveFilters.filter = chip.dataset.filter;
-            els.archiveFilterChips.querySelectorAll('.tag-filter-chip').forEach(c => c.classList.remove('active'));
-            chip.classList.add('active');
-            renderArchives();
-        });
-    }
-
-    if (els.sortArchives) {
-        els.sortArchives.addEventListener('change', (e) => {
-            state.archiveFilters.sort = e.target.value;
-            renderArchives();
-        });
-    }
-}
-
-// ── Start ──
+// ΓöÇΓöÇ Start ΓöÇΓöÇ
 init();
-initArchivesModule();
